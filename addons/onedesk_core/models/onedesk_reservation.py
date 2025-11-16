@@ -181,6 +181,7 @@ class OneDeskReservation(models.Model):
     def action_generate_payment_link(self):
         """
         Génère un lien de paiement pour cette réservation
+        ET envoie automatiquement l'email au client
         Appelé depuis le bouton dans la vue
         """
         self.ensure_one()
@@ -198,17 +199,102 @@ class OneDeskReservation(models.Model):
         # Sauvegarde le lien de paiement
         self.payment_link = wizard.link
 
+        # Envoie l'email au client
+        try:
+            self._send_payment_link_email()
+            email_notification = f"Email envoyé à {self.partner_id.email}"
+        except Exception as e:
+            email_notification = f"⚠️ Erreur envoi email: {str(e)}"
+
         # Retourne une notification
         return {
             'type': 'ir.actions.client',
             'tag': 'display_notification',
             'params': {
                 'title': 'Lien de paiement généré',
-                'message': f'Lien généré pour {self.total_price}€. Partagez-le avec le client!',
+                'message': f'Lien généré pour {self.total_price}€. {email_notification}',
                 'type': 'success',
                 'sticky': False,
             }
         }
+
+    def _send_payment_link_email(self):
+        """
+        Envoie le lien de paiement par email au client
+        """
+        self.ensure_one()
+
+        # Vérifie que le client a un email
+        if not self.partner_id.email:
+            raise ValueError(f"Le client {self.partner_id.name} n'a pas d'adresse email")
+
+        # Prépare le contenu de l'email
+        subject = f"Lien de paiement - Réservation {self.name}"
+
+        # Corps de l'email en HTML (simplifié pour MVP)
+        body_html = f"""
+        <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+            <h2>Bonjour {self.partner_id.name},</h2>
+
+            <p>Nous vous remercions de votre réservation! Veuillez finaliser votre paiement en cliquant sur le lien ci-dessous:</p>
+
+            <div style="margin: 20px 0;">
+                <a href="{self.payment_link}" style="background-color: #007bff; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block; font-weight: bold;">
+                    💳 Payer maintenant
+                </a>
+            </div>
+
+            <h3>Détails de votre réservation:</h3>
+            <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
+                <tr style="background-color: #f9f9f9;">
+                    <td style="padding: 10px; border: 1px solid #ddd;"><strong>Unité:</strong></td>
+                    <td style="padding: 10px; border: 1px solid #ddd;">{self.unit_id.name}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 10px; border: 1px solid #ddd;"><strong>Arrivée:</strong></td>
+                    <td style="padding: 10px; border: 1px solid #ddd;">{self.start_date.strftime('%d/%m/%Y')}</td>
+                </tr>
+                <tr style="background-color: #f9f9f9;">
+                    <td style="padding: 10px; border: 1px solid #ddd;"><strong>Départ:</strong></td>
+                    <td style="padding: 10px; border: 1px solid #ddd;">{self.end_date.strftime('%d/%m/%Y')}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 10px; border: 1px solid #ddd;"><strong>Nombre de nuits:</strong></td>
+                    <td style="padding: 10px; border: 1px solid #ddd;">{self.number_of_nights}</td>
+                </tr>
+                <tr style="background-color: #f0f0f0;">
+                    <td style="padding: 10px; border: 1px solid #ddd;"><strong>Montant à payer:</strong></td>
+                    <td style="padding: 10px; border: 1px solid #ddd; font-size: 18px; font-weight: bold; color: #28a745;">{self.total_price}€</td>
+                </tr>
+            </table>
+
+            <p style="color: #666; font-size: 12px;">
+                Si vous avez des questions, n'hésitez pas à nous contacter.
+            </p>
+
+            <p style="color: #666;">
+                Cordialement,<br/>
+                <strong>{self.env.company.name}</strong>
+            </p>
+        </div>
+        """
+
+        # Crée et envoie l'email
+        mail_values = {
+            'subject': subject,
+            'body_html': body_html,
+            'email_to': self.partner_id.email,
+            'email_from': self.env.company.email or self.env.user.email,
+        }
+
+        mail = self.env['mail.mail'].create(mail_values)
+        mail.send()
+
+        # Log l'action
+        self.message_post(
+            body=f"📧 Email de paiement envoyé à {self.partner_id.email}",
+            message_type='comment'
+        )
 
     def action_check_payment_status(self):
         """
