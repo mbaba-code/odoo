@@ -2,6 +2,7 @@ from odoo import models, fields, api
 from odoo.exceptions import ValidationError
 from odoo.fields import Command
 from datetime import datetime
+from odoo.tools import format_datetime
 
 class OneDeskReservation(models.Model):
     _name = 'onedesk.reservation'
@@ -59,6 +60,11 @@ class OneDeskReservation(models.Model):
     ], string='Statut paiement', default='pending', tracking=True)
     payment_link = fields.Char(string='Lien de paiement', copy=False,
                               help="Lien pour que le client paie cette réservation")
+
+    # Invoice relation
+    invoice_id = fields.Many2one('account.move', string='Facture générée',
+                                copy=False, readonly=True,
+                                help="Facture automatiquement générée après paiement")
 
     # Link to payment transactions (NEW - pour Odoo payment module)
     transaction_ids = fields.Many2many(
@@ -461,12 +467,22 @@ class OneDeskReservation(models.Model):
             self.payment_status = 'completed'
             # Passe automatiquement au statut "paid"
             self.status = 'paid'
+
+            # Génère automatiquement la facture
+            try:
+                self._generate_invoice()
+            except Exception as e:
+                self.message_post(
+                    body=f"⚠️ Erreur lors de la génération de la facture: {str(e)}",
+                    message_type='comment'
+                )
+
             return {
                 'type': 'ir.actions.client',
                 'tag': 'display_notification',
                 'params': {
                     'title': 'Paiement confirmé',
-                    'message': f'Montant payé: {self.amount_paid}€',
+                    'message': f'Montant payé: {self.amount_paid}€ - Facture générée',
                     'type': 'success',
                 }
             }
@@ -569,3 +585,91 @@ class OneDeskReservation(models.Model):
                 'type': 'warning',
             }
         }
+
+    # ========== INVOICING ==========
+
+    def _generate_invoice(self):
+        """
+        Génère automatiquement une facture (account.move) pour la réservation payée
+        Appelée quand le statut passe à 'paid'
+        """
+        self.ensure_one()
+
+        # Vérifie que le modèle account.move existe (require l'app Accounting)
+        if not self.env['ir.model'].search([('model', '=', 'account.move')]):
+            self.message_post(
+                body="⚠️ Module Accounting non installé - Impossible de générer la facture",
+                message_type='comment'
+            )
+            return None
+
+        # Crée les lignes de facture
+        invoice_lines = []
+
+        # Ligne 1: Nuitées
+        invoice_lines.append((0, 0, {
+            'name': f"Séjour à {self.unit_id.name} - {self.number_of_nights} nuit(s)",
+            'quantity': self.number_of_nights,
+            'price_unit': self.price_per_night,
+            'product_id': False,  # Pas de produit spécifique, utilise 'service' par défaut
+            'account_id': self.env.company.expense_accrual_account_id.id or self.env['account.account'].search([('code', '=', '701000')], limit=1).id,
+        }))
+
+        # Ligne 2: Frais de nettoyage (si applicable)
+        if self.unit_id.cleaning_fee > 0:
+            invoice_lines.append((0, 0, {
+                'name': f"Frais de nettoyage - {self.unit_id.name}",
+                'quantity': 1,
+                'price_unit': self.unit_id.cleaning_fee,
+                'product_id': False,
+                'account_id': self.env.company.expense_accrual_account_id.id or self.env['account.account'].search([('code', '=', '701000')], limit=1).id,
+            }))
+
+        # Prépare les valeurs de la facture
+        invoice_vals = {
+            'move_type': 'out_invoice',  # Facture client
+            'partner_id': self.partner_id.id,
+            'invoice_date': fields.Date.today(),
+            'ref': self.name,  # Référence de la réservation
+            'narration': f"Facture pour la réservation {self.name}\nUnité: {self.unit_id.name}\nPériode: {self.start_date.strftime('%d/%m/%Y')} - {self.end_date.strftime('%d/%m/%Y')}",
+            'invoice_line_ids': invoice_lines,
+            'company_id': self.env.company.id,
+        }
+
+        try:
+            # Crée la facture
+            invoice = self.env['account.move'].create(invoice_vals)
+
+            # Stocker la référence de la facture
+            self.invoice_id = invoice.id
+
+            # Log l'action
+            self.message_post(
+                body=f"📄 Facture générée: <a href='#' class='o_field_widget o_readonly' title='{invoice.name}'>{invoice.name}</a>",
+                message_type='comment'
+            )
+
+            return invoice
+
+        except Exception as e:
+            # Log l'erreur mais ne bloque pas le workflow
+            self.message_post(
+                body=f"⚠️ Erreur lors de la génération de la facture: {str(e)}",
+                message_type='comment'
+            )
+            return None
+
+    def _auto_generate_invoice_on_payment(self):
+        """
+        Appelée automatiquement quand le paiement est confirmé
+        Génère la facture si elle n'existe pas déjà
+        """
+        self.ensure_one()
+
+        # Vérifie qu'on a un modèle invoice_id (à ajouter)
+        if not hasattr(self, 'invoice_id'):
+            return
+
+        # Crée la facture si elle n'existe pas
+        if not self.invoice_id and self.total_price > 0:
+            self._generate_invoice()
