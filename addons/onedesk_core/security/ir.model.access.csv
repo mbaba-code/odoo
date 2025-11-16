@@ -1,6 +1,7 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 access_onedesk_property,access_onedesk_property,model_onedesk_property,base.group_user,1,1,1,1
 access_onedesk_unit,access_onedesk_unit,model_onedesk_unit,base.group_user,1,1,1,1
+access_onedesk_seasonal_price,access_onedesk_seasonal_price,model_onedesk_seasonal_price,base.group_user,1,1,1,1
 access_onedesk_reservation,access_onedesk_reservation,model_onedesk_reservation,base.group_user,1,1,1,1
 access_onedesk_task,access_onedesk_task,model_onedesk_task,base.group_user,1,1,1,1
 access_onedesk_integration,access_onedesk_integration,model_onedesk_integration,base.group_user,1,1,1,1

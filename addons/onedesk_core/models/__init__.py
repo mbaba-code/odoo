@@ -1,5 +1,6 @@
 from . import onedesk_property
 from . import onedesk_unit
+from . import onedesk_seasonal_price
 from . import onedesk_reservation
 from . import onedesk_task
 

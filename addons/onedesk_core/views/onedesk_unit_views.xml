@@ -6,7 +6,7 @@
             <list string="Units">
                 <field name="name"/>
                 <field name="property_id"/>
-                <field name="price"/>
+                <field name="price_per_night"/>
                 <field name="available"/>
             </list>
         </field>
@@ -18,12 +18,33 @@
         <field name="arch" type="xml">
             <form string="Unit">
                 <sheet>
+                    <h1>
+                        <field name="name" class="oe_inline"/>
+                    </h1>
                     <group>
-                        <field name="name"/>
-                        <field name="property_id"/>
-                        <field name="price"/>
-                        <field name="available"/>
+                        <group>
+                            <field name="property_id"/>
+                            <field name="available"/>
+                        </group>
+                        <group>
+                            <field name="price_per_night" widget="monetary"/>
+                        </group>
                     </group>
+
+                    <!-- Tarification saisonnière -->
+                    <separator string="💰 Tarification Saisonnière"/>
+                    <field name="seasonal_price_ids">
+                        <tree string="Tarifs saisonniers" editable="bottom">
+                            <field name="name"/>
+                            <field name="date_start"/>
+                            <field name="date_end"/>
+                            <field name="price_per_night" widget="monetary"/>
+                            <field name="active"/>
+                        </tree>
+                    </field>
+                    <p class="text-muted text-center" style="margin-top: 10px; font-size: 12px;">
+                        💡 Ajouter des périodes saisonnières pour appliquer des tarifs différents (ex: 120€/nuit en été, 50€/nuit en hiver)
+                    </p>
                 </sheet>
             </form>
         </field>

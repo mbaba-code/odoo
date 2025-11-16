@@ -12,6 +12,7 @@
     # Vues d'abord (ça charge les models)
     'views/onedesk_property_views.xml',
     'views/onedesk_unit_views.xml',
+    'views/onedesk_seasonal_price_views.xml',
     'views/onedesk_reservation_views.xml',
     'views/onedesk_task_views.xml',
     'views/onedesk_integration_provider_views.xml',
