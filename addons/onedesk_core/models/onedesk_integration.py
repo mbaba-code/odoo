@@ -227,9 +227,9 @@ class OnedeskIntegration(models.Model):
             })
             
             self._log('success', f"✅ Connexion OAuth réussie")
-            
+
             # Lance première sync
-            self.with_delay().action_sync_now()
+            self.action_sync_now()
             
         except Exception as e:
             error_msg = f"Erreur OAuth: {str(e)}"
@@ -481,9 +481,22 @@ class OnedeskIntegration(models.Model):
     def _process_reservation(self, data):
         """Traite une réservation et l'importe dans OneDesk"""
         self.ensure_one()
-        
+
+        # Validation des données minimales requises
+        if not data.get('id'):
+            _logger.warning("⚠️ Réservation ignorée: ID manquant")
+            return False
+
+        if not data.get('start_date') and not data.get('checkin'):
+            _logger.warning(f"⚠️ Réservation {data.get('id')} ignorée: date de début manquante")
+            return False
+
+        if not data.get('end_date') and not data.get('checkout'):
+            _logger.warning(f"⚠️ Réservation {data.get('id')} ignorée: date de fin manquante")
+            return False
+
         external_id = f"{self.provider_id.code}:{data.get('id')}"
-        
+
         # Cherche si existe déjà
         Reservation = self.env['onedesk.reservation']
         existing = Reservation.search([
