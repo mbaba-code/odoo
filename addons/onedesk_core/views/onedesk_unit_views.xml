@@ -33,16 +33,16 @@
 
                     <!-- Tarification saisonnière -->
                     <separator string="💰 Tarification Saisonnière"/>
-                    <field name="seasonal_price_ids">
+                    <field name="seasonal_price_ids" nolabel="1">
                         <tree string="Tarifs saisonniers" editable="bottom">
                             <field name="name"/>
                             <field name="date_start"/>
                             <field name="date_end"/>
-                            <field name="price_per_night" widget="monetary"/>
-                            <field name="active"/>
+                            <field name="price_per_night"/>
+                            <field name="active" optional="hide"/>
                         </tree>
                     </field>
-                    <p class="text-muted text-center" style="margin-top: 10px; font-size: 12px;">
+                    <p style="margin-top: 10px; font-size: 12px; color: #999;">
                         💡 Ajouter des périodes saisonnières pour appliquer des tarifs différents (ex: 120€/nuit en été, 50€/nuit en hiver)
                     </p>
                 </sheet>
