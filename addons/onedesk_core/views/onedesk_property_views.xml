@@ -54,15 +54,7 @@
                             <field name="amenities" placeholder="WiFi, Piscine, Parking, Climatisation, etc." nolabel="1"/>
                         </page>
                         <page string="🏠 Unités" name="units">
-                            <field name="unit_ids">
-                                <tree string="Unités">
-                                    <field name="name"/>
-                                    <field name="bedrooms"/>
-                                    <field name="bathrooms"/>
-                                    <field name="price_per_night"/>
-                                    <field name="revenue_this_month"/>
-                                </tree>
-                            </field>
+                            <field name="unit_ids" nolabel="1"/>
                         </page>
                     </notebook>
                 </sheet>
