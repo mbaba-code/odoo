@@ -160,18 +160,6 @@
         </field>
     </record>
 
-    <!-- ========================= -->
-    <!-- MENU PRINCIPAL ONE DESK -->
-    <!-- ========================= -->
-
-    <menuitem id="menu_onedesk_root" name="OneDesk"/>
-
-    <!-- Sous-menu propriétés -->
-    <menuitem id="menu_onedesk_property"
-              name="Properties"
-              parent="menu_onedesk_root"
-              action="action_onedesk_property"/>
-
     <!-- Sous-menu réservations -->
     <menuitem id="menu_onedesk_reservations"
               name="Reservations"
