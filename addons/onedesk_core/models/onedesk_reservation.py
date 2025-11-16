@@ -168,6 +168,17 @@ class OneDeskReservation(models.Model):
 
         # Lier l'événement à la réservation
         reservation.calendar_event_id = event.id
+
+        # Envoie un email de confirmation automatiquement
+        try:
+            reservation._send_confirmation_email()
+        except Exception as e:
+            # Log l'erreur mais ne bloque pas la création
+            reservation.message_post(
+                body=f"⚠️ Erreur lors de l'envoi de l'email de confirmation: {str(e)}",
+                message_type='comment'
+            )
+
         return reservation
 
     # Mise à jour automatique de l'événement si la réservation change
@@ -261,6 +272,99 @@ class OneDeskReservation(models.Model):
                 'sticky': False,
             }
         }
+
+    def _send_confirmation_email(self):
+        """
+        Envoie un email de confirmation de réservation au client
+        """
+        self.ensure_one()
+
+        # Vérifie que le client a un email
+        if not self.partner_id.email:
+            return False
+
+        # Prépare le contenu de l'email
+        subject = f"Confirmation de réservation - {self.name}"
+
+        # Corps de l'email en HTML
+        body_html = f"""
+        <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+            <h2>Bonjour {self.partner_id.name},</h2>
+
+            <p>Merci d'avoir choisi notre propriété! Votre réservation a bien été confirmée. Veuillez trouver les détails ci-dessous:</p>
+
+            <h3>📋 Détails de votre réservation:</h3>
+            <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
+                <tr style="background-color: #f9f9f9;">
+                    <td style="padding: 10px; border: 1px solid #ddd;"><strong>Référence:</strong></td>
+                    <td style="padding: 10px; border: 1px solid #ddd;">{self.name}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 10px; border: 1px solid #ddd;"><strong>Propriété:</strong></td>
+                    <td style="padding: 10px; border: 1px solid #ddd;">{self.unit_id.property_id.name if self.unit_id.property_id else 'N/A'}</td>
+                </tr>
+                <tr style="background-color: #f9f9f9;">
+                    <td style="padding: 10px; border: 1px solid #ddd;"><strong>Unité:</strong></td>
+                    <td style="padding: 10px; border: 1px solid #ddd;">{self.unit_id.name}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 10px; border: 1px solid #ddd;"><strong>📅 Date d'arrivée:</strong></td>
+                    <td style="padding: 10px; border: 1px solid #ddd;"><strong>{self.start_date.strftime('%d/%m/%Y à %H:%M')}</strong></td>
+                </tr>
+                <tr style="background-color: #f9f9f9;">
+                    <td style="padding: 10px; border: 1px solid #ddd;"><strong>📅 Date de départ:</strong></td>
+                    <td style="padding: 10px; border: 1px solid #ddd;"><strong>{self.end_date.strftime('%d/%m/%Y à %H:%M')}</strong></td>
+                </tr>
+                <tr>
+                    <td style="padding: 10px; border: 1px solid #ddd;"><strong>🌙 Nombre de nuits:</strong></td>
+                    <td style="padding: 10px; border: 1px solid #ddd;">{self.number_of_nights}</td>
+                </tr>
+                <tr style="background-color: #f0f0f0;">
+                    <td style="padding: 10px; border: 1px solid #ddd;"><strong>💰 Prix total:</strong></td>
+                    <td style="padding: 10px; border: 1px solid #ddd; font-size: 18px; font-weight: bold; color: #28a745;">{self.total_price}€</td>
+                </tr>
+            </table>
+
+            <h3>🏠 Informations sur la propriété:</h3>
+            <div style="background-color: #f5f5f5; padding: 15px; border-radius: 5px; margin: 20px 0;">
+                <p><strong>Adresse:</strong> {self.unit_id.property_id.address if self.unit_id.property_id else 'N/A'}</p>
+                <p><strong>Capacité:</strong> {self.unit_id.capacity} personnes</p>
+                <p><strong>Chambres:</strong> {self.unit_id.bedrooms} | <strong>Salles de bain:</strong> {self.unit_id.bathrooms}</p>
+                <p><strong>Équipements:</strong> {self.unit_id.property_id.amenities or 'Voir la liste complète sur notre site'}</p>
+            </div>
+
+            <h3>📝 Prochaines étapes:</h3>
+            <ol style="margin: 20px 0;">
+                <li><strong>Paiement:</strong> Un lien de paiement vous sera envoyé sous peu. Veuillez finaliser le paiement avant votre arrivée.</li>
+                <li><strong>Instructions d'accès:</strong> Vous recevrez les instructions d'accès 24 heures avant votre arrivée.</li>
+                <li><strong>Contact:</strong> En cas de question, contactez-nous à {self.env.company.email or 'support@example.com'}</li>
+            </ol>
+
+            <p style="color: #666; font-size: 12px; margin-top: 30px; border-top: 1px solid #ddd; padding-top: 15px;">
+                Bon séjour!<br/>
+                L'équipe de {self.env.company.name}
+            </p>
+        </div>
+        """
+
+        # Crée et envoie l'email
+        mail_values = {
+            'subject': subject,
+            'body_html': body_html,
+            'email_to': self.partner_id.email,
+            'email_from': self.env.company.email or self.env.user.email,
+        }
+
+        mail = self.env['mail.mail'].create(mail_values)
+        mail.send()
+
+        # Log l'action
+        self.message_post(
+            body=f"📧 Email de confirmation envoyé à {self.partner_id.email}",
+            message_type='comment'
+        )
+
+        return True
 
     def _send_payment_link_email(self):
         """
