@@ -16,7 +16,7 @@
                 <field name="end_date"/>
                 <field name="number_of_nights"/>
                 <field name="total_price" widget="monetary"/>
-                <field name="payment_status" widget="badge" decoration-success="payment_status=='completed'" decoration-warning="payment_status=='pending'" decoration-danger="payment_status=='cancelled'"/>
+                <field name="payment_status" widget="badge"/>
             </list>
         </field>
     </record>
@@ -28,14 +28,13 @@
         <field name="arch" type="xml">
             <form string="Reservation">
                 <header>
+                    <!-- Boutons sans states -->
                     <button name="action_generate_payment_link" type="object"
                             string="💳 Générer Lien Paiement"
-                            class="oe_highlight"
-                            states="pending"/>
+                            class="oe_highlight"/>
                     <button name="action_check_payment_status" type="object"
                             string="✓ Vérifier Statut Paiement"
-                            class="oe_link"
-                            states="pending"/>
+                            class="oe_link"/>
                     <field name="payment_status" widget="statusbar" options="{'clickable': False}"/>
                 </header>
                 <sheet>
@@ -79,13 +78,13 @@
                     <!-- Transactions de paiement -->
                     <separator string="📊 Transactions de paiement"/>
                     <field name="transaction_ids" readonly="1" nolabel="1">
-                        <tree>
+                        <list>
                             <field name="reference"/>
                             <field name="provider_code"/>
                             <field name="amount"/>
                             <field name="state"/>
                             <field name="last_state_change"/>
-                        </tree>
+                        </list>
                     </field>
 
                     <notebook>
