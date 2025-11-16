@@ -1,4 +1,5 @@
 from odoo import models, fields, api
+from odoo.exceptions import ValidationError
 from datetime import datetime
 
 class OnedeskSeasonalPrice(models.Model):
@@ -20,7 +21,7 @@ class OnedeskSeasonalPrice(models.Model):
         """Vérifie que date_start < date_end"""
         for record in self:
             if record.date_start >= record.date_end:
-                raise ValueError("La date de début doit être avant la date de fin")
+                raise ValidationError("La date de début doit être avant la date de fin")
 
     def __str__(self):
         return f"{self.name}: {self.date_start} → {self.date_end} ({self.price_per_night}€/nuit)"
