@@ -31,8 +31,17 @@
                         </group>
                     </group>
 
-            
-                    
+                    <!-- Tarification saisonnière -->
+                    <separator string="💰 Tarification Saisonnière"/>
+                    <field name="seasonal_price_ids" nolabel="1">
+                        <tree string="Tarifs saisonniers" editable="bottom">
+                            <field name="name"/>
+                            <field name="date_start"/>
+                            <field name="date_end"/>
+                            <field name="price_per_night"/>
+                            <field name="active" optional="hide"/>
+                        </tree>
+                    </field>
                     <p style="margin-top: 10px; font-size: 12px; color: #999;">
                         💡 Ajouter des périodes saisonnières pour appliquer des tarifs différents (ex: 120€/nuit en été, 50€/nuit en hiver)
                     </p>
@@ -46,53 +55,54 @@
         <field name="name">onedesk.unit.kanban</field>
         <field name="model">onedesk.unit</field>
         <field name="arch" type="xml">
-            <kanban string="Units Dashboard" class="o_kanban_small_columns">
+            <kanban string="Units Dashboard">
+                <field name="revenue_this_month"/>
+                <field name="occupancy_percentage"/>
+                <field name="upcoming_reservations_count"/>
+                <field name="revenue_this_year"/>
+                <field name="price_per_night"/>
                 <templates>
-                    <t t-name="kanban-box">
-                        <div class="oe_kanban_card oe_kanban_global_click">
-                            <div class="oe_kanban_content">
-                                <div class="o_kanban_record_title oe_partner_heading">
-                                    <strong><field name="name"/></strong>
-                                </div>
-                                <div class="text-muted text-sm">
-                                    <field name="property_id"/>
-                                </div>
+                    <t t-name="card">
+                        <div class="oe_kanban_card">
+                            <div class="oe_kanban_global_click">
+                                <h3><field name="name"/></h3>
+                                <div class="text-muted"><field name="property_id"/></div>
+
                                 <hr/>
 
                                 <!-- Stats -->
-                                <div class="o_kanban_record_body">
-                                    <div class="o_stat" style="margin-bottom: 8px;">
-                                        <div class="o_stat_text">💰 Revenus ce mois</div>
-                                        <div class="o_stat_value text-success" style="font-weight: bold; font-size: 18px;">
+                                <div style="margin-top: 10px;">
+                                    <div style="margin-bottom: 8px;">
+                                        <strong>💰 Revenus ce mois:</strong>
+                                        <span style="float: right; color: #28a745; font-weight: bold;">
                                             <field name="revenue_this_month" widget="monetary"/>
-                                        </div>
+                                        </span>
                                     </div>
 
-                                    <div class="o_stat" style="margin-bottom: 8px;">
-                                        <div class="o_stat_text">📈 Occupation</div>
-                                        <div class="o_stat_value" style="font-weight: bold; font-size: 16px;">
+                                    <div style="margin-bottom: 8px;">
+                                        <strong>📈 Occupation:</strong>
+                                        <span style="float: right; font-weight: bold;">
                                             <field name="occupancy_percentage"/>%
-                                        </div>
+                                        </span>
                                     </div>
 
-                                    <div class="o_stat" style="margin-bottom: 8px;">
-                                        <div class="o_stat_text">📅 7 prochains jours</div>
-                                        <div class="o_stat_value" style="font-weight: bold; font-size: 16px;">
+                                    <div style="margin-bottom: 8px;">
+                                        <strong>📅 7 prochains j.:</strong>
+                                        <span style="float: right; font-weight: bold;">
                                             <field name="upcoming_reservations_count"/>
-                                            <span class="text-muted"> réservations</span>
-                                        </div>
+                                        </span>
                                     </div>
 
-                                    <div class="o_stat">
-                                        <div class="o_stat_text">💵 Revenus année</div>
-                                        <div class="o_stat_value text-info" style="font-weight: bold; font-size: 14px;">
+                                    <div>
+                                        <strong>💵 Revenus année:</strong>
+                                        <span style="float: right; color: #17a2b8; font-weight: bold;">
                                             <field name="revenue_this_year" widget="monetary"/>
-                                        </div>
+                                        </span>
                                     </div>
                                 </div>
 
                                 <hr/>
-                                <div class="text-muted" style="font-size: 11px;">
+                                <div style="font-size: 11px; color: #999;">
                                     Prix défaut: <field name="price_per_night"/> €/nuit
                                 </div>
                             </div>
