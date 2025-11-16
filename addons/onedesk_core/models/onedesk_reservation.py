@@ -5,6 +5,7 @@ from datetime import datetime
 class OneDeskReservation(models.Model):
     _name = 'onedesk.reservation'
     _description = 'Reservation'
+    _inherit = ['mail.thread']
 
     # Champs de base
     name = fields.Char(string='Reservation Reference', required=True, copy=False, default='New')
