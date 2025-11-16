@@ -67,6 +67,17 @@
                         </group>
                     </group>
 
+                    <!-- Override Prix -->
+                    <group>
+                        <group>
+                            <field name="override_price_per_night" widget="monetary"
+                                   help="Remplissez pour appliquer un prix différent du prix calculé automatiquement"/>
+                        </group>
+                        <group>
+                            <field name="override_reason" placeholder="Ex: Remise client, Prix spécial, Correction erreur"/>
+                        </group>
+                    </group>
+
                     <!-- Section Paiement -->
                     <separator string="💳 Paiement"/>
                     <group>

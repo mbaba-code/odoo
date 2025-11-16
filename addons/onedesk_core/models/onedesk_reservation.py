@@ -33,6 +33,12 @@ class OneDeskReservation(models.Model):
                                compute='_compute_total_price',
                                store=True, readonly=True)
 
+    # Override prix manuel
+    override_price_per_night = fields.Float(string='Prix par nuit (override)',
+                                           help="Laissez vide pour utiliser le prix calculé automatiquement")
+    override_reason = fields.Char(string='Raison de l\'override',
+                                 help="Ex: Remise client, Prix spécial, Correction erreur, etc.")
+
     # ========== PAIEMENT ==========
     payment_status = fields.Selection([
         ('pending', 'En attente'),
@@ -71,11 +77,13 @@ class OneDeskReservation(models.Model):
             else:
                 record.number_of_nights = 0
 
-    @api.depends('price_per_night', 'number_of_nights')
+    @api.depends('price_per_night', 'number_of_nights', 'override_price_per_night')
     def _compute_total_price(self):
-        """Calcule le prix total"""
+        """Calcule le prix total (utilise override si rempli)"""
         for record in self:
-            record.total_price = record.price_per_night * record.number_of_nights
+            # Utilise override_price_per_night si rempli, sinon prix calculé
+            price_to_use = record.override_price_per_night or record.price_per_night
+            record.total_price = price_to_use * record.number_of_nights
 
     # Création automatique de l'événement + calcul prix
     @api.model
