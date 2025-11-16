@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Ajouter un bouton "View on Website" pour les propriétés -->
+    <record id="onedesk_property_view_form_website" model="ir.ui.view">
+        <field name="name">onedesk.property.form.website</field>
+        <field name="model">onedesk.property</field>
+        <field name="inherit_id">onedesk_core.view_property_form</field>
+        <field name="arch" type="xml">
+            <xpath expr="//button[@name='action_generate_payment_link']" position="before">
+                <button name="website_publish_button" type="object" class="btn-secondary" string="🌐 Voir sur le site" attrs="{'invisible': [('id', '=', False)]}"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Menu Website -->
+    <menuitem id="menu_onedesk_website" name="Website" parent="website.menu_website" sequence="50"/>
+
+    <menuitem id="menu_website_onedesk_properties" name="OneDesk Properties"
+              parent="menu_onedesk_website"
+              action="website_onedesk.action_website_properties"/>
+
+    <!-- Action pour afficher les propriétés du website -->
+    <record id="action_website_properties" model="ir.actions.act_window">
+        <field name="name">Website Properties</field>
+        <field name="res_model">onedesk.property</field>
+        <field name="view_mode">list,form</field>
+        <field name="help">Gérez les propriétés affichées sur votre site web</field>
+    </record>
+</odoo>
