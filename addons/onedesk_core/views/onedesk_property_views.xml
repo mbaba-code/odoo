@@ -6,8 +6,11 @@
         <field name="arch" type="xml">
             <list string="Properties">
                 <field name="name"/>
+                <field name="property_type"/>
                 <field name="address"/>
-                <field name="price"/>
+                <field name="total_units"/>
+                <field name="total_revenue_month"/>
+                <field name="total_occupancy_percentage"/>
             </list>
         </field>
     </record>
@@ -19,11 +22,49 @@
         <field name="arch" type="xml">
             <form string="Property">
                 <sheet>
-                    <group>
-                        <field name="name"/>
-                        <field name="address"/>
-                        <field name="price"/>
-                    </group>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" placeholder="Nom de la propriété"/>
+                        </h1>
+                    </div>
+                    <notebook>
+                        <page string="📋 Informations générales" name="general">
+                            <group>
+                                <group>
+                                    <field name="property_type"/>
+                                    <field name="address"/>
+                                    <field name="user_id"/>
+                                </group>
+                                <group>
+                                    <field name="total_units"/>
+                                    <field name="total_revenue_month"/>
+                                    <field name="total_occupancy_percentage"/>
+                                </group>
+                            </group>
+                            <field name="description" placeholder="Description de la propriété..." nolabel="1"/>
+                        </page>
+                        <page string="🏘️ Propriétaire" name="owner">
+                            <group>
+                                <field name="owner_name"/>
+                                <field name="owner_phone"/>
+                                <field name="owner_email"/>
+                            </group>
+                        </page>
+                        <page string="✨ Équipements" name="amenities">
+                            <field name="amenities" placeholder="WiFi, Piscine, Parking, Climatisation, etc." nolabel="1"/>
+                        </page>
+                        <page string="🏠 Unités" name="units">
+                            <field name="unit_ids">
+                                <tree string="Unités">
+                                    <field name="name"/>
+                                    <field name="bedrooms"/>
+                                    <field name="bathrooms"/>
+                                    <field name="price_per_night"/>
+                                    <field name="revenue_this_month"/>
+                                </tree>
+                            </field>
+                        </page>
+                    </notebook>
                 </sheet>
             </form>
         </field>
