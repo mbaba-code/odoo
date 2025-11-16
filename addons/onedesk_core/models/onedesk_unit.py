@@ -1,5 +1,6 @@
 from odoo import models, fields, api
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
+from dateutil.relativedelta import relativedelta
 
 class OnedeskUnit(models.Model):
     _name = 'onedesk.unit'
@@ -13,6 +14,107 @@ class OnedeskUnit(models.Model):
     seasonal_price_ids = fields.One2many('onedesk.seasonal_price', 'unit_id', string='Tarifs saisonniers')
 
     available = fields.Boolean(string="Disponible", default=True)
+
+    # ========== DASHBOARD FIELDS ==========
+    reservation_ids = fields.One2many('onedesk.reservation', 'unit_id', string='Réservations')
+
+    # Statistics
+    revenue_this_month = fields.Float(string='💰 Revenus ce mois',
+                                      compute='_compute_revenue_this_month',
+                                      store=False)
+    revenue_this_year = fields.Float(string='💰 Revenus cette année',
+                                     compute='_compute_revenue_this_year',
+                                     store=False)
+    occupancy_percentage = fields.Float(string='📈 Occupation %',
+                                       compute='_compute_occupancy_percentage',
+                                       store=False)
+    upcoming_reservations_count = fields.Integer(string='📅 Prochaines réservations (7j)',
+                                                compute='_compute_upcoming_reservations_count',
+                                                store=False)
+
+    @api.depends('reservation_ids', 'reservation_ids.total_price', 'reservation_ids.payment_status')
+    def _compute_revenue_this_month(self):
+        """Calcule le revenu du mois en cours (réservations PAYÉES)"""
+        today = date.today()
+        month_start = today.replace(day=1)
+        month_end = (month_start + relativedelta(months=1)) - timedelta(days=1)
+
+        for unit in self:
+            revenue = 0.0
+            for reservation in unit.reservation_ids:
+                # Considère payée ou si la réservation a lieu ce mois
+                if reservation.payment_status == 'completed':
+                    # Vérifie que la réservation chevauche ce mois
+                    if reservation.start_date and reservation.end_date:
+                        res_start = reservation.start_date.date() if hasattr(reservation.start_date, 'date') else reservation.start_date
+                        res_end = reservation.end_date.date() if hasattr(reservation.end_date, 'date') else reservation.end_date
+
+                        if res_start <= month_end and res_end >= month_start:
+                            revenue += reservation.total_price
+
+            unit.revenue_this_month = revenue
+
+    @api.depends('reservation_ids', 'reservation_ids.total_price', 'reservation_ids.payment_status')
+    def _compute_revenue_this_year(self):
+        """Calcule le revenu de l'année en cours (réservations PAYÉES)"""
+        today = date.today()
+        year_start = today.replace(month=1, day=1)
+        year_end = today.replace(month=12, day=31)
+
+        for unit in self:
+            revenue = 0.0
+            for reservation in unit.reservation_ids:
+                if reservation.payment_status == 'completed':
+                    if reservation.start_date and reservation.end_date:
+                        res_start = reservation.start_date.date() if hasattr(reservation.start_date, 'date') else reservation.start_date
+                        res_end = reservation.end_date.date() if hasattr(reservation.end_date, 'date') else reservation.end_date
+
+                        if res_start <= year_end and res_end >= year_start:
+                            revenue += reservation.total_price
+
+            unit.revenue_this_year = revenue
+
+    @api.depends('reservation_ids', 'reservation_ids.start_date', 'reservation_ids.end_date')
+    def _compute_occupancy_percentage(self):
+        """Calcule le % d'occupation du mois en cours"""
+        today = date.today()
+        month_start = today.replace(day=1)
+        month_end = (month_start + relativedelta(months=1)) - timedelta(days=1)
+
+        days_in_month = (month_end - month_start).days + 1
+
+        for unit in self:
+            occupied_days = 0
+            for reservation in unit.reservation_ids:
+                if reservation.start_date and reservation.end_date:
+                    res_start = reservation.start_date.date() if hasattr(reservation.start_date, 'date') else reservation.start_date
+                    res_end = reservation.end_date.date() if hasattr(reservation.end_date, 'date') else reservation.end_date
+
+                    # Chevauchement avec le mois en cours
+                    overlap_start = max(res_start, month_start)
+                    overlap_end = min(res_end, month_end)
+
+                    if overlap_start < overlap_end:
+                        occupied_days += (overlap_end - overlap_start).days
+
+            occupancy = (occupied_days / days_in_month * 100) if days_in_month > 0 else 0
+            unit.occupancy_percentage = min(100.0, occupancy)  # Max 100%
+
+    @api.depends('reservation_ids', 'reservation_ids.start_date')
+    def _compute_upcoming_reservations_count(self):
+        """Compte les réservations dans les 7 prochains jours"""
+        today = date.today()
+        next_week = today + timedelta(days=7)
+
+        for unit in self:
+            count = 0
+            for reservation in unit.reservation_ids:
+                if reservation.start_date:
+                    res_start = reservation.start_date.date() if hasattr(reservation.start_date, 'date') else reservation.start_date
+                    if today <= res_start <= next_week:
+                        count += 1
+
+            unit.upcoming_reservations_count = count
 
     def get_price_for_dates(self, date_start, date_end):
         """

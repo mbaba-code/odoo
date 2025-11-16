@@ -28,7 +28,7 @@
     
     # ← NOUVEAU : Dépendances Python
     'external_dependencies': {
-        'python': ['cryptography', 'requests'],
+        'python': ['cryptography', 'requests', 'python-dateutil'],
     },
     
     'installable': True,

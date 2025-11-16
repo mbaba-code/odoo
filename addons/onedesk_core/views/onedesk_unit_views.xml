@@ -50,10 +50,72 @@
         </field>
     </record>
 
+    <!-- KANBAN VIEW - DASHBOARD -->
+    <record id="view_unit_kanban" model="ir.ui.view">
+        <field name="name">onedesk.unit.kanban</field>
+        <field name="model">onedesk.unit</field>
+        <field name="arch" type="xml">
+            <kanban string="Units Dashboard" class="o_kanban_small_columns">
+                <templates>
+                    <t t-name="kanban-box">
+                        <div class="oe_kanban_card oe_kanban_global_click">
+                            <div class="oe_kanban_content">
+                                <div class="o_kanban_record_title oe_partner_heading">
+                                    <strong><field name="name"/></strong>
+                                </div>
+                                <div class="text-muted text-sm">
+                                    <field name="property_id"/>
+                                </div>
+                                <hr/>
+
+                                <!-- Stats -->
+                                <div class="o_kanban_record_body">
+                                    <div class="o_stat" style="margin-bottom: 8px;">
+                                        <div class="o_stat_text">💰 Revenus ce mois</div>
+                                        <div class="o_stat_value text-success" style="font-weight: bold; font-size: 18px;">
+                                            <field name="revenue_this_month" widget="monetary"/>
+                                        </div>
+                                    </div>
+
+                                    <div class="o_stat" style="margin-bottom: 8px;">
+                                        <div class="o_stat_text">📈 Occupation</div>
+                                        <div class="o_stat_value" style="font-weight: bold; font-size: 16px;">
+                                            <field name="occupancy_percentage"/>%
+                                        </div>
+                                    </div>
+
+                                    <div class="o_stat" style="margin-bottom: 8px;">
+                                        <div class="o_stat_text">📅 7 prochains jours</div>
+                                        <div class="o_stat_value" style="font-weight: bold; font-size: 16px;">
+                                            <field name="upcoming_reservations_count"/>
+                                            <span class="text-muted"> réservations</span>
+                                        </div>
+                                    </div>
+
+                                    <div class="o_stat">
+                                        <div class="o_stat_text">💵 Revenus année</div>
+                                        <div class="o_stat_value text-info" style="font-weight: bold; font-size: 14px;">
+                                            <field name="revenue_this_year" widget="monetary"/>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <hr/>
+                                <div class="text-muted" style="font-size: 11px;">
+                                    Prix défaut: <field name="price_per_night"/> €/nuit
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
     <record id="action_onedesk_unit" model="ir.actions.act_window">
         <field name="name">Units</field>
         <field name="res_model">onedesk.unit</field>
-        <field name="view_mode">list,form</field>
+        <field name="view_mode">kanban,list,form</field>
     </record>
 
     <menuitem id="menu_onedesk_unit" name="Units"
