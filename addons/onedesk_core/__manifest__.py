@@ -5,7 +5,11 @@
     'author': 'Merveilles',
     'license': 'LGPL-3',
     'category': 'Services',
-    'depends': ['base', 'contacts', 'mail', 'account', 'calendar'],  # ← Ajouté 'calendar'
+    'depends': [
+        'base', 'contacts', 'mail', 'account', 'calendar',
+        'payment',              # NEW - Payment Engine
+        'account_payment',      # NEW - Invoice Payment Integration
+    ],
     'data': [
     'security/ir.model.access.csv',
 

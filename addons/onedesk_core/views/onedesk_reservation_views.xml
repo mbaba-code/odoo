@@ -28,6 +28,14 @@
         <field name="arch" type="xml">
             <form string="Reservation">
                 <header>
+                    <button name="action_generate_payment_link" type="object"
+                            string="💳 Générer Lien Paiement"
+                            class="oe_highlight"
+                            states="pending"/>
+                    <button name="action_check_payment_status" type="object"
+                            string="✓ Vérifier Statut Paiement"
+                            class="oe_link"
+                            states="pending"/>
                     <field name="payment_status" widget="statusbar" options="{'clickable': False}"/>
                 </header>
                 <sheet>
@@ -63,8 +71,22 @@
                     <!-- Section Paiement -->
                     <separator string="💳 Paiement"/>
                     <group>
-                        <field name="payment_link"/>
+                        <field name="payment_link" widget="url" readonly="1"
+                               help="Lien pour que le client paie cette réservation"/>
+                        <field name="amount_paid" readonly="1" widget="monetary"/>
                     </group>
+
+                    <!-- Transactions de paiement -->
+                    <separator string="📊 Transactions de paiement"/>
+                    <field name="transaction_ids" readonly="1" nolabel="1">
+                        <tree>
+                            <field name="reference"/>
+                            <field name="provider_code"/>
+                            <field name="amount"/>
+                            <field name="state"/>
+                            <field name="last_state_change"/>
+                        </tree>
+                    </field>
 
                     <notebook>
                         <page string="Événement calendrier">

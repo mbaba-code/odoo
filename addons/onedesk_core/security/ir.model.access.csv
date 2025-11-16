@@ -10,3 +10,4 @@ access_onedesk_integration_provider_admin,onedesk.integration.provider.admin,mod
 access_onedesk_integration_log_user,onedesk.integration.log.user,model_onedesk_integration_log,base.group_user,1,1,1,1
 access_calendar_event_user,calendar.event.user,calendar.model_calendar_event,base.group_user,1,1,1,1
 access_calendar_attendee_user,calendar.attendee.user,calendar.model_calendar_attendee,base.group_user,1,1,1,1
+access_payment_transaction_user,payment.transaction.user,payment.model_payment_transaction,base.group_user,1,1,1,0

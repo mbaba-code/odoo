@@ -1,4 +1,5 @@
 from odoo import models, fields, api
+from odoo.fields import Command
 from datetime import datetime
 
 class OneDeskReservation(models.Model):
@@ -32,13 +33,32 @@ class OneDeskReservation(models.Model):
                                compute='_compute_total_price',
                                store=True, readonly=True)
 
-    # Payment
+    # ========== PAIEMENT ==========
     payment_status = fields.Selection([
         ('pending', 'En attente'),
         ('completed', 'Payée'),
         ('cancelled', 'Annulée'),
     ], string='Statut paiement', default='pending', tracking=True)
-    payment_link = fields.Char(string='Lien de paiement')
+    payment_link = fields.Char(string='Lien de paiement', copy=False,
+                              help="Lien pour que le client paie cette réservation")
+
+    # Link to payment transactions (NEW - pour Odoo payment module)
+    transaction_ids = fields.Many2many(
+        'payment.transaction',
+        relation='onedesk_reservation_payment_transaction_rel',
+        column1='reservation_id',
+        column2='transaction_id',
+        readonly=True,
+        copy=False,
+        help="Transactions de paiement liées à cette réservation"
+    )
+
+    # Amount paid (computed)
+    amount_paid = fields.Float(
+        string='Montant payé',
+        compute='_compute_amount_paid',
+        store=False
+    )
 
     @api.depends('start_date', 'end_date')
     def _compute_number_of_nights(self):
@@ -118,3 +138,114 @@ class OneDeskReservation(models.Model):
             if reservation.calendar_event_id:
                 reservation.calendar_event_id.sudo().unlink()
         return super().unlink()
+
+    # ========== PAIEMENT METHODS (Odoo Payment Module) ==========
+
+    def _compute_amount_paid(self):
+        """Calcule le montant déjà payé via les transactions de paiement"""
+        for record in self:
+            record.amount_paid = sum(
+                record.transaction_ids.filtered(
+                    lambda tx: tx.state in ('authorized', 'done')
+                ).mapped('amount')
+            )
+
+    def _get_default_payment_link_values(self):
+        """
+        MÉTHODE REQUISE par payment.link.wizard
+        Retourne les valeurs par défaut pour le lien de paiement
+        """
+        self.ensure_one()
+        return {
+            'currency_id': self.env.company.currency_id.id,
+            'partner_id': self.partner_id.id,
+            'amount': self.total_price,
+            'amount_max': self.total_price,
+        }
+
+    def get_base_url(self):
+        """
+        MÉTHODE REQUISE par payment.link.wizard
+        Retourne l'URL de base pour cette réservation
+        """
+        return self.env.company.get_base_url()
+
+    def action_generate_payment_link(self):
+        """
+        Génère un lien de paiement pour cette réservation
+        Appelé depuis le bouton dans la vue
+        """
+        self.ensure_one()
+
+        # Crée un wizard payment link
+        wizard = self.env['payment.link.wizard'].with_context(
+            active_id=self.id,
+            active_model=self._name
+        ).create({
+            'amount': self.total_price,
+            'res_model': self._name,
+            'res_id': self.id,
+        })
+
+        # Sauvegarde le lien de paiement
+        self.payment_link = wizard.link
+
+        # Retourne une notification
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'title': 'Lien de paiement généré',
+                'message': f'Lien généré pour {self.total_price}€. Partagez-le avec le client!',
+                'type': 'success',
+                'sticky': False,
+            }
+        }
+
+    def action_check_payment_status(self):
+        """
+        Vérifie si le paiement a été complété
+        Met à jour payment_status selon l'état de la transaction
+        """
+        self.ensure_one()
+
+        # Cherche les transactions confirmées
+        confirmed_transactions = self.transaction_ids.filtered(
+            lambda tx: tx.state in ('authorized', 'done')
+        )
+
+        if confirmed_transactions:
+            # Paiement réussi
+            self.payment_status = 'completed'
+            return {
+                'type': 'ir.actions.client',
+                'tag': 'display_notification',
+                'params': {
+                    'title': 'Paiement confirmé',
+                    'message': f'Montant payé: {self.amount_paid}€',
+                    'type': 'success',
+                }
+            }
+        elif self.transaction_ids.filtered(lambda tx: tx.state == 'cancel'):
+            # Paiement annulé
+            self.payment_status = 'cancelled'
+            return {
+                'type': 'ir.actions.client',
+                'tag': 'display_notification',
+                'params': {
+                    'title': 'Paiement annulé',
+                    'message': 'Le paiement a été annulé.',
+                    'type': 'danger',
+                }
+            }
+        else:
+            # Toujours en attente
+            return {
+                'type': 'ir.actions.client',
+                'tag': 'display_notification',
+                'params': {
+                    'title': 'Statut du paiement',
+                    'message': 'Le paiement est toujours en attente.',
+                    'type': 'warning',
+                }
+            }
