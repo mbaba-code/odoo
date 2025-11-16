@@ -5,7 +5,7 @@ from . import controllers
 _logger = logging.getLogger(__name__)
 
 
-def post_init_hook(cr, registry):
+def post_init_hook(env):
     """Valide la configuration du module au démarrage"""
     from odoo.tools import config
 
@@ -19,3 +19,4 @@ def post_init_hook(cr, registry):
             "Pour sécuriser, ajoutez cette ligne à odoo.conf:\n"
             "onedesk_encryption_key = <clé Fernet générée avec: python -c 'from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())'>"
         )
+
