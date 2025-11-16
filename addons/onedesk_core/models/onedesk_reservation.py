@@ -1,4 +1,5 @@
 from odoo import models, fields, api
+from odoo.exceptions import ValidationError
 from odoo.fields import Command
 from datetime import datetime
 
@@ -40,6 +41,16 @@ class OneDeskReservation(models.Model):
     override_reason = fields.Char(string='Raison de l\'override',
                                  help="Ex: Remise client, Prix spécial, Correction erreur, etc.")
 
+    # ========== STATUS WORKFLOW ==========
+    status = fields.Selection([
+        ('draft', 'Brouillon'),
+        ('pending_payment', 'En attente paiement'),
+        ('paid', 'Payée'),
+        ('checked_in', 'Client arrivé'),
+        ('completed', 'Terminée'),
+        ('cancelled', 'Annulée'),
+    ], string='Statut réservation', default='draft', tracking=True, readonly=False)
+
     # ========== PAIEMENT ==========
     payment_status = fields.Selection([
         ('pending', 'En attente'),
@@ -66,6 +77,38 @@ class OneDeskReservation(models.Model):
         compute='_compute_amount_paid',
         store=False
     )
+
+    # ========== NOTES & REQUESTS ==========
+    guest_notes = fields.Text(string='Notes du client',
+                             help="Notes spéciales du client (allergies, préférences, etc.)")
+    internal_notes = fields.Text(string='Notes internes',
+                                help="Notes pour l'équipe (instructions nettoyage, problèmes connus, etc.)")
+    special_requests = fields.Text(string='Demandes particulières',
+                                  help="Demandes spéciales du client (lit bébé, chaise haute, etc.)")
+
+    @api.constrains('unit_id', 'start_date', 'end_date', 'status')
+    def _check_no_overlapping_reservations(self):
+        """Vérifie qu'il n'y a pas de réservations qui se chevauchent sur la même unité"""
+        for record in self:
+            # Ignore les réservations annulées
+            if record.status == 'cancelled':
+                continue
+
+            # Cherche les réservations qui se chevauchent
+            overlapping = self.search([
+                ('unit_id', '=', record.unit_id.id),
+                ('status', '!=', 'cancelled'),
+                ('id', '!=', record.id),
+                ('start_date', '<', record.end_date),
+                ('end_date', '>', record.start_date),
+            ])
+
+            if overlapping:
+                raise ValidationError(
+                    f"⚠️ Chevauchement de réservation détecté!\n"
+                    f"L'unité {record.unit_id.name} est déjà réservée pour ces dates.\n"
+                    f"Réservations en conflit: {', '.join(r.name for r in overlapping)}"
+                )
 
     @api.depends('start_date', 'end_date')
     def _compute_number_of_nights(self):
@@ -312,6 +355,8 @@ class OneDeskReservation(models.Model):
         if confirmed_transactions:
             # Paiement réussi
             self.payment_status = 'completed'
+            # Passe automatiquement au statut "paid"
+            self.status = 'paid'
             return {
                 'type': 'ir.actions.client',
                 'tag': 'display_notification',
@@ -344,3 +389,79 @@ class OneDeskReservation(models.Model):
                     'type': 'warning',
                 }
             }
+
+    # ========== STATE TRANSITIONS ==========
+
+    def action_confirm(self):
+        """Passe de draft à pending_payment et envoie la demande de paiement"""
+        self.ensure_one()
+        if self.status != 'draft':
+            raise ValidationError("Seules les réservations en brouillon peuvent être confirmées")
+
+        self.status = 'pending_payment'
+        self.message_post(body="✅ Réservation confirmée - En attente de paiement")
+
+        # Génère automatiquement le lien de paiement
+        return self.action_generate_payment_link()
+
+    def action_mark_checked_in(self):
+        """Marque la réservation comme client arrivé"""
+        self.ensure_one()
+        if self.status != 'paid':
+            raise ValidationError("Seules les réservations payées peuvent être marquées comme 'Client arrivé'")
+
+        self.status = 'checked_in'
+        self.message_post(body="🔑 Client arrivé à la propriété")
+
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'title': 'Check-in effectué',
+                'message': f'Client {self.partner_id.name} arrivé à {self.unit_id.name}',
+                'type': 'success',
+            }
+        }
+
+    def action_mark_completed(self):
+        """Marque la réservation comme terminée"""
+        self.ensure_one()
+        if self.status not in ('checked_in', 'paid'):
+            raise ValidationError("Seules les réservations payées ou en cours peuvent être complétées")
+
+        self.status = 'completed'
+        self.message_post(body="✔️ Séjour terminé - Merci pour votre visite!")
+
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'title': 'Réservation complétée',
+                'message': 'Le séjour est maintenant terminé.',
+                'type': 'success',
+            }
+        }
+
+    def action_cancel(self):
+        """Annule la réservation"""
+        self.ensure_one()
+        if self.status == 'completed':
+            raise ValidationError("Impossible d'annuler une réservation complétée")
+
+        self.status = 'cancelled'
+        self.message_post(body="❌ Réservation annulée")
+
+        # Supprime les tâches associées
+        self.env['onedesk.task'].search([
+            ('reservation_id', '=', self.id)
+        ]).unlink()
+
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'title': 'Réservation annulée',
+                'message': 'La réservation et ses tâches ont été supprimées.',
+                'type': 'warning',
+            }
+        }
