@@ -15,6 +15,35 @@ class OnedeskUnit(models.Model):
 
     available = fields.Boolean(string="Disponible", default=True)
 
+    # ========== UNIT FEATURES ==========
+    capacity = fields.Integer(string="Capacité (nombre de personnes)",
+                             help="Nombre maximum de personnes que l'unité peut accueillir")
+    bedrooms = fields.Integer(string="Nombre de chambres", default=1)
+    bathrooms = fields.Integer(string="Nombre de salles de bain", default=1)
+
+    # ========== POLICIES ==========
+    minimum_stay = fields.Integer(string="Séjour minimum (nuits)", default=1,
+                                 help="Nombre minimum de nuits requises pour réserver")
+    cancellation_policy = fields.Selection([
+        ('flexible', 'Flexible - Annulation gratuite jusqu\'à 48h avant'),
+        ('moderate', 'Modérée - 50% remboursé si annulation 7 jours avant'),
+        ('strict', 'Strict - Aucun remboursement sauf cas exceptionnel'),
+        ('non_refundable', 'Non remboursable'),
+    ], string='Politique d\'annulation', default='moderate',
+    help="Politique d'annulation pour cette unité")
+
+    # ========== CLEANING & MAINTENANCE ==========
+    cleaning_required = fields.Boolean(string="Nettoyage requis", default=True,
+                                      help="Le nettoyage est-il obligatoire entre les réservations?")
+    cleaning_fee = fields.Float(string="Frais de nettoyage (€)", default=0.0)
+    cleaning_duration_hours = fields.Float(string="Durée nettoyage (heures)", default=2.0,
+                                          help="Temps estimé pour nettoyer l'unité")
+    maintenance_notes = fields.Text(string="Notes d'entretien",
+                                   help="Problèmes connus, maintenance récente, etc.")
+
+    # ========== IMAGES ==========
+    main_image = fields.Image(string="Photo principale", attachment=True)
+
     # ========== DASHBOARD FIELDS ==========
     reservation_ids = fields.One2many('onedesk.reservation', 'unit_id', string='Réservations')
 
