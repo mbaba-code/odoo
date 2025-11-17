@@ -78,7 +78,7 @@ class OneDeskWebsite(http.Controller):
 
     # ==================== AJAX / FORMULAIRES ====================
 
-    @http.route('/onedesk/booking', type='http', auth='public', website=True, methods=['POST'])
+    @http.route('/onedesk/booking', type='http', auth='public', website=True, methods=['POST'], csrf=False)
     def create_booking_request(self, **kw):
         """Crée une demande de réservation (lead/contact)"""
         _logger.info('===== START create_booking_request =====')
