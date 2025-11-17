@@ -5,7 +5,6 @@
     <!-- Group: Property Manager (Full access to his company data) -->
     <record id="group_onedesk_property_manager" model="res.groups">
         <field name="name">OneDesk / Property Manager</field>
-        <field name="category_id" ref="base.module_category_property_management"/>
         <field name="comment">Gestionnaire de propriétés OneDesk - Accès complet à ses données</field>
         <field name="users" eval="[]"/>
     </record>
@@ -13,7 +12,6 @@
     <!-- Group: OneDesk Staff (Limited access - can manage reservations, tasks) -->
     <record id="group_onedesk_staff" model="res.groups">
         <field name="name">OneDesk / Staff</field>
-        <field name="category_id" ref="base.module_category_property_management"/>
         <field name="comment">Personnel OneDesk - Accès limité aux réservations et tâches</field>
         <field name="users" eval="[]"/>
     </record>
@@ -21,7 +19,6 @@
     <!-- Group: OneDesk Viewer (Read-only access) -->
     <record id="group_onedesk_viewer" model="res.groups">
         <field name="name">OneDesk / Viewer</field>
-        <field name="category_id" ref="base.module_category_property_management"/>
         <field name="comment">Lecteur OneDesk - Accès en lecture seule</field>
         <field name="users" eval="[]"/>
     </record>
@@ -43,13 +40,6 @@
     </record>
 
     <!-- GROUP MENUS FOR NAVIGATION -->
-    <!-- Property Manager Menu -->
-    <menuitem id="menu_onedesk_property_manager_dashboard"
-              name="Tableau de bord"
-              parent="menu_onedesk_root"
-              groups="group_onedesk_property_manager"
-              sequence="1"
-              action=""/>
 
     <!-- Master Admin Menu -->
     <menuitem id="menu_onedesk_admin_root"
