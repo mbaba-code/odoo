@@ -151,7 +151,7 @@
         <field name="arch" type="xml">
             <kanban string="Units Dashboard">
                 <field name="name"/>
-                <field name="cover_image" widget="binary"/>
+                <field name="cover_image_id"/>
                 <field name="property_id"/>
                 <field name="revenue_this_month"/>
                 <field name="occupancy_percentage"/>
@@ -164,8 +164,8 @@
                             <div class="oe_kanban_global_click">
                                 <!-- Image -->
                                 <div style="height: 150px; margin-bottom: 10px; border-radius: 5px; overflow: hidden; background: #f0f0f0; display: flex; align-items: center; justify-content: center;">
-                                    <t t-if="record.cover_image.raw_value">
-                                        <img t-att-src="'data:image/*;base64,' + record.cover_image.raw_value" style="width: 100%; height: 100%; object-fit: cover;" alt="Unit photo"/>
+                                    <t t-if="record.cover_image_id.value">
+                                        <img t-att-src="'/web/image/onedesk.unit.image/' + str(record.cover_image_id.value) + '/image'" style="width: 100%; height: 100%; object-fit: cover;" alt="Unit photo"/>
                                     </t>
                                     <t t-else="">
                                         <i class="fa fa-home fa-3x" style="color: #ccc;"></i>

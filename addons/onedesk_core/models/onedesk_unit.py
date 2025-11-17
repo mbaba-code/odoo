@@ -56,6 +56,9 @@ class OnedeskUnit(models.Model):
     cover_image = fields.Image(string="Photo de couverture (Galerie)", max_width=1024, max_height=1024,
                               compute='_compute_cover_image', readonly=True,
                               help="Photo marquée comme couverture dans la galerie")
+    # Computed field: ID of cover image (for kanban use)
+    cover_image_id = fields.Integer(compute='_compute_cover_image_id', readonly=True,
+                                    help="ID de la photo de couverture pour les vues kanban")
 
     # ========== DASHBOARD FIELDS ==========
     reservation_ids = fields.One2many('onedesk.reservation', 'unit_id', string='Réservations')
@@ -89,6 +92,20 @@ class OnedeskUnit(models.Model):
             else:
                 # No images in gallery, use main_image field if set
                 record.cover_image = record.main_image
+
+    @api.depends('image_ids', 'image_ids.is_cover')
+    def _compute_cover_image_id(self):
+        """Get ID of cover image for kanban"""
+        for record in self:
+            # Look for image marked as cover
+            cover_img = record.image_ids.filtered(lambda x: x.is_cover)
+            if cover_img:
+                record.cover_image_id = cover_img[0].id
+            elif record.image_ids:
+                # Fall back to first image if no cover marked
+                record.cover_image_id = record.image_ids[0].id
+            else:
+                record.cover_image_id = False
 
     @api.depends('reservation_ids', 'reservation_ids.total_price', 'reservation_ids.payment_status')
     def _compute_revenue_this_month(self):
