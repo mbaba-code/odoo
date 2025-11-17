@@ -131,6 +131,19 @@
                             <group>
                                 <field name="check_out_photo" widget="image"/>
                             </group>
+
+                            <separator string="Galerie complète d'inspection"/>
+                            <field name="image_ids" nolabel="1">
+                                <tree string="Photos d'inspection" editable="bottom">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="image_type"/>
+                                    <field name="name"/>
+                                    <field name="image" widget="image"/>
+                                </tree>
+                            </field>
+                            <p style="margin-top: 10px; font-size: 12px; color: #999;">
+                                💡 Documentez l'état de la propriété avec plusieurs photos (check-in, check-out, dégâts détectés)
+                            </p>
                         </page>
                         <page string="Événement calendrier">
                             <field name="calendar_event_id" readonly="1"/>

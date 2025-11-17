@@ -55,6 +55,19 @@
                         <field name="main_image" widget="image"/>
                     </group>
 
+                    <!-- SECTION: GALERIE DE PHOTOS -->
+                    <separator string="📸 Galerie complète"/>
+                    <field name="image_ids" nolabel="1">
+                        <tree string="Photos" editable="bottom">
+                            <field name="sequence" widget="handle"/>
+                            <field name="name"/>
+                            <field name="image" widget="image"/>
+                        </tree>
+                    </field>
+                    <p style="margin-top: 10px; font-size: 12px; color: #999;">
+                        💡 Ajoutez plusieurs photos pour montrer les différentes pièces (chambre, salle de bain, cuisine, salon, etc.)
+                    </p>
+
                     <!-- SECTION: POLITIQUES -->
                     <separator string="📋 Politiques"/>
                     <group>
