@@ -581,7 +581,6 @@ class OnedeskIntegration(models.Model):
         # Cherche une propriété correspondante
         prop = Property.search([
             ('name', 'ilike', property_name),
-            ('company_id', '=', self.company_id.id),
         ], limit=1)
 
         # Crée une propriété si elle n'existe pas
@@ -591,7 +590,6 @@ class OnedeskIntegration(models.Model):
                 'address': data.get('location', ''),
                 'property_type': 'apartment',  # Par défaut
                 'description': f"Propriété importée depuis {self.provider_id.name}",
-                'company_id': self.company_id.id,
             })
             _logger.info(f"🏘️ Nouvelle propriété créée: {property_name}")
 
