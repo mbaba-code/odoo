@@ -413,18 +413,7 @@
                                     </div>
 
                                     <!-- Price calculation (will be updated via JS) -->
-                                    <div id="price_info" class="alert alert-info" style="display: none;">
-                                        <p class="mb-1"><strong>Nuits:</strong> <span id="nights">0</span></p>
-                                        <p class="mb-1"><strong>Prix par nuit:</strong> <span id="price_per_night">0</span>€</p>
-                                        <hr/>
-                                        <p class="mb-1"><strong>Prix total:</strong> <span id="total_price" class="h5">0</span>€</p>
-                                    </div>
-
-                                    <div class="row mb-3" t-if="not reservations">
-                                        <div class="col-12">
-                                            <p class="text-success">✅ Cette unité est disponible pour votre période!</p>
-                                        </div>
-                                    </div>
+                                    <div id="price_info" style="display: none;"></div>
 
                                     <div class="row mb-3">
                                         <div class="col-md-6">
@@ -555,6 +544,13 @@
                 document.getElementById('booking_form').addEventListener('submit', function(e) {
                     e.preventDefault();
 
+                    const startDate = document.getElementById('start_date').value;
+                    const endDate = document.getElementById('end_date').value;
+                    const name = document.getElementById('name').value;
+                    const email = document.getElementById('email').value;
+
+                    console.log('Form submission:', { startDate, endDate, name, email });
+
                     fetch('/onedesk/booking', {
                         method: 'POST',
                         headers: {
@@ -563,19 +559,21 @@
                         },
                         body: JSON.stringify({
                             unit_id: unitId,
-                            name: document.getElementById('name').value,
-                            email: document.getElementById('email').value,
+                            name: name,
+                            email: email,
                             phone: document.getElementById('phone').value,
-                            start_date: document.getElementById('start_date').value,
-                            end_date: document.getElementById('end_date').value,
+                            start_date: startDate,
+                            end_date: endDate,
                             message: document.getElementById('message').value,
                         })
                     })
                     .then(r => {
+                        console.log('Response status:', r.status, r.ok);
                         if (!r.ok) throw new Error('Erreur serveur: ' + r.status);
                         return r.json();
                     })
                     .then(data => {
+                        console.log('Booking response:', data);
                         if (data && data.status === 'success') {
                             alert('✅ Réservation créée!\n' + (data.message || 'Vous allez recevoir un email de confirmation.'));
                             document.getElementById('booking_form').reset();
@@ -586,7 +584,8 @@
                         }
                     })
                     .catch(error => {
-                        alert('❌ Erreur de connexion:\n' + error.message);
+                        console.error('Booking error:', error);
+                        alert('❌ Erreur lors de la réservation:\n' + error.message);
                     });
                 });
             ]]></script>
