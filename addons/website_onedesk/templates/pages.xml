@@ -488,6 +488,8 @@
             </div>
 
             <script>
+                const csrfToken = '<t t-esc="request.csrf_token()"/>';
+
                 document.getElementById('start_date').addEventListener('change', checkAvailability);
                 document.getElementById('end_date').addEventListener('change', checkAvailability);
 
@@ -501,7 +503,7 @@
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
-                            'X-CSRF-Token': document.querySelector('[name=csrf_token]').value,
+                            'X-CSRF-Token': csrfToken,
                         },
                         body: JSON.stringify({
                             start_date: startDate,
@@ -530,7 +532,7 @@
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
-                            'X-CSRF-Token': document.querySelector('[name=csrf_token]').value,
+                            'X-CSRF-Token': csrfToken,
                         },
                         body: JSON.stringify({
                             unit_id: <t t-esc="unit.id"></t>,
