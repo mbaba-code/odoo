@@ -93,12 +93,34 @@ class OneDeskReservation(models.Model):
                                   help="Demandes spéciales du client (lit bébé, chaise haute, etc.)")
 
     # ========== IMAGES & DOCUMENTS ==========
-    check_in_photo = fields.Image(string="Photo check-in", max_width=1024, max_height=1024,
-                                 help="Photo de l'état des lieux à l'arrivée du client")
-    check_out_photo = fields.Image(string="Photo check-out", max_width=1024, max_height=1024,
-                                  help="Photo de l'état des lieux au départ du client")
     image_ids = fields.One2many('onedesk.reservation.image', 'reservation_id', string='Galerie d\'inspection',
                                help="Galerie complète de photos d'inspection (check-in et check-out)")
+
+    # Computed field: Get cover image from gallery if available
+    cover_image = fields.Image(string="Photo de couverture (Galerie)", max_width=1024, max_height=1024,
+                              compute='_compute_cover_image', readonly=True,
+                              help="Photo marquée comme couverture dans la galerie")
+    # Computed field: ID of cover image (for kanban use)
+    cover_image_id = fields.Integer(compute='_compute_cover_image_id', readonly=True,
+                                    help="ID de la photo de couverture pour les vues kanban")
+
+    @api.depends('image_ids', 'image_ids.image')
+    def _compute_cover_image(self):
+        """Get cover image from gallery, use first image"""
+        for record in self:
+            if record.image_ids:
+                record.cover_image = record.image_ids[0].image
+            else:
+                record.cover_image = False
+
+    @api.depends('image_ids')
+    def _compute_cover_image_id(self):
+        """Get ID of cover image for kanban"""
+        for record in self:
+            if record.image_ids:
+                record.cover_image_id = record.image_ids[0].id
+            else:
+                record.cover_image_id = False
 
     @api.constrains('unit_id', 'start_date', 'end_date', 'status')
     def _check_no_overlapping_reservations(self):
