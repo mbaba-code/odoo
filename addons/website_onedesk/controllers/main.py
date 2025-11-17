@@ -78,7 +78,7 @@ class OneDeskWebsite(http.Controller):
 
     # ==================== AJAX / FORMULAIRES ====================
 
-    @http.route('/onedesk/booking', type='json', auth='public', website=True, methods=['POST'])
+    @http.route('/onedesk/booking', type='http', auth='public', website=True, methods=['POST'])
     def create_booking_request(self, **kw):
         """Crée une demande de réservation (lead/contact)"""
         _logger.info('===== START create_booking_request =====')
@@ -110,20 +110,24 @@ class OneDeskWebsite(http.Controller):
             required_fields = ['name', 'email', 'unit_id', 'start_date', 'end_date']
             for field in required_fields:
                 if not data.get(field):
-                    return {
+                    response = {
                         'status': 'error',
                         'message': f'Le champ "{field}" est requis.',
                     }
+                    _logger.info(f'Returning response: {response}')
+                    return http.Response(json.dumps(response), content_type='application/json')
 
             # IMPORTANT: Vérifie la disponibilité AVANT de créer la réservation
             unit_id = int(data.get('unit_id'))
             unit = request.env['onedesk.unit'].browse(unit_id)
 
             if not unit.exists():
-                return {
+                response = {
                     'status': 'error',
                     'message': 'Cette unité n\'existe pas.',
                 }
+                _logger.info(f'Returning response: {response}')
+                return http.Response(json.dumps(response), content_type='application/json')
 
             start_date = datetime.strptime(data.get('start_date'), '%Y-%m-%d').date()
             end_date = datetime.strptime(data.get('end_date'), '%Y-%m-%d').date()
@@ -159,10 +163,12 @@ class OneDeskWebsite(http.Controller):
                     + f"\n\nVeuillez choisir une autre période."
                 )
                 _logger.warning(f'Période indisponible pour unité {unit.name}')
-                return {
+                response = {
                     'status': 'error',
                     'message': error_msg,
                 }
+                _logger.info(f'Returning conflict response: {response}')
+                return http.Response(json.dumps(response), content_type='application/json')
 
             # Crée un partner si nécessaire
             partner = request.env['res.partner'].search([
@@ -191,36 +197,43 @@ class OneDeskWebsite(http.Controller):
 
             _logger.info(f'Reservation created successfully: {reservation.name}')
 
-            return {
+            response = {
                 'status': 'success',
                 'message': f'✅ Réservation confirmée!\n\nUn email de confirmation a été envoyé à {partner.email}.\n\nNuméro de réservation: {reservation.name}',
                 'reservation_id': reservation.id,
             }
+            _logger.info(f'Returning success response: {response}')
+            return http.Response(json.dumps(response), content_type='application/json')
 
         except ValueError as e:
             error_str = str(e)
             _logger.error(f'ValueError during booking: {error_str}')
-            return {
+            response = {
                 'status': 'error',
                 'message': f'Format de date invalide. Veuillez utiliser le format YYYY-MM-DD.',
             }
+            return http.Response(json.dumps(response), content_type='application/json')
+
         except ValidationError as e:
             # Erreur de validation (ex: chevauchement de réservation)
             error_msg = str(e).replace('<class \'odoo.exceptions.ValidationError\'>', '').strip()
             _logger.error(f'ValidationError during booking: {error_msg}')
-            return {
+            response = {
                 'status': 'error',
                 'message': error_msg or 'Cette réservation n\'est pas possible. Veuillez vérifier les dates.',
             }
+            return http.Response(json.dumps(response), content_type='application/json')
+
         except Exception as e:
             error_msg = str(e) if str(e) else 'Une erreur inconnue s\'est produite'
             _logger.exception(f'Unexpected error during booking: {error_msg}')
             _logger.error(f'Exception type: {type(e).__name__}')
-            _logger.error(f'Returning error response: {{"status": "error", "message": "{error_msg}"}}')
-            return {
+            response = {
                 'status': 'error',
                 'message': error_msg,
             }
+            _logger.error(f'Returning error response: {response}')
+            return http.Response(json.dumps(response), content_type='application/json')
 
     @http.route('/onedesk/unit/<model("onedesk.unit"):unit_id>/availability', type='json', auth='public', website=True, methods=['POST'])
     def check_availability(self, unit_id, **kw):
