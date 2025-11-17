@@ -21,6 +21,8 @@
                     <h1>
                         <field name="name" class="oe_inline"/>
                     </h1>
+
+                    <!-- SECTION: INFO DE BASE -->
                     <group>
                         <group>
                             <field name="property_id"/>
@@ -31,10 +33,48 @@
                         </group>
                     </group>
 
+                    <!-- SECTION: CARACTÉRISTIQUES UNITÉ -->
+                    <separator string="🏠 Caractéristiques de l'unité"/>
+                    <group>
+                        <group>
+                            <field name="capacity"/>
+                            <field name="bedrooms"/>
+                            <field name="bathrooms"/>
+                        </group>
+                        <group>
+                            <field name="minimum_stay"/>
+                            <field name="cleaning_required"/>
+                            <field name="cleaning_fee" widget="monetary"/>
+                            <field name="cleaning_duration_hours"/>
+                        </group>
+                    </group>
+
+                    <!-- SECTION: PHOTO -->
+                    <separator string="📸 Photo principale"/>
+                    <group>
+                        <field name="main_image" widget="image"/>
+                    </group>
+
+                    <!-- SECTION: POLITIQUES -->
+                    <separator string="📋 Politiques"/>
+                    <group>
+                        <field name="cancellation_policy"/>
+                        <field name="maintenance_notes" placeholder="Ex: Problèmes connus, maintenance récente..."/>
+                    </group>
+
+                    <!-- SECTION: INTÉGRATION -->
+                    <separator string="🔗 Intégration externe"/>
+                    <group>
+                        <group>
+                            <field name="external_listing_id"/>
+                            <field name="integration_id"/>
+                        </group>
+                    </group>
+
                     <!-- Tarification saisonnière -->
                     <separator string="💰 Tarification Saisonnière"/>
                     <field name="seasonal_price_ids" nolabel="1">
-                        <list> string="Tarifs saisonniers" editable="bottom">
+                        <list string="Tarifs saisonniers" editable="bottom">
                             <field name="name"/>
                             <field name="date_start"/>
                             <field name="date_end"/>
