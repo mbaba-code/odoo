@@ -219,9 +219,26 @@
                                         </span>
                                     </div>
                                     <div>
-                                        <span class="badge" t-att-class="'badge-' + ('success' if record.status.value in ['paid', 'checked_in', 'completed'] else 'warning' if record.status.value == 'pending_payment' else 'danger' if record.status.value == 'cancelled' else 'info')">
-                                            <field name="status"/>
-                                        </span>
+                                        <t t-if="record.status.value in ['paid', 'checked_in', 'completed']">
+                                            <span class="badge bg-success">
+                                                <field name="status"/>
+                                            </span>
+                                        </t>
+                                        <t t-elif="record.status.value == 'pending_payment'">
+                                            <span class="badge bg-warning">
+                                                <field name="status"/>
+                                            </span>
+                                        </t>
+                                        <t t-elif="record.status.value == 'cancelled'">
+                                            <span class="badge bg-danger">
+                                                <field name="status"/>
+                                            </span>
+                                        </t>
+                                        <t t-else="">
+                                            <span class="badge bg-info">
+                                                <field name="status"/>
+                                            </span>
+                                        </t>
                                     </div>
                                 </div>
                             </div>
