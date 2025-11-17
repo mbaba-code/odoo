@@ -163,8 +163,8 @@ class OneDeskWebsite(http.Controller):
             reservation = request.env['onedesk.reservation'].create({
                 'unit_id': unit_id,
                 'partner_id': partner.id,
-                'start_date': start_datetime.isoformat(),
-                'end_date': end_datetime.isoformat(),
+                'start_date': start_date.isoformat(),  # Envoyer juste la date, pas la datetime
+                'end_date': end_date.isoformat(),      # Envoyer juste la date, pas la datetime
                 'guest_notes': data.get('message', ''),
                 'status': 'draft',  # En attente de confirmation
             })
