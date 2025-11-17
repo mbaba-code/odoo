@@ -158,6 +158,80 @@
         </field>
     </record>
 
+    <!-- Kanban Grid View -->
+    <record id="view_reservation_kanban" model="ir.ui.view">
+        <field name="name">onedesk.reservation.kanban</field>
+        <field name="model">onedesk.reservation</field>
+        <field name="arch" type="xml">
+            <kanban string="Reservations Grid">
+                <field name="id"/>
+                <field name="name"/>
+                <field name="check_in_photo"/>
+                <field name="partner_id"/>
+                <field name="unit_id"/>
+                <field name="start_date"/>
+                <field name="end_date"/>
+                <field name="number_of_nights"/>
+                <field name="status"/>
+                <field name="total_price"/>
+                <templates>
+                    <t t-name="card">
+                        <div class="oe_kanban_card">
+                            <div class="oe_kanban_global_click">
+                                <!-- Photo -->
+                                <div style="height: 180px; margin-bottom: 10px; border-radius: 5px; overflow: hidden; background: #f0f0f0; display: flex; align-items: center; justify-content: center;">
+                                    <t t-if="record.check_in_photo.value">
+                                        <img t-att-src="'data:image/*;base64,' + record.check_in_photo.value" style="width: 100%; height: 100%; object-fit: cover;"/>
+                                    </t>
+                                    <t t-else="">
+                                        <i class="fa fa-calendar fa-3x" style="color: #ccc;"></i>
+                                    </t>
+                                </div>
+
+                                <!-- Reservation Info -->
+                                <h4 style="margin: 5px 0; font-weight: bold;">
+                                    <field name="name"/>
+                                </h4>
+
+                                <div style="font-size: 12px; color: #666; margin-bottom: 8px;">
+                                    <strong>👤</strong>
+                                    <field name="partner_id"/>
+                                </div>
+
+                                <div style="font-size: 11px; color: #999; margin-bottom: 8px;">
+                                    <field name="unit_id"/>
+                                </div>
+
+                                <hr style="margin: 8px 0;"/>
+
+                                <!-- Dates & Status -->
+                                <div style="font-size: 10px;">
+                                    <div style="margin-bottom: 4px;">
+                                        <strong>📅 Dates:</strong>
+                                        <span style="float: right;">
+                                            <field name="number_of_nights"/>n
+                                        </span>
+                                    </div>
+                                    <div style="margin-bottom: 4px;">
+                                        <strong>💰 Total:</strong>
+                                        <span style="float: right; color: #17a2b8;">
+                                            <field name="total_price" widget="monetary"/>
+                                        </span>
+                                    </div>
+                                    <div>
+                                        <span class="badge" t-att-class="'badge-' + ('success' if record.status.value in ['paid', 'checked_in', 'completed'] else 'warning' if record.status.value == 'pending_payment' else 'danger' if record.status.value == 'cancelled' else 'info')">
+                                            <field name="status"/>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
     <!-- Vue calendrier -->
     <record id="view_reservation_calendar" model="ir.ui.view">
         <field name="name">onedesk.reservation.calendar</field>
@@ -175,7 +249,7 @@
     <record id="action_reservations" model="ir.actions.act_window">
         <field name="name">Reservations</field>
         <field name="res_model">onedesk.reservation</field>
-        <field name="view_mode">list,form,calendar</field>
+        <field name="view_mode">kanban,list,form,calendar</field>
         <field name="help" type="html">
             <p class="oe_view_nocontent_create">
                 Créez une nouvelle réservation.

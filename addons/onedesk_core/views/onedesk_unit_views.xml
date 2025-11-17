@@ -109,6 +109,9 @@
         <field name="model">onedesk.unit</field>
         <field name="arch" type="xml">
             <kanban string="Units Dashboard">
+                <field name="name"/>
+                <field name="main_image"/>
+                <field name="property_id"/>
                 <field name="revenue_this_month"/>
                 <field name="occupancy_percentage"/>
                 <field name="upcoming_reservations_count"/>
@@ -118,8 +121,18 @@
                     <t t-name="card">
                         <div class="oe_kanban_card">
                             <div class="oe_kanban_global_click">
+                                <!-- Image -->
+                                <div style="height: 150px; margin-bottom: 10px; border-radius: 5px; overflow: hidden; background: #f0f0f0; display: flex; align-items: center; justify-content: center;">
+                                    <t t-if="record.main_image.value">
+                                        <img t-att-src="'data:image/*;base64,' + record.main_image.value" style="width: 100%; height: 100%; object-fit: cover;"/>
+                                    </t>
+                                    <t t-else="">
+                                        <i class="fa fa-home fa-3x" style="color: #ccc;"></i>
+                                    </t>
+                                </div>
+
                                 <h3><field name="name"/></h3>
-                                <div class="text-muted"><field name="property_id"/></div>
+                                <div class="text-muted" style="font-size: 12px; margin-bottom: 10px;"><field name="property_id"/></div>
 
                                 <hr/>
 
