@@ -1,0 +1,187 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- SUBSCRIPTION VIEWS (For Master Admin) -->
+
+    <!-- Subscription List View -->
+    <record id="view_onedesk_subscription_list" model="ir.ui.view">
+        <field name="name">onedesk.subscription.list</field>
+        <field name="model">onedesk.subscription</field>
+        <field name="arch" type="xml">
+            <list string="Abonnements">
+                <field name="subscription_id"/>
+                <field name="company_id"/>
+                <field name="plan_id"/>
+                <field name="state" widget="badge"/>
+                <field name="start_date"/>
+                <field name="end_date"/>
+                <field name="current_units_count" optional="hide"/>
+                <field name="next_invoice_date" optional="show"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Subscription Kanban View -->
+    <record id="view_onedesk_subscription_kanban" model="ir.ui.view">
+        <field name="name">onedesk.subscription.kanban</field>
+        <field name="model">onedesk.subscription</field>
+        <field name="arch" type="xml">
+            <kanban string="Abonnements">
+                <field name="id"/>
+                <field name="company_id"/>
+                <field name="plan_id"/>
+                <field name="state"/>
+                <field name="current_units_count"/>
+                <field name="current_users_count"/>
+                <field name="end_date"/>
+                <templates>
+                    <t t-name="card">
+                        <div class="oe_kanban_card o_kanban_global_click">
+                            <div style="padding: 15px;">
+                                <!-- Company -->
+                                <h4 style="margin: 0 0 10px 0; color: #1f77d2;">
+                                    <field name="company_id"/>
+                                </h4>
+
+                                <!-- Plan -->
+                                <p style="margin: 0 0 10px 0; font-size: 13px; color: #666;">
+                                    Plan: <strong><field name="plan_id"/></strong>
+                                </p>
+
+                                <!-- Status -->
+                                <div style="margin-bottom: 10px;">
+                                    <t t-if="record.state.raw_value == 'active'">
+                                        <span class="badge badge-success">Actif</span>
+                                    </t>
+                                    <t t-elif="record.state.raw_value == 'suspended'">
+                                        <span class="badge badge-warning">Suspendu</span>
+                                    </t>
+                                    <t t-elif="record.state.raw_value == 'cancelled'">
+                                        <span class="badge badge-danger">Annulé</span>
+                                    </t>
+                                    <t t-else="">
+                                        <span class="badge badge-info">Brouillon</span>
+                                    </t>
+                                </div>
+
+                                <!-- Usage -->
+                                <div style="font-size: 12px; color: #666; margin-bottom: 10px;">
+                                    <div>🛏️ <field name="current_units_count"/> unités</div>
+                                    <div>👥 <field name="current_users_count"/> utilisateurs</div>
+                                </div>
+
+                                <!-- Dates -->
+                                <div style="font-size: 11px; color: #999; padding-top: 10px; border-top: 1px solid #eee;">
+                                    Jusqu'au: <field name="end_date"/>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- Subscription Form View -->
+    <record id="view_onedesk_subscription_form" model="ir.ui.view">
+        <field name="name">onedesk.subscription.form</field>
+        <field name="model">onedesk.subscription</field>
+        <field name="arch" type="xml">
+            <form string="Abonnement">
+                <header>
+                    <button name="action_activate" string="✓ Activer" type="object" class="oe_highlight"
+                            invisible="state != 'draft'"/>
+                    <button name="action_suspend" string="⏸ Suspendre" type="object"
+                            invisible="state != 'active'"/>
+                    <button name="action_cancel" string="❌ Annuler" type="object"
+                            invisible="state in ['cancelled', 'draft']"/>
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="subscription_id" readonly="1" class="oe_inline"/>
+                        </h1>
+                    </div>
+
+                    <!-- Client Info -->
+                    <group>
+                        <group>
+                            <field name="company_id" readonly="1"/>
+                            <field name="plan_id"/>
+                        </group>
+                        <group>
+                            <field name="start_date"/>
+                            <field name="end_date"/>
+                        </group>
+                    </group>
+
+                    <!-- Auto-Renewal -->
+                    <group>
+                        <group>
+                            <field name="auto_renew" widget="boolean"/>
+                            <field name="renewal_notice_days" attrs="{'invisible': [('auto_renew', '=', False)]}"/>
+                        </group>
+                    </group>
+
+                    <!-- Customization -->
+                    <separator string="🎨 Personnalisation"/>
+                    <group>
+                        <group>
+                            <field name="custom_price_per_unit" help="Laisser vide pour utiliser le prix du plan"/>
+                            <field name="custom_commission" help="Laisser vide pour utiliser la commission du plan"/>
+                        </group>
+                        <group>
+                            <field name="discount_percentage" help="Remise globale (%)"/>
+                        </group>
+                    </group>
+
+                    <!-- Billing -->
+                    <separator string="💳 Facturation"/>
+                    <group>
+                        <group>
+                            <field name="billing_contact_id"/>
+                            <field name="last_invoice_date" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="next_invoice_date" readonly="1"/>
+                        </group>
+                    </group>
+
+                    <!-- Usage -->
+                    <separator string="📊 Utilisation actuelle"/>
+                    <group>
+                        <group>
+                            <field name="current_units_count" readonly="1"/>
+                            <field name="current_users_count" readonly="1"/>
+                        </group>
+                    </group>
+
+                    <!-- Invoices -->
+                    <separator string="📋 Factures"/>
+                    <field name="invoice_ids" readonly="1" nolabel="1">
+                        <list>
+                            <field name="name"/>
+                            <field name="invoice_date"/>
+                            <field name="amount_total" widget="monetary"/>
+                            <field name="state" widget="badge"/>
+                        </list>
+                    </field>
+
+                    <!-- Notes -->
+                    <separator string="📝 Notes"/>
+                    <group>
+                        <field name="notes" nolabel="1"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Subscription Action -->
+    <record id="action_onedesk_subscription" model="ir.actions.act_window">
+        <field name="name">Abonnements</field>
+        <field name="res_model">onedesk.subscription</field>
+        <field name="view_mode">kanban,list,form</field>
+    </record>
+
+</odoo>

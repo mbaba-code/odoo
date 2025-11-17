@@ -1,0 +1,190 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- SUBSCRIPTION PLAN VIEWS -->
+
+    <!-- Plan List View -->
+    <record id="view_onedesk_plan_list" model="ir.ui.view">
+        <field name="name">onedesk.subscription.plan.list</field>
+        <field name="model">onedesk.subscription.plan</field>
+        <field name="arch" type="xml">
+            <list string="Plans d'abonnement">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="billing_model" widget="badge"/>
+                <field name="price_per_unit" widget="monetary" optional="show"/>
+                <field name="commission_percentage" optional="show"/>
+                <field name="max_units" optional="hide"/>
+                <field name="max_users" optional="hide"/>
+                <field name="include_channel_manager" widget="boolean" optional="hide"/>
+                <field name="active" widget="boolean"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Plan Form View -->
+    <record id="view_onedesk_plan_form" model="ir.ui.view">
+        <field name="name">onedesk.subscription.plan.form</field>
+        <field name="model">onedesk.subscription.plan</field>
+        <field name="arch" type="xml">
+            <form string="Plan d'abonnement">
+                <header>
+                    <field name="active" widget="boolean_toggle"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" placeholder="Ex: Professional"/>
+                        </h1>
+                    </div>
+
+                    <!-- Basic Info -->
+                    <group>
+                        <group>
+                            <field name="description" widget="text" nolabel="1"/>
+                        </group>
+                    </group>
+
+                    <!-- Billing Model Selection -->
+                    <separator string="📊 Modèle de facturation"/>
+                    <group>
+                        <group>
+                            <field name="billing_model" widget="radio"/>
+                        </group>
+                    </group>
+
+                    <!-- Per-Unit Pricing -->
+                    <group attrs="{'invisible': [('billing_model', '!=', 'per_unit')]}">
+                        <group>
+                            <field name="price_per_unit" widget="monetary"/>
+                        </group>
+                        <group>
+                            <field name="setup_fee" widget="monetary"/>
+                        </group>
+                    </group>
+
+                    <!-- Commission Model -->
+                    <group attrs="{'invisible': [('billing_model', '!=', 'commission')]}">
+                        <group>
+                            <field name="commission_percentage"/>
+                            <field name="commission_period"/>
+                        </group>
+                    </group>
+
+                    <!-- Support & Features -->
+                    <separator string="🎯 Fonctionnalités & Support"/>
+                    <group>
+                        <group>
+                            <field name="includes_support" widget="boolean"/>
+                            <field name="support_hours" attrs="{'invisible': [('includes_support', '=', False)]}"/>
+                        </group>
+                        <group>
+                            <field name="include_channel_manager" widget="boolean"/>
+                            <field name="include_accounting" widget="boolean"/>
+                            <field name="include_advanced_analytics" widget="boolean"/>
+                        </group>
+                    </group>
+
+                    <!-- Limits -->
+                    <separator string="📈 Limites d'utilisation"/>
+                    <group>
+                        <group>
+                            <field name="max_properties"/>
+                            <field name="max_units"/>
+                        </group>
+                        <group>
+                            <field name="max_users"/>
+                        </group>
+                    </group>
+                    <p style="font-size: 11px; color: #999;">
+                        💡 Utilisez -1 pour illimité
+                    </p>
+
+                    <!-- Contract -->
+                    <separator string="📋 Conditions contractuelles"/>
+                    <group>
+                        <group>
+                            <field name="minimum_commitment_months" help="Durée minimum en mois"/>
+                            <field name="can_downgrade" widget="boolean"/>
+                        </group>
+                    </group>
+
+                    <!-- Subscriptions -->
+                    <separator string="📜 Abonnements avec ce plan"/>
+                    <field name="subscription_ids" nolabel="1" readonly="1">
+                        <list>
+                            <field name="company_id"/>
+                            <field name="state" widget="badge"/>
+                            <field name="start_date"/>
+                            <field name="end_date"/>
+                        </list>
+                    </field>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Plan Kanban View -->
+    <record id="view_onedesk_plan_kanban" model="ir.ui.view">
+        <field name="name">onedesk.subscription.plan.kanban</field>
+        <field name="model">onedesk.subscription.plan</field>
+        <field name="arch" type="xml">
+            <kanban string="Plans d'abonnement">
+                <field name="id"/>
+                <field name="name"/>
+                <field name="billing_model"/>
+                <field name="price_per_unit"/>
+                <field name="commission_percentage"/>
+                <field name="max_units"/>
+                <field name="max_users"/>
+                <field name="include_channel_manager"/>
+                <templates>
+                    <t t-name="card">
+                        <div class="oe_kanban_card o_kanban_global_click">
+                            <div style="padding: 15px;">
+                                <!-- Title -->
+                                <h4 style="margin: 0 0 10px 0; color: #1f77d2;">
+                                    <field name="name"/>
+                                </h4>
+
+                                <!-- Pricing -->
+                                <div style="font-weight: bold; font-size: 18px; color: #333; margin-bottom: 10px;">
+                                    <t t-if="record.billing_model.raw_value == 'per_unit'">
+                                        <field name="price_per_unit"/> €/unité/mois
+                                    </t>
+                                    <t t-else="">
+                                        <field name="commission_percentage"/>% commission
+                                    </t>
+                                </div>
+
+                                <!-- Features -->
+                                <ul style="list-style: none; padding: 0; margin: 0; font-size: 12px; color: #666;">
+                                    <li style="padding: 4px 0;">
+                                        <i class="fa" t-attf-class="fa-{{ 'check text-success' if record.include_channel_manager.raw_value else 'times text-danger' }}"></i>
+                                        Gestionnaire multi-canaux
+                                    </li>
+                                    <li style="padding: 4px 0;">
+                                        <i class="fa" t-attf-class="fa-{{ 'check text-success' if record.include_accounting.raw_value else 'times text-danger' }}"></i>
+                                        Module comptable
+                                    </li>
+                                </ul>
+
+                                <!-- Limits -->
+                                <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #eee; font-size: 11px; color: #999;">
+                                    Max: <field name="max_units"/> unités
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- Plan Action -->
+    <record id="action_onedesk_plan" model="ir.actions.act_window">
+        <field name="name">Plans d'abonnement</field>
+        <field name="res_model">onedesk.subscription.plan</field>
+        <field name="view_mode">kanban,list,form</field>
+    </record>
+
+</odoo>

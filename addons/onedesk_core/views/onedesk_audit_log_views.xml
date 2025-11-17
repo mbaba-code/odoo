@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- AUDIT LOG VIEWS (For Master Admin) -->
+
+    <!-- Audit Log List View -->
+    <record id="view_onedesk_audit_log_list" model="ir.ui.view">
+        <field name="name">onedesk.audit.log.list</field>
+        <field name="model">onedesk.audit.log</field>
+        <field name="arch" type="xml">
+            <list string="Journal d'audit" create="false" edit="false">
+                <field name="create_date"/>
+                <field name="log_type" widget="badge"/>
+                <field name="severity" widget="badge"/>
+                <field name="actor_name"/>
+                <field name="client_id" optional="show"/>
+                <field name="description" optional="hide"/>
+                <field name="result" widget="badge" optional="show"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Audit Log Form View -->
+    <record id="view_onedesk_audit_log_form" model="ir.ui.view">
+        <field name="name">onedesk.audit.log.form</field>
+        <field name="model">onedesk.audit.log</field>
+        <field name="arch" type="xml">
+            <form string="Événement d'audit" create="false" edit="false" delete="false">
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="log_type"/>
+                        </h1>
+                    </div>
+
+                    <!-- Event Info -->
+                    <group>
+                        <group>
+                            <field name="create_date" readonly="1"/>
+                            <field name="severity" widget="badge"/>
+                        </group>
+                        <group>
+                            <field name="log_type"/>
+                            <field name="result" widget="badge"/>
+                        </group>
+                    </group>
+
+                    <!-- Actor -->
+                    <separator string="👤 Acteur"/>
+                    <group>
+                        <group>
+                            <field name="user_id" readonly="1"/>
+                            <field name="actor_name" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="actor_email" readonly="1"/>
+                            <field name="ip_address" readonly="1"/>
+                        </group>
+                    </group>
+
+                    <!-- Subject -->
+                    <separator string="📋 Sujet"/>
+                    <group>
+                        <group>
+                            <field name="client_id" readonly="1"/>
+                            <field name="company_id" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="subscription_id" readonly="1"/>
+                            <field name="user_agent" readonly="1" optional="hide"/>
+                        </group>
+                    </group>
+
+                    <!-- Description -->
+                    <separator string="📝 Description"/>
+                    <group>
+                        <field name="description" nolabel="1" readonly="1"/>
+                        <field name="action_url" readonly="1" widget="url"/>
+                    </group>
+
+                    <!-- Changes -->
+                    <separator string="📊 Changements"/>
+                    <group>
+                        <group>
+                            <field name="changed_fields" readonly="1"/>
+                            <field name="old_values" readonly="1" widget="text"/>
+                        </group>
+                        <group>
+                            <field name="new_values" readonly="1" widget="text"/>
+                        </group>
+                    </group>
+
+                    <!-- Error -->
+                    <separator string="⚠️ Erreurs"/>
+                    <group>
+                        <field name="error_message" nolabel="1" readonly="1" widget="text"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Audit Log Search View -->
+    <record id="view_onedesk_audit_log_search" model="ir.ui.view">
+        <field name="name">onedesk.audit.log.search</field>
+        <field name="model">onedesk.audit.log</field>
+        <field name="arch" type="xml">
+            <search string="Journal d'audit">
+                <field name="actor_name" string="Acteur"/>
+                <field name="client_id" string="Client"/>
+                <field name="log_type" string="Type d'événement"/>
+
+                <separator/>
+                <filter name="filter_errors" string="Erreurs" domain="[('severity', '=', 'error')]"/>
+                <filter name="filter_critical" string="Critique" domain="[('severity', '=', 'critical')]"/>
+                <filter name="filter_failed" string="Échouées" domain="[('result', '=', 'failed')]"/>
+
+                <separator/>
+                <filter name="filter_today" string="Aujourd'hui"
+                        domain="[('create_date', '&gt;=', context_today().strftime('%Y-%m-%d 00:00:00')), ('create_date', '&lt;=', context_today().strftime('%Y-%m-%d 23:59:59'))]"/>
+                <filter name="filter_this_week" string="Cette semaine"
+                        domain="[('create_date', '&gt;=', (context_today() - timedelta(days=7)).strftime('%Y-%m-%d 00:00:00'))]"/>
+
+                <separator/>
+                <group expand="0" string="Regrouper par">
+                    <filter name="group_by_date" string="Date" context="{'group_by': 'create_date'}"/>
+                    <filter name="group_by_actor" string="Acteur" context="{'group_by': 'actor_name'}"/>
+                    <filter name="group_by_client" string="Client" context="{'group_by': 'client_id'}"/>
+                    <filter name="group_by_log_type" string="Type d'événement" context="{'group_by': 'log_type'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Audit Log Action -->
+    <record id="action_onedesk_audit_log" model="ir.actions.act_window">
+        <field name="name">Journal d'audit</field>
+        <field name="res_model">onedesk.audit.log</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_onedesk_audit_log_search"/>
+    </record>
+
+    <!-- System Log List View -->
+    <record id="view_onedesk_system_log_list" model="ir.ui.view">
+        <field name="name">onedesk.system.log.list</field>
+        <field name="model">onedesk.system.log</field>
+        <field name="arch" type="xml">
+            <list string="Journal système" create="false" edit="false">
+                <field name="create_date"/>
+                <field name="level" widget="badge"/>
+                <field name="module"/>
+                <field name="message" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- System Log Form View -->
+    <record id="view_onedesk_system_log_form" model="ir.ui.view">
+        <field name="name">onedesk.system.log.form</field>
+        <field name="model">onedesk.system.log</field>
+        <field name="arch" type="xml">
+            <form string="Log système" create="false" edit="false" delete="false">
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="create_date"/>
+                        </h1>
+                    </div>
+
+                    <group>
+                        <group>
+                            <field name="level" widget="badge"/>
+                            <field name="module"/>
+                        </group>
+                    </group>
+
+                    <separator string="Message"/>
+                    <group>
+                        <field name="message" nolabel="1" widget="text"/>
+                    </group>
+
+                    <separator string="Stack Trace"/>
+                    <group>
+                        <field name="stack_trace" nolabel="1" widget="text"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- System Log Action -->
+    <record id="action_onedesk_system_log" model="ir.actions.act_window">
+        <field name="name">Journal système</field>
+        <field name="res_model">onedesk.system.log</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+</odoo>

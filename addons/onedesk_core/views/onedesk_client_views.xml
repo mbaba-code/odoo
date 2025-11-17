@@ -1,0 +1,252 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- CLIENT VIEWS (For Master Admin) -->
+
+    <!-- Client List View -->
+    <record id="view_onedesk_client_list" model="ir.ui.view">
+        <field name="name">onedesk.client.list</field>
+        <field name="model">onedesk.client</field>
+        <field name="arch" type="xml">
+            <list string="Clients OneDesk">
+                <field name="client_code"/>
+                <field name="client_name"/>
+                <field name="owner_partner_id" optional="show"/>
+                <field name="business_type" widget="badge" optional="show"/>
+                <field name="state" widget="badge"/>
+                <field name="registration_date" optional="hide"/>
+                <field name="properties_count" optional="show"/>
+                <field name="units_count" optional="show"/>
+                <field name="reservations_count" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Client Kanban View -->
+    <record id="view_onedesk_client_kanban" model="ir.ui.view">
+        <field name="name">onedesk.client.kanban</field>
+        <field name="model">onedesk.client</field>
+        <field name="arch" type="xml">
+            <kanban string="Clients OneDesk">
+                <field name="id"/>
+                <field name="client_name"/>
+                <field name="state"/>
+                <field name="properties_count"/>
+                <field name="units_count"/>
+                <field name="reservations_count"/>
+                <field name="onboarding_progress"/>
+                <templates>
+                    <t t-name="card">
+                        <div class="oe_kanban_card o_kanban_global_click">
+                            <div style="padding: 15px;">
+                                <!-- Company Name -->
+                                <h4 style="margin: 0 0 10px 0; color: #1f77d2;">
+                                    <field name="client_name"/>
+                                </h4>
+
+                                <!-- Status Badge -->
+                                <div style="margin-bottom: 10px;">
+                                    <t t-if="record.state.raw_value == 'active'">
+                                        <span class="badge badge-success">Actif</span>
+                                    </t>
+                                    <t t-elif="record.state.raw_value == 'pending_setup'">
+                                        <span class="badge badge-warning">En attente de configuration</span>
+                                    </t>
+                                    <t t-elif="record.state.raw_value == 'suspended'">
+                                        <span class="badge badge-danger">Suspendu</span>
+                                    </t>
+                                    <t t-else="">
+                                        <span class="badge badge-dark">Annulé</span>
+                                    </t>
+                                </div>
+
+                                <!-- Progress Bar -->
+                                <div style="margin-bottom: 10px;">
+                                    <div style="font-size: 11px; color: #666; margin-bottom: 4px;">
+                                        Onboarding: <field name="onboarding_progress"/>%
+                                    </div>
+                                    <div style="height: 6px; background-color: #e9ecef; border-radius: 3px; overflow: hidden;">
+                                        <div t-attf-style="height: 100%; width: {{ record.onboarding_progress.value }}%; background-color: #1f77d2; transition: width 0.3s;"></div>
+                                    </div>
+                                </div>
+
+                                <!-- Stats -->
+                                <div style="font-size: 12px; color: #666; line-height: 1.6; margin-top: 10px; padding-top: 10px; border-top: 1px solid #eee;">
+                                    <div>🏠 <field name="properties_count"/> propriétés</div>
+                                    <div>🛏️ <field name="units_count"/> unités</div>
+                                    <div>📅 <field name="reservations_count"/> réservations</div>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- Client Form View -->
+    <record id="view_onedesk_client_form" model="ir.ui.view">
+        <field name="name">onedesk.client.form</field>
+        <field name="model">onedesk.client</field>
+        <field name="arch" type="xml">
+            <form string="Client OneDesk">
+                <header>
+                    <button name="action_activate_client" string="✓ Activer" type="object" class="oe_highlight"
+                            invisible="state != 'pending_setup'"/>
+                    <button name="action_suspend_client" string="⏸ Suspendre" type="object"
+                            invisible="state != 'active'"/>
+                    <button name="action_cancel_client" string="❌ Annuler" type="object"
+                            invisible="state in ['cancelled', 'pending_setup']"/>
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="open_properties" type="object" class="oe_stat_button" icon="fa-home">
+                            <div class="o_field_widget o_stat_info">
+                                <span class="o_stat_value"><field name="properties_count"/></span>
+                                <span class="o_stat_text">Propriétés</span>
+                            </div>
+                        </button>
+                        <button name="open_reservations" type="object" class="oe_stat_button" icon="fa-calendar">
+                            <div class="o_field_widget o_stat_info">
+                                <span class="o_stat_value"><field name="reservations_count"/></span>
+                                <span class="o_stat_text">Réservations</span>
+                            </div>
+                        </button>
+                    </div>
+
+                    <div class="oe_title">
+                        <h1>
+                            <field name="client_name" class="oe_inline"/>
+                        </h1>
+                        <p style="color: #999;">
+                            Code: <field name="client_code" class="oe_inline" readonly="1"/>
+                        </p>
+                    </div>
+
+                    <!-- Onboarding Progress -->
+                    <div style="margin-bottom: 20px; padding: 15px; background-color: #f0f8ff; border-left: 4px solid #1f77d2; border-radius: 4px;">
+                        <p style="margin: 0 0 10px 0;"><strong>Progression de l'onboarding:</strong> <field name="onboarding_progress"/>%</p>
+                        <div style="height: 8px; background-color: #e9ecef; border-radius: 4px; overflow: hidden;">
+                            <div t-attf-style="height: 100%; width: {{ record.onboarding_progress.value }}%; background-color: #28a745; transition: width 0.3s;"></div>
+                        </div>
+                        <p style="margin: 10px 0 0 0; font-size: 12px; color: #666;">
+                            Étape actuelle: <field name="onboarding_step"/>
+                        </p>
+                    </div>
+
+                    <!-- Client Information -->
+                    <group>
+                        <group>
+                            <field name="company_id" readonly="1"/>
+                            <field name="owner_partner_id"/>
+                        </group>
+                        <group>
+                            <field name="registration_date" readonly="1"/>
+                            <field name="onboarding_completed_date" readonly="1"/>
+                        </group>
+                    </group>
+
+                    <!-- Business Info -->
+                    <separator string="💼 Informations commerciales"/>
+                    <group>
+                        <group>
+                            <field name="business_type"/>
+                            <field name="industry" placeholder="Ex: Gestion immobilière, Tourisme"/>
+                        </group>
+                        <group>
+                            <field name="country_id" readonly="1"/>
+                            <field name="website"/>
+                        </group>
+                    </group>
+
+                    <!-- Contact Settings -->
+                    <separator string="📧 Coordonnées"/>
+                    <group>
+                        <group>
+                            <field name="primary_email" readonly="1"/>
+                            <field name="support_email"/>
+                        </group>
+                        <group>
+                            <field name="phone" readonly="1"/>
+                            <field name="business_phone"/>
+                        </group>
+                    </group>
+
+                    <!-- Subscription Info -->
+                    <separator string="💳 Abonnement"/>
+                    <group>
+                        <group>
+                            <field name="subscription_id" readonly="1"/>
+                        </group>
+                    </group>
+
+                    <!-- Settings -->
+                    <separator string="⚙️ Paramètres"/>
+                    <group>
+                        <group>
+                            <field name="timezone"/>
+                            <field name="language"/>
+                        </group>
+                        <group>
+                            <field name="currency_id"/>
+                        </group>
+                    </group>
+
+                    <!-- Notification Preferences -->
+                    <separator string="🔔 Préférences de notification"/>
+                    <group>
+                        <group>
+                            <field name="notify_daily_summary" widget="boolean"/>
+                            <field name="notify_booking_confirmation" widget="boolean"/>
+                        </group>
+                        <group>
+                            <field name="notify_payment_received" widget="boolean"/>
+                            <field name="notify_system_alerts" widget="boolean"/>
+                        </group>
+                    </group>
+
+                    <!-- Compliance -->
+                    <separator string="⚖️ Conformité"/>
+                    <group>
+                        <group>
+                            <field name="accepted_tos" widget="boolean" readonly="1"/>
+                            <field name="tos_accepted_date" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="accepted_privacy" widget="boolean" readonly="1"/>
+                            <field name="privacy_accepted_date" readonly="1"/>
+                        </group>
+                    </group>
+
+                    <!-- Notes -->
+                    <separator string="📝 Notes"/>
+                    <group>
+                        <group>
+                            <field name="internal_notes" nolabel="1"/>
+                        </group>
+                        <group>
+                            <field name="admin_notes" nolabel="1"/>
+                        </group>
+                    </group>
+
+                    <!-- Activity -->
+                    <separator string="📊 Activité"/>
+                    <group>
+                        <group>
+                            <field name="last_login" readonly="1"/>
+                            <field name="last_activity" readonly="1"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Client Action -->
+    <record id="action_onedesk_client" model="ir.actions.act_window">
+        <field name="name">Clients OneDesk</field>
+        <field name="res_model">onedesk.client</field>
+        <field name="view_mode">kanban,list,form</field>
+    </record>
+
+</odoo>

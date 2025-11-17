@@ -29,6 +29,12 @@
     'views/onedesk_integration_menu.xml',
     'views/oauth_templates.xml',
 
+    # Multi-tenant views (admin)
+    'views/onedesk_plan_views.xml',
+    'views/onedesk_client_views.xml',
+    'views/onedesk_subscription_views.xml',
+    'views/onedesk_audit_log_views.xml',
+
     # Données après (quand les models sont chargés)
     'data/integration_providers.xml',
     'data/integration_cron.xml',
