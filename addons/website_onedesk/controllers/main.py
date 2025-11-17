@@ -1,6 +1,10 @@
 from odoo import http
 from odoo.http import request
 from datetime import datetime, timedelta
+import json
+import logging
+
+_logger = logging.getLogger(__name__)
 
 
 class OneDeskWebsite(http.Controller):
@@ -68,8 +72,18 @@ class OneDeskWebsite(http.Controller):
     def create_booking_request(self, **kw):
         """Crée une demande de réservation (lead/contact)"""
         try:
-            # Extrait les données du JSON body
-            data = request.jsonrequest or {}
+            # Extrait les données du JSON body de manière robuste
+            data = {}
+            if hasattr(request, 'jsonrequest') and request.jsonrequest:
+                data = request.jsonrequest
+            else:
+                # Fallback: parse le JSON manuellement du body
+                if request.httprequest.data:
+                    try:
+                        data = json.loads(request.httprequest.data.decode('utf-8'))
+                    except (json.JSONDecodeError, UnicodeDecodeError) as e:
+                        _logger.warning(f"Erreur parsing JSON: {e}")
+                        data = {}
 
             # Valide les données requises
             required_fields = ['name', 'email', 'unit_id', 'start_date', 'end_date']
@@ -113,13 +127,12 @@ class OneDeskWebsite(http.Controller):
             }
 
         except ValueError as e:
+            _logger.warning(f'Erreur de format dans booking: {str(e)}')
             return {
                 'status': 'error',
                 'message': f'Erreur de format: {str(e)}',
             }
         except Exception as e:
-            import traceback
-            _logger = __import__('logging').getLogger(__name__)
             _logger.exception('Erreur lors de la création de réservation')
             return {
                 'status': 'error',
@@ -130,8 +143,19 @@ class OneDeskWebsite(http.Controller):
     def check_availability(self, unit_id, **kw):
         """Vérifie la disponibilité d'une unité pour une période"""
         try:
-            # Extrait les données du JSON body
-            data = request.jsonrequest or {}
+            # Extrait les données du JSON body de manière robuste
+            data = {}
+            if hasattr(request, 'jsonrequest') and request.jsonrequest:
+                data = request.jsonrequest
+            else:
+                # Fallback: parse le JSON manuellement du body
+                if request.httprequest.data:
+                    try:
+                        data = json.loads(request.httprequest.data.decode('utf-8'))
+                    except (json.JSONDecodeError, UnicodeDecodeError) as e:
+                        _logger.warning(f"Erreur parsing JSON: {e}")
+                        data = {}
+
             start_date = data.get('start_date')
             end_date = data.get('end_date')
 
