@@ -19,8 +19,15 @@ class OneDeskWebsite(http.Controller):
         """Page de listing de toutes les propriétés"""
         properties = request.env['onedesk.property'].search([])
 
+        # Aussi récupère les unités "orphelines" (sans propriété) qui viennent des intégrations
+        orphaned_units = request.env['onedesk.unit'].search([
+            ('property_id', '=', False),
+            ('external_listing_id', '!=', False)  # Seulement les importées
+        ])
+
         return request.render('website_onedesk.properties_list', {
             'properties': properties,
+            'orphaned_units': orphaned_units,
             'page_title': 'Nos propriétés',
         })
 

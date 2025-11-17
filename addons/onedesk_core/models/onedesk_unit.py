@@ -9,6 +9,12 @@ class OnedeskUnit(models.Model):
     name = fields.Char(string="Nom de l'unité", required=True)
     property_id = fields.Many2one('onedesk.property', string="Propriété")
 
+    # ========== INTEGRATION ==========
+    external_listing_id = fields.Char(string="ID Listing Externe",
+                                      help="ID du listing sur la plateforme externe (Airbnb, Booking, VRBO, iCal)")
+    integration_id = fields.Many2one('onedesk.integration', string="Intégration source",
+                                    help="L'intégration d'où vient ce listing")
+
     # Tarification flexible
     price_per_night = fields.Float(string="Prix par nuit (défaut)", required=True, default=100.0)
     seasonal_price_ids = fields.One2many('onedesk.seasonal_price', 'unit_id', string='Tarifs saisonniers')

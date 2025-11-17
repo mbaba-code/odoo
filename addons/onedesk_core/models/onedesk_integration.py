@@ -73,7 +73,7 @@ class OnedeskIntegration(models.Model):
     log_ids = fields.One2many('onedesk.integration.log', 'integration_id', string='Logs')
     
     # Options de mapping
-    auto_create_units = fields.Boolean(string='Créer unités automatiquement', default=False,
+    auto_create_units = fields.Boolean(string='Créer unités automatiquement', default=True,
                                        help="Si activé, crée automatiquement les unités manquantes")
     auto_create_contacts = fields.Boolean(string='Créer contacts automatiquement', default=True)
     default_unit_id = fields.Many2one('onedesk.unit', string='Unité par défaut',
@@ -566,32 +566,80 @@ class OnedeskIntegration(models.Model):
                 _logger.warning(f"⚠️ Impossible de créer l'événement calendrier: {e}")
 
         return True
-    
+
+    def _find_or_create_property(self, data):
+        """Trouve ou crée la propriété pour une unité importée"""
+        property_name = (
+            data.get('property_name') or
+            data.get('listing_name') or
+            data.get('location') or
+            'Propriété importée'
+        )
+
+        Property = self.env['onedesk.property']
+
+        # Cherche une propriété correspondante
+        prop = Property.search([
+            ('name', 'ilike', property_name),
+            ('company_id', '=', self.company_id.id),
+        ], limit=1)
+
+        # Crée une propriété si elle n'existe pas
+        if not prop:
+            prop = Property.create({
+                'name': property_name,
+                'address': data.get('location', ''),
+                'property_type': 'apartment',  # Par défaut
+                'description': f"Propriété importée depuis {self.provider_id.name}",
+                'company_id': self.company_id.id,
+            })
+            _logger.info(f"🏘️ Nouvelle propriété créée: {property_name}")
+
+        return prop
+
     def _find_or_create_unit(self, data):
         """Trouve ou crée l'unité"""
         unit_name = (
-            data.get('unit_name') or 
-            data.get('property_name') or 
-            data.get('listing_name') or 
+            data.get('unit_name') or
+            data.get('property_name') or
+            data.get('listing_name') or
             data.get('location')
         )
-        
+
         if not unit_name:
             return False
-        
+
         Unit = self.env['onedesk.unit']
-        unit = Unit.search([
-            ('name', 'ilike', unit_name),
-        ], limit=1)
-        
+        external_listing_id = data.get('external_listing_id') or data.get('listing_id')
+
+        # Cherche par ID externe en priorité (déduplication)
+        unit = False
+        if external_listing_id:
+            unit = Unit.search([
+                ('external_listing_id', '=', external_listing_id),
+                ('integration_id', '=', self.id),
+            ], limit=1)
+
+        # Sinon cherche par nom
+        if not unit:
+            unit = Unit.search([
+                ('name', 'ilike', unit_name),
+            ], limit=1)
+
+        # Crée l'unité si elle n'existe pas et auto_create_units est actif
         if not unit and self.auto_create_units:
+            # Auto-crée la propriété associée
+            property_id = self._find_or_create_property(data)
+
             unit = Unit.create({
                 'name': unit_name,
-                'property_id': self.default_property_id.id if self.default_property_id else False,
+                'property_id': property_id.id if property_id else (self.default_property_id.id if self.default_property_id else False),
+                'external_listing_id': external_listing_id,
+                'integration_id': self.id,
                 'available': True,
             })
-            _logger.info(f"🏠 Nouvelle unité créée: {unit_name}")
-        
+            _logger.info(f"🏠 Nouvelle unité créée: {unit_name} (Propriété: {property_id.name if property_id else 'N/A'})")
+
         return unit
     
     def _find_or_create_contact(self, data):
