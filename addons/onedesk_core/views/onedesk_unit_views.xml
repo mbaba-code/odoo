@@ -58,11 +58,11 @@
                     <!-- SECTION: GALERIE DE PHOTOS -->
                     <separator string="📸 Galerie complète"/>
                     <field name="image_ids" nolabel="1">
-                        <tree string="Photos" editable="bottom">
+                        <list string="Photos" editable="bottom">
                             <field name="sequence" widget="handle"/>
                             <field name="name"/>
                             <field name="image" widget="image"/>
-                        </tree>
+                        </list>
                     </field>
                     <p style="margin-top: 10px; font-size: 12px; color: #999;">
                         💡 Ajoutez plusieurs photos pour montrer les différentes pièces (chambre, salle de bain, cuisine, salon, etc.)

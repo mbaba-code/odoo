@@ -59,11 +59,11 @@
                             </group>
                             <separator string="Galerie complète de photos"/>
                             <field name="image_ids" nolabel="1">
-                                <tree string="Photos" editable="bottom">
+                                <list string="Photos" editable="bottom">
                                     <field name="sequence" widget="handle"/>
                                     <field name="name"/>
                                     <field name="image" widget="image"/>
-                                </tree>
+                                </list>
                             </field>
                             <p style="margin-top: 10px; font-size: 12px; color: #999;">
                                 💡 Ajoutez plusieurs photos pour montrer différentes parties de la propriété (chambre, cuisine, salle de bain, etc.)

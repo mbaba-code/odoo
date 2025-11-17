@@ -134,12 +134,12 @@
 
                             <separator string="Galerie complète d'inspection"/>
                             <field name="image_ids" nolabel="1">
-                                <tree string="Photos d'inspection" editable="bottom">
+                                <list string="Photos d'inspection" editable="bottom">
                                     <field name="sequence" widget="handle"/>
                                     <field name="image_type"/>
                                     <field name="name"/>
                                     <field name="image" widget="image"/>
-                                </tree>
+                                </list>
                             </field>
                             <p style="margin-top: 10px; font-size: 12px; color: #999;">
                                 💡 Documentez l'état de la propriété avec plusieurs photos (check-in, check-out, dégâts détectés)
