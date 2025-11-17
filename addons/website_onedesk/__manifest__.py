@@ -10,8 +10,6 @@
         'onedesk_core',
     ],
     'data': [
-        'views/ondesk_property_website_views.xml',
-        'templates/assets.xml',
         'templates/pages.xml',
     ],
     'assets': {
