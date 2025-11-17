@@ -31,6 +31,10 @@ class OnedeskProperty(models.Model):
     amenities = fields.Text(string="Équipements et services",
                            help="Liste des équipements disponibles (WiFi, Piscine, Parking, etc.)")
 
+    # ========== IMAGES ==========
+    main_image = fields.Image(string="Photo principale", attachment=True,
+                             help="Photo de couverture de la propriété")
+
     # ========== CALENDAR FIELDS (required for calendar view) ==========
     date_start = fields.Date(string="Date de début")
     date_stop = fields.Date(string="Date de fin")

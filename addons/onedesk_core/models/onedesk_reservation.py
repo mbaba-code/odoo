@@ -92,6 +92,12 @@ class OneDeskReservation(models.Model):
     special_requests = fields.Text(string='Demandes particulières',
                                   help="Demandes spéciales du client (lit bébé, chaise haute, etc.)")
 
+    # ========== IMAGES & DOCUMENTS ==========
+    check_in_photo = fields.Image(string="Photo check-in", attachment=True,
+                                 help="Photo de l'état des lieux à l'arrivée du client")
+    check_out_photo = fields.Image(string="Photo check-out", attachment=True,
+                                  help="Photo de l'état des lieux au départ du client")
+
     @api.constrains('unit_id', 'start_date', 'end_date', 'status')
     def _check_no_overlapping_reservations(self):
         """Vérifie qu'il n'y a pas de réservations qui se chevauchent sur la même unité"""
