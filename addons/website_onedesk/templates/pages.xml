@@ -571,31 +571,47 @@
                     })
                     .then(r => {
                         console.log('Response status:', r.status, r.ok);
-                        if (!r.ok) throw new Error('Erreur serveur: ' + r.status);
-                        return r.json();
+                        console.log('Response content-type:', r.headers.get('content-type'));
+
+                        // Toujours lire le texte brut d'abord pour debugger
+                        return r.text().then(text => {
+                            console.log('Raw response text:', text);
+
+                            // Parser le JSON
+                            let data = {};
+                            try {
+                                data = JSON.parse(text);
+                                console.log('Parsed JSON:', data);
+                            } catch (e) {
+                                console.error('JSON parse error:', e);
+                                data = { message: text || 'Réponse invalide du serveur' };
+                            }
+
+                            // Si statut HTTP n'est pas ok, créer une erreur
+                            if (!r.ok) {
+                                throw new Error('HTTP ' + r.status + ': ' + (data.message || 'Erreur serveur'));
+                            }
+
+                            return data;
+                        });
                     })
                     .then(data => {
-                        console.log('Booking response:', data);
-                        console.log('Data type:', typeof data);
-                        console.log('Data keys:', data ? Object.keys(data) : 'null/undefined');
+                        console.log('Final booking response:', data);
 
                         if (data && data.status === 'success') {
                             alert(data.message || '✅ Réservation confirmée!');
                             document.getElementById('booking_form').reset();
                             document.getElementById('price_info').style.display = 'none';
-                        } else if (data && data.status === 'error' && data.message) {
-                            alert(data.message);
                         } else if (data && data.message) {
                             alert(data.message);
                         } else {
-                            console.error('Unexpected response format:', data);
+                            console.error('Unexpected response:', data);
                             alert('Une erreur est survenue lors de la réservation');
                         }
                     })
                     .catch(error => {
                         console.error('Booking error:', error);
-                        console.error('Error message:', error.message);
-                        alert('Erreur lors de la réservation: ' + error.message);
+                        alert(error.message || 'Erreur lors de la réservation');
                     });
                 });
             ]]></script>
