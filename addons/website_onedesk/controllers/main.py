@@ -1,5 +1,6 @@
 from odoo import http
 from odoo.http import request
+from odoo.exceptions import ValidationError
 from datetime import datetime, timedelta
 import json
 import logging
@@ -132,11 +133,20 @@ class OneDeskWebsite(http.Controller):
                 'status': 'error',
                 'message': f'Erreur de format: {str(e)}',
             }
-        except Exception as e:
-            _logger.exception('Erreur lors de la création de réservation')
+        except ValidationError as e:
+            # Erreur de validation (ex: chevauchement de réservation)
+            error_msg = str(e).replace('<class \'odoo.exceptions.ValidationError\'>', '').strip()
+            _logger.warning(f'Erreur de validation booking: {error_msg}')
             return {
                 'status': 'error',
-                'message': f'Erreur serveur: {str(e) or "Erreur inconnue"}',
+                'message': error_msg or 'Cette réservation n\'est pas possible. Veuillez vérifier les dates.',
+            }
+        except Exception as e:
+            _logger.exception('Erreur lors de la création de réservation')
+            error_msg = str(e) if str(e) else 'Une erreur inconnue s\'est produite'
+            return {
+                'status': 'error',
+                'message': error_msg,
             }
 
     @http.route('/onedesk/unit/<model("onedesk.unit"):unit_id>/availability', type='json', auth='public', website=True, methods=['POST'])
