@@ -183,7 +183,7 @@
     <record id="action_onedesk_unit" model="ir.actions.act_window">
         <field name="name">Units</field>
         <field name="res_model">onedesk.unit</field>
-        <field name="view_mode">list,form</field>
+        <field name="view_mode">list,form,kanban</field>
     </record>
 
     <menuitem id="menu_onedesk_unit" name="Units"
