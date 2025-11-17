@@ -272,12 +272,6 @@ class OnedeskoClient(models.Model):
         """Trouver le client par company_id"""
         return self.search([('company_id', '=', company_id)], limit=1)
 
-    def _check_access(self, user):
-        """Vérifier si un utilisateur a accès à ce client"""
-        if user.is_admin:
-            return True
-        return user.company_id.id == self.company_id.id
-
 
 class OnedeskoClientInvitation(models.Model):
     """
