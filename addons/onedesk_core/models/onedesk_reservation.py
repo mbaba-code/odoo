@@ -124,6 +124,39 @@ class OneDeskReservation(models.Model):
                     f"Réservations en conflit: {', '.join(r.name for r in overlapping)}"
                 )
 
+    def check_availability(self, start_date, end_date):
+        """
+        Vérifie la disponibilité d'une unité pour une période donnée
+        Retourne: (available: bool, conflicting_reservations: list, error_message: str)
+        """
+        self.ensure_one()
+
+        # Cherche les réservations qui se chevauchent
+        overlapping = self.env['onedesk.reservation'].search([
+            ('unit_id', '=', self.id),
+            ('status', '!=', 'cancelled'),
+            ('start_date', '<', end_date),
+            ('end_date', '>', start_date),
+        ])
+
+        if overlapping:
+            # Formate les dates pour le message
+            conflict_dates = []
+            for res in overlapping:
+                start_str = res.start_date.strftime('%d/%m/%Y')
+                end_str = res.end_date.strftime('%d/%m/%Y')
+                conflict_dates.append(f"{start_str} au {end_str}")
+
+            error_msg = (
+                f"Cette unité n'est pas disponible pour la période sélectionnée.\n"
+                f"Périodes occupées:\n"
+                + "\n".join(f"  • {date}" for date in conflict_dates)
+            )
+
+            return False, overlapping, error_msg
+
+        return True, [], None
+
     @api.depends('start_date', 'end_date')
     def _compute_number_of_nights(self):
         """Calcule le nombre de nuits"""

@@ -95,6 +95,51 @@ class OneDeskWebsite(http.Controller):
                         'message': f'Le champ "{field}" est requis.',
                     }
 
+            # IMPORTANT: Vérifie la disponibilité AVANT de créer la réservation
+            unit_id = int(data.get('unit_id'))
+            unit = request.env['onedesk.unit'].browse(unit_id)
+
+            if not unit.exists():
+                return {
+                    'status': 'error',
+                    'message': 'Cette unité n\'existe pas.',
+                }
+
+            start_date = datetime.strptime(data.get('start_date'), '%Y-%m-%d').date()
+            end_date = datetime.strptime(data.get('end_date'), '%Y-%m-%d').date()
+
+            # Convertir en datetime pour la comparaison
+            start_datetime = datetime.combine(start_date, datetime.min.time())
+            end_datetime = datetime.combine(end_date, datetime.max.time())
+
+            # Cherche les réservations qui se chevauchent
+            conflicting = request.env['onedesk.reservation'].search([
+                ('unit_id', '=', unit_id),
+                ('status', '!=', 'cancelled'),
+                ('start_date', '<', end_datetime),
+                ('end_date', '>', start_datetime),
+            ])
+
+            if conflicting:
+                # Formate le message d'erreur avec les périodes occupées
+                conflict_dates = []
+                for res in conflicting:
+                    start_str = res.start_date.strftime('%d/%m/%Y')
+                    end_str = res.end_date.strftime('%d/%m/%Y')
+                    conflict_dates.append(f"{start_str} au {end_str}")
+
+                error_msg = (
+                    f"❌ Cette unité n'est pas disponible pour la période sélectionnée.\n\n"
+                    f"Périodes occupées:\n"
+                    + "\n".join(f"  • {date}" for date in conflict_dates)
+                    + f"\n\nVeuillez choisir une autre période."
+                )
+                _logger.warning(f'Période indisponible pour unité {unit.name}: {error_msg}')
+                return {
+                    'status': 'error',
+                    'message': error_msg,
+                }
+
             # Crée un partner si nécessaire
             partner = request.env['res.partner'].search([
                 ('email', '=', data.get('email'))
@@ -107,31 +152,28 @@ class OneDeskWebsite(http.Controller):
                     'phone': data.get('phone', ''),
                 })
 
-            # Crée une réservation en brouillon
-            unit_id = int(data.get('unit_id'))
-            start_date = datetime.strptime(data.get('start_date'), '%Y-%m-%d').date().isoformat()
-            end_date = datetime.strptime(data.get('end_date'), '%Y-%m-%d').date().isoformat()
-
+            # Crée la réservation en brouillon
             reservation = request.env['onedesk.reservation'].create({
                 'unit_id': unit_id,
                 'partner_id': partner.id,
-                'start_date': start_date,
-                'end_date': end_date,
+                'start_date': start_datetime.isoformat(),
+                'end_date': end_datetime.isoformat(),
                 'guest_notes': data.get('message', ''),
                 'status': 'draft',  # En attente de confirmation
             })
 
             return {
                 'status': 'success',
-                'message': f'Demande de réservation créée! Vous allez recevoir un email de confirmation.',
+                'message': f'✅ Réservation confirmée!\n\nUn email de confirmation a été envoyé à {partner.email}.\n\nNuméro de réservation: {reservation.name}',
                 'reservation_id': reservation.id,
             }
 
         except ValueError as e:
-            _logger.warning(f'Erreur de format dans booking: {str(e)}')
+            error_str = str(e)
+            _logger.warning(f'Erreur de format dans booking: {error_str}')
             return {
                 'status': 'error',
-                'message': f'Erreur de format: {str(e)}',
+                'message': f'Format de date invalide. Veuillez utiliser le format YYYY-MM-DD.',
             }
         except ValidationError as e:
             # Erreur de validation (ex: chevauchement de réservation)
