@@ -23,14 +23,12 @@
     <!-- Group: OneDesk Master Admin (Full system access + all clients) -->
     <record id="group_onedesk_master_admin" model="res.groups">
         <field name="name">OneDesk / Master Admin</field>
-        <field name="category_id" ref="base.module_category_system"/>
         <field name="comment">Administrateur maitre OneDesk - Accès complet au système et tous les clients</field>
     </record>
 
     <!-- Group: OneDesk Support (Can assist clients, view logs) -->
     <record id="group_onedesk_support" model="res.groups">
         <field name="name">OneDesk / Support Team</field>
-        <field name="category_id" ref="base.module_category_system"/>
         <field name="comment">Équipe support OneDesk - Accès aux logs et support clients</field>
     </record>
 
