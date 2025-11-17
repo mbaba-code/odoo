@@ -576,18 +576,25 @@
                     })
                     .then(data => {
                         console.log('Booking response:', data);
+                        console.log('Data type:', typeof data);
+                        console.log('Data keys:', data ? Object.keys(data) : 'null/undefined');
+
                         if (data && data.status === 'success') {
-                            alert(data.message);
+                            alert(data.message || '✅ Réservation confirmée!');
                             document.getElementById('booking_form').reset();
                             document.getElementById('price_info').style.display = 'none';
+                        } else if (data && data.status === 'error' && data.message) {
+                            alert(data.message);
                         } else if (data && data.message) {
                             alert(data.message);
                         } else {
+                            console.error('Unexpected response format:', data);
                             alert('Une erreur est survenue lors de la réservation');
                         }
                     })
                     .catch(error => {
                         console.error('Booking error:', error);
+                        console.error('Error message:', error.message);
                         alert('Erreur lors de la réservation: ' + error.message);
                     });
                 });

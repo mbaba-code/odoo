@@ -193,8 +193,10 @@ class OneDeskWebsite(http.Controller):
                 'message': error_msg or 'Cette réservation n\'est pas possible. Veuillez vérifier les dates.',
             }
         except Exception as e:
-            _logger.exception(f'Unexpected error during booking: {str(e)}')
             error_msg = str(e) if str(e) else 'Une erreur inconnue s\'est produite'
+            _logger.exception(f'Unexpected error during booking: {error_msg}')
+            _logger.error(f'Exception type: {type(e).__name__}')
+            _logger.error(f'Returning error response: {{"status": "error", "message": "{error_msg}"}}')
             return {
                 'status': 'error',
                 'message': error_msg,
