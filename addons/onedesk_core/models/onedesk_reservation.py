@@ -716,3 +716,85 @@ class OneDeskReservation(models.Model):
         # Crée la facture si elle n'existe pas
         if not self.invoice_id and self.total_price > 0:
             self._generate_invoice()
+
+    def send_confirmation_email(self):
+        """Envoie un email de confirmation de réservation au client"""
+        self.ensure_one()
+
+        # Données pour l'email
+        email_subject = f"Confirmation de réservation - {self.name}"
+
+        # Format des dates
+        start_date_str = self.start_date.strftime('%d %B %Y')
+        end_date_str = self.end_date.strftime('%d %B %Y')
+
+        # Body de l'email en HTML
+        email_body = f"""
+        <html>
+            <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+                <h2>Confirmation de votre réservation</h2>
+
+                <p>Chère(e) {self.partner_id.name},</p>
+
+                <p>Merci de votre réservation ! Voici les détails de votre séjour :</p>
+
+                <div style="background-color: #f5f5f5; padding: 15px; border-radius: 5px; margin: 20px 0;">
+                    <p><strong>Numéro de réservation :</strong> {self.name}</p>
+                    <p><strong>Unité :</strong> {self.unit_id.name}</p>
+                    <p><strong>Propriété :</strong> {self.unit_id.property_id.name if self.unit_id.property_id else 'N/A'}</p>
+
+                    <hr style="border: none; border-top: 1px solid #ddd; margin: 15px 0;">
+
+                    <p><strong>Dates de séjour :</strong></p>
+                    <p>Arrivée : {start_date_str}</p>
+                    <p>Départ : {end_date_str}</p>
+                    <p><strong>Nombre de nuits :</strong> {self.number_of_nights}</p>
+
+                    <hr style="border: none; border-top: 1px solid #ddd; margin: 15px 0;">
+
+                    <p><strong>Tarification :</strong></p>
+                    <p>Prix par nuit : {self.price_per_night:.2f}€</p>
+                    <p>Sous-total : {self.total_price:.2f}€</p>
+                </div>
+
+                <p>Votre réservation est actuellement en <strong>attente de confirmation</strong>.</p>
+
+                <p style="color: #666; font-size: 12px; margin-top: 30px;">
+                    <strong>Questions ou modifications ?</strong><br>
+                    N'hésitez pas à nous contacter pour toute question concernant votre réservation.
+                </p>
+
+                <p style="color: #666; font-size: 12px;">
+                    Cordialement,<br>
+                    L'équipe OneDesk
+                </p>
+            </body>
+        </html>
+        """
+
+        try:
+            # Envoie l'email
+            self.env['mail.mail'].create({
+                'subject': email_subject,
+                'email_from': self.env.user.company_id.email or self.env['ir.config_parameter'].sudo().get_param('mail.default_from'),
+                'email_to': self.partner_id.email,
+                'body_html': email_body,
+                'model': self._name,
+                'res_id': self.id,
+            }).send()
+
+            # Log l'action
+            self.message_post(
+                body=f"✉️ Email de confirmation envoyé à {self.partner_id.email}",
+                message_type='comment'
+            )
+
+            return True
+
+        except Exception as e:
+            # Log l'erreur
+            self.message_post(
+                body=f"⚠️ Erreur lors de l'envoi de l'email: {str(e)}",
+                message_type='comment'
+            )
+            return False

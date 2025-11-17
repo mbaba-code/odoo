@@ -197,6 +197,13 @@ class OneDeskWebsite(http.Controller):
 
             _logger.info(f'Reservation created successfully: {reservation.name}')
 
+            # Envoie l'email de confirmation
+            try:
+                reservation.send_confirmation_email()
+                _logger.info(f'Confirmation email sent for reservation {reservation.name}')
+            except Exception as e:
+                _logger.error(f'Error sending confirmation email: {str(e)}')
+
             response = {
                 'status': 'success',
                 'message': f'✅ Réservation confirmée!\n\nUn email de confirmation a été envoyé à {partner.email}.\n\nNuméro de réservation: {reservation.name}',
