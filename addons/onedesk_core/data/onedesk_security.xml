@@ -2,132 +2,9 @@
 <odoo>
     <!-- RECORD RULES FOR MULTI-TENANT DATA ISOLATION -->
 
-    <!-- ================== PROPERTY MANAGER ACCESS ================== -->
-
-    <!-- Property Manager: Can only see properties of their company -->
-    <record id="rule_property_manager_property" model="ir.rule">
-        <field name="name">Property Manager - Own Properties Only</field>
-        <field name="model_id" ref="model_onedesk_property"/>
-        <field name="domain_force">[('company_id', '=', user.company_id.id)]</field>
-        <field name="groups" eval="[(4, ref('group_onedesk_property_manager'))]"/>
-        <field name="perm_read">True</field>
-        <field name="perm_write">True</field>
-        <field name="perm_create">True</field>
-        <field name="perm_unlink">True</field>
-    </record>
-
-    <!-- Property Manager: Can only see units of their company -->
-    <record id="rule_property_manager_unit" model="ir.rule">
-        <field name="name">Property Manager - Own Units Only</field>
-        <field name="model_id" ref="model_onedesk_unit"/>
-        <field name="domain_force">[('property_id.company_id', '=', user.company_id.id)]</field>
-        <field name="groups" eval="[(4, ref('group_onedesk_property_manager'))]"/>
-        <field name="perm_read">True</field>
-        <field name="perm_write">True</field>
-        <field name="perm_create">True</field>
-        <field name="perm_unlink">True</field>
-    </record>
-
-    <!-- Property Manager: Can only see reservations of their company -->
-    <record id="rule_property_manager_reservation" model="ir.rule">
-        <field name="name">Property Manager - Own Reservations Only</field>
-        <field name="model_id" ref="model_onedesk_reservation"/>
-        <field name="domain_force">[('unit_id.property_id.company_id', '=', user.company_id.id)]</field>
-        <field name="groups" eval="[(4, ref('group_onedesk_property_manager'))]"/>
-        <field name="perm_read">True</field>
-        <field name="perm_write">True</field>
-        <field name="perm_create">True</field>
-        <field name="perm_unlink">False</field>
-    </record>
-
-    <!-- Property Manager: Can only see their images -->
-    <record id="rule_property_manager_property_image" model="ir.rule">
-        <field name="name">Property Manager - Own Property Images Only</field>
-        <field name="model_id" ref="model_onedesk_property_image"/>
-        <field name="domain_force">[('property_id.company_id', '=', user.company_id.id)]</field>
-        <field name="groups" eval="[(4, ref('group_onedesk_property_manager'))]"/>
-        <field name="perm_read">True</field>
-        <field name="perm_write">True</field>
-        <field name="perm_create">True</field>
-        <field name="perm_unlink">True</field>
-    </record>
-
-    <record id="rule_property_manager_unit_image" model="ir.rule">
-        <field name="name">Property Manager - Own Unit Images Only</field>
-        <field name="model_id" ref="model_onedesk_unit_image"/>
-        <field name="domain_force">[('unit_id.property_id.company_id', '=', user.company_id.id)]</field>
-        <field name="groups" eval="[(4, ref('group_onedesk_property_manager'))]"/>
-        <field name="perm_read">True</field>
-        <field name="perm_write">True</field>
-        <field name="perm_create">True</field>
-        <field name="perm_unlink">True</field>
-    </record>
-
-    <!-- ================== STAFF ACCESS (Limited) ================== -->
-
-    <!-- Staff: Can only read properties of their company -->
-    <record id="rule_staff_property" model="ir.rule">
-        <field name="name">Staff - Read Own Properties Only</field>
-        <field name="model_id" ref="model_onedesk_property"/>
-        <field name="domain_force">[('company_id', '=', user.company_id.id)]</field>
-        <field name="groups" eval="[(4, ref('group_onedesk_staff'))]"/>
-        <field name="perm_read">True</field>
-        <field name="perm_write">False</field>
-        <field name="perm_create">False</field>
-        <field name="perm_unlink">False</field>
-    </record>
-
-    <!-- Staff: Can read/write reservations and tasks -->
-    <record id="rule_staff_reservation" model="ir.rule">
-        <field name="name">Staff - Read/Write Own Reservations</field>
-        <field name="model_id" ref="model_onedesk_reservation"/>
-        <field name="domain_force">[('unit_id.property_id.company_id', '=', user.company_id.id)]</field>
-        <field name="groups" eval="[(4, ref('group_onedesk_staff'))]"/>
-        <field name="perm_read">True</field>
-        <field name="perm_write">True</field>
-        <field name="perm_create">False</field>
-        <field name="perm_unlink">False</field>
-    </record>
-
-    <record id="rule_staff_task" model="ir.rule">
-        <field name="name">Staff - Read/Write Own Tasks</field>
-        <field name="model_id" ref="model_onedesk_task"/>
-        <field name="domain_force">[('reservation_id.unit_id.property_id.company_id', '=', user.company_id.id)]</field>
-        <field name="groups" eval="[(4, ref('group_onedesk_staff'))]"/>
-        <field name="perm_read">True</field>
-        <field name="perm_write">True</field>
-        <field name="perm_create">True</field>
-        <field name="perm_unlink">False</field>
-    </record>
-
-    <!-- ================== VIEWER ACCESS (Read-only) ================== -->
-
-    <!-- Viewer: Can only read everything of their company -->
-    <record id="rule_viewer_property" model="ir.rule">
-        <field name="name">Viewer - Read Own Properties Only</field>
-        <field name="model_id" ref="model_onedesk_property"/>
-        <field name="domain_force">[('company_id', '=', user.company_id.id)]</field>
-        <field name="groups" eval="[(4, ref('group_onedesk_viewer'))]"/>
-        <field name="perm_read">True</field>
-        <field name="perm_write">False</field>
-        <field name="perm_create">False</field>
-        <field name="perm_unlink">False</field>
-    </record>
-
-    <record id="rule_viewer_reservation" model="ir.rule">
-        <field name="name">Viewer - Read Own Reservations Only</field>
-        <field name="model_id" ref="model_onedesk_reservation"/>
-        <field name="domain_force">[('unit_id.property_id.company_id', '=', user.company_id.id)]</field>
-        <field name="groups" eval="[(4, ref('group_onedesk_viewer'))]"/>
-        <field name="perm_read">True</field>
-        <field name="perm_write">False</field>
-        <field name="perm_create">False</field>
-        <field name="perm_unlink">False</field>
-    </record>
-
     <!-- ================== CLIENT RECORDS ACCESS ================== -->
 
-    <!-- Only Master Admin and Support can see OneDesk Clients -->
+    <!-- Only Master Admin can manage clients -->
     <record id="rule_master_admin_client" model="ir.rule">
         <field name="name">Master Admin - All Clients</field>
         <field name="model_id" ref="model_onedesk_client"/>
@@ -143,6 +20,32 @@
     <record id="rule_support_client_read" model="ir.rule">
         <field name="name">Support - Read All Clients</field>
         <field name="model_id" ref="model_onedesk_client"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('group_onedesk_support'))]"/>
+        <field name="perm_read">True</field>
+        <field name="perm_write">False</field>
+        <field name="perm_create">False</field>
+        <field name="perm_unlink">False</field>
+    </record>
+
+    <!-- ================== SUBSCRIPTION PLANS ACCESS ================== -->
+
+    <!-- Only Master Admin can manage plans -->
+    <record id="rule_master_admin_plan" model="ir.rule">
+        <field name="name">Master Admin - All Plans</field>
+        <field name="model_id" ref="model_onedesk_subscription_plan"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('group_onedesk_master_admin'))]"/>
+        <field name="perm_read">True</field>
+        <field name="perm_write">True</field>
+        <field name="perm_create">True</field>
+        <field name="perm_unlink">False</field>
+    </record>
+
+    <!-- Support can read plans -->
+    <record id="rule_support_plan_read" model="ir.rule">
+        <field name="name">Support - Read All Plans</field>
+        <field name="model_id" ref="model_onedesk_subscription_plan"/>
         <field name="domain_force">[(1, '=', 1)]</field>
         <field name="groups" eval="[(4, ref('group_onedesk_support'))]"/>
         <field name="perm_read">True</field>
@@ -199,6 +102,20 @@
         <field name="perm_read">True</field>
         <field name="perm_write">False</field>
         <field name="perm_create">False</field>
+        <field name="perm_unlink">False</field>
+    </record>
+
+    <!-- ================== SYSTEM LOG ACCESS ================== -->
+
+    <!-- Support can manage system logs -->
+    <record id="rule_support_system_log" model="ir.rule">
+        <field name="name">Support - All System Logs</field>
+        <field name="model_id" ref="model_onedesk_system_log"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('group_onedesk_support'))]"/>
+        <field name="perm_read">True</field>
+        <field name="perm_write">False</field>
+        <field name="perm_create">True</field>
         <field name="perm_unlink">False</field>
     </record>
 
