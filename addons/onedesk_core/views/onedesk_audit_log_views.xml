@@ -99,38 +99,11 @@
         </field>
     </record>
 
-    <!-- Audit Log Search View -->
-    <record id="view_onedesk_audit_log_search" model="ir.ui.view">
-        <field name="name">onedesk.audit.log.search</field>
-        <field name="model">onedesk.audit.log</field>
-        <field name="arch" type="xml">
-            <search string="Journal d'audit">
-                <field name="actor_name" string="Acteur"/>
-                <field name="client_id" string="Client"/>
-                <field name="log_type" string="Type d'événement"/>
-
-                <separator/>
-                <filter name="filter_errors" string="Erreurs" domain="[('severity', '=', 'error')]"/>
-                <filter name="filter_critical" string="Critique" domain="[('severity', '=', 'critical')]"/>
-                <filter name="filter_failed" string="Échouées" domain="[('result', '=', 'failed')]"/>
-
-                <separator/>
-                <group expand="0" string="Regrouper par">
-                    <filter name="group_by_date" string="Date" context="{'group_by': 'create_date'}"/>
-                    <filter name="group_by_actor" string="Acteur" context="{'group_by': 'actor_name'}"/>
-                    <filter name="group_by_client" string="Client" context="{'group_by': 'client_id'}"/>
-                    <filter name="group_by_log_type" string="Type d'événement" context="{'group_by': 'log_type'}"/>
-                </group>
-            </search>
-        </field>
-    </record>
-
     <!-- Audit Log Action -->
     <record id="action_onedesk_audit_log" model="ir.actions.act_window">
         <field name="name">Journal d'audit</field>
         <field name="res_model">onedesk.audit.log</field>
         <field name="view_mode">list,form</field>
-        <field name="search_view_id" ref="view_onedesk_audit_log_search"/>
     </record>
 
     <!-- System Log List View -->
