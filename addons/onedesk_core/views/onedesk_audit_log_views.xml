@@ -115,10 +115,6 @@
                 <filter name="filter_failed" string="Échouées" domain="[('result', '=', 'failed')]"/>
 
                 <separator/>
-                <filter name="filter_today" string="Aujourd'hui"
-                        domain="[('create_date', '&gt;=', context_today().strftime('%Y-%m-%d 00:00:00')), ('create_date', '&lt;=', context_today().strftime('%Y-%m-%d 23:59:59'))]"/>
-
-                <separator/>
                 <group expand="0" string="Regrouper par">
                     <filter name="group_by_date" string="Date" context="{'group_by': 'create_date'}"/>
                     <filter name="group_by_actor" string="Acteur" context="{'group_by': 'actor_name'}"/>
