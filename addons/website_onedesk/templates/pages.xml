@@ -53,7 +53,7 @@
                                 </div>
 
                                 <div class="card-footer bg-white border-top-0">
-                                    <a t-attf-href="/property/{{ property.id }}" class="btn btn-sm btn-outline-primary w-100">
+                                    <a t-attf-href="/onedesk/property/{{ property.id }}" class="btn btn-sm btn-outline-primary w-100">
                                         Voir les détails →
                                     </a>
                                 </div>
@@ -167,7 +167,7 @@
                                 </div>
 
                                 <div class="card-footer bg-white border-top-0">
-                                    <a t-attf-href="/unit/{{ unit.id }}" class="btn btn-sm btn-primary w-100">
+                                    <a t-attf-href="/onedesk/unit/{{ unit.id }}" class="btn btn-sm btn-primary w-100">
                                         Réserver maintenant →
                                     </a>
                                 </div>
@@ -201,8 +201,8 @@
                 <!-- Breadcrumb -->
                 <nav aria-label="breadcrumb">
                     <ol class="breadcrumb">
-                        <li class="breadcrumb-item"><a href="/properties">Propriétés</a></li>
-                        <li class="breadcrumb-item"><a t-attf-href="/property/{{ property.id }}" t-esc="property.name"></a></li>
+                        <li class="breadcrumb-item"><a href="/onedesk/properties">Propriétés</a></li>
+                        <li class="breadcrumb-item"><a t-attf-href="/onedesk/property/{{ property.id }}" t-esc="property.name"></a></li>
                         <li class="breadcrumb-item active" t-esc="unit.name"></li>
                     </ol>
                 </nav>
@@ -339,7 +339,7 @@
 
                     if (!startDate || !endDate) return;
 
-                    fetch('/unit/<t t-esc="unit.id"></t>/availability', {
+                    fetch('/onedesk/unit/<t t-esc="unit.id"></t>/availability', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
@@ -368,7 +368,7 @@
                 document.getElementById('booking_form').addEventListener('submit', function(e) {
                     e.preventDefault();
 
-                    fetch('/property/booking', {
+                    fetch('/onedesk/booking', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',

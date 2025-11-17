@@ -7,7 +7,7 @@ class OneDeskWebsite(http.Controller):
 
     # ==================== PAGES PUBLIQUES ====================
 
-    @http.route('/properties', type='http', auth='public', website=True)
+    @http.route('/onedesk/properties', type='http', auth='public', website=True)
     def properties_list(self, **kw):
         """Page de listing de toutes les propriétés"""
         properties = request.env['onedesk.property'].search([])
@@ -17,7 +17,7 @@ class OneDeskWebsite(http.Controller):
             'page_title': 'Nos propriétés',
         })
 
-    @http.route('/property/<model("onedesk.property"):property_id>', type='http', auth='public', website=True)
+    @http.route('/onedesk/property/<model("onedesk.property"):property_id>', type='http', auth='public', website=True)
     def property_detail(self, property_id, **kw):
         """Page de détail d'une propriété"""
         units = property_id.unit_ids
@@ -33,7 +33,7 @@ class OneDeskWebsite(http.Controller):
             'avg_occupancy': avg_occupancy,
         })
 
-    @http.route('/unit/<model("onedesk.unit"):unit_id>', type='http', auth='public', website=True)
+    @http.route('/onedesk/unit/<model("onedesk.unit"):unit_id>', type='http', auth='public', website=True)
     def unit_detail(self, unit_id, **kw):
         """Page de détail d'une unité (chambre/appartement)"""
         # Récupère les réservations confirmées pour afficher le calendrier
@@ -50,7 +50,7 @@ class OneDeskWebsite(http.Controller):
 
     # ==================== AJAX / FORMULAIRES ====================
 
-    @http.route('/property/booking', type='json', auth='public', website=True, methods=['POST'])
+    @http.route('/onedesk/booking', type='json', auth='public', website=True, methods=['POST'])
     def create_booking_request(self, **data):
         """Crée une demande de réservation (lead/contact)"""
         try:
@@ -92,7 +92,7 @@ class OneDeskWebsite(http.Controller):
                 'message': str(e),
             }
 
-    @http.route('/unit/<model("onedesk.unit"):unit_id>/availability', type='json', auth='public', website=True)
+    @http.route('/onedesk/unit/<model("onedesk.unit"):unit_id>/availability', type='json', auth='public', website=True)
     def check_availability(self, unit_id, start_date, end_date, **kw):
         """Vérifie la disponibilité d'une unité pour une période"""
         try:
