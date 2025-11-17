@@ -53,6 +53,11 @@
                         <page string="✨ Équipements" name="amenities">
                             <field name="amenities" placeholder="WiFi, Piscine, Parking, Climatisation, etc." nolabel="1"/>
                         </page>
+                        <page string="📸 Photos" name="photos">
+                            <group>
+                                <field name="main_image" widget="image"/>
+                            </group>
+                        </page>
                         <page string="🏠 Unités" name="units">
                             <field name="unit_ids" nolabel="1"/>
                         </page>
