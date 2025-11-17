@@ -94,16 +94,19 @@ class OnedeskoSubscriptionPlan(models.Model):
         string="Abonnements"
     )
 
-    _sql_constraints = [
-        ('price_per_unit_positive', 'CHECK(price_per_unit >= 0)', 'Le prix doit être positif'),
-        ('commission_percentage_valid', 'CHECK(commission_percentage >= 0 AND commission_percentage <= 100)',
-         'La commission doit être entre 0 et 100%'),
-    ]
-
     def get_display_name(self):
         """Affichage personnalisé du plan"""
         billing_label = dict(self._fields['billing_model'].selection).get(self.billing_model, '')
         return f"{self.name} ({billing_label})"
+
+    @api.constrains('price_per_unit', 'commission_percentage')
+    def _check_plan_values(self):
+        """Valider les valeurs du plan"""
+        for record in self:
+            if record.price_per_unit < 0:
+                raise ValidationError("Le prix par unité doit être positif")
+            if record.commission_percentage < 0 or record.commission_percentage > 100:
+                raise ValidationError("La commission doit être entre 0 et 100%")
 
 
 class OnedeskoSubscription(models.Model):

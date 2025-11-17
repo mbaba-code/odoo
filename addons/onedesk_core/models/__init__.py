@@ -15,3 +15,4 @@ from . import onedesk_plan
 from . import onedesk_client
 from . import res_company
 from . import onedesk_audit_log
+from . import account_move
