@@ -99,21 +99,6 @@
                     <field name="state" widget="statusbar"/>
                 </header>
                 <sheet>
-                    <div class="oe_button_box" name="button_box">
-                        <button name="open_properties" type="object" class="oe_stat_button" icon="fa-home">
-                            <div class="o_field_widget o_stat_info">
-                                <span class="o_stat_value"><field name="properties_count"/></span>
-                                <span class="o_stat_text">Propriétés</span>
-                            </div>
-                        </button>
-                        <button name="open_reservations" type="object" class="oe_stat_button" icon="fa-calendar">
-                            <div class="o_field_widget o_stat_info">
-                                <span class="o_stat_value"><field name="reservations_count"/></span>
-                                <span class="o_stat_text">Réservations</span>
-                            </div>
-                        </button>
-                    </div>
-
                     <div class="oe_title">
                         <h1>
                             <field name="client_name" class="oe_inline"/>
@@ -226,6 +211,18 @@
                         </group>
                         <group>
                             <field name="admin_notes" nolabel="1"/>
+                        </group>
+                    </group>
+
+                    <!-- Statistics -->
+                    <separator string="📈 Statistiques"/>
+                    <group>
+                        <group>
+                            <field name="properties_count" readonly="1"/>
+                            <field name="units_count" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="reservations_count" readonly="1"/>
                         </group>
                     </group>
 
