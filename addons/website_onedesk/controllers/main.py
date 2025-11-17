@@ -17,6 +17,15 @@ class OneDeskWebsite(http.Controller):
         """Route de test simple"""
         return "✅ OneDesk Website module est actif!"
 
+    @http.route('/onedesk/booking-test', type='json', auth='public', website=True, methods=['POST'])
+    def test_booking(self, **kw):
+        """Route de test pour JSON"""
+        _logger.info('Test booking route called!')
+        return {
+            'status': 'success',
+            'message': '✅ Test - La route /onedesk/booking fonctionne!'
+        }
+
     # ==================== PAGES PUBLIQUES ====================
 
     @http.route('/onedesk/properties', type='http', auth='public', website=True)
@@ -72,19 +81,30 @@ class OneDeskWebsite(http.Controller):
     @http.route('/onedesk/booking', type='json', auth='public', website=True, methods=['POST'])
     def create_booking_request(self, **kw):
         """Crée une demande de réservation (lead/contact)"""
+        _logger.info('===== START create_booking_request =====')
+        _logger.info(f'Request method: {request.httprequest.method}')
+        _logger.info(f'Has jsonrequest: {hasattr(request, "jsonrequest")}')
+        _logger.info(f'jsonrequest value: {request.jsonrequest if hasattr(request, "jsonrequest") else "N/A"}')
+        _logger.info(f'Raw data: {request.httprequest.data}')
+
         try:
             # Extrait les données du JSON body de manière robuste
             data = {}
             if hasattr(request, 'jsonrequest') and request.jsonrequest:
+                _logger.info('Using request.jsonrequest')
                 data = request.jsonrequest
             else:
                 # Fallback: parse le JSON manuellement du body
+                _logger.info('Using manual JSON parsing')
                 if request.httprequest.data:
                     try:
                         data = json.loads(request.httprequest.data.decode('utf-8'))
+                        _logger.info(f'Manual parse success: {data}')
                     except (json.JSONDecodeError, UnicodeDecodeError) as e:
-                        _logger.warning(f"Erreur parsing JSON: {e}")
+                        _logger.error(f"Erreur parsing JSON: {e}")
                         data = {}
+
+            _logger.info(f'Data extracted: {data}')
 
             # Valide les données requises
             required_fields = ['name', 'email', 'unit_id', 'start_date', 'end_date']
