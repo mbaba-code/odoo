@@ -22,7 +22,7 @@ class OnedeskUnit(models.Model):
     available = fields.Boolean(string="Disponible", default=True)
 
     # ========== UNIT FEATURES ==========
-    capacity = fields.Integer(string="Capacité (nombre de personnes)",
+    capacity = fields.Integer(string="Capacité (nombre de personnes)", default=2,
                              help="Nombre maximum de personnes que l'unité peut accueillir")
     bedrooms = fields.Integer(string="Nombre de chambres", default=1)
     bathrooms = fields.Integer(string="Nombre de salles de bain", default=1)
