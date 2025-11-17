@@ -54,19 +54,22 @@
                             <field name="amenities" placeholder="WiFi, Piscine, Parking, Climatisation, etc." nolabel="1"/>
                         </page>
                         <page string="📸 Photos" name="photos">
+                            <separator string="Photo de couverture"/>
                             <group>
                                 <field name="main_image" widget="image"/>
                             </group>
-                            <separator string="Galerie complète de photos"/>
+
+                            <separator string="🖼️ Galerie de photos (Grid)"/>
                             <field name="image_ids" nolabel="1">
                                 <list string="Photos" editable="bottom">
                                     <field name="sequence" widget="handle"/>
+                                    <field name="is_cover" widget="boolean"/>
                                     <field name="name"/>
                                     <field name="image" widget="image"/>
                                 </list>
                             </field>
                             <p style="margin-top: 10px; font-size: 12px; color: #999;">
-                                💡 Ajoutez plusieurs photos pour montrer différentes parties de la propriété (chambre, cuisine, salle de bain, etc.)
+                                💡 <strong>Ajoutez plusieurs photos:</strong> Drag-and-drop pour réorganiser, cochez "📌 Photo de couverture" pour la sélectionner
                             </p>
                         </page>
                         <page string="🏠 Unités" name="units">
@@ -78,80 +81,11 @@
         </field>
     </record>
 
-    <!-- Kanban Grid View -->
-    <record id="view_property_kanban" model="ir.ui.view">
-        <field name="name">onedesk.property.kanban</field>
-        <field name="model">onedesk.property</field>
-        <field name="arch" type="xml">
-            <kanban string="Properties Grid">
-                <field name="id"/>
-                <field name="name"/>
-                <field name="main_image"/>
-                <field name="property_type"/>
-                <field name="total_units"/>
-                <field name="total_revenue_month"/>
-                <field name="total_occupancy_percentage"/>
-                <templates>
-                    <t t-name="card">
-                        <div class="oe_kanban_card">
-                            <div class="oe_kanban_global_click">
-                                <!-- Image -->
-                                <div style="height: 200px; margin-bottom: 10px; border-radius: 5px; overflow: hidden; background: #f0f0f0; display: flex; align-items: center; justify-content: center;">
-                                    <t t-if="record.main_image.value">
-                                        <img t-att-src="'data:image/*;base64,' + record.main_image.value" style="width: 100%; height: 100%; object-fit: cover;"/>
-                                    </t>
-                                    <t t-else="">
-                                        <i class="fa fa-image fa-3x" style="color: #ccc;"></i>
-                                    </t>
-                                </div>
-
-                                <!-- Info -->
-                                <h3 style="margin: 5px 0; font-weight: bold;">
-                                    <field name="name"/>
-                                </h3>
-
-                                <div style="font-size: 12px; color: #666; margin-bottom: 8px;">
-                                    <span class="badge badge-light">
-                                        <field name="property_type"/>
-                                    </span>
-                                </div>
-
-                                <hr style="margin: 8px 0;"/>
-
-                                <!-- Stats -->
-                                <div style="font-size: 11px;">
-                                    <div style="margin-bottom: 4px;">
-                                        <strong>🏠 Unités:</strong>
-                                        <span style="float: right;">
-                                            <field name="total_units"/>
-                                        </span>
-                                    </div>
-                                    <div style="margin-bottom: 4px;">
-                                        <strong>💰 Revenus:</strong>
-                                        <span style="float: right; color: #28a745;">
-                                            <field name="total_revenue_month" widget="monetary"/>
-                                        </span>
-                                    </div>
-                                    <div>
-                                        <strong>📈 Occupation:</strong>
-                                        <span style="float: right;">
-                                            <field name="total_occupancy_percentage"/>%
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </t>
-                </templates>
-            </kanban>
-        </field>
-    </record>
-
     <!-- Action pour ouvrir la vue -->
     <record id="action_onedesk_property" model="ir.actions.act_window">
         <field name="name">Properties</field>
         <field name="res_model">onedesk.property</field>
-        <field name="view_mode">kanban,list,form</field>
+        <field name="view_mode">list,form</field>
     </record>
 
     <!-- Sous-menu Propriétés -->

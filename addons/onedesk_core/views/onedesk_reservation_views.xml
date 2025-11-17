@@ -166,7 +166,7 @@
             <kanban string="Reservations Grid">
                 <field name="id"/>
                 <field name="name"/>
-                <field name="check_in_photo"/>
+                <field name="check_in_photo" widget="binary"/>
                 <field name="partner_id"/>
                 <field name="unit_id"/>
                 <field name="start_date"/>
@@ -180,11 +180,11 @@
                             <div class="oe_kanban_global_click">
                                 <!-- Photo -->
                                 <div style="height: 180px; margin-bottom: 10px; border-radius: 5px; overflow: hidden; background: #f0f0f0; display: flex; align-items: center; justify-content: center;">
-                                    <t t-if="record.check_in_photo.value">
-                                        <img t-att-src="'data:image/*;base64,' + record.check_in_photo.value" style="width: 100%; height: 100%; object-fit: cover;"/>
+                                    <t t-if="record.check_in_photo.raw_value">
+                                        <img t-att-src="'data:image/*;base64,' + record.check_in_photo.raw_value" style="width: 100%; height: 100%; object-fit: cover;" alt="Photo"/>
                                     </t>
                                     <t t-else="">
-                                        <i class="fa fa-calendar fa-3x" style="color: #ccc;"></i>
+                                        <i class="fa fa-camera fa-3x" style="color: #ccc;"></i>
                                     </t>
                                 </div>
 

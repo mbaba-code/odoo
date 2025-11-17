@@ -9,11 +9,14 @@ class OnedeskoPropertyImage(models.Model):
     property_id = fields.Many2one('onedesk.property', string="Propriété", required=True, ondelete='cascade')
     name = fields.Char(string="Titre de la photo", help="Ex: Vue d'ensemble, Chambre principale, Cuisine")
     image = fields.Image(string="Photo", attachment=True, required=True)
+    is_cover = fields.Boolean(string="📌 Photo de couverture", default=False,
+                             help="Marquez comme photo de couverture principale")
     sequence = fields.Integer(string="Ordre d'affichage", default=10, help="Plus bas = affiché en premier")
 
     def _compute_display_name(self):
         for record in self:
-            record.display_name = record.name or f"Photo {record.sequence}"
+            prefix = "📌 " if record.is_cover else ""
+            record.display_name = prefix + (record.name or f"Photo {record.sequence}")
 
 
 class OnedeskoUnitImage(models.Model):
@@ -24,11 +27,14 @@ class OnedeskoUnitImage(models.Model):
     unit_id = fields.Many2one('onedesk.unit', string="Unité", required=True, ondelete='cascade')
     name = fields.Char(string="Titre de la photo", help="Ex: Chambre, Salle de bain, Salon")
     image = fields.Image(string="Photo", attachment=True, required=True)
+    is_cover = fields.Boolean(string="📌 Photo de couverture", default=False,
+                             help="Marquez comme photo de couverture principale")
     sequence = fields.Integer(string="Ordre d'affichage", default=10, help="Plus bas = affiché en premier")
 
     def _compute_display_name(self):
         for record in self:
-            record.display_name = record.name or f"Photo {record.sequence}"
+            prefix = "📌 " if record.is_cover else ""
+            record.display_name = prefix + (record.name or f"Photo {record.sequence}")
 
 
 class OnedeskoReservationImage(models.Model):
