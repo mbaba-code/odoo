@@ -1,114 +1,55 @@
 BEGIN:VCALENDAR
 VERSION:2.0
-PRODID:-//Airbnb Inc//Hosting Calendar 0.8.8//EN
+PRODID:-//OneDesk//OneDesk Reservations//FR
 CALSCALE:GREGORIAN
 METHOD:PUBLISH
-X-WR-CALNAME:Airbnb - Appartement Paris Centre
-X-WR-TIMEZONE:Europe/Paris
+X-WR-CALNAME:Mes Reservations OneDesk
+X-WR-CALDESC:Calendrier de toutes mes reservations de logement
 
 BEGIN:VEVENT
+UID:RES-20251120-001@onedesk.com
+DTSTAMP:20251117T132023Z
 DTSTART;VALUE=DATE:20251120
 DTEND;VALUE=DATE:20251125
-DTSTAMP:20251113T120000Z
-UID:airbnb-res-001@airbnb.com
-CREATED:20251110T100000Z
-DESCRIPTION:Réservation Airbnb confirmée\\nVoyageur: Marie Dupont\\nAdultes: 2\\nEnfants: 0\\nPrix: 450€\\nStatut: Confirmée
-LAST-MODIFIED:20251110T100000Z
-LOCATION:Appartement Paris Centre - Marais
-SEQUENCE:0
+SUMMARY:Appartement Paris Centre - Marais
+DESCRIPTION:Reservation confirmee pour l'appartement Paris Centre - Marais.
+ATTACH;FMTTYPE=image/jpeg:https://images.unsplash.com/photo-1507089947368-19c1da9775ae
+ATTACH;FMTTYPE=image/jpeg:https://images.unsplash.com/photo-1600585154340-be6161a56a0c
+LOCATION:42 Rue des Francs-Bourgeois\\, 75004 Paris\\, France
+URL:https://onedesk.com/reservations/RES-001
 STATUS:CONFIRMED
-SUMMARY:Réservée (Airbnb)
 TRANSP:OPAQUE
 END:VEVENT
 
 BEGIN:VEVENT
-DTSTART;VALUE=DATE:20251201
-DTEND;VALUE=DATE:20251207
-DTSTAMP:20251113T120000Z
-UID:airbnb-res-002@airbnb.com
-CREATED:20251108T140000Z
-DESCRIPTION:Réservation Airbnb confirmée\\nVoyageur: John Smith\\nAdultes: 3\\nEnfants: 1\\nPrix: 780€\\nStatut: Confirmée
-LAST-MODIFIED:20251108T140000Z
-LOCATION:Appartement Paris Centre - Marais
-SEQUENCE:0
+UID:RES-20251122-002@onedesk.com
+DTSTAMP:20251117T132023Z
+DTSTART;VALUE=DATE:20251122
+DTEND;VALUE=DATE:20251124
+SUMMARY:Studio Centre Ville Lyon
+DESCRIPTION:Reservation confirmee pour un studio au coeur de Lyon.
+ATTACH;FMTTYPE=image/jpeg:https://images.unsplash.com/photo-1522708323590-d24dbb6b0267
+ATTACH;FMTTYPE=image/jpeg:https://images.unsplash.com/photo-1586105251261-72a756497a11
+LOCATION:123 Rue de la Paix\\, 69000 Lyon\\, France
+URL:https://onedesk.com/reservations/RES-002
 STATUS:CONFIRMED
-SUMMARY:Réservée (Airbnb)
 TRANSP:OPAQUE
 END:VEVENT
 
 BEGIN:VEVENT
+UID:RES-20251215-003@onedesk.com
+DTSTAMP:20251117T132023Z
 DTSTART;VALUE=DATE:20251215
 DTEND;VALUE=DATE:20251220
-DTSTAMP:20251113T120000Z
-UID:airbnb-res-003@airbnb.com
-CREATED:20251105T090000Z
-DESCRIPTION:Réservation Airbnb confirmée\\nVoyageur: Sophie Martin\\nAdultes: 2\\nEnfants: 0\\nPrix: 550€\\nStatut: Confirmée
-LAST-MODIFIED:20251105T090000Z
-LOCATION:Appartement Paris Centre - Marais
-SEQUENCE:0
-STATUS:CONFIRMED
-SUMMARY:Réservée (Airbnb)
-TRANSP:OPAQUE
-END:VEVENT
-
-BEGIN:VEVENT
-DTSTART;VALUE=DATE:20251225
-DTEND;VALUE=DATE:20260102
-DTSTAMP:20251113T120000Z
-UID:airbnb-res-004@airbnb.com
-CREATED:20251020T150000Z
-DESCRIPTION:Réservation Airbnb confirmée\\nVoyageur: Pierre Dubois\\nAdultes: 4\\nEnfants: 2\\nPrix: 1200€\\nStatut: Confirmée\\nNote: Réservation vacances de Noël
-LAST-MODIFIED:20251020T150000Z
-LOCATION:Appartement Paris Centre - Marais
-SEQUENCE:0
-STATUS:CONFIRMED
-SUMMARY:Réservée (Airbnb) - Noël
-TRANSP:OPAQUE
-END:VEVENT
-
-BEGIN:VEVENT
-DTSTART;VALUE=DATE:20260110
-DTEND;VALUE=DATE:20260113
-DTSTAMP:20251113T120000Z
-UID:airbnb-res-005@airbnb.com
-CREATED:20251112T110000Z
-DESCRIPTION:Réservation Airbnb confirmée\\nVoyageur: Emma Wilson\\nAdultes: 1\\nEnfants: 0\\nPrix: 270€\\nStatut: Confirmée
-LAST-MODIFIED:20251112T110000Z
-LOCATION:Appartement Paris Centre - Marais
-SEQUENCE:0
-STATUS:CONFIRMED
-SUMMARY:Réservée (Airbnb)
-TRANSP:OPAQUE
-END:VEVENT
-
-BEGIN:VEVENT
-DTSTART;VALUE=DATE:20260120
-DTEND;VALUE=DATE:20260125
-DTSTAMP:20251113T120000Z
-UID:booking-res-001@booking.com
-CREATED:20251109T160000Z
-DESCRIPTION:Réservation Booking.com confirmée\\nVoyageur: Hans Mueller\\nAdultes: 2\\nEnfants: 0\\nPrix: 500€\\nStatut: Confirmée
-LAST-MODIFIED:20251109T160000Z
-LOCATION:Appartement Paris Centre - Marais
-SEQUENCE:0
-STATUS:CONFIRMED
-SUMMARY:Réservée (Booking.com)
-TRANSP:OPAQUE
-END:VEVENT
-
-BEGIN:VEVENT
-DTSTART;VALUE=DATE:20260201
-DTEND;VALUE=DATE:20260208
-DTSTAMP:20251113T120000Z
-UID:airbnb-blocked-001@airbnb.com
-CREATED:20251111T120000Z
-DESCRIPTION:Bloqué pour maintenance
-LAST-MODIFIED:20251111T120000Z
-LOCATION:Appartement Paris Centre - Marais
-SEQUENCE:0
-STATUS:CONFIRMED
-SUMMARY:Non disponible
-TRANSP:OPAQUE
+SUMMARY:Villa avec piscine - Cote d'Azur
+DESCRIPTION:Reservation en attente de confirmation pour une villa avec piscine.
+ATTACH;FMTTYPE=image/jpeg:https://images.unsplash.com/photo-1505693416388-ac5ce068fe85
+ATTACH;FMTTYPE=image/jpeg:https://images.unsplash.com/photo-1507089947368-19c1da9775ae
+GEO:43.5890;7.1230
+LOCATION:456 Avenue de la Mer\\, 06600 Antibes\\, France
+URL:https://onedesk.com/reservations/RES-003
+STATUS:TENTATIVE
+TRANSP:TRANSPARENT
 END:VEVENT
 
 END:VCALENDAR
