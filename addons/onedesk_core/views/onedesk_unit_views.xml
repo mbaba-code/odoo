@@ -52,7 +52,7 @@
                     <!-- SECTION: PHOTO -->
                     <separator string="📸 Photo principale"/>
                     <group>
-                        <field name="main_image" widget="image"/>
+                        <field name="main_image" widget="image" options="{'size': [300, 300]}"/>
                     </group>
 
                     <!-- SECTION: GALERIE DE PHOTOS -->

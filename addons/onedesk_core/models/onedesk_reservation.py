@@ -93,9 +93,9 @@ class OneDeskReservation(models.Model):
                                   help="Demandes spéciales du client (lit bébé, chaise haute, etc.)")
 
     # ========== IMAGES & DOCUMENTS ==========
-    check_in_photo = fields.Image(string="Photo check-in", attachment=True,
+    check_in_photo = fields.Image(string="Photo check-in", max_width=1024, max_height=1024,
                                  help="Photo de l'état des lieux à l'arrivée du client")
-    check_out_photo = fields.Image(string="Photo check-out", attachment=True,
+    check_out_photo = fields.Image(string="Photo check-out", max_width=1024, max_height=1024,
                                   help="Photo de l'état des lieux au départ du client")
     image_ids = fields.One2many('onedesk.reservation.image', 'reservation_id', string='Galerie d\'inspection',
                                help="Galerie complète de photos d'inspection (check-in et check-out)")

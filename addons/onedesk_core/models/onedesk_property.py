@@ -32,8 +32,8 @@ class OnedeskProperty(models.Model):
                            help="Liste des équipements disponibles (WiFi, Piscine, Parking, etc.)")
 
     # ========== IMAGES ==========
-    main_image = fields.Image(string="Photo principale", attachment=True,
-                             help="Photo de couverture de la propriété")
+    main_image = fields.Image(string="Photo principale", max_width=1024, max_height=1024,
+                             help="Photo de couverture de la propriété (max 1024x1024)")
     image_ids = fields.One2many('onedesk.property.image', 'property_id', string='Galerie de photos',
                                help="Galerie complète de photos de la propriété")
 

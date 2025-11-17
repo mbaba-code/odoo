@@ -125,11 +125,11 @@
                         <page string="📸 Inspection (Photos)">
                             <separator string="Arrivée (Check-in)"/>
                             <group>
-                                <field name="check_in_photo" widget="image"/>
+                                <field name="check_in_photo" widget="image" options="{'size': [300, 300]}"/>
                             </group>
                             <separator string="Départ (Check-out)"/>
                             <group>
-                                <field name="check_out_photo" widget="image"/>
+                                <field name="check_out_photo" widget="image" options="{'size': [300, 300]}"/>
                             </group>
 
                             <separator string="Galerie complète d'inspection"/>

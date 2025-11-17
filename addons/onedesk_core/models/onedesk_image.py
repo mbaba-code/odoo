@@ -8,7 +8,7 @@ class OnedeskoPropertyImage(models.Model):
 
     property_id = fields.Many2one('onedesk.property', string="Propriété", required=True, ondelete='cascade')
     name = fields.Char(string="Titre de la photo", help="Ex: Vue d'ensemble, Chambre principale, Cuisine")
-    image = fields.Image(string="Photo", attachment=True, required=True)
+    image = fields.Image(string="Photo", max_width=2048, max_height=2048, required=True)
     is_cover = fields.Boolean(string="📌 Photo de couverture", default=False,
                              help="Marquez comme photo de couverture principale")
     sequence = fields.Integer(string="Ordre d'affichage", default=10, help="Plus bas = affiché en premier")
@@ -26,7 +26,7 @@ class OnedeskoUnitImage(models.Model):
 
     unit_id = fields.Many2one('onedesk.unit', string="Unité", required=True, ondelete='cascade')
     name = fields.Char(string="Titre de la photo", help="Ex: Chambre, Salle de bain, Salon")
-    image = fields.Image(string="Photo", attachment=True, required=True)
+    image = fields.Image(string="Photo", max_width=2048, max_height=2048, required=True)
     is_cover = fields.Boolean(string="📌 Photo de couverture", default=False,
                              help="Marquez comme photo de couverture principale")
     sequence = fields.Integer(string="Ordre d'affichage", default=10, help="Plus bas = affiché en premier")
@@ -44,7 +44,7 @@ class OnedeskoReservationImage(models.Model):
 
     reservation_id = fields.Many2one('onedesk.reservation', string="Réservation", required=True, ondelete='cascade')
     name = fields.Char(string="Titre de la photo", help="Ex: État du salon, Cuisine avant nettoyage")
-    image = fields.Image(string="Photo", attachment=True, required=True)
+    image = fields.Image(string="Photo", max_width=2048, max_height=2048, required=True)
     image_type = fields.Selection([
         ('check_in', 'Arrivée (Check-in)'),
         ('check_out', 'Départ (Check-out)'),
