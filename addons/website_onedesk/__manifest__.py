@@ -12,6 +12,9 @@
     'data': [
         'templates/pages.xml',
     ],
+    'external_dependencies': {
+        'python': [],
+    },
     'assets': {
         'web.assets_frontend': [
             'website_onedesk/static/css/website_onedesk.css',

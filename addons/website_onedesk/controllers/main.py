@@ -5,6 +5,13 @@ from datetime import datetime, timedelta
 
 class OneDeskWebsite(http.Controller):
 
+    # ==================== TEST ROUTE ====================
+
+    @http.route('/onedesk/test', type='http', auth='public')
+    def test_route(self, **kw):
+        """Route de test simple"""
+        return "✅ OneDesk Website module est actif!"
+
     # ==================== PAGES PUBLIQUES ====================
 
     @http.route('/onedesk/properties', type='http', auth='public', website=True)
