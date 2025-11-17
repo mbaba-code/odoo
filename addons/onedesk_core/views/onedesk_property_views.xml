@@ -54,22 +54,59 @@
                             <field name="amenities" placeholder="WiFi, Piscine, Parking, Climatisation, etc." nolabel="1"/>
                         </page>
                         <page string="📸 Photos" name="photos">
-                            <separator string="Photo de couverture"/>
+                            <separator string="Photo de couverture (Principal)"/>
                             <group>
                                 <field name="main_image" widget="image"/>
                             </group>
 
-                            <separator string="🖼️ Galerie de photos (Grid)"/>
-                            <field name="image_ids" nolabel="1">
+                            <separator string="🖼️ Galerie complète de photos (Mode Grille)"/>
+                            <field name="image_ids" mode="kanban">
+                                <kanban>
+                                    <field name="id"/>
+                                    <field name="image" widget="binary"/>
+                                    <field name="name"/>
+                                    <field name="is_cover"/>
+                                    <templates>
+                                        <t t-name="card">
+                                            <div class="oe_kanban_card">
+                                                <div class="oe_kanban_global_click" style="position: relative;">
+                                                    <!-- Photo -->
+                                                    <div style="height: 180px; margin-bottom: 8px; border-radius: 5px; overflow: hidden; background: #f0f0f0; display: flex; align-items: center; justify-content: center;">
+                                                        <t t-if="record.image.raw_value">
+                                                            <img t-att-src="'data:image/*;base64,' + record.image.raw_value" style="width: 100%; height: 100%; object-fit: cover;" alt="Photo"/>
+                                                        </t>
+                                                        <t t-else="">
+                                                            <i class="fa fa-image fa-3x" style="color: #ccc;"></i>
+                                                        </t>
+                                                        <!-- Cover Badge -->
+                                                        <t t-if="record.is_cover.value">
+                                                            <div style="position: absolute; top: 5px; right: 5px; background: #28a745; color: white; padding: 4px 8px; border-radius: 3px; font-size: 11px; font-weight: bold;">
+                                                                📌
+                                                            </div>
+                                                        </t>
+                                                    </div>
+                                                    <!-- Name -->
+                                                    <h5 style="margin: 0; font-size: 12px; font-weight: bold; text-align: center;">
+                                                        <field name="name"/>
+                                                    </h5>
+                                                </div>
+                                            </div>
+                                        </t>
+                                    </templates>
+                                </kanban>
+                            </field>
+
+                            <separator string="Ajouter une nouvelle photo"/>
+                            <field name="image_ids">
                                 <list string="Photos" editable="bottom">
                                     <field name="sequence" widget="handle"/>
                                     <field name="is_cover" widget="boolean"/>
                                     <field name="name"/>
-                                    <field name="image" widget="image"/>
+                                    <field name="image" widget="image" optional="hide"/>
                                 </list>
                             </field>
                             <p style="margin-top: 10px; font-size: 12px; color: #999;">
-                                💡 <strong>Ajoutez plusieurs photos:</strong> Drag-and-drop pour réorganiser, cochez "📌 Photo de couverture" pour la sélectionner
+                                💡 <strong>Astuce:</strong> Grille: vue d'ensemble des photos | Table: ajouter/modifier photos, cochez "📌" pour sélectionner la couverture
                             </p>
                         </page>
                         <page string="🏠 Unités" name="units">
@@ -81,11 +118,80 @@
         </field>
     </record>
 
+    <!-- Kanban Grid View -->
+    <record id="view_property_kanban" model="ir.ui.view">
+        <field name="name">onedesk.property.kanban</field>
+        <field name="model">onedesk.property</field>
+        <field name="arch" type="xml">
+            <kanban string="Properties Grid">
+                <field name="id"/>
+                <field name="name"/>
+                <field name="main_image" widget="binary"/>
+                <field name="property_type"/>
+                <field name="total_units"/>
+                <field name="total_revenue_month"/>
+                <field name="total_occupancy_percentage"/>
+                <templates>
+                    <t t-name="card">
+                        <div class="oe_kanban_card">
+                            <div class="oe_kanban_global_click">
+                                <!-- Image -->
+                                <div style="height: 200px; margin-bottom: 10px; border-radius: 5px; overflow: hidden; background: #f0f0f0; display: flex; align-items: center; justify-content: center;">
+                                    <t t-if="record.main_image.raw_value">
+                                        <img t-att-src="'data:image/*;base64,' + record.main_image.raw_value" style="width: 100%; height: 100%; object-fit: cover;" alt="Property photo"/>
+                                    </t>
+                                    <t t-else="">
+                                        <i class="fa fa-image fa-3x" style="color: #ccc;"></i>
+                                    </t>
+                                </div>
+
+                                <!-- Info -->
+                                <h3 style="margin: 5px 0; font-weight: bold;">
+                                    <field name="name"/>
+                                </h3>
+
+                                <div style="font-size: 12px; color: #666; margin-bottom: 8px;">
+                                    <span class="badge badge-light">
+                                        <field name="property_type"/>
+                                    </span>
+                                </div>
+
+                                <hr style="margin: 8px 0;"/>
+
+                                <!-- Stats -->
+                                <div style="font-size: 11px;">
+                                    <div style="margin-bottom: 4px;">
+                                        <strong>🏠 Unités:</strong>
+                                        <span style="float: right;">
+                                            <field name="total_units"/>
+                                        </span>
+                                    </div>
+                                    <div style="margin-bottom: 4px;">
+                                        <strong>💰 Revenus:</strong>
+                                        <span style="float: right; color: #28a745;">
+                                            <field name="total_revenue_month" widget="monetary"/>
+                                        </span>
+                                    </div>
+                                    <div>
+                                        <strong>📈 Occupation:</strong>
+                                        <span style="float: right;">
+                                            <field name="total_occupancy_percentage"/>%
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
     <!-- Action pour ouvrir la vue -->
     <record id="action_onedesk_property" model="ir.actions.act_window">
         <field name="name">Properties</field>
         <field name="res_model">onedesk.property</field>
-        <field name="view_mode">list,form</field>
+        <field name="view_mode">kanban,list,form</field>
     </record>
 
     <!-- Sous-menu Propriétés -->
