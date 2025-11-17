@@ -233,7 +233,7 @@
                 }
             }
         </style>
-        <script>
+        <script><![CDATA[
             function showImageModal(imageSrc, imageTitle) {
                 const modal = document.getElementById('imageModal');
                 const modalImg = document.getElementById('modalImage');
@@ -286,6 +286,6 @@
             // Make functions global
             window.showImageModal = showImageModal;
             window.closeImageModal = closeImageModal;
-        </script>
+        ]]></script>
     </template>
 </odoo>
