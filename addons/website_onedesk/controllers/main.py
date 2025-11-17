@@ -112,6 +112,8 @@ class OneDeskWebsite(http.Controller):
             start_datetime = datetime.combine(start_date, datetime.min.time())
             end_datetime = datetime.combine(end_date, datetime.max.time())
 
+            _logger.info(f'Booking request: unit={unit_id}, start={start_datetime}, end={end_datetime}')
+
             # Cherche les réservations qui se chevauchent
             conflicting = request.env['onedesk.reservation'].search([
                 ('unit_id', '=', unit_id),
@@ -119,6 +121,8 @@ class OneDeskWebsite(http.Controller):
                 ('start_date', '<', end_datetime),
                 ('end_date', '>', start_datetime),
             ])
+
+            _logger.info(f'Conflicting reservations found: {len(conflicting)}')
 
             if conflicting:
                 # Formate le message d'erreur avec les périodes occupées
@@ -151,8 +155,11 @@ class OneDeskWebsite(http.Controller):
                     'email': data.get('email'),
                     'phone': data.get('phone', ''),
                 })
+                _logger.info(f'Created partner: {partner.id}')
 
             # Crée la réservation en brouillon
+            _logger.info(f'Creating reservation with start={start_datetime.isoformat()}, end={end_datetime.isoformat()}')
+
             reservation = request.env['onedesk.reservation'].create({
                 'unit_id': unit_id,
                 'partner_id': partner.id,
@@ -162,6 +169,8 @@ class OneDeskWebsite(http.Controller):
                 'status': 'draft',  # En attente de confirmation
             })
 
+            _logger.info(f'Reservation created successfully: {reservation.name}')
+
             return {
                 'status': 'success',
                 'message': f'✅ Réservation confirmée!\n\nUn email de confirmation a été envoyé à {partner.email}.\n\nNuméro de réservation: {reservation.name}',
@@ -170,7 +179,7 @@ class OneDeskWebsite(http.Controller):
 
         except ValueError as e:
             error_str = str(e)
-            _logger.warning(f'Erreur de format dans booking: {error_str}')
+            _logger.error(f'ValueError during booking: {error_str}')
             return {
                 'status': 'error',
                 'message': f'Format de date invalide. Veuillez utiliser le format YYYY-MM-DD.',
@@ -178,13 +187,13 @@ class OneDeskWebsite(http.Controller):
         except ValidationError as e:
             # Erreur de validation (ex: chevauchement de réservation)
             error_msg = str(e).replace('<class \'odoo.exceptions.ValidationError\'>', '').strip()
-            _logger.warning(f'Erreur de validation booking: {error_msg}')
+            _logger.error(f'ValidationError during booking: {error_msg}')
             return {
                 'status': 'error',
                 'message': error_msg or 'Cette réservation n\'est pas possible. Veuillez vérifier les dates.',
             }
         except Exception as e:
-            _logger.exception('Erreur lors de la création de réservation')
+            _logger.exception(f'Unexpected error during booking: {str(e)}')
             error_msg = str(e) if str(e) else 'Une erreur inconnue s\'est produite'
             return {
                 'status': 'error',
@@ -217,15 +226,22 @@ class OneDeskWebsite(http.Controller):
                     'message': 'Les dates de début et fin sont requises.',
                 }
 
-            start = datetime.strptime(start_date, '%Y-%m-%d').date()
-            end = datetime.strptime(end_date, '%Y-%m-%d').date()
+            # Convertir les dates en datetime objects (avec min/max time pour les comparaisons)
+            start_dt = datetime.combine(
+                datetime.strptime(start_date, '%Y-%m-%d').date(),
+                datetime.min.time()
+            )
+            end_dt = datetime.combine(
+                datetime.strptime(end_date, '%Y-%m-%d').date(),
+                datetime.max.time()
+            )
 
             # Cherche les réservations qui se chevauchent
             overlapping = request.env['onedesk.reservation'].search([
                 ('unit_id', '=', unit_id.id),
                 ('status', '!=', 'cancelled'),
-                ('start_date', '<', end.isoformat()),
-                ('end_date', '>', start.isoformat()),
+                ('start_date', '<', end_dt),
+                ('end_date', '>', start_dt),
             ])
 
             if overlapping:
@@ -235,8 +251,8 @@ class OneDeskWebsite(http.Controller):
                 }
 
             # Calcule le prix
-            nights = (end - start).days
-            avg_price = unit_id.get_price_for_dates(start, end)
+            nights = (end_dt.date() - start_dt.date()).days
+            avg_price = unit_id.get_price_for_dates(start_dt.date(), end_dt.date())
             total_price = avg_price * nights
 
             return {
@@ -249,6 +265,7 @@ class OneDeskWebsite(http.Controller):
             }
 
         except Exception as e:
+            _logger.exception('Erreur lors de la vérification de disponibilité')
             return {
                 'available': False,
                 'message': f'Erreur: {str(e)}',
