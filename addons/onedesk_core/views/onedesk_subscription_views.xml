@@ -119,7 +119,7 @@
                     <group>
                         <group>
                             <field name="auto_renew" widget="boolean"/>
-                            <field name="renewal_notice_days" attrs="{'invisible': [('auto_renew', '=', False)]}"/>
+                            <field name="renewal_notice_days" invisible="not auto_renew"/>
                         </group>
                     </group>
 
