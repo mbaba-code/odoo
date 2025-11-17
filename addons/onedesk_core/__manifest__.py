@@ -13,7 +13,10 @@
     'data': [
     'security/ir.model.access.csv',
 
-    # Vues d'abord (ça charge les models)
+    # Menus FIRST (avant toutes les autres vues qui les référencent)
+    'views/onedesk_menu_views.xml',
+
+    # Vues ensuite (ça charge les models)
     # ⚠️ ORDRE IMPORTANT: seasonal_price AVANT unit car unit en dépend
     'views/onedesk_property_views.xml',
     'views/onedesk_seasonal_price_views.xml',
@@ -25,8 +28,7 @@
     'views/onedesk_integration_views.xml',
     'views/onedesk_integration_menu.xml',
     'views/oauth_templates.xml',
-    'views/onedesk_menu_views.xml',
-    
+
     # Données après (quand les models sont chargés)
     'data/integration_providers.xml',
     'data/integration_cron.xml',
