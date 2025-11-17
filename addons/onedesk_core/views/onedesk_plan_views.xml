@@ -71,7 +71,7 @@
                     </group>
 
                     <!-- Support & Features -->
-                    <separator string="🎯 Fonctionnalités & Support"/>
+                    <separator string="🎯 Fonctionnalités &amp; Support"/>
                     <group>
                         <group>
                             <field name="includes_support" widget="boolean"/>
