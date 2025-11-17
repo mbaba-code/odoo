@@ -579,17 +579,18 @@
                     .then(data => {
                         console.log('Booking response:', data);
                         if (data && data.status === 'success') {
-                            showMessage('price_info', data.message, false);
+                            alert(data.message);
                             document.getElementById('booking_form').reset();
+                            document.getElementById('price_info').style.display = 'none';
                         } else if (data && data.message) {
-                            showMessage('price_info', data.message, true);
+                            alert(data.message);
                         } else {
-                            showMessage('price_info', 'Une erreur est survenue lors de la réservation', true);
+                            alert('Une erreur est survenue lors de la réservation');
                         }
                     })
                     .catch(error => {
                         console.error('Booking error:', error);
-                        showMessage('price_info', 'Erreur lors de la réservation: ' + error.message, true);
+                        alert('Erreur lors de la réservation: ' + error.message);
                     });
                 });
             ]]></script>

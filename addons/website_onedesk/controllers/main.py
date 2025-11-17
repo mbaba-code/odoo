@@ -133,12 +133,12 @@ class OneDeskWebsite(http.Controller):
                     conflict_dates.append(f"{start_str} au {end_str}")
 
                 error_msg = (
-                    f"❌ Cette unité n'est pas disponible pour la période sélectionnée.\n\n"
+                    f"{unit.name}: ❌ Cette unité n'est pas disponible pour la période sélectionnée.\n\n"
                     f"Périodes occupées:\n"
                     + "\n".join(f"  • {date}" for date in conflict_dates)
                     + f"\n\nVeuillez choisir une autre période."
                 )
-                _logger.warning(f'Période indisponible pour unité {unit.name}: {error_msg}')
+                _logger.warning(f'Période indisponible pour unité {unit.name}')
                 return {
                     'status': 'error',
                     'message': error_msg,
