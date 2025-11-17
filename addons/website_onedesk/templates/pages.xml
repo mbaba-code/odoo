@@ -534,14 +534,17 @@
                             document.getElementById('price_info').className = 'alert alert-success';
                             document.getElementById('price_info').style.display = 'block';
                         } else if (data && data.message) {
-                            showMessage('price_info', data.message, true);
+                            alert(data.message);
+                            document.getElementById('price_info').style.display = 'none';
                         } else {
-                            showMessage('price_info', 'Erreur: Réponse serveur invalide', true);
+                            alert('Erreur: Réponse serveur invalide');
+                            document.getElementById('price_info').style.display = 'none';
                         }
                     })
                     .catch(error => {
                         console.error('Availability error:', error);
-                        showMessage('price_info', 'Erreur lors de la vérification: ' + error.message, true);
+                        alert('Erreur lors de la vérification: ' + error.message);
+                        document.getElementById('price_info').style.display = 'none';
                     });
                 }
 

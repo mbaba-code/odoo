@@ -245,9 +245,22 @@ class OneDeskWebsite(http.Controller):
             ])
 
             if overlapping:
+                # Formate le message avec les périodes occupées
+                conflict_dates = []
+                for res in overlapping:
+                    start_str = res.start_date.strftime('%d/%m/%Y')
+                    end_str = res.end_date.strftime('%d/%m/%Y')
+                    conflict_dates.append(f"{start_str} au {end_str}")
+
+                error_msg = (
+                    f"{unit_id.name}: ❌ Cette unité n'est pas disponible pour la période sélectionnée.\n\n"
+                    f"Périodes occupées:\n"
+                    + "\n".join(f"  • {date}" for date in conflict_dates)
+                    + f"\n\nVeuillez choisir une autre période."
+                )
                 return {
                     'available': False,
-                    'message': 'Malheureusement, cette période n\'est pas disponible.',
+                    'message': error_msg,
                 }
 
             # Calcule le prix
