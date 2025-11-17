@@ -148,10 +148,11 @@
     </record>
 
     <!-- Action pour ouvrir la vue -->
+    
     <record id="action_onedesk_property" model="ir.actions.act_window">
         <field name="name">Properties</field>
         <field name="res_model">onedesk.property</field>
-        <field name="view_mode">kanban,list,form</field>
+        <field name="view_mode">list,form,kanban</field>
     </record>
 
     <!-- Sous-menu Propriétés -->
