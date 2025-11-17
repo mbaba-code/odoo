@@ -13,7 +13,7 @@
                         <p class="lead text-muted">Décourez notre sélection de propriétés exceptionnelles</p>
                     </div>
                     <div class="col-lg-4 text-end">
-                        <a href="/properties" class="btn btn-primary">Toutes les propriétés</a>
+                        <a href="/onedesk/properties" class="btn btn-primary">Toutes les propriétés</a>
                     </div>
                 </div>
 
