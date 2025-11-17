@@ -80,20 +80,6 @@ class ResCompany(models.Model):
         default=False
     )
 
-    @api.model
-    def create(self, vals):
-        """Créer une nouvelle Company pour OneDesk"""
-        company = super().create(vals)
-
-        # Si c'est un client OneDesk, créer le profil client automatiquement
-        if vals.get('is_onedesk_client'):
-            self.env['onedesk.client'].create({
-                'company_id': company.id,
-                'owner_partner_id': company.partner_id.id,
-            })
-
-        return company
-
     def _check_onedesk_isolation(self, user):
         """Vérifier si l'utilisateur a accès à cette Company OneDesk"""
         if not self.onedesk_isolated:
