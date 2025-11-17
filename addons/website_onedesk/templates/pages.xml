@@ -20,9 +20,14 @@
                     <t t-foreach="properties" t-as="property">
                         <div class="col-lg-4 col-md-6 mb-4">
                             <div class="card h-100 shadow-sm hover-shadow">
-                                <!-- Image placeholder -->
-                                <div style="height: 250px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center;">
-                                    <i class="fa fa-home fa-3x text-white"></i>
+                                <!-- Property Image -->
+                                <div style="height: 250px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; overflow: hidden;">
+                                    <t t-if="property.main_image">
+                                        <img t-att-src="'data:image/*;base64,' + property.main_image" style="width: 100%; height: 100%; object-fit: cover;"/>
+                                    </t>
+                                    <t t-else="">
+                                        <i class="fa fa-home fa-3x text-white"></i>
+                                    </t>
                                 </div>
 
                                 <div class="card-body">
@@ -74,9 +79,14 @@
                         <t t-foreach="orphaned_units" t-as="unit">
                             <div class="col-lg-4 col-md-6 mb-4">
                                 <div class="card h-100 shadow-sm hover-shadow">
-                                    <!-- Image placeholder -->
-                                    <div style="height: 250px; background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); display: flex; align-items: center; justify-content: center;">
-                                        <i class="fa fa-list fa-3x text-white"></i>
+                                    <!-- Unit Image -->
+                                    <div style="height: 250px; background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); display: flex; align-items: center; justify-content: center; overflow: hidden;">
+                                        <t t-if="unit.main_image">
+                                            <img t-att-src="'data:image/*;base64,' + unit.main_image" style="width: 100%; height: 100%; object-fit: cover;"/>
+                                        </t>
+                                        <t t-else="">
+                                            <i class="fa fa-list fa-3x text-white"></i>
+                                        </t>
                                     </div>
 
                                     <div class="card-body">
@@ -131,17 +141,47 @@
     <template id="property_detail" name="Property Detail">
         <t t-call="website.layout">
             <div class="container mt-5">
-                <!-- Header -->
+                <!-- Photo Carousel -->
                 <div class="row mb-5">
                     <div class="col-lg-8">
+                        <div id="propertyCarousel" class="carousel slide shadow-lg" data-bs-ride="carousel" style="border-radius: 10px; overflow: hidden;">
+                            <div class="carousel-inner">
+                                <!-- Main image first -->
+                                <t t-if="property.main_image">
+                                    <div class="carousel-item active">
+                                        <img t-att-src="'data:image/*;base64,' + property.main_image" class="d-block w-100" style="height: 400px; object-fit: cover;"/>
+                                    </div>
+                                </t>
+                                <!-- Gallery images -->
+                                <t t-foreach="property.image_ids" t-as="img">
+                                    <div class="carousel-item">
+                                        <img t-att-src="'data:image/*;base64,' + img.image" class="d-block w-100" style="height: 400px; object-fit: cover;"/>
+                                    </div>
+                                </t>
+                                <!-- Fallback if no images -->
+                                <t t-if="not property.main_image and not property.image_ids">
+                                    <div class="carousel-item active" style="height: 400px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center;">
+                                        <i class="fa fa-image fa-5x text-white"></i>
+                                    </div>
+                                </t>
+                            </div>
+                            <!-- Carousel controls -->
+                            <button class="carousel-control-prev" type="button" data-bs-target="#propertyCarousel" data-bs-slide="prev">
+                                <span class="carousel-control-prev-icon"></span>
+                            </button>
+                            <button class="carousel-control-next" type="button" data-bs-target="#propertyCarousel" data-bs-slide="next">
+                                <span class="carousel-control-next-icon"></span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Info sidebar -->
+                    <div class="col-lg-4">
                         <h1 t-esc="property.name"></h1>
                         <p class="lead text-muted">
                             <i class="fa fa-map-marker"></i>
                             <t t-esc="property.address"></t>
                         </p>
-                    </div>
-                    <div class="col-lg-4 text-end">
-                        <!-- Section réservée à l'affichage public - pas de données financières -->
                         <div class="card bg-light">
                             <div class="card-body">
                                 <p class="mb-2"><strong>À propos:</strong></p>
@@ -178,8 +218,13 @@
                     <t t-foreach="units" t-as="unit">
                         <div class="col-lg-6 mb-4">
                             <div class="card shadow-sm">
-                                <div style="height: 200px; background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); display: flex; align-items: center; justify-content: center;">
-                                    <i class="fa fa-door-open fa-3x text-white"></i>
+                                <div style="height: 200px; background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); display: flex; align-items: center; justify-content: center; overflow: hidden;">
+                                    <t t-if="unit.main_image">
+                                        <img t-att-src="'data:image/*;base64,' + unit.main_image" style="width: 100%; height: 100%; object-fit: cover;"/>
+                                    </t>
+                                    <t t-else="">
+                                        <i class="fa fa-door-open fa-3x text-white"></i>
+                                    </t>
                                 </div>
 
                                 <div class="card-body">
@@ -257,6 +302,37 @@
 
                 <div class="row">
                     <div class="col-lg-8">
+                        <!-- Photo Carousel -->
+                        <div id="unitCarousel" class="carousel slide shadow-lg mb-4" data-bs-ride="carousel" style="border-radius: 10px; overflow: hidden;">
+                            <div class="carousel-inner">
+                                <!-- Main image first -->
+                                <t t-if="unit.main_image">
+                                    <div class="carousel-item active">
+                                        <img t-att-src="'data:image/*;base64,' + unit.main_image" class="d-block w-100" style="height: 400px; object-fit: cover;"/>
+                                    </div>
+                                </t>
+                                <!-- Gallery images -->
+                                <t t-foreach="unit.image_ids" t-as="img">
+                                    <div class="carousel-item">
+                                        <img t-att-src="'data:image/*;base64,' + img.image" class="d-block w-100" style="height: 400px; object-fit: cover;"/>
+                                    </div>
+                                </t>
+                                <!-- Fallback if no images -->
+                                <t t-if="not unit.main_image and not unit.image_ids">
+                                    <div class="carousel-item active" style="height: 400px; background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); display: flex; align-items: center; justify-content: center;">
+                                        <i class="fa fa-image fa-5x text-white"></i>
+                                    </div>
+                                </t>
+                            </div>
+                            <!-- Carousel controls -->
+                            <button class="carousel-control-prev" type="button" data-bs-target="#unitCarousel" data-bs-slide="prev">
+                                <span class="carousel-control-prev-icon"></span>
+                            </button>
+                            <button class="carousel-control-next" type="button" data-bs-target="#unitCarousel" data-bs-slide="next">
+                                <span class="carousel-control-next-icon"></span>
+                            </button>
+                        </div>
+
                         <h1 t-esc="unit.name"></h1>
                         <p class="lead text-muted">
                             <t t-esc="property.name"></t> •
