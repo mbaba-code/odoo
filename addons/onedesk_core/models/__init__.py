@@ -9,3 +9,9 @@ from . import onedesk_image
 from . import onedesk_integration
 from . import onedesk_integration_provider
 from . import onedesk_integration_log
+
+# ← NOUVEAU : Models multi-tenant
+from . import onedesk_plan
+from . import onedesk_client
+from . import res_company
+from . import onedesk_audit_log

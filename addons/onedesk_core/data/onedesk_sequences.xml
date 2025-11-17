@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- SEQUENCES FOR AUTO-INCREMENTING IDS -->
+
+    <!-- Sequence for Subscription IDs -->
+    <record id="seq_onedesk_subscription" model="ir.sequence">
+        <field name="name">OneDesk Subscription ID</field>
+        <field name="code">onedesk.subscription</field>
+        <field name="prefix">SUB-</field>
+        <field name="number_next">1000</field>
+        <field name="implementation">standard</field>
+    </record>
+
+    <!-- Sequence for Client Codes -->
+    <record id="seq_onedesk_client_code" model="ir.sequence">
+        <field name="name">OneDesk Client Code</field>
+        <field name="code">onedesk.client.code</field>
+        <field name="prefix">OD-</field>
+        <field name="number_next">100000</field>
+        <field name="implementation">standard</field>
+    </record>
+
+    <!-- Sequence for Audit Log IDs -->
+    <record id="seq_onedesk_audit_log" model="ir.sequence">
+        <field name="name">OneDesk Audit Log</field>
+        <field name="code">onedesk.audit.log</field>
+        <field name="prefix">AUDIT-</field>
+        <field name="number_next">1</field>
+        <field name="implementation">standard</field>
+    </record>
+
+</odoo>

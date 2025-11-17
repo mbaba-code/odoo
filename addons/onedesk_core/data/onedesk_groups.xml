@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- USER GROUPS FOR ONEDESK MULTI-TENANT ACCESS CONTROL -->
+
+    <!-- Group: Property Manager (Full access to his company data) -->
+    <record id="group_onedesk_property_manager" model="res.groups">
+        <field name="name">OneDesk / Property Manager</field>
+        <field name="category_id" ref="base.module_category_property_management"/>
+        <field name="comment">Gestionnaire de propriétés OneDesk - Accès complet à ses données</field>
+        <field name="users" eval="[]"/>
+    </record>
+
+    <!-- Group: OneDesk Staff (Limited access - can manage reservations, tasks) -->
+    <record id="group_onedesk_staff" model="res.groups">
+        <field name="name">OneDesk / Staff</field>
+        <field name="category_id" ref="base.module_category_property_management"/>
+        <field name="comment">Personnel OneDesk - Accès limité aux réservations et tâches</field>
+        <field name="users" eval="[]"/>
+    </record>
+
+    <!-- Group: OneDesk Viewer (Read-only access) -->
+    <record id="group_onedesk_viewer" model="res.groups">
+        <field name="name">OneDesk / Viewer</field>
+        <field name="category_id" ref="base.module_category_property_management"/>
+        <field name="comment">Lecteur OneDesk - Accès en lecture seule</field>
+        <field name="users" eval="[]"/>
+    </record>
+
+    <!-- Group: OneDesk Master Admin (Full system access + all clients) -->
+    <record id="group_onedesk_master_admin" model="res.groups">
+        <field name="name">OneDesk / Master Admin</field>
+        <field name="category_id" ref="base.module_category_system"/>
+        <field name="comment">Administrateur maitre OneDesk - Accès complet au système et tous les clients</field>
+        <field name="users" eval="[]"/>
+    </record>
+
+    <!-- Group: OneDesk Support (Can assist clients, view logs) -->
+    <record id="group_onedesk_support" model="res.groups">
+        <field name="name">OneDesk / Support Team</field>
+        <field name="category_id" ref="base.module_category_system"/>
+        <field name="comment">Équipe support OneDesk - Accès aux logs et support clients</field>
+        <field name="users" eval="[]"/>
+    </record>
+
+    <!-- GROUP MENUS FOR NAVIGATION -->
+    <!-- Property Manager Menu -->
+    <menuitem id="menu_onedesk_property_manager_dashboard"
+              name="Tableau de bord"
+              parent="menu_onedesk_root"
+              groups="group_onedesk_property_manager"
+              sequence="1"
+              action=""/>
+
+    <!-- Master Admin Menu -->
+    <menuitem id="menu_onedesk_admin_root"
+              name="Admin OneDesk"
+              parent="base.menu_administration"
+              groups="group_onedesk_master_admin"
+              sequence="50"/>
+
+    <menuitem id="menu_onedesk_admin_clients"
+              name="Gestion des clients"
+              parent="menu_onedesk_admin_root"
+              groups="group_onedesk_master_admin"
+              sequence="1"/>
+
+    <menuitem id="menu_onedesk_admin_subscriptions"
+              name="Abonnements"
+              parent="menu_onedesk_admin_root"
+              groups="group_onedesk_master_admin"
+              sequence="2"/>
+
+    <menuitem id="menu_onedesk_admin_plans"
+              name="Plans de tarification"
+              parent="menu_onedesk_admin_root"
+              groups="group_onedesk_master_admin"
+              sequence="3"/>
+
+    <menuitem id="menu_onedesk_admin_logs"
+              name="Journaux d'audit"
+              parent="menu_onedesk_admin_root"
+              groups="group_onedesk_master_admin"
+              sequence="4"/>
+
+    <menuitem id="menu_onedesk_support_root"
+              name="Support OneDesk"
+              parent="base.menu_administration"
+              groups="group_onedesk_support"
+              sequence="51"/>
+
+    <menuitem id="menu_onedesk_support_logs"
+              name="Journaux système"
+              parent="menu_onedesk_support_root"
+              groups="group_onedesk_support"
+              sequence="1"/>
+
+</odoo>

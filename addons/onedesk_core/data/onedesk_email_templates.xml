@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- EMAIL TEMPLATES FOR ONEDESK -->
+
+    <!-- Welcome Email Template -->
+    <record id="email_template_welcome" model="mail.template">
+        <field name="name">OneDesk - Email de bienvenue</field>
+        <field name="email_from">${object.company_id.email or 'noreply@onedesk.io'}</field>
+        <field name="email_to">${object.email}</field>
+        <field name="subject">Bienvenue sur OneDesk! 🎉</field>
+        <field name="model_id" ref="base.model_res_users"/>
+        <field name="body_html"><![CDATA[
+<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #f5f5f5; padding: 20px;">
+    <div style="background-color: white; border-radius: 8px; padding: 30px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+
+        <!-- Header -->
+        <div style="text-align: center; margin-bottom: 30px;">
+            <h1 style="color: #1f77d2; margin: 0;">Bienvenue sur OneDesk</h1>
+            <p style="color: #666; margin-top: 10px;">Votre solution de gestion immobilière</p>
+        </div>
+
+        <!-- Main Content -->
+        <div style="margin-bottom: 30px;">
+            <p style="color: #333; font-size: 16px;">Bonjour <strong>${object.name}</strong>,</p>
+
+            <p style="color: #666; line-height: 1.6;">
+                Bienvenue sur <strong>OneDesk</strong>! Nous sommes ravis de vous avoir comme client.
+                Votre compte a été créé avec succès et vous pouvez dès maintenant accéder à votre tableau de bord.
+            </p>
+
+            <!-- Login Info -->
+            <div style="background-color: #f9f9f9; border-left: 4px solid #1f77d2; padding: 15px; margin: 20px 0;">
+                <p style="margin: 0; color: #333;"><strong>Informations de connexion:</strong></p>
+                <p style="margin: 5px 0; color: #666;">Email: <code style="background-color: #f0f0f0; padding: 2px 6px;">${object.email}</code></p>
+                <p style="margin: 5px 0; color: #666;">Vous avez défini votre mot de passe lors de l'inscription</p>
+            </div>
+
+            <!-- CTA Button -->
+            <div style="text-align: center; margin: 30px 0;">
+                <a href="${env['ir.config_parameter'].sudo().get_param('web.base.url')}/web/login?login=${object.login}"
+                   style="display: inline-block; background-color: #1f77d2; color: white; padding: 12px 30px; border-radius: 5px; text-decoration: none; font-weight: bold;">
+                    Se connecter à mon compte
+                </a>
+            </div>
+
+            <!-- Next Steps -->
+            <p style="color: #333; font-weight: bold; margin-bottom: 10px;">Les prochaines étapes:</p>
+            <ul style="color: #666; line-height: 1.8;">
+                <li>Complétez votre profil entreprise</li>
+                <li>Créez vos premières propriétés</li>
+                <li>Configurez vos unités de location</li>
+                <li>Connectez vos canaux de réservation</li>
+            </ul>
+
+            <!-- Support -->
+            <div style="background-color: #f0f8ff; border-radius: 5px; padding: 15px; margin-top: 30px;">
+                <p style="margin: 0; color: #1f77d2; font-weight: bold;">Besoin d'aide?</p>
+                <p style="margin: 5px 0; color: #666;">
+                    Consultez notre <a href="${env['ir.config_parameter'].sudo().get_param('web.base.url')}/help" style="color: #1f77d2; text-decoration: none;">centre d'aide</a>
+                    ou contactez notre équipe support à <a href="mailto:support@onedesk.io" style="color: #1f77d2; text-decoration: none;">support@onedesk.io</a>
+                </p>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div style="border-top: 1px solid #eee; padding-top: 20px; margin-top: 30px; color: #999; font-size: 12px; text-align: center;">
+            <p style="margin: 0;">OneDesk © 2024 - Solution de gestion immobilière SaaS</p>
+            <p style="margin: 5px 0;"><a href="https://onedesk.io" style="color: #1f77d2; text-decoration: none;">onedesk.io</a></p>
+        </div>
+    </div>
+</div>
+        ]]></field>
+    </record>
+
+    <!-- Invoice Email Template -->
+    <record id="email_template_invoice" model="mail.template">
+        <field name="name">OneDesk - Facture</field>
+        <field name="email_from">${object.company_id.email or 'billing@onedesk.io'}</field>
+        <field name="email_to">${object.partner_id.email}</field>
+        <field name="subject">Facture OneDesk - ${object.name}</field>
+        <field name="model_id" ref="account.model_account_move"/>
+        <field name="body_html"><![CDATA[
+<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+    <p>Bonjour,</p>
+    <p>Veuillez trouver ci-joint votre facture OneDesk.</p>
+    <p>
+        <strong>Numéro:</strong> ${object.name}<br/>
+        <strong>Montant:</strong> ${object.amount_total} ${object.currency_id.symbol}<br/>
+        <strong>Date:</strong> ${object.invoice_date}
+    </p>
+    <p>Merci pour votre confiance!</p>
+    <p>Équipe OneDesk</p>
+</div>
+        ]]></field>
+    </record>
+
+    <!-- Invitation Email Template -->
+    <record id="email_template_invitation" model="mail.template">
+        <field name="name">OneDesk - Invitation utilisateur</field>
+        <field name="email_from">${object.client_id.company_id.email or 'noreply@onedesk.io'}</field>
+        <field name="email_to">${object.email}</field>
+        <field name="subject">Invitation OneDesk - Rejoignez ${object.client_id.company_id.name}</field>
+        <field name="model_id" ref="model_onedesk_client_invitation"/>
+        <field name="body_html"><![CDATA[
+<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #f5f5f5; padding: 20px;">
+    <div style="background-color: white; border-radius: 8px; padding: 30px;">
+        <h2 style="color: #1f77d2;">Vous avez été invité!</h2>
+
+        <p>Bonjour,</p>
+
+        <p>
+            Vous avez été invité à rejoindre <strong>${object.client_id.company_id.name}</strong>
+            sur OneDesk en tant que <strong>${dict(object._fields['role'].selection).get(object.role)}</strong>.
+        </p>
+
+        <div style="background-color: #f9f9f9; border-left: 4px solid #1f77d2; padding: 15px; margin: 20px 0;">
+            <p style="margin: 0;"><strong>Accepter l'invitation:</strong></p>
+            <p style="margin-top: 10px;">
+                <a href="${env['ir.config_parameter'].sudo().get_param('web.base.url')}/onedesk/invite/accept/${object.invitation_token}"
+                   style="display: inline-block; background-color: #1f77d2; color: white; padding: 10px 20px; border-radius: 5px; text-decoration: none; font-weight: bold;">
+                    Accepter l'invitation
+                </a>
+            </p>
+            <p style="color: #999; font-size: 12px; margin-top: 10px;">
+                Ce lien expire le ${object.expires_date.strftime('%d/%m/%Y à %H:%M')}
+            </p>
+        </div>
+
+        <p style="color: #999; margin-top: 30px; border-top: 1px solid #eee; padding-top: 20px; font-size: 12px;">
+            OneDesk © 2024
+        </p>
+    </div>
+</div>
+        ]]></field>
+    </record>
+
+    <!-- Subscription Expiration Warning -->
+    <record id="email_template_subscription_expiring" model="mail.template">
+        <field name="name">OneDesk - Abonnement expire bientôt</field>
+        <field name="email_from">billing@onedesk.io</field>
+        <field name="email_to">${object.company_id.onedesk_notification_email or object.company_id.partner_id.email}</field>
+        <field name="subject">Votre abonnement OneDesk expire bientôt</field>
+        <field name="model_id" ref="model_onedesk_subscription"/>
+        <field name="body_html"><![CDATA[
+<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+    <p>Bonjour,</p>
+    <p>Votre abonnement OneDesk expire le <strong>${object.end_date.strftime('%d/%m/%Y')}</strong>.</p>
+    <p>Pour continuer à utiliser OneDesk sans interruption, veuillez renouveler votre abonnement.</p>
+    <p><a href="${env['ir.config_parameter'].sudo().get_param('web.base.url')}/onedesk/portal/account" style="color: #1f77d2;">Gérer mon abonnement</a></p>
+    <p>Merci!</p>
+</div>
+        ]]></field>
+    </record>
+
+</odoo>

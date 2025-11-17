@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- DEFAULT SUBSCRIPTION PLANS FOR ONEDESK -->
+
+    <!-- PLAN 1: STARTER - Per-Unit Model -->
+    <record id="plan_starter" model="onedesk.subscription.plan">
+        <field name="name">Starter</field>
+        <field name="description">Parfait pour débuter avec quelques propriétés</field>
+        <field name="sequence">10</field>
+        <field name="active">True</field>
+        <field name="billing_model">per_unit</field>
+        <field name="price_per_unit">29</field>
+        <field name="setup_fee">0</field>
+        <field name="includes_support">True</field>
+        <field name="support_hours">business</field>
+        <field name="max_properties">5</field>
+        <field name="max_units">10</field>
+        <field name="max_users">1</field>
+        <field name="include_channel_manager">False</field>
+        <field name="include_accounting">False</field>
+        <field name="include_advanced_analytics">False</field>
+        <field name="minimum_commitment_months">12</field>
+        <field name="can_downgrade">True</field>
+    </record>
+
+    <!-- PLAN 2: PROFESSIONAL - Per-Unit Model (Mid-range) -->
+    <record id="plan_professional" model="onedesk.subscription.plan">
+        <field name="name">Professional</field>
+        <field name="description">Pour les gestionnaires de portefeuille moyens</field>
+        <field name="sequence">20</field>
+        <field name="active">True</field>
+        <field name="billing_model">per_unit</field>
+        <field name="price_per_unit">49</field>
+        <field name="setup_fee">99</field>
+        <field name="includes_support">True</field>
+        <field name="support_hours">business</field>
+        <field name="max_properties">20</field>
+        <field name="max_units">50</field>
+        <field name="max_users">3</field>
+        <field name="include_channel_manager">True</field>
+        <field name="include_accounting">True</field>
+        <field name="include_advanced_analytics">False</field>
+        <field name="minimum_commitment_months">12</field>
+        <field name="can_downgrade">True</field>
+    </record>
+
+    <!-- PLAN 3: ENTERPRISE - Per-Unit Model (Premium) -->
+    <record id="plan_enterprise" model="onedesk.subscription.plan">
+        <field name="name">Enterprise</field>
+        <field name="description">Solution complète pour les grands portefeuilles</field>
+        <field name="sequence">30</field>
+        <field name="active">True</field>
+        <field name="billing_model">per_unit</field>
+        <field name="price_per_unit">39</field>
+        <field name="setup_fee">299</field>
+        <field name="includes_support">True</field>
+        <field name="support_hours">24_7</field>
+        <field name="max_properties">-1</field>
+        <field name="max_units">-1</field>
+        <field name="max_users">-1</field>
+        <field name="include_channel_manager">True</field>
+        <field name="include_accounting">True</field>
+        <field name="include_advanced_analytics">True</field>
+        <field name="minimum_commitment_months">24</field>
+        <field name="can_downgrade">False</field>
+    </record>
+
+    <!-- PLAN 4: COMMISSION MODEL - Agency Partners -->
+    <record id="plan_agency_partner" model="onedesk.subscription.plan">
+        <field name="name">Agency Partner (Commission)</field>
+        <field name="description">Modèle de commission pour agences partenaires - 5% des revenus de réservation</field>
+        <field name="sequence">40</field>
+        <field name="active">True</field>
+        <field name="billing_model">commission</field>
+        <field name="commission_percentage">5</field>
+        <field name="commission_period">monthly</field>
+        <field name="setup_fee">0</field>
+        <field name="includes_support">True</field>
+        <field name="support_hours">business</field>
+        <field name="max_properties">-1</field>
+        <field name="max_units">-1</field>
+        <field name="max_users">5</field>
+        <field name="include_channel_manager">True</field>
+        <field name="include_accounting">True</field>
+        <field name="include_advanced_analytics">True</field>
+        <field name="minimum_commitment_months">12</field>
+        <field name="can_downgrade">False</field>
+    </record>
+
+    <!-- PLAN 5: FREE TRIAL -->
+    <record id="plan_free_trial" model="onedesk.subscription.plan">
+        <field name="name">Essai Gratuit (30 jours)</field>
+        <field name="description">Plan d'essai pour tester OneDesk gratuitement</field>
+        <field name="sequence">1</field>
+        <field name="active">True</field>
+        <field name="billing_model">per_unit</field>
+        <field name="price_per_unit">0</field>
+        <field name="setup_fee">0</field>
+        <field name="includes_support">True</field>
+        <field name="support_hours">business</field>
+        <field name="max_properties">3</field>
+        <field name="max_units">5</field>
+        <field name="max_users">1</field>
+        <field name="include_channel_manager">False</field>
+        <field name="include_accounting">False</field>
+        <field name="include_advanced_analytics">False</field>
+        <field name="minimum_commitment_months">0</field>
+        <field name="can_downgrade">True</field>
+    </record>
+
+</odoo>
