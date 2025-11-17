@@ -65,9 +65,21 @@ class OneDeskWebsite(http.Controller):
     # ==================== AJAX / FORMULAIRES ====================
 
     @http.route('/onedesk/booking', type='json', auth='public', website=True, methods=['POST'])
-    def create_booking_request(self, **data):
+    def create_booking_request(self, **kw):
         """Crée une demande de réservation (lead/contact)"""
         try:
+            # Extrait les données du JSON body
+            data = request.jsonrequest or {}
+
+            # Valide les données requises
+            required_fields = ['name', 'email', 'unit_id', 'start_date', 'end_date']
+            for field in required_fields:
+                if not data.get(field):
+                    return {
+                        'status': 'error',
+                        'message': f'Le champ "{field}" est requis.',
+                    }
+
             # Crée un partner si nécessaire
             partner = request.env['res.partner'].search([
                 ('email', '=', data.get('email'))
@@ -77,13 +89,13 @@ class OneDeskWebsite(http.Controller):
                 partner = request.env['res.partner'].create({
                     'name': data.get('name'),
                     'email': data.get('email'),
-                    'phone': data.get('phone'),
+                    'phone': data.get('phone', ''),
                 })
 
             # Crée une réservation en brouillon
             unit_id = int(data.get('unit_id'))
-            start_date = datetime.strptime(data.get('start_date'), '%Y-%m-%d').isoformat()
-            end_date = datetime.strptime(data.get('end_date'), '%Y-%m-%d').isoformat()
+            start_date = datetime.strptime(data.get('start_date'), '%Y-%m-%d').date().isoformat()
+            end_date = datetime.strptime(data.get('end_date'), '%Y-%m-%d').date().isoformat()
 
             reservation = request.env['onedesk.reservation'].create({
                 'unit_id': unit_id,
@@ -96,14 +108,22 @@ class OneDeskWebsite(http.Controller):
 
             return {
                 'status': 'success',
-                'message': f'Demande de réservation créée! ID: {reservation.id}',
+                'message': f'Demande de réservation créée! Vous allez recevoir un email de confirmation.',
                 'reservation_id': reservation.id,
             }
 
-        except Exception as e:
+        except ValueError as e:
             return {
                 'status': 'error',
-                'message': str(e),
+                'message': f'Erreur de format: {str(e)}',
+            }
+        except Exception as e:
+            import traceback
+            _logger = __import__('logging').getLogger(__name__)
+            _logger.exception('Erreur lors de la création de réservation')
+            return {
+                'status': 'error',
+                'message': f'Erreur serveur: {str(e) or "Erreur inconnue"}',
             }
 
     @http.route('/onedesk/unit/<model("onedesk.unit"):unit_id>/availability', type='json', auth='public', website=True, methods=['POST'])
