@@ -597,15 +597,16 @@ class OnedeskIntegration(models.Model):
 
     def _find_or_create_unit(self, data):
         """Trouve ou crée l'unité"""
-        unit_name = (
-            data.get('unit_name') or
+        # Priorité: unit_name SEUL, pas property_name pour unit
+        unit_name = data.get('unit_name') or data.get('listing_name')
+
+        # Fallback pour la propriété
+        property_name = (
             data.get('property_name') or
             data.get('listing_name') or
-            data.get('location')
+            data.get('location') or
+            'Propriété importée'
         )
-
-        if not unit_name:
-            return False
 
         Unit = self.env['onedesk.unit']
         external_listing_id = data.get('external_listing_id') or data.get('listing_id')
@@ -618,10 +619,11 @@ class OnedeskIntegration(models.Model):
                 ('integration_id', '=', self.id),
             ], limit=1)
 
-        # Sinon cherche par nom
-        if not unit:
+        # Sinon cherche par nom + propriété
+        if not unit and unit_name:
             unit = Unit.search([
                 ('name', 'ilike', unit_name),
+                ('property_id.name', 'ilike', property_name),
             ], limit=1)
 
         # Crée l'unité si elle n'existe pas et auto_create_units est actif
@@ -629,14 +631,32 @@ class OnedeskIntegration(models.Model):
             # Auto-crée la propriété associée
             property_id = self._find_or_create_property(data)
 
+            # Génère un nom d'unité unique si pas fourni
+            if not unit_name:
+                # Compte le nombre d'unités existantes dans la propriété
+                unit_count = Unit.search_count([
+                    ('property_id', '=', property_id.id),
+                ]) + 1
+                unit_name = f"{property_name} - Unité {unit_count}"
+
+            # Extrait les infos disponibles pour enrichir l'unité
+            capacity = data.get('capacity') or data.get('guests') or 2
+            bedrooms = data.get('bedrooms') or 1
+            bathrooms = data.get('bathrooms') or 1
+            price = data.get('price') or data.get('price_per_night') or 100.0
+
             unit = Unit.create({
                 'name': unit_name,
                 'property_id': property_id.id if property_id else (self.default_property_id.id if self.default_property_id else False),
                 'external_listing_id': external_listing_id,
                 'integration_id': self.id,
                 'available': True,
+                'capacity': capacity,
+                'bedrooms': bedrooms,
+                'bathrooms': bathrooms,
+                'price_per_night': price,
             })
-            _logger.info(f"🏠 Nouvelle unité créée: {unit_name} (Propriété: {property_id.name if property_id else 'N/A'})")
+            _logger.info(f"🏠 Nouvelle unité créée: {unit_name} (Propriété: {property_id.name if property_id else 'N/A'}, Cap: {capacity}, Lit: {bedrooms}, SdB: {bathrooms}, Prix: {price}€)")
 
         return unit
     
