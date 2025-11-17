@@ -122,6 +122,16 @@
                     </group>
 
                     <notebook>
+                        <page string="📸 Inspection (Photos)">
+                            <separator string="Arrivée (Check-in)"/>
+                            <group>
+                                <field name="check_in_photo" widget="image"/>
+                            </group>
+                            <separator string="Départ (Check-out)"/>
+                            <group>
+                                <field name="check_out_photo" widget="image"/>
+                            </group>
+                        </page>
                         <page string="Événement calendrier">
                             <field name="calendar_event_id" readonly="1"/>
                         </page>
