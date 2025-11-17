@@ -117,8 +117,6 @@
                 <separator/>
                 <filter name="filter_today" string="Aujourd'hui"
                         domain="[('create_date', '&gt;=', context_today().strftime('%Y-%m-%d 00:00:00')), ('create_date', '&lt;=', context_today().strftime('%Y-%m-%d 23:59:59'))]"/>
-                <filter name="filter_this_week" string="Cette semaine"
-                        domain="[('create_date', '&gt;=', (context_today() - timedelta(days=7)).strftime('%Y-%m-%d 00:00:00'))]"/>
 
                 <separator/>
                 <group expand="0" string="Regrouper par">
