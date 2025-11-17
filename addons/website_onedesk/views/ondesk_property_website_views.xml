@@ -1,17 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <!-- Menu Website -->
-    <menuitem id="menu_onedesk_website" name="Website" parent="website.menu_website" sequence="50"/>
-
-    <menuitem id="menu_website_onedesk_properties" name="OneDesk Properties"
-              parent="menu_onedesk_website"
-              action="website_onedesk.action_website_properties"/>
-
-    <!-- Action pour afficher les propriétés du website -->
-    <record id="action_website_properties" model="ir.actions.act_window">
-        <field name="name">Website Properties</field>
-        <field name="res_model">onedesk.property</field>
-        <field name="view_mode">list,form</field>
-        <field name="help">Gérez les propriétés affichées sur votre site web</field>
-    </record>
+    <!-- Pas de vues supplémentaires nécessaires -->
+    <!-- Les pages du website sont servies via les controllers -->
 </odoo>
