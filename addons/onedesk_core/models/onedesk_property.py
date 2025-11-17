@@ -34,6 +34,8 @@ class OnedeskProperty(models.Model):
     # ========== IMAGES ==========
     main_image = fields.Image(string="Photo principale", attachment=True,
                              help="Photo de couverture de la propriété")
+    image_ids = fields.One2many('onedesk.property.image', 'property_id', string='Galerie de photos',
+                               help="Galerie complète de photos de la propriété")
 
     # ========== CALENDAR FIELDS (required for calendar view) ==========
     date_start = fields.Date(string="Date de début")

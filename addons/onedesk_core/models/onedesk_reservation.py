@@ -97,6 +97,8 @@ class OneDeskReservation(models.Model):
                                  help="Photo de l'état des lieux à l'arrivée du client")
     check_out_photo = fields.Image(string="Photo check-out", attachment=True,
                                   help="Photo de l'état des lieux au départ du client")
+    image_ids = fields.One2many('onedesk.reservation.image', 'reservation_id', string='Galerie d\'inspection',
+                               help="Galerie complète de photos d'inspection (check-in et check-out)")
 
     @api.constrains('unit_id', 'start_date', 'end_date', 'status')
     def _check_no_overlapping_reservations(self):

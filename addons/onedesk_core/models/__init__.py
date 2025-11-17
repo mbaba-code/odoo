@@ -3,6 +3,7 @@ from . import onedesk_unit
 from . import onedesk_seasonal_price
 from . import onedesk_reservation
 from . import onedesk_task
+from . import onedesk_image
 
 # ← NOUVEAU : Models d'intégration
 from . import onedesk_integration

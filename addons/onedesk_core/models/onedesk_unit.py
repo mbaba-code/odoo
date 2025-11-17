@@ -49,6 +49,8 @@ class OnedeskUnit(models.Model):
 
     # ========== IMAGES ==========
     main_image = fields.Image(string="Photo principale", attachment=True)
+    image_ids = fields.One2many('onedesk.unit.image', 'unit_id', string='Galerie de photos',
+                               help="Galerie complète de photos de l'unité")
 
     # ========== DASHBOARD FIELDS ==========
     reservation_ids = fields.One2many('onedesk.reservation', 'unit_id', string='Réservations')
