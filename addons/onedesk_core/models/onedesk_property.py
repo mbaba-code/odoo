@@ -37,6 +37,11 @@ class OnedeskProperty(models.Model):
     image_ids = fields.One2many('onedesk.property.image', 'property_id', string='Galerie de photos',
                                help="Galerie complète de photos de la propriété")
 
+    # Computed field: Get cover image from gallery if available
+    cover_image = fields.Image(string="Photo de couverture (Galerie)", max_width=1024, max_height=1024,
+                              compute='_compute_cover_image', readonly=True,
+                              help="Photo marquée comme couverture dans la galerie")
+
     # ========== CALENDAR FIELDS (required for calendar view) ==========
     date_start = fields.Date(string="Date de début")
     date_stop = fields.Date(string="Date de fin")
@@ -53,6 +58,22 @@ class OnedeskProperty(models.Model):
                                       compute='_compute_total_revenue_month')
     total_occupancy_percentage = fields.Float(string='Taux d\'occupation',
                                              compute='_compute_total_occupancy_percentage')
+
+    @api.depends('image_ids', 'image_ids.is_cover', 'image_ids.image')
+    def _compute_cover_image(self):
+        """Get cover image from gallery if marked, otherwise use first image"""
+        for record in self:
+            # Look for image marked as cover
+            cover_img = record.image_ids.filtered(lambda x: x.is_cover)
+            if cover_img:
+                # Use the cover image's image field
+                record.cover_image = cover_img[0].image
+            elif record.image_ids:
+                # Fall back to first image if no cover marked
+                record.cover_image = record.image_ids[0].image
+            else:
+                # No images in gallery, use main_image field if set
+                record.cover_image = record.main_image
 
     @api.depends('unit_ids')
     def _compute_total_units(self):

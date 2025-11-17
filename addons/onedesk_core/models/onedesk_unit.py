@@ -52,6 +52,11 @@ class OnedeskUnit(models.Model):
     image_ids = fields.One2many('onedesk.unit.image', 'unit_id', string='Galerie de photos',
                                help="Galerie complète de photos de l'unité")
 
+    # Computed field: Get cover image from gallery if available
+    cover_image = fields.Image(string="Photo de couverture (Galerie)", max_width=1024, max_height=1024,
+                              compute='_compute_cover_image', readonly=True,
+                              help="Photo marquée comme couverture dans la galerie")
+
     # ========== DASHBOARD FIELDS ==========
     reservation_ids = fields.One2many('onedesk.reservation', 'unit_id', string='Réservations')
 
@@ -68,6 +73,22 @@ class OnedeskUnit(models.Model):
     upcoming_reservations_count = fields.Integer(string='📅 Prochaines réservations (7j)',
                                                 compute='_compute_upcoming_reservations_count',
                                                 store=False)
+
+    @api.depends('image_ids', 'image_ids.is_cover', 'image_ids.image')
+    def _compute_cover_image(self):
+        """Get cover image from gallery if marked, otherwise use first image"""
+        for record in self:
+            # Look for image marked as cover
+            cover_img = record.image_ids.filtered(lambda x: x.is_cover)
+            if cover_img:
+                # Use the cover image's image field
+                record.cover_image = cover_img[0].image
+            elif record.image_ids:
+                # Fall back to first image if no cover marked
+                record.cover_image = record.image_ids[0].image
+            else:
+                # No images in gallery, use main_image field if set
+                record.cover_image = record.main_image
 
     @api.depends('reservation_ids', 'reservation_ids.total_price', 'reservation_ids.payment_status')
     def _compute_revenue_this_month(self):
