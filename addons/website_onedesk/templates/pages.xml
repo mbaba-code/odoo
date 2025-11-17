@@ -4,8 +4,7 @@
     <!-- PAGE D'ACCUEIL / LISTING -->
     <!-- ========================= -->
     <template id="properties_list" name="Property Listing">
-        <t t-name="website_onedesk.properties_list">
-            <t t-call="website.layout">
+        <t t-call="website.layout">
             <div class="container mt-5">
                 <div class="row">
                     <div class="col-lg-8">
