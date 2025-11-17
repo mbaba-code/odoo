@@ -523,6 +523,7 @@
                         return r.json();
                     })
                     .then(data => {
+                        console.log('Availability response:', data);
                         if (data && data.available) {
                             document.getElementById('price_info').innerHTML =
                                 '<p class="mb-1"><strong>✅ Disponible!</strong></p>' +
@@ -532,11 +533,14 @@
                                 '<p class="mb-1"><strong>Prix total:</strong> <span class="h5">' + (data.total_with_cleaning ? data.total_with_cleaning.toFixed(2) : '0') + '</span>€</p>';
                             document.getElementById('price_info').className = 'alert alert-success';
                             document.getElementById('price_info').style.display = 'block';
+                        } else if (data && data.message) {
+                            showMessage('price_info', data.message, true);
                         } else {
-                            showMessage('price_info', data && data.message ? data.message : 'Cette période n\'est pas disponible', true);
+                            showMessage('price_info', 'Erreur: Réponse serveur invalide', true);
                         }
                     })
                     .catch(error => {
+                        console.error('Availability error:', error);
                         showMessage('price_info', 'Erreur lors de la vérification: ' + error.message, true);
                     });
                 }
@@ -575,17 +579,17 @@
                     .then(data => {
                         console.log('Booking response:', data);
                         if (data && data.status === 'success') {
-                            alert('✅ Réservation créée!\n' + (data.message || 'Vous allez recevoir un email de confirmation.'));
+                            showMessage('price_info', data.message, false);
                             document.getElementById('booking_form').reset();
-                            document.getElementById('price_info').style.display = 'none';
+                        } else if (data && data.message) {
+                            showMessage('price_info', data.message, true);
                         } else {
-                            const errorMsg = (data && data.message) ? data.message : 'Une erreur est survenue lors de la réservation';
-                            alert('❌ Erreur de réservation:\n' + errorMsg);
+                            showMessage('price_info', 'Une erreur est survenue lors de la réservation', true);
                         }
                     })
                     .catch(error => {
                         console.error('Booking error:', error);
-                        alert('❌ Erreur lors de la réservation:\n' + error.message);
+                        showMessage('price_info', 'Erreur lors de la réservation: ' + error.message, true);
                     });
                 });
             ]]></script>
