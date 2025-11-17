@@ -106,10 +106,21 @@ class OneDeskWebsite(http.Controller):
                 'message': str(e),
             }
 
-    @http.route('/onedesk/unit/<model("onedesk.unit"):unit_id>/availability', type='json', auth='public', website=True)
-    def check_availability(self, unit_id, start_date, end_date, **kw):
+    @http.route('/onedesk/unit/<model("onedesk.unit"):unit_id>/availability', type='json', auth='public', website=True, methods=['POST'])
+    def check_availability(self, unit_id, **kw):
         """Vérifie la disponibilité d'une unité pour une période"""
         try:
+            # Extrait les données du JSON body
+            data = request.jsonrequest or {}
+            start_date = data.get('start_date')
+            end_date = data.get('end_date')
+
+            if not start_date or not end_date:
+                return {
+                    'available': False,
+                    'message': 'Les dates de début et fin sont requises.',
+                }
+
             start = datetime.strptime(start_date, '%Y-%m-%d').date()
             end = datetime.strptime(end_date, '%Y-%m-%d').date()
 
