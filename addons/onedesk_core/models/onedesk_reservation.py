@@ -124,16 +124,18 @@ class OneDeskReservation(models.Model):
                     f"Réservations en conflit: {', '.join(r.name for r in overlapping)}"
                 )
 
-    def check_availability(self, start_date, end_date):
+    def check_availability_for_unit(self, unit_id, start_date, end_date):
         """
         Vérifie la disponibilité d'une unité pour une période donnée
+        Args:
+            unit_id: ID de l'unité à vérifier
+            start_date: Date de début (datetime)
+            end_date: Date de fin (datetime)
         Retourne: (available: bool, conflicting_reservations: list, error_message: str)
         """
-        self.ensure_one()
-
-        # Cherche les réservations qui se chevauchent
-        overlapping = self.env['onedesk.reservation'].search([
-            ('unit_id', '=', self.id),
+        # Cherche les réservations qui se chevauchent pour cette unité
+        overlapping = self.search([
+            ('unit_id', '=', unit_id),
             ('status', '!=', 'cancelled'),
             ('start_date', '<', end_date),
             ('end_date', '>', start_date),
