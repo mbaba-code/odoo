@@ -315,7 +315,7 @@ class OnedeskIntegration(models.Model):
                 else:
                     raise UserError("Méthode non supportée")
                 
-                record.write({
+                record.sudo().write({
                     'last_sync_date': fields.Datetime.now(),
                     'last_sync_count': count,
                     'total_synced': record.total_synced + count,
@@ -328,7 +328,7 @@ class OnedeskIntegration(models.Model):
             except Exception as e:
                 error_msg = f"Erreur synchronisation: {str(e)}"
                 _logger.error(error_msg, exc_info=True)
-                record.write({
+                record.sudo().write({
                     'state': 'error',
                     'last_error': error_msg,
                     'last_error_date': fields.Datetime.now(),
@@ -516,7 +516,7 @@ class OnedeskIntegration(models.Model):
         if not partner:
             # Si impossible de créer le contact, on crée un contact générique
             try:
-                partner = self.env['res.partner'].create({
+                partner = self.env['res.partner'].sudo().create({
                     'name': 'Client externe',
                     'comment': f"Réservation importée depuis {self.provider_id.name}",
                 })
@@ -585,11 +585,12 @@ class OnedeskIntegration(models.Model):
 
         # Crée une propriété si elle n'existe pas
         if not prop:
-            prop = Property.create({
+            prop = Property.sudo().create({
                 'name': property_name,
                 'address': data.get('location', ''),
                 'property_type': 'apartment',  # Par défaut
                 'description': f"Propriété importée depuis {self.provider_id.name}",
+                'company_id': self.company_id.id,
             })
             _logger.info(f"🏘️ Nouvelle propriété créée: {property_name}")
 
@@ -645,7 +646,7 @@ class OnedeskIntegration(models.Model):
             bathrooms = data.get('bathrooms') or 1
             price = data.get('price') or data.get('price_per_night') or 100.0
 
-            unit = Unit.create({
+            unit = Unit.sudo().create({
                 'name': unit_name,
                 'property_id': property_id.id if property_id else (self.default_property_id.id if self.default_property_id else False),
                 'external_listing_id': external_listing_id,
@@ -655,6 +656,7 @@ class OnedeskIntegration(models.Model):
                 'bedrooms': bedrooms,
                 'bathrooms': bathrooms,
                 'price_per_night': price,
+                'company_id': self.company_id.id,
             })
             _logger.info(f"🏠 Nouvelle unité créée: {unit_name} (Propriété: {property_id.name if property_id else 'N/A'}, Cap: {capacity}, Lit: {bedrooms}, SdB: {bathrooms}, Prix: {price}€)")
 
@@ -688,8 +690,8 @@ class OnedeskIntegration(models.Model):
         if self.auto_create_contacts:
             # IMPORTANT : Assure qu'il y a toujours un nom
             contact_name = guest_name or guest_email or 'Client externe'
-            
-            partner = Partner.create({
+
+            partner = Partner.sudo().create({
                 'name': contact_name,
                 'email': guest_email if guest_email else False,
                 'phone': guest_phone if guest_phone else False,
@@ -702,7 +704,7 @@ class OnedeskIntegration(models.Model):
     
     def _log(self, log_type, message):
         """Crée un log"""
-        self.env['onedesk.integration.log'].create({
+        self.env['onedesk.integration.log'].sudo().create({
             'integration_id': self.id,
             'log_type': log_type,
             'message': message,
