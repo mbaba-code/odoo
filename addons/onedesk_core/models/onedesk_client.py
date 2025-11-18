@@ -181,13 +181,14 @@ class OnedeskoClient(models.Model):
         ]
 
     @api.model
-    def create(self, vals):
-        """Créer un nouveau client avec code unique"""
-        if not vals.get('client_code'):
-            # Générer un code client unique
-            vals['client_code'] = self._generate_client_code()
+    def create(self, vals_list):
+        """Créer de nouveaux clients avec codes uniques"""
+        for vals in vals_list:
+            if not vals.get('client_code'):
+                # Générer un code client unique
+                vals['client_code'] = self._generate_client_code()
 
-        return super().create(vals)
+        return super().create(vals_list)
 
     @staticmethod
     def _generate_client_code():
@@ -326,15 +327,16 @@ class OnedeskoClientInvitation(models.Model):
     expires_date = fields.Datetime(string="Date d'expiration")
 
     @api.model
-    def create(self, vals):
-        """Générer un token unique pour l'invitation"""
-        if not vals.get('invitation_token'):
-            vals['invitation_token'] = self._generate_token()
-        if not vals.get('expires_date'):
-            import datetime
-            vals['expires_date'] = fields.Datetime.now() + datetime.timedelta(days=7)
+    def create(self, vals_list):
+        """Générer des tokens uniques pour les invitations"""
+        for vals in vals_list:
+            if not vals.get('invitation_token'):
+                vals['invitation_token'] = self._generate_token()
+            if not vals.get('expires_date'):
+                import datetime
+                vals['expires_date'] = fields.Datetime.now() + datetime.timedelta(days=7)
 
-        return super().create(vals)
+        return super().create(vals_list)
 
     @staticmethod
     def _generate_token():

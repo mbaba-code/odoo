@@ -100,19 +100,20 @@ class OnedeskTask(models.Model):
         return tasks
 
     @api.model
-    def create(self, vals):
-        task = super().create(vals)
-        # Création automatique de l'événement calendrier
-        event_vals = {
-            'name': task.name,
-            'start': task.date_start,
-            'stop': task.date_end or task.date_start,
-            'user_id': task.assigned_to.id if task.assigned_to else False,
-            'description': f"Tâche: {task.name}\nType: {task.task_type}",
-        }
-        event = self.env['calendar.event'].create(event_vals)
-        task.calendar_event_id = event.id
-        return task
+    def create(self, vals_list):
+        tasks = super().create(vals_list)
+        # Création automatique de l'événement calendrier pour chaque tâche
+        for task in tasks:
+            event_vals = {
+                'name': task.name,
+                'start': task.date_start,
+                'stop': task.date_end or task.date_start,
+                'user_id': task.assigned_to.id if task.assigned_to else False,
+                'description': f"Tâche: {task.name}\nType: {task.task_type}",
+            }
+            event = self.env['calendar.event'].create(event_vals)
+            task.calendar_event_id = event.id
+        return tasks
 
     def write(self, vals):
         res = super().write(vals)
@@ -138,8 +139,9 @@ class OnedeskReservation(models.Model):
     _inherit = 'onedesk.reservation'
 
     @api.model
-    def create(self, vals):
-        reservation = super().create(vals)
-        # Crée les tâches automatiquement
-        self.env['onedesk.task'].create_task_from_reservation(reservation)
-        return reservation
+    def create(self, vals_list):
+        reservations = super().create(vals_list)
+        # Crée les tâches automatiquement pour chaque réservation
+        for reservation in reservations:
+            self.env['onedesk.task'].create_task_from_reservation(reservation)
+        return reservations

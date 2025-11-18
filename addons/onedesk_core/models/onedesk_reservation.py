@@ -202,55 +202,58 @@ class OneDeskReservation(models.Model):
 
     # Création automatique de l'événement + calcul prix
     @api.model
-    def create(self, vals):
-        # Calcule le prix automatiquement avant création
-        if 'unit_id' in vals and 'start_date' in vals and 'end_date' in vals:
-            unit = self.env['onedesk.unit'].browse(vals['unit_id'])
-            if unit:
-                # Convertir dates si nécessaire
-                start_date = vals['start_date']
-                end_date = vals['end_date']
-                if isinstance(start_date, str):
-                    start_date = datetime.fromisoformat(start_date.replace('Z', '+00:00')).date()
-                elif hasattr(start_date, 'date'):
-                    start_date = start_date.date()
+    def create(self, vals_list):
+        # Calcule le prix automatiquement avant création pour chaque enregistrement
+        for vals in vals_list:
+            if 'unit_id' in vals and 'start_date' in vals and 'end_date' in vals:
+                unit = self.env['onedesk.unit'].browse(vals['unit_id'])
+                if unit:
+                    # Convertir dates si nécessaire
+                    start_date = vals['start_date']
+                    end_date = vals['end_date']
+                    if isinstance(start_date, str):
+                        start_date = datetime.fromisoformat(start_date.replace('Z', '+00:00')).date()
+                    elif hasattr(start_date, 'date'):
+                        start_date = start_date.date()
 
-                if isinstance(end_date, str):
-                    end_date = datetime.fromisoformat(end_date.replace('Z', '+00:00')).date()
-                elif hasattr(end_date, 'date'):
-                    end_date = end_date.date()
+                    if isinstance(end_date, str):
+                        end_date = datetime.fromisoformat(end_date.replace('Z', '+00:00')).date()
+                    elif hasattr(end_date, 'date'):
+                        end_date = end_date.date()
 
-                # Récupère le prix pour cette période
-                vals['price_per_night'] = unit.get_price_for_dates(start_date, end_date)
+                    # Récupère le prix pour cette période
+                    vals['price_per_night'] = unit.get_price_for_dates(start_date, end_date)
 
-        reservation = super().create(vals)
+        reservations = super().create(vals_list)
 
-        # Crée un événement dans le calendrier visible pour tout le monde
-        event = self.env['calendar.event'].sudo().create({
-            'name': f"{reservation.name} - {reservation.unit_id.name}",
-            'start': reservation.start_date,
-            'stop': reservation.end_date,
-            'description': f"Client: {reservation.partner_id.name}\nUnité: {reservation.unit_id.name}\n💰 Prix: {reservation.total_price}€",
-            'location': reservation.unit_id.name,
-            'allday': False,
-            'privacy': 'public',
-            'show_as': 'busy',
-        })
+        # Traiter chaque réservation créée
+        for reservation in reservations:
+            # Crée un événement dans le calendrier visible pour tout le monde
+            event = self.env['calendar.event'].sudo().create({
+                'name': f"{reservation.name} - {reservation.unit_id.name}",
+                'start': reservation.start_date,
+                'stop': reservation.end_date,
+                'description': f"Client: {reservation.partner_id.name}\nUnité: {reservation.unit_id.name}\n💰 Prix: {reservation.total_price}€",
+                'location': reservation.unit_id.name,
+                'allday': False,
+                'privacy': 'public',
+                'show_as': 'busy',
+            })
 
-        # Lier l'événement à la réservation
-        reservation.calendar_event_id = event.id
+            # Lier l'événement à la réservation
+            reservation.calendar_event_id = event.id
 
-        # Envoie un email de confirmation automatiquement
-        try:
-            reservation._send_confirmation_email()
-        except Exception as e:
-            # Log l'erreur mais ne bloque pas la création
-            reservation.message_post(
-                body=f"⚠️ Erreur lors de l'envoi de l'email de confirmation: {str(e)}",
-                message_type='comment'
-            )
+            # Envoie un email de confirmation automatiquement
+            try:
+                reservation._send_confirmation_email()
+            except Exception as e:
+                # Log l'erreur mais ne bloque pas la création
+                reservation.message_post(
+                    body=f"⚠️ Erreur lors de l'envoi de l'email de confirmation: {str(e)}",
+                    message_type='comment'
+                )
 
-        return reservation
+        return reservations
 
     # Mise à jour automatique de l'événement si la réservation change
     def write(self, vals):

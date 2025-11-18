@@ -108,10 +108,10 @@ class OnedeskoAuditLog(models.Model):
     error_message = fields.Text(string="Message d'erreur")
 
     @api.model
-    def create(self, vals):
+    def create(self, vals_list):
         """Créer une entrée de log d'audit"""
-        log = super().create(vals)
-        return log
+        logs = super().create(vals_list)
+        return logs
 
     @staticmethod
     def log_action(log_type, severity='info', **kwargs):
@@ -193,9 +193,9 @@ class OnedeskoSystemLog(models.Model):
     stack_trace = fields.Text(string="Stack trace")
 
     @api.model
-    def create(self, vals):
+    def create(self, vals_list):
         """Créer un log système"""
-        return super().create(vals)
+        return super().create(vals_list)
 
     @staticmethod
     def log_error(message, module='onedesk', stack_trace=None):

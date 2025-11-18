@@ -201,11 +201,12 @@ class OnedeskoSubscription(models.Model):
     )
 
     @api.model
-    def create(self, vals):
-        """Générer l'ID d'abonnement unique"""
-        if not vals.get('subscription_id'):
-            vals['subscription_id'] = self.env['ir.sequence'].next_by_code('onedesk.subscription')
-        return super().create(vals)
+    def create(self, vals_list):
+        """Générer les ID d'abonnement uniques"""
+        for vals in vals_list:
+            if not vals.get('subscription_id'):
+                vals['subscription_id'] = self.env['ir.sequence'].next_by_code('onedesk.subscription')
+        return super().create(vals_list)
 
     @api.depends('plan_id.billing_model')
     def _compute_next_invoice_date(self):
