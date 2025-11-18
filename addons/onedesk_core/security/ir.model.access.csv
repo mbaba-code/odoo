@@ -65,4 +65,9 @@ access_res_partner_staff,res.partner.staff,base.model_res_partner,onedesk_core.g
 access_res_partner_viewer,res.partner.viewer,base.model_res_partner,onedesk_core.group_onedesk_viewer,1,0,0,0
 access_res_partner_support,res.partner.support,base.model_res_partner,onedesk_core.group_onedesk_support,1,1,0,0
 access_res_partner_admin,res.partner.admin,base.model_res_partner,onedesk_core.group_onedesk_master_admin,1,1,1,1
+access_onedesk_dashboard_pm,onedesk.dashboard.pm,model_onedesk_dashboard,onedesk_core.group_onedesk_property_manager,1,1,1,1
+access_onedesk_dashboard_staff,onedesk.dashboard.staff,model_onedesk_dashboard,onedesk_core.group_onedesk_staff,1,1,1,1
+access_onedesk_dashboard_viewer,onedesk.dashboard.viewer,model_onedesk_dashboard,onedesk_core.group_onedesk_viewer,1,1,1,1
+access_onedesk_dashboard_admin,onedesk.dashboard.admin,model_onedesk_dashboard,onedesk_core.group_onedesk_master_admin,1,1,1,1
+access_onedesk_dashboard_support,onedesk.dashboard.support,model_onedesk_dashboard,onedesk_core.group_onedesk_support,1,1,1,1
 
