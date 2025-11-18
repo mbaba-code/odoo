@@ -1,0 +1,222 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Dashboard Action -->
+    <record id="action_onedesk_real_dashboard" model="ir.actions.act_window">
+        <field name="name">Dashboard</field>
+        <field name="res_model">onedesk.dashboard</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="view_onedesk_dashboard_form"/>
+        <field name="target">main</field>
+    </record>
+
+    <!-- Dashboard Form View -->
+    <record id="view_onedesk_dashboard_form" model="ir.ui.view">
+        <field name="name">OneDesk Dashboard</field>
+        <field name="model">onedesk.dashboard</field>
+        <field name="arch" type="xml">
+            <form string="Dashboard" create="false" edit="true" delete="false">
+                <sheet>
+                    <!-- Header: Refresh Configuration -->
+                    <div class="alert alert-info" role="alert">
+                        <strong>Dashboard Configuration</strong>
+                        <p>Customize your dashboard widgets and auto-refresh settings.</p>
+                    </div>
+
+                    <!-- Auto-Refresh Settings -->
+                    <group string="🔄 Auto-Refresh Settings">
+                        <field name="auto_refresh" widget="boolean"/>
+                        <field name="refresh_interval" attrs="{'readonly': [('auto_refresh', '=', False)]}"/>
+                    </group>
+
+                    <!-- Widget Visibility Settings -->
+                    <group string="👁️ Widget Visibility">
+                        <group col="2">
+                            <field name="show_properties_kpi" widget="boolean"/>
+                            <field name="show_units_kpi" widget="boolean"/>
+                            <field name="show_reservations_today" widget="boolean"/>
+                            <field name="show_tasks_urgent" widget="boolean"/>
+                            <field name="show_financial" widget="boolean"/>
+                            <field name="show_occupancy_chart" widget="boolean"/>
+                            <field name="show_revenue_chart" widget="boolean"/>
+                        </group>
+                    </group>
+
+                    <!-- ==================== DASHBOARD METRICS ==================== -->
+
+                    <!-- Properties KPI -->
+                    <group string="🏠 Properties Overview" attrs="{'invisible': [('show_properties_kpi', '=', False)]}">
+                        <group col="4">
+                            <div class="alert alert-info" colspan="4">
+                                <p>Total: <strong><field name="total_properties" readonly="1"/></strong> |
+                                   Active: <strong><field name="active_properties" readonly="1"/></strong> |
+                                   Inactive: <strong><field name="inactive_properties" readonly="1"/></strong></p>
+                            </div>
+                            <group>
+                                <label string="Occupancy Rate"/>
+                                <div><field name="properties_occupancy_rate" readonly="1"/> %</div>
+                            </group>
+                            <group>
+                                <label string="Revenue (This Month)"/>
+                                <div><field name="revenue_this_month" readonly="1" widget="monetary"/></div>
+                            </group>
+                        </group>
+                    </group>
+
+                    <!-- Units KPI -->
+                    <group string="🚪 Units Overview" attrs="{'invisible': [('show_units_kpi', '=', False)]}">
+                        <group col="4">
+                            <div class="alert alert-info" colspan="4">
+                                <p>Total: <strong><field name="total_units" readonly="1"/></strong> |
+                                   Available: <strong><field name="available_units" readonly="1"/></strong> |
+                                   Maintenance: <strong><field name="maintenance_units" readonly="1"/></strong></p>
+                            </div>
+                            <group>
+                                <label string="Occupancy Rate"/>
+                                <div><field name="units_occupancy_rate" readonly="1"/> %</div>
+                            </group>
+                        </group>
+                    </group>
+
+                    <!-- Reservations Today -->
+                    <group string="📅 Reservations (Today)" attrs="{'invisible': [('show_reservations_today', '=', False)]}">
+                        <group col="4">
+                            <group>
+                                <label string="Check-ins Today"/>
+                                <div><field name="reservations_today_checkin" readonly="1" class="badge badge-info"/></div>
+                            </group>
+                            <group>
+                                <label string="Check-outs Today"/>
+                                <div><field name="reservations_today_checkout" readonly="1" class="badge badge-info"/></div>
+                            </group>
+                            <group>
+                                <label string="Pending Payments"/>
+                                <div><field name="reservations_pending_payment" readonly="1" class="badge badge-warning"/></div>
+                            </group>
+                            <group>
+                                <label string="Amount Pending"/>
+                                <div><field name="reservations_pending_payment_amount" readonly="1" widget="monetary"/></div>
+                            </group>
+                        </group>
+                        <group col="4">
+                            <label string="Confirmed (This Month)" colspan="4"/>
+                            <div><field name="reservations_confirmed_month" readonly="1" class="badge badge-success"/></div>
+                        </group>
+                    </group>
+
+                    <!-- Urgent Tasks -->
+                    <group string="✅ Tasks Overview" attrs="{'invisible': [('show_tasks_urgent', '=', False)]}">
+                        <group col="4">
+                            <group>
+                                <label string="🔴 Overdue"/>
+                                <div><field name="tasks_overdue" readonly="1" class="badge badge-danger"/></div>
+                            </group>
+                            <group>
+                                <label string="📌 Due Today"/>
+                                <div><field name="tasks_due_today" readonly="1" class="badge badge-warning"/></div>
+                            </group>
+                            <group>
+                                <label string="⚡ Urgent"/>
+                                <div><field name="tasks_urgent_total" readonly="1" class="badge badge-danger"/></div>
+                            </group>
+                            <group>
+                                <label string="⏱️ In Progress"/>
+                                <div><field name="tasks_in_progress" readonly="1" class="badge badge-info"/></div>
+                            </group>
+                        </group>
+                    </group>
+
+                    <!-- Financial Summary -->
+                    <group string="💰 Financial Summary" attrs="{'invisible': [('show_financial', '=', False)]}">
+                        <group col="4">
+                            <group>
+                                <label string="Revenue Today"/>
+                                <div><field name="revenue_today" readonly="1" widget="monetary"/></div>
+                            </group>
+                            <group>
+                                <label string="Revenue (This Week)"/>
+                                <div><field name="revenue_this_week" readonly="1" widget="monetary"/></div>
+                            </group>
+                            <group>
+                                <label string="Outstanding Payments"/>
+                                <div><field name="outstanding_payments" readonly="1" widget="monetary" class="text-danger"/></div>
+                            </group>
+                            <group>
+                                <label string="Occupancy (This Week)"/>
+                                <div><field name="occupancy_rate_week" readonly="1"/> %</div>
+                            </group>
+                        </group>
+                    </group>
+
+                    <!-- Charts Placeholder -->
+                    <group string="📊 Analytics">
+                        <div class="alert alert-info" colspan="4">
+                            <p><strong>Charts & Detailed Analytics</strong></p>
+                            <p>Occupancy Chart and Revenue Chart will be displayed here when configured.</p>
+                        </div>
+                    </group>
+
+                    <!-- Last Updated -->
+                    <footer class="text-muted">
+                        <p>Dashboard metrics are automatically refreshed every <field name="refresh_interval" readonly="1"/> seconds.</p>
+                        <p>Last updated: <span class="dashboard-update-time">Just now</span></p>
+                    </footer>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Dashboard Configuration Form View -->
+    <record id="view_onedesk_dashboard_config_form" model="ir.ui.view">
+        <field name="name">OneDesk Dashboard Configuration</field>
+        <field name="model">onedesk.dashboard</field>
+        <field name="arch" type="xml">
+            <form string="Dashboard Settings" create="false" edit="true" delete="false">
+                <sheet>
+                    <div class="alert alert-warning">
+                        <p><strong>Dashboard Settings</strong></p>
+                        <p>Manage your personal dashboard preferences and auto-refresh configuration.</p>
+                    </div>
+
+                    <group string="Auto-Refresh Configuration">
+                        <field name="auto_refresh" widget="boolean"/>
+                        <field name="refresh_interval" attrs="{'readonly': [('auto_refresh', '=', False)]}"/>
+                        <label string="Note: Refresh interval in seconds (minimum 60 recommended for performance)"/>
+                    </group>
+
+                    <group string="Widget Preferences">
+                        <field name="show_properties_kpi" widget="boolean" string="Show Properties Widget"/>
+                        <field name="show_units_kpi" widget="boolean" string="Show Units Widget"/>
+                        <field name="show_reservations_today" widget="boolean" string="Show Reservations Widget"/>
+                        <field name="show_tasks_urgent" widget="boolean" string="Show Tasks Widget"/>
+                        <field name="show_financial" widget="boolean" string="Show Financial Widget"/>
+                        <field name="show_occupancy_chart" widget="boolean" string="Show Occupancy Chart"/>
+                        <field name="show_revenue_chart" widget="boolean" string="Show Revenue Chart"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Dashboard List View (for admin) -->
+    <record id="view_onedesk_dashboard_list" model="ir.ui.view">
+        <field name="name">OneDesk Dashboard List</field>
+        <field name="model">onedesk.dashboard</field>
+        <field name="arch" type="xml">
+            <tree string="Dashboards">
+                <field name="user_id"/>
+                <field name="company_id"/>
+                <field name="auto_refresh"/>
+                <field name="refresh_interval"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- Update Main Dashboard Menu to use real dashboard -->
+    <menuitem id="menu_onedesk_dashboard"
+              name="📊 Dashboard"
+              parent="menu_onedesk_root"
+              action="action_onedesk_real_dashboard"
+              sequence="5"/>
+
+</odoo>

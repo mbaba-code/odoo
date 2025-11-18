@@ -19,6 +19,7 @@
 
     # Vues ensuite (ça charge les models)
     # ⚠️ ORDRE IMPORTANT: seasonal_price AVANT unit car unit en dépend
+    'views/onedesk_dashboard.xml',
     'views/onedesk_property_views.xml',
     'views/onedesk_seasonal_price_views.xml',
     'views/onedesk_unit_views.xml',
@@ -47,6 +48,14 @@
     'data/onedesk_security.xml',
     'data/onedesk_email_templates.xml',
     ],
+
+    # Assets (CSS, JavaScript)
+    'assets': {
+        'web.assets_backend': [
+            'onedesk_core/static/src/css/dashboard.css',
+            'onedesk_core/static/src/js/dashboard_refresh.js',
+        ]
+    },
     
     # ← NOUVEAU : Dépendances Python
     'external_dependencies': {
