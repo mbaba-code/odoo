@@ -9,6 +9,15 @@ class OneDeskReservation(models.Model):
     _description = 'Reservation'
     _inherit = ['mail.thread']
 
+    # ========== MULTI-TENANT ==========
+    company_id = fields.Many2one(
+        'res.company',
+        string="Entreprise",
+        compute='_compute_company_id',
+        store=True,
+        help="Entreprise (héritée de l'unité)"
+    )
+
     # Champs de base
     name = fields.Char(string='Reservation Reference', required=True, copy=False, default='New')
     unit_id = fields.Many2one('onedesk.unit', string='Unit', required=True)
@@ -103,6 +112,12 @@ class OneDeskReservation(models.Model):
     # Computed field: ID of cover image (for kanban use)
     cover_image_id = fields.Integer(compute='_compute_cover_image_id', readonly=True,
                                     help="ID de la photo de couverture pour les vues kanban")
+
+    @api.depends('unit_id', 'unit_id.company_id')
+    def _compute_company_id(self):
+        """Hériter company_id de l'unité"""
+        for record in self:
+            record.company_id = record.unit_id.company_id if record.unit_id else False
 
     @api.depends('image_ids', 'image_ids.image')
     def _compute_cover_image(self):

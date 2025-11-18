@@ -5,6 +5,16 @@ class OnedeskProperty(models.Model):
     _description = 'Propriété OneDesk'
     _inherit = ['mail.thread']
 
+    # ========== MULTI-TENANT ==========
+    company_id = fields.Many2one(
+        'res.company',
+        string="Entreprise",
+        required=True,
+        default=lambda self: self.env.company,
+        ondelete='cascade',
+        help="Entreprise propriétaire de cette propriété"
+    )
+
     # ========== BASIC INFO ==========
     name = fields.Char(string="Nom de la propriété", required=True, tracking=True)
     address = fields.Char(string="Adresse", required=True)

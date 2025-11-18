@@ -6,8 +6,17 @@ class OnedeskUnit(models.Model):
     _name = 'onedesk.unit'
     _description = 'Unité de propriété'
 
+    # ========== MULTI-TENANT ==========
+    company_id = fields.Many2one(
+        'res.company',
+        string="Entreprise",
+        compute='_compute_company_id',
+        store=True,
+        help="Entreprise (héritée de la propriété)"
+    )
+
     name = fields.Char(string="Nom de l'unité", required=True)
-    property_id = fields.Many2one('onedesk.property', string="Propriété")
+    property_id = fields.Many2one('onedesk.property', string="Propriété", required=True)
 
     # ========== INTEGRATION ==========
     external_listing_id = fields.Char(string="ID Listing Externe",
@@ -76,6 +85,12 @@ class OnedeskUnit(models.Model):
     upcoming_reservations_count = fields.Integer(string='📅 Prochaines réservations (7j)',
                                                 compute='_compute_upcoming_reservations_count',
                                                 store=False)
+
+    @api.depends('property_id', 'property_id.company_id')
+    def _compute_company_id(self):
+        """Hériter company_id de la propriété"""
+        for record in self:
+            record.company_id = record.property_id.company_id if record.property_id else False
 
     @api.depends('image_ids', 'image_ids.is_cover', 'image_ids.image')
     def _compute_cover_image(self):
