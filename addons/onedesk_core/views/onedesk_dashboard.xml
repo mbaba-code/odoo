@@ -22,13 +22,13 @@
                     <!-- Widget Visibility Settings -->
                     <group string="👁️ Widget Visibility">
                         <group col="2">
-                            <field name="show_properties_kpi" widget="boolean"/>
-                            <field name="show_units_kpi" widget="boolean"/>
-                            <field name="show_reservations_today" widget="boolean"/>
-                            <field name="show_tasks_urgent" widget="boolean"/>
-                            <field name="show_financial" widget="boolean"/>
-                            <field name="show_occupancy_chart" widget="boolean"/>
-                            <field name="show_revenue_chart" widget="boolean"/>
+                            <field name="show_properties_kpi" widget="boolean" string="Show Properties Widget"/>
+                            <field name="show_units_kpi" widget="boolean" string="Show Units Widget"/>
+                            <field name="show_reservations_today" widget="boolean" string="Show Reservations Widget"/>
+                            <field name="show_tasks_urgent" widget="boolean" string="Show Tasks Widget"/>
+                            <field name="show_financial" widget="boolean" string="Show Financial Widget"/>
+                            <field name="show_occupancy_chart" widget="boolean" string="Show Occupancy Chart"/>
+                            <field name="show_revenue_chart" widget="boolean" string="Show Revenue Chart"/>
                         </group>
                     </group>
 
@@ -36,106 +36,52 @@
 
                     <!-- Properties KPI -->
                     <group string="🏠 Properties Overview" attrs="{'invisible': [('show_properties_kpi', '=', False)]}">
-                        <group col="4">
-                            <div class="alert alert-info" colspan="4">
-                                <p>Total: <strong><field name="total_properties" readonly="1"/></strong> |
-                                   Active: <strong><field name="active_properties" readonly="1"/></strong> |
-                                   Inactive: <strong><field name="inactive_properties" readonly="1"/></strong></p>
-                            </div>
-                            <group>
-                                <label string="Occupancy Rate"/>
-                                <div><field name="properties_occupancy_rate" readonly="1"/> %</div>
-                            </group>
-                            <group>
-                                <label string="Revenue (This Month)"/>
-                                <div><field name="revenue_this_month" readonly="1" widget="monetary"/></div>
-                            </group>
-                        </group>
+                        <div class="alert alert-info" colspan="4">
+                            <p>
+                                Total: <strong><field name="total_properties" readonly="1" nolabel="1" class="oe_inline"/></strong> |
+                                Active: <strong><field name="active_properties" readonly="1" nolabel="1" class="oe_inline"/></strong> |
+                                Inactive: <strong><field name="inactive_properties" readonly="1" nolabel="1" class="oe_inline"/></strong>
+                            </p>
+                        </div>
+                        <field name="properties_occupancy_rate" readonly="1" string="Occupancy Rate (%)"/>
+                        <field name="revenue_this_month" readonly="1" string="Revenue (This Month)" widget="monetary"/>
                     </group>
 
                     <!-- Units KPI -->
                     <group string="🚪 Units Overview" attrs="{'invisible': [('show_units_kpi', '=', False)]}">
-                        <group col="4">
-                            <div class="alert alert-info" colspan="4">
-                                <p>Total: <strong><field name="total_units" readonly="1"/></strong> |
-                                   Available: <strong><field name="available_units" readonly="1"/></strong> |
-                                   Maintenance: <strong><field name="maintenance_units" readonly="1"/></strong></p>
-                            </div>
-                            <group>
-                                <label string="Occupancy Rate"/>
-                                <div><field name="units_occupancy_rate" readonly="1"/> %</div>
-                            </group>
-                        </group>
+                        <div class="alert alert-info" colspan="4">
+                            <p>
+                                Total: <strong><field name="total_units" readonly="1" nolabel="1" class="oe_inline"/></strong> |
+                                Available: <strong><field name="available_units" readonly="1" nolabel="1" class="oe_inline"/></strong> |
+                                Maintenance: <strong><field name="maintenance_units" readonly="1" nolabel="1" class="oe_inline"/></strong>
+                            </p>
+                        </div>
+                        <field name="units_occupancy_rate" readonly="1" string="Occupancy Rate (%)"/>
                     </group>
 
                     <!-- Reservations Today -->
                     <group string="📅 Reservations (Today)" attrs="{'invisible': [('show_reservations_today', '=', False)]}">
-                        <group col="4">
-                            <group>
-                                <label string="Check-ins Today"/>
-                                <div><field name="reservations_today_checkin" readonly="1" class="badge badge-info"/></div>
-                            </group>
-                            <group>
-                                <label string="Check-outs Today"/>
-                                <div><field name="reservations_today_checkout" readonly="1" class="badge badge-info"/></div>
-                            </group>
-                            <group>
-                                <label string="Pending Payments"/>
-                                <div><field name="reservations_pending_payment" readonly="1" class="badge badge-warning"/></div>
-                            </group>
-                            <group>
-                                <label string="Amount Pending"/>
-                                <div><field name="reservations_pending_payment_amount" readonly="1" widget="monetary"/></div>
-                            </group>
-                        </group>
-                        <group col="4">
-                            <label string="Confirmed (This Month)" colspan="4"/>
-                            <div><field name="reservations_confirmed_month" readonly="1" class="badge badge-success"/></div>
-                        </group>
+                        <field name="reservations_today_checkin" readonly="1" string="Check-ins Today"/>
+                        <field name="reservations_today_checkout" readonly="1" string="Check-outs Today"/>
+                        <field name="reservations_pending_payment" readonly="1" string="Pending Payments"/>
+                        <field name="reservations_pending_payment_amount" readonly="1" string="Amount Pending" widget="monetary"/>
+                        <field name="reservations_confirmed_month" readonly="1" string="Confirmed (This Month)"/>
                     </group>
 
                     <!-- Urgent Tasks -->
                     <group string="✅ Tasks Overview" attrs="{'invisible': [('show_tasks_urgent', '=', False)]}">
-                        <group col="4">
-                            <group>
-                                <label string="🔴 Overdue"/>
-                                <div><field name="tasks_overdue" readonly="1" class="badge badge-danger"/></div>
-                            </group>
-                            <group>
-                                <label string="📌 Due Today"/>
-                                <div><field name="tasks_due_today" readonly="1" class="badge badge-warning"/></div>
-                            </group>
-                            <group>
-                                <label string="⚡ Urgent"/>
-                                <div><field name="tasks_urgent_total" readonly="1" class="badge badge-danger"/></div>
-                            </group>
-                            <group>
-                                <label string="⏱️ In Progress"/>
-                                <div><field name="tasks_in_progress" readonly="1" class="badge badge-info"/></div>
-                            </group>
-                        </group>
+                        <field name="tasks_overdue" readonly="1" string="🔴 Overdue Tasks"/>
+                        <field name="tasks_due_today" readonly="1" string="📌 Due Today"/>
+                        <field name="tasks_urgent_total" readonly="1" string="⚡ Urgent Tasks"/>
+                        <field name="tasks_in_progress" readonly="1" string="⏱️ In Progress"/>
                     </group>
 
                     <!-- Financial Summary -->
                     <group string="💰 Financial Summary" attrs="{'invisible': [('show_financial', '=', False)]}">
-                        <group col="4">
-                            <group>
-                                <label string="Revenue Today"/>
-                                <div><field name="revenue_today" readonly="1" widget="monetary"/></div>
-                            </group>
-                            <group>
-                                <label string="Revenue (This Week)"/>
-                                <div><field name="revenue_this_week" readonly="1" widget="monetary"/></div>
-                            </group>
-                            <group>
-                                <label string="Outstanding Payments"/>
-                                <div><field name="outstanding_payments" readonly="1" widget="monetary" class="text-danger"/></div>
-                            </group>
-                            <group>
-                                <label string="Occupancy (This Week)"/>
-                                <div><field name="occupancy_rate_week" readonly="1"/> %</div>
-                            </group>
-                        </group>
+                        <field name="revenue_today" readonly="1" string="Revenue Today" widget="monetary"/>
+                        <field name="revenue_this_week" readonly="1" string="Revenue (This Week)" widget="monetary"/>
+                        <field name="outstanding_payments" readonly="1" string="Outstanding Payments" widget="monetary"/>
+                        <field name="occupancy_rate_week" readonly="1" string="Occupancy (This Week) (%)"/>
                     </group>
 
                     <!-- Charts Placeholder -->
@@ -148,7 +94,7 @@
 
                     <!-- Last Updated -->
                     <footer class="text-muted">
-                        <p>Dashboard metrics are automatically refreshed every <field name="refresh_interval" readonly="1"/> seconds.</p>
+                        <p>Dashboard metrics are automatically refreshed every <field name="refresh_interval" readonly="1" nolabel="1" class="oe_inline"/> seconds.</p>
                         <p>Last updated: <span class="dashboard-update-time">Just now</span></p>
                     </footer>
                 </sheet>
@@ -156,39 +102,7 @@
         </field>
     </record>
 
-    <!-- Dashboard Configuration Form View -->
-    <record id="view_onedesk_dashboard_config_form" model="ir.ui.view">
-        <field name="name">OneDesk Dashboard Configuration</field>
-        <field name="model">onedesk.dashboard</field>
-        <field name="arch" type="xml">
-            <form string="Dashboard Settings" create="false" edit="true" delete="false">
-                <sheet>
-                    <div class="alert alert-warning">
-                        <p><strong>Dashboard Settings</strong></p>
-                        <p>Manage your personal dashboard preferences and auto-refresh configuration.</p>
-                    </div>
-
-                    <group string="Auto-Refresh Configuration">
-                        <field name="auto_refresh" widget="boolean"/>
-                        <field name="refresh_interval" attrs="{'readonly': [('auto_refresh', '=', False)]}"/>
-                        <label string="Note: Refresh interval in seconds (minimum 60 recommended for performance)"/>
-                    </group>
-
-                    <group string="Widget Preferences">
-                        <field name="show_properties_kpi" widget="boolean" string="Show Properties Widget"/>
-                        <field name="show_units_kpi" widget="boolean" string="Show Units Widget"/>
-                        <field name="show_reservations_today" widget="boolean" string="Show Reservations Widget"/>
-                        <field name="show_tasks_urgent" widget="boolean" string="Show Tasks Widget"/>
-                        <field name="show_financial" widget="boolean" string="Show Financial Widget"/>
-                        <field name="show_occupancy_chart" widget="boolean" string="Show Occupancy Chart"/>
-                        <field name="show_revenue_chart" widget="boolean" string="Show Revenue Chart"/>
-                    </group>
-                </sheet>
-            </form>
-        </field>
-    </record>
-
-    <!-- Dashboard List View (for admin) -->
+    <!-- Dashboard List View -->
     <record id="view_onedesk_dashboard_list" model="ir.ui.view">
         <field name="name">OneDesk Dashboard List</field>
         <field name="model">onedesk.dashboard</field>
