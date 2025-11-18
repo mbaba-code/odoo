@@ -281,15 +281,15 @@
         <field name="perm_unlink">False</field>
     </record>
 
-    <!-- Staff: only their company's active reservations (read-only) -->
+    <!-- Staff: only their company's active reservations -->
     <record id="rule_staff_reservation" model="ir.rule">
-        <field name="name">Staff - Company Reservations (Read-Only)</field>
+        <field name="name">Staff - Company Reservations</field>
         <field name="model_id" ref="model_onedesk_reservation"/>
         <field name="domain_force">[('unit_id.property_id.company_id', '=', user.company_id.id), ('active', '=', True)]</field>
         <field name="groups" eval="[(4, ref('group_onedesk_staff'))]"/>
         <field name="perm_read">True</field>
-        <field name="perm_write">False</field>
-        <field name="perm_create">False</field>
+        <field name="perm_write">True</field>
+        <field name="perm_create">True</field>
         <field name="perm_unlink">False</field>
     </record>
 
@@ -298,6 +298,68 @@
         <field name="name">Viewer - Company Reservations (Read-Only)</field>
         <field name="model_id" ref="model_onedesk_reservation"/>
         <field name="domain_force">[('unit_id.property_id.company_id', '=', user.company_id.id), ('active', '=', True)]</field>
+        <field name="groups" eval="[(4, ref('group_onedesk_viewer'))]"/>
+        <field name="perm_read">True</field>
+        <field name="perm_write">False</field>
+        <field name="perm_create">False</field>
+        <field name="perm_unlink">False</field>
+    </record>
+
+    <!-- ================== TASK ACCESS (Multi-tenant filtering) ================== -->
+
+    <!-- Master Admin: all tasks -->
+    <record id="rule_master_admin_task" model="ir.rule">
+        <field name="name">Master Admin - All Tasks</field>
+        <field name="model_id" ref="model_onedesk_task"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('group_onedesk_master_admin'))]"/>
+        <field name="perm_read">True</field>
+        <field name="perm_write">True</field>
+        <field name="perm_create">True</field>
+        <field name="perm_unlink">False</field>
+    </record>
+
+    <!-- Support: all tasks -->
+    <record id="rule_support_task_read" model="ir.rule">
+        <field name="name">Support - Read All Tasks</field>
+        <field name="model_id" ref="model_onedesk_task"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('group_onedesk_support'))]"/>
+        <field name="perm_read">True</field>
+        <field name="perm_write">False</field>
+        <field name="perm_create">False</field>
+        <field name="perm_unlink">False</field>
+    </record>
+
+    <!-- Property Manager: all tasks in their company -->
+    <record id="rule_property_manager_task" model="ir.rule">
+        <field name="name">Property Manager - Company Tasks</field>
+        <field name="model_id" ref="model_onedesk_task"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('group_onedesk_property_manager'))]"/>
+        <field name="perm_read">True</field>
+        <field name="perm_write">True</field>
+        <field name="perm_create">True</field>
+        <field name="perm_unlink">False</field>
+    </record>
+
+    <!-- Staff: all tasks in their company -->
+    <record id="rule_staff_task" model="ir.rule">
+        <field name="name">Staff - Company Tasks</field>
+        <field name="model_id" ref="model_onedesk_task"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('group_onedesk_staff'))]"/>
+        <field name="perm_read">True</field>
+        <field name="perm_write">True</field>
+        <field name="perm_create">True</field>
+        <field name="perm_unlink">False</field>
+    </record>
+
+    <!-- Viewer: all tasks in their company (read-only) -->
+    <record id="rule_viewer_task" model="ir.rule">
+        <field name="name">Viewer - Company Tasks (Read-Only)</field>
+        <field name="model_id" ref="model_onedesk_task"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
         <field name="groups" eval="[(4, ref('group_onedesk_viewer'))]"/>
         <field name="perm_read">True</field>
         <field name="perm_write">False</field>
