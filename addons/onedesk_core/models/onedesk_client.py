@@ -228,37 +228,40 @@ class OnedeskoClient(models.Model):
         viewer_group = self.env.ref('onedesk_core.group_onedesk_viewer')
 
         # 3.1. Créer le Property Manager
-        self.env['res.users'].create({
+        pm_user = self.env['res.users'].create({
             'name': f'{client_name} - Property Manager',
             'login': f'pm_{client.client_code}@onedesk.local'.lower(),
             'email': client.owner_partner_id.email if client.owner_partner_id else f'pm_{client.client_code}@onedesk.local',
             'company_id': company.id,
             'company_ids': [(6, 0, [company.id])],
-            'groups_id': [(6, 0, [manager_group.id])],
             'state': 'new',
         })
+        # Ajouter le groupe après création
+        pm_user.groups_id = [(4, manager_group.id)]
 
         # 3.2. Créer le Staff
-        self.env['res.users'].create({
+        staff_user = self.env['res.users'].create({
             'name': f'{client_name} - Staff Member',
             'login': f'staff_{client.client_code}@onedesk.local'.lower(),
             'email': f'staff_{client.client_code}@onedesk.local',
             'company_id': company.id,
             'company_ids': [(6, 0, [company.id])],
-            'groups_id': [(6, 0, [staff_group.id])],
             'state': 'new',
         })
+        # Ajouter le groupe après création
+        staff_user.groups_id = [(4, staff_group.id)]
 
         # 3.3. Créer le Viewer
-        self.env['res.users'].create({
+        viewer_user = self.env['res.users'].create({
             'name': f'{client_name} - Viewer',
             'login': f'viewer_{client.client_code}@onedesk.local'.lower(),
             'email': f'viewer_{client.client_code}@onedesk.local',
             'company_id': company.id,
             'company_ids': [(6, 0, [company.id])],
-            'groups_id': [(6, 0, [viewer_group.id])],
             'state': 'new',
         })
+        # Ajouter le groupe après création
+        viewer_user.groups_id = [(4, viewer_group.id)]
 
     @staticmethod
     def _generate_client_code():
