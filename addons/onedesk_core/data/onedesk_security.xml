@@ -529,4 +529,42 @@
         <field name="perm_unlink">False</field>
     </record>
 
+    <!-- ================== CALENDAR ATTENDEE ACCESS (for event management) ================== -->
+
+    <!-- Property Manager: calendar attendees -->
+    <record id="rule_property_manager_calendar_attendee" model="ir.rule">
+        <field name="name">Property Manager - Calendar Attendees</field>
+        <field name="model_id" ref="calendar.model_calendar_attendee"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('group_onedesk_property_manager'))]"/>
+        <field name="perm_read">True</field>
+        <field name="perm_write">True</field>
+        <field name="perm_create">True</field>
+        <field name="perm_unlink">False</field>
+    </record>
+
+    <!-- Staff: calendar attendees -->
+    <record id="rule_staff_calendar_attendee" model="ir.rule">
+        <field name="name">Staff - Calendar Attendees</field>
+        <field name="model_id" ref="calendar.model_calendar_attendee"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('group_onedesk_staff'))]"/>
+        <field name="perm_read">True</field>
+        <field name="perm_write">True</field>
+        <field name="perm_create">True</field>
+        <field name="perm_unlink">False</field>
+    </record>
+
+    <!-- Viewer: calendar attendees (read-only) -->
+    <record id="rule_viewer_calendar_attendee" model="ir.rule">
+        <field name="name">Viewer - Calendar Attendees (Read-Only)</field>
+        <field name="model_id" ref="calendar.model_calendar_attendee"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('group_onedesk_viewer'))]"/>
+        <field name="perm_read">True</field>
+        <field name="perm_write">False</field>
+        <field name="perm_create">False</field>
+        <field name="perm_unlink">False</field>
+    </record>
+
 </odoo>

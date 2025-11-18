@@ -2,7 +2,7 @@
 <odoo>
     <!-- DASHBOARD ACTIONS -->
     <record id="action_onedesk_dashboard" model="ir.actions.act_window">
-        <field name="name">Dashboard</field>
+        <field name="name">Tableau de bord</field>
         <field name="res_model">onedesk.dashboard</field>
         <field name="view_mode">form,list</field>
     </record>
