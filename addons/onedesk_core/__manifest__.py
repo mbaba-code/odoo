@@ -14,12 +14,14 @@
     'data': [
     'security/ir.model.access.csv',
 
-    # Menus FIRST (avant toutes les autres vues qui les référencent)
+    # Dashboard FIRST (car le menu y référence des actions)
+    'views/onedesk_dashboard.xml',
+
+    # Menus ensuite (qui référencent les actions)
     'views/onedesk_menu_hierarchy.xml',
 
-    # Vues ensuite (ça charge les models)
+    # Autres vues
     # ⚠️ ORDRE IMPORTANT: seasonal_price AVANT unit car unit en dépend
-    'views/onedesk_dashboard.xml',
     'views/onedesk_property_views.xml',
     'views/onedesk_seasonal_price_views.xml',
     'views/onedesk_unit_views.xml',

@@ -3,8 +3,8 @@
     <!-- DASHBOARD ACTIONS -->
     <record id="action_onedesk_dashboard" model="ir.actions.act_window">
         <field name="name">Dashboard</field>
-        <field name="res_model">onedesk.property</field>
-        <field name="view_mode">kanban,list,form</field>
+        <field name="res_model">onedesk.dashboard</field>
+        <field name="view_mode">form,list</field>
     </record>
 
     <!-- SUBSCRIPTION PLAN ACTION -->
