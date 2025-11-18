@@ -106,7 +106,7 @@
                     <!-- Client Info -->
                     <group>
                         <group>
-                            <field name="company_id" readonly="id" invisible="1"/>
+                            <field name="company_id" readonly="id"/>
                             <field name="plan_id"/>
                         </group>
                         <group>
