@@ -196,7 +196,8 @@ class OnedeskoClient(models.Model):
                     partner = self.env['res.partner'].browse(vals['owner_partner_id'])
                     partner_name = partner.name if partner else ''
 
-                company_name = partner_name or f"Client {vals.get('client_code', 'New')}"
+                # Utiliser client_code pour garantir l'unicité du nom de company
+                company_name = f"{partner_name or 'Client'} - {vals.get('client_code')}"
                 new_company = self.env['res.company'].create({
                     'name': company_name,
                     'is_onedesk_client': True,
