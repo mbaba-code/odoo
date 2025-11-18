@@ -45,24 +45,28 @@
               name="Gestion des clients"
               parent="menu_onedesk_admin_root"
               groups="group_onedesk_master_admin"
+              action="onedesk_core.action_onedesk_client"
               sequence="1"/>
 
     <menuitem id="menu_onedesk_admin_subscriptions"
               name="Abonnements"
               parent="menu_onedesk_admin_root"
               groups="group_onedesk_master_admin"
+              action="onedesk_core.action_onedesk_subscription"
               sequence="2"/>
 
     <menuitem id="menu_onedesk_admin_plans"
               name="Plans de tarification"
               parent="menu_onedesk_admin_root"
               groups="group_onedesk_master_admin"
+              action="onedesk_core.action_onedesk_subscription_plan"
               sequence="3"/>
 
     <menuitem id="menu_onedesk_admin_logs"
               name="Journaux d'audit"
               parent="menu_onedesk_admin_root"
               groups="group_onedesk_master_admin"
+              action="onedesk_core.action_onedesk_audit_log"
               sequence="4"/>
 
     <menuitem id="menu_onedesk_support_root"
@@ -75,6 +79,91 @@
               name="Journaux système"
               parent="menu_onedesk_support_root"
               groups="group_onedesk_support"
+              action="onedesk_core.action_onedesk_system_log"
               sequence="1"/>
+
+    <!-- ==================== MODEL ACCESS PERMISSIONS ==================== -->
+
+    <!-- Master Admin - Full Access to All Models -->
+    <record id="access_onedesk_client_admin" model="ir.model.access">
+        <field name="name">OneDesk Client - Master Admin</field>
+        <field name="model_id" ref="model_onedesk_client"/>
+        <field name="group_id" ref="group_onedesk_master_admin"/>
+        <field name="perm_read">True</field>
+        <field name="perm_write">True</field>
+        <field name="perm_create">True</field>
+        <field name="perm_unlink">True</field>
+    </record>
+
+    <record id="access_onedesk_subscription_admin" model="ir.model.access">
+        <field name="name">OneDesk Subscription - Master Admin</field>
+        <field name="model_id" ref="model_onedesk_subscription"/>
+        <field name="group_id" ref="group_onedesk_master_admin"/>
+        <field name="perm_read">True</field>
+        <field name="perm_write">True</field>
+        <field name="perm_create">True</field>
+        <field name="perm_unlink">True</field>
+    </record>
+
+    <record id="access_onedesk_plan_admin" model="ir.model.access">
+        <field name="name">OneDesk Plan - Master Admin</field>
+        <field name="model_id" ref="model_onedesk_subscription_plan"/>
+        <field name="group_id" ref="group_onedesk_master_admin"/>
+        <field name="perm_read">True</field>
+        <field name="perm_write">True</field>
+        <field name="perm_create">True</field>
+        <field name="perm_unlink">True</field>
+    </record>
+
+    <record id="access_onedesk_audit_log_admin" model="ir.model.access">
+        <field name="name">OneDesk Audit Log - Master Admin</field>
+        <field name="model_id" ref="model_onedesk_audit_log"/>
+        <field name="group_id" ref="group_onedesk_master_admin"/>
+        <field name="perm_read">True</field>
+        <field name="perm_write">True</field>
+        <field name="perm_create">True</field>
+        <field name="perm_unlink">False</field>
+    </record>
+
+    <record id="access_onedesk_system_log_admin" model="ir.model.access">
+        <field name="name">OneDesk System Log - Master Admin</field>
+        <field name="model_id" ref="model_onedesk_system_log"/>
+        <field name="group_id" ref="group_onedesk_master_admin"/>
+        <field name="perm_read">True</field>
+        <field name="perm_write">True</field>
+        <field name="perm_create">True</field>
+        <field name="perm_unlink">False</field>
+    </record>
+
+    <!-- Support Team - Read Access -->
+    <record id="access_onedesk_client_support" model="ir.model.access">
+        <field name="name">OneDesk Client - Support</field>
+        <field name="model_id" ref="model_onedesk_client"/>
+        <field name="group_id" ref="group_onedesk_support"/>
+        <field name="perm_read">True</field>
+        <field name="perm_write">False</field>
+        <field name="perm_create">False</field>
+        <field name="perm_unlink">False</field>
+    </record>
+
+    <record id="access_onedesk_audit_log_support" model="ir.model.access">
+        <field name="name">OneDesk Audit Log - Support</field>
+        <field name="model_id" ref="model_onedesk_audit_log"/>
+        <field name="group_id" ref="group_onedesk_support"/>
+        <field name="perm_read">True</field>
+        <field name="perm_write">False</field>
+        <field name="perm_create">False</field>
+        <field name="perm_unlink">False</field>
+    </record>
+
+    <record id="access_onedesk_system_log_support" model="ir.model.access">
+        <field name="name">OneDesk System Log - Support</field>
+        <field name="model_id" ref="model_onedesk_system_log"/>
+        <field name="group_id" ref="group_onedesk_support"/>
+        <field name="perm_read">True</field>
+        <field name="perm_write">False</field>
+        <field name="perm_create">False</field>
+        <field name="perm_unlink">False</field>
+    </record>
 
 </odoo>
