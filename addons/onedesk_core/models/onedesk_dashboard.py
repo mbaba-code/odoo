@@ -228,6 +228,29 @@ class OnedeaskDashboard(models.Model):
 
     # ==================== ACTIONS ====================
     @api.model
+    def default_get(self, fields):
+        """Set default values when creating/loading dashboard"""
+        res = super().default_get(fields)
+
+        # Try to get existing dashboard for current user
+        dashboard = self.search([
+            ('user_id', '=', self.env.user.id),
+            ('company_id', '=', self.env.company.id)
+        ], limit=1)
+
+        if dashboard:
+            # Load existing dashboard values
+            for field in fields:
+                if field in dashboard._fields:
+                    res[field] = dashboard[field]
+        else:
+            # Set defaults for new dashboard
+            res['user_id'] = self.env.user.id
+            res['company_id'] = self.env.company.id
+
+        return res
+
+    @api.model
     def get_user_dashboard(self):
         """Get or create dashboard for current user"""
         dashboard = self.search([
