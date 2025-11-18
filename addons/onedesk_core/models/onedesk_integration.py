@@ -548,19 +548,22 @@ class OnedeskIntegration(models.Model):
         if reservation and not reservation.calendar_event_id:
             try:
                 # Crée l'événement visible pour tout le monde
+                # Accès aux données du partenaire avec sudo() pour contourner les ir.rules
+                partner_name = reservation.sudo().partner_id.name if reservation.partner_id else 'N/A'
                 event = self.env['calendar.event'].sudo().create({
                     'name': f"{reservation.name} - {reservation.unit_id.name}",
                     'start': reservation.start_date,
                     'stop': reservation.end_date,
                     'description': f"Réservation importée depuis {self.provider_id.name}\n"
-                                   f"Client: {reservation.partner_id.name if reservation.partner_id else 'N/A'}\n"
+                                   f"Client: {partner_name}\n"
                                    f"Unité: {reservation.unit_id.name}",
                     'location': reservation.unit_id.name,
                     'allday': False,
                     'privacy': 'public',
                     'show_as': 'busy',
                 })
-                reservation.calendar_event_id = event.id
+                # Assignement du calendar_event_id avec sudo() pour contourner les ir.rules
+                reservation.sudo().write({'calendar_event_id': event.id})
                 _logger.info(f"📅 Événement calendrier créé pour {reservation.name}")
             except Exception as e:
                 _logger.warning(f"⚠️ Impossible de créer l'événement calendrier: {e}")

@@ -254,19 +254,21 @@ class OneDeskReservation(models.Model):
         # Traiter chaque réservation créée
         for reservation in reservations:
             # Crée un événement dans le calendrier visible pour tout le monde
+            # Utilise sudo() pour accéder aux données du partenaire sans restriction ir.rules
+            partner_name = reservation.sudo().partner_id.name if reservation.partner_id else 'N/A'
             event = self.env['calendar.event'].sudo().create({
                 'name': f"{reservation.name} - {reservation.unit_id.name}",
                 'start': reservation.start_date,
                 'stop': reservation.end_date,
-                'description': f"Client: {reservation.partner_id.name}\nUnité: {reservation.unit_id.name}\n💰 Prix: {reservation.total_price}€",
+                'description': f"Client: {partner_name}\nUnité: {reservation.unit_id.name}\n💰 Prix: {reservation.total_price}€",
                 'location': reservation.unit_id.name,
                 'allday': False,
                 'privacy': 'public',
                 'show_as': 'busy',
             })
 
-            # Lier l'événement à la réservation
-            reservation.calendar_event_id = event.id
+            # Lier l'événement à la réservation (sudo() pour contourner les ir.rules)
+            reservation.sudo().write({'calendar_event_id': event.id})
 
             # Envoie un email de confirmation automatiquement
             try:
@@ -285,11 +287,13 @@ class OneDeskReservation(models.Model):
         res = super().write(vals)
         for reservation in self:
             if reservation.calendar_event_id:
+                # Accès aux données du partenaire avec sudo() pour contourner les ir.rules
+                partner_name = reservation.sudo().partner_id.name if reservation.partner_id else 'N/A'
                 reservation.calendar_event_id.sudo().write({
                     'name': f"{reservation.name} - {reservation.unit_id.name}",
                     'start': reservation.start_date,
                     'stop': reservation.end_date,
-                    'description': f"Client: {reservation.partner_id.name}\nUnité: {reservation.unit_id.name}",
+                    'description': f"Client: {partner_name}\nUnité: {reservation.unit_id.name}",
                     'location': reservation.unit_id.name,
                 })
         return res

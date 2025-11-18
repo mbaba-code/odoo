@@ -114,8 +114,10 @@ class OnedeskTask(models.Model):
                 'user_id': task.assigned_to.id if task.assigned_to else False,
                 'description': f"Tâche: {task.name}\nType: {task.task_type}",
             }
-            event = self.env['calendar.event'].create(event_vals)
-            task.calendar_event_id = event.id
+            # Création avec sudo() pour contourner les ir.rules
+            event = self.env['calendar.event'].sudo().create(event_vals)
+            # Assignement avec sudo() pour contourner les ir.rules
+            task.sudo().write({'calendar_event_id': event.id})
         return tasks
 
     def write(self, vals):
@@ -133,7 +135,8 @@ class OnedeskTask(models.Model):
                 if 'assigned_to' in vals:
                     update_vals['user_id'] = vals['assigned_to']
                 if update_vals:
-                    task.calendar_event_id.write(update_vals)
+                    # Mise à jour avec sudo() pour contourner les ir.rules
+                    task.calendar_event_id.sudo().write(update_vals)
         return res
 
 
