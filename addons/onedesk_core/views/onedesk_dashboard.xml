@@ -117,7 +117,114 @@
                 <field name="company_id"/>
                 <field name="auto_refresh"/>
                 <field name="refresh_interval"/>
+                <field name="total_properties"/>
+                <field name="total_units"/>
+                <field name="properties_occupancy_rate"/>
+                <field name="revenue_this_month"/>
             </list>
+        </field>
+    </record>
+
+    <!-- Dashboard Kanban View -->
+    <record id="view_onedesk_dashboard_kanban" model="ir.ui.view">
+        <field name="name">OneDesk Dashboard Kanban</field>
+        <field name="model">onedesk.dashboard</field>
+        <field name="arch" type="xml">
+            <kanban string="Tableaux de Bord">
+                <field name="user_id"/>
+                <field name="company_id"/>
+                <field name="total_properties"/>
+                <field name="total_units"/>
+                <field name="properties_occupancy_rate"/>
+                <field name="revenue_this_month"/>
+                <field name="reservations_confirmed_month"/>
+                <field name="tasks_in_progress"/>
+                <templates>
+                    <t t-name="card">
+                        <div class="oe_kanban_card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; border-radius: 8px;">
+                            <div class="oe_kanban_global_click">
+                                <h3 style="margin: 0 0 15px 0; font-size: 18px;">
+                                    <field name="user_id"/>
+                                </h3>
+                                <div style="font-size: 12px; background: rgba(255,255,255,0.2); padding: 10px; border-radius: 5px; margin-bottom: 10px;">
+                                    <p style="margin: 5px 0;"><strong>🏢 Company:</strong> <field name="company_id"/></p>
+                                </div>
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 12px;">
+                                    <div style="background: rgba(255,255,255,0.1); padding: 8px; border-radius: 4px;">
+                                        <div style="opacity: 0.8;">🏠 Propriétés</div>
+                                        <div style="font-size: 18px; font-weight: bold;"><field name="total_properties"/></div>
+                                    </div>
+                                    <div style="background: rgba(255,255,255,0.1); padding: 8px; border-radius: 4px;">
+                                        <div style="opacity: 0.8;">🚪 Unités</div>
+                                        <div style="font-size: 18px; font-weight: bold;"><field name="total_units"/></div>
+                                    </div>
+                                    <div style="background: rgba(255,255,255,0.1); padding: 8px; border-radius: 4px;">
+                                        <div style="opacity: 0.8;">📊 Occupation</div>
+                                        <div style="font-size: 18px; font-weight: bold;"><field name="properties_occupancy_rate"/>%</div>
+                                    </div>
+                                    <div style="background: rgba(255,255,255,0.1); padding: 8px; border-radius: 4px;">
+                                        <div style="opacity: 0.8;">💰 Revenus</div>
+                                        <div style="font-size: 18px; font-weight: bold;"><field name="revenue_this_month" widget="monetary"/></div>
+                                    </div>
+                                    <div style="background: rgba(255,255,255,0.1); padding: 8px; border-radius: 4px;">
+                                        <div style="opacity: 0.8;">📅 Réservations</div>
+                                        <div style="font-size: 18px; font-weight: bold;"><field name="reservations_confirmed_month"/></div>
+                                    </div>
+                                    <div style="background: rgba(255,255,255,0.1); padding: 8px; border-radius: 4px;">
+                                        <div style="opacity: 0.8;">⏱️ Tâches</div>
+                                        <div style="font-size: 18px; font-weight: bold;"><field name="tasks_in_progress"/></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- Dashboard Graph View - Properties Metrics -->
+    <record id="view_onedesk_dashboard_graph_properties" model="ir.ui.view">
+        <field name="name">Dashboard - Propriétés (Graphique)</field>
+        <field name="model">onedesk.dashboard</field>
+        <field name="arch" type="xml">
+            <graph string="Métriques des Propriétés" type="bar">
+                <field name="company_id" type="row"/>
+                <field name="total_properties" type="measure"/>
+                <field name="active_properties" type="measure"/>
+                <field name="properties_occupancy_rate" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <!-- Dashboard Graph View - Financial Metrics -->
+    <record id="view_onedesk_dashboard_graph_financial" model="ir.ui.view">
+        <field name="name">Dashboard - Financier (Graphique)</field>
+        <field name="model">onedesk.dashboard</field>
+        <field name="arch" type="xml">
+            <graph string="Métriques Financières" type="bar">
+                <field name="company_id" type="row"/>
+                <field name="revenue_today" type="measure"/>
+                <field name="revenue_this_week" type="measure"/>
+                <field name="revenue_this_month" type="measure"/>
+                <field name="outstanding_payments" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <!-- Dashboard Pivot View -->
+    <record id="view_onedesk_dashboard_pivot" model="ir.ui.view">
+        <field name="name">Dashboard - Analyse Pivot</field>
+        <field name="model">onedesk.dashboard</field>
+        <field name="arch" type="xml">
+            <pivot string="Analyse Pivot des Métriques">
+                <field name="company_id" type="row"/>
+                <field name="user_id" type="col"/>
+                <field name="total_properties" type="measure"/>
+                <field name="total_units" type="measure"/>
+                <field name="revenue_this_month" type="measure"/>
+                <field name="properties_occupancy_rate" type="measure"/>
+            </pivot>
         </field>
     </record>
 
