@@ -242,7 +242,13 @@ class OnedeaskDashboard(models.Model):
             # Load existing dashboard values
             for field in fields:
                 if field in dashboard._fields:
-                    res[field] = dashboard[field]
+                    value = dashboard[field]
+                    # Handle Many2One fields - return ID instead of browse record
+                    field_obj = dashboard._fields[field]
+                    if field_obj.relational:
+                        res[field] = value.id if value else False
+                    else:
+                        res[field] = value
         else:
             # Set defaults for new dashboard
             res['user_id'] = self.env.user.id
