@@ -671,25 +671,31 @@ class OnedeskIntegration(models.Model):
         guest_email = data.get('guest_email')
         guest_name = data.get('guest_name')
         guest_phone = data.get('guest_phone')
-        
+
         # Si pas de nom ET pas d'email, on ne peut pas créer de contact
         if not guest_email and not guest_name:
             return False
-        
+
         Partner = self.env['res.partner']
-        
+
         # Cherche d'abord par email
         if guest_email:
             partner = Partner.search([('email', '=', guest_email)], limit=1)
             if partner:
+                # S'assurer que le partenaire trouvé a une company_id assignée
+                if not partner.company_id:
+                    partner.sudo().write({'company_id': self.company_id.id})
                 return partner
-        
+
         # Puis par nom
         if guest_name:
             partner = Partner.search([('name', '=', guest_name)], limit=1)
             if partner:
+                # S'assurer que le partenaire trouvé a une company_id assignée
+                if not partner.company_id:
+                    partner.sudo().write({'company_id': self.company_id.id})
                 return partner
-        
+
         # Crée le contact avec toutes les infos disponibles
         if self.auto_create_contacts:
             # IMPORTANT : Assure qu'il y a toujours un nom
@@ -704,7 +710,7 @@ class OnedeskIntegration(models.Model):
             })
             _logger.info(f"👤 Contact créé: {partner.name}")
             return partner
-        
+
         return False
     
     def _log(self, log_type, message):
