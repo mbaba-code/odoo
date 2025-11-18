@@ -11,11 +11,6 @@
                 <separator/>
                 <filter string="Active" name="active" domain="[('active', '=', True)]"/>
                 <filter string="Archived" name="archived" domain="[('active', '=', False)]"/>
-                <separator/>
-                <group expand="0" string="Group By">
-                    <filter string="Company" name="group_by_company" context="{'group_by': 'company_id'}"/>
-                    <filter string="Type" name="group_by_type" context="{'group_by': 'property_type'}"/>
-                </group>
             </search>
         </field>
     </record>
