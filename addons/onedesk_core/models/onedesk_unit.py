@@ -267,6 +267,21 @@ class OnedeskUnit(models.Model):
 
         return price_sum / nights_covered if nights_covered > 0 else self.price_per_night
 
+    @api.model
+    def create(self, vals_list):
+        """Pré-remplir company_id lors de la création"""
+        if isinstance(vals_list, dict):
+            vals_list = [vals_list]
+
+        for vals in vals_list:
+            # Si property_id est fourni, hériter company_id de la property
+            if vals.get('property_id') and not vals.get('company_id'):
+                property = self.env['onedesk.property'].browse(vals['property_id'])
+                if property.company_id:
+                    vals['company_id'] = property.company_id.id
+
+        return super().create(vals_list)
+
     def get_total_price_for_dates(self, date_start, date_end):
         """Calcule le prix TOTAL pour une période"""
         nights = (date_end - date_start).days

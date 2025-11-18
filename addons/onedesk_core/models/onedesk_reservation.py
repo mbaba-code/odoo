@@ -218,6 +218,13 @@ class OneDeskReservation(models.Model):
     # Création automatique de l'événement + calcul prix
     @api.model
     def create(self, vals_list):
+        # Pré-remplir company_id à partir de l'unité
+        for vals in vals_list:
+            if vals.get('unit_id') and not vals.get('company_id'):
+                unit = self.env['onedesk.unit'].browse(vals['unit_id'])
+                if unit.company_id:
+                    vals['company_id'] = unit.company_id.id
+
         # Calcule le prix automatiquement avant création pour chaque enregistrement
         for vals in vals_list:
             if 'unit_id' in vals and 'start_date' in vals and 'end_date' in vals:
