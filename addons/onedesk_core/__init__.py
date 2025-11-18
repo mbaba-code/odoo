@@ -27,10 +27,10 @@ def post_init_hook(env):
 def _migrate_partners_without_company(env):
     """Assigne les anciens partenaires sans company_id à une compagnie par défaut"""
     try:
-        Partner = env['res.partner']
-        Company = env['res.company']
+        Partner = env['res.partner'].sudo()
+        Company = env['res.company'].sudo()
 
-        # Trouver les partenaires sans company_id
+        # Trouver les partenaires sans company_id (avec sudo() pour contourner les ir.rules)
         partners_without_company = Partner.search([('company_id', '=', False)])
 
         if not partners_without_company:
