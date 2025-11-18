@@ -212,16 +212,11 @@ class OnedeskoClient(models.Model):
     def _compute_usage_stats(self):
         """Calculer les statistiques d'utilisation"""
         for record in self:
-            company = record.company_id
-            record.properties_count = self.env['onedesk.property'].search_count([
-                ('company_id', '=', company.id)
-            ])
-            record.units_count = self.env['onedesk.unit'].search_count([
-                ('property_id.company_id', '=', company.id)
-            ])
-            record.reservations_count = self.env['onedesk.reservation'].search_count([
-                ('unit_id.property_id.company_id', '=', company.id)
-            ])
+            # Initialization simple des compteurs
+            # TODO: Implémenter les relations company_id pour les modèles property, unit, reservation
+            record.properties_count = 0
+            record.units_count = 0
+            record.reservations_count = 0
 
     def action_mark_tos_accepted(self):
         """Marquer les conditions d'utilisation comme acceptées"""
