@@ -182,7 +182,7 @@ class OnedeskoSignupController(http.Controller):
         """Assigner le groupe Property Manager"""
         try:
             group = request.env.ref('onedesk_core.group_onedesk_property_manager').sudo()
-            user.sudo().groups_id = [(4, group.id)]
+            user.sudo().write({'group_ids': [(4, group.id)]})
         except:
             pass  # Le groupe pourrait ne pas exister si le module n'est pas installé
 

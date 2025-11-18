@@ -238,7 +238,7 @@ class OnedeskoClient(models.Model):
             'state': 'new',
         })
         # Ajouter le groupe après création
-        pm_user.write({'groups': [(4, manager_group.id)]})
+        pm_user.write({'group_ids': [(4, manager_group.id)]})
 
         # 3.2. Créer le Staff
         staff_user = self.env['res.users'].create({
@@ -250,7 +250,7 @@ class OnedeskoClient(models.Model):
             'state': 'new',
         })
         # Ajouter le groupe après création
-        staff_user.write({'groups': [(4, staff_group.id)]})
+        staff_user.write({'group_ids': [(4, staff_group.id)]})
 
         # 3.3. Créer le Viewer
         viewer_user = self.env['res.users'].create({
@@ -262,7 +262,7 @@ class OnedeskoClient(models.Model):
             'state': 'new',
         })
         # Ajouter le groupe après création
-        viewer_user.write({'groups': [(4, viewer_group.id)]})
+        viewer_user.write({'group_ids': [(4, viewer_group.id)]})
 
     @staticmethod
     def _generate_client_code():
