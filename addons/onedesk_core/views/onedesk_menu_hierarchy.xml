@@ -5,6 +5,13 @@
         <field name="name">Tableau de bord</field>
         <field name="res_model">onedesk.dashboard</field>
         <field name="view_mode">form,list,kanban,graph,pivot</field>
+        <field name="view_ids" eval="[
+            (0, 0, {'view_mode': 'form', 'view_id': ref('view_onedesk_dashboard_form')}),
+            (0, 0, {'view_mode': 'list', 'view_id': ref('view_onedesk_dashboard_list')}),
+            (0, 0, {'view_mode': 'kanban', 'view_id': ref('view_onedesk_dashboard_kanban')}),
+            (0, 0, {'view_mode': 'graph', 'view_id': ref('view_onedesk_dashboard_graph_properties')}),
+            (0, 0, {'view_mode': 'pivot', 'view_id': ref('view_onedesk_dashboard_pivot')})
+        ]"/>
     </record>
 
     <!-- SUBSCRIPTION PLAN ACTION -->

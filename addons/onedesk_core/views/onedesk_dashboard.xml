@@ -4,6 +4,7 @@
     <record id="view_onedesk_dashboard_form" model="ir.ui.view">
         <field name="name">OneDesk Dashboard</field>
         <field name="model">onedesk.dashboard</field>
+        <field name="priority">1</field>
         <field name="arch" type="xml">
             <form string="Tableau de bord" create="false" edit="true" delete="false">
                 <sheet>
@@ -111,6 +112,7 @@
     <record id="view_onedesk_dashboard_list" model="ir.ui.view">
         <field name="name">OneDesk Dashboard List</field>
         <field name="model">onedesk.dashboard</field>
+        <field name="priority">2</field>
         <field name="arch" type="xml">
             <list string="Tableaux de Bord">
                 <field name="user_id"/>
@@ -129,6 +131,7 @@
     <record id="view_onedesk_dashboard_kanban" model="ir.ui.view">
         <field name="name">OneDesk Dashboard Kanban</field>
         <field name="model">onedesk.dashboard</field>
+        <field name="priority">3</field>
         <field name="arch" type="xml">
             <kanban string="Tableaux de Bord">
                 <field name="user_id"/>
@@ -187,6 +190,7 @@
     <record id="view_onedesk_dashboard_graph_properties" model="ir.ui.view">
         <field name="name">Dashboard - Propriétés (Graphique)</field>
         <field name="model">onedesk.dashboard</field>
+        <field name="priority">4</field>
         <field name="arch" type="xml">
             <graph string="Métriques des Propriétés" type="bar">
                 <field name="company_id" type="row"/>
@@ -201,6 +205,7 @@
     <record id="view_onedesk_dashboard_graph_financial" model="ir.ui.view">
         <field name="name">Dashboard - Financier (Graphique)</field>
         <field name="model">onedesk.dashboard</field>
+        <field name="priority">5</field>
         <field name="arch" type="xml">
             <graph string="Métriques Financières" type="bar">
                 <field name="company_id" type="row"/>
@@ -216,6 +221,7 @@
     <record id="view_onedesk_dashboard_pivot" model="ir.ui.view">
         <field name="name">Dashboard - Analyse Pivot</field>
         <field name="model">onedesk.dashboard</field>
+        <field name="priority">6</field>
         <field name="arch" type="xml">
             <pivot string="Analyse Pivot des Métriques">
                 <field name="company_id" type="row"/>
