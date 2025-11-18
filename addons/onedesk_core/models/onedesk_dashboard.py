@@ -58,8 +58,9 @@ class OnedeaskDashboard(models.Model):
             # Revenue this month
             today = datetime.now()
             month_start = today.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+            units = self.env['onedesk.unit'].search([('property_id', 'in', properties.ids)])
             completed_reservations = self.env['onedesk.reservation'].search([
-                ('property_id', 'in', properties.ids),
+                ('unit_id', 'in', units.ids),
                 ('status', '=', 'completed'),
                 ('end_date', '>=', month_start)
             ])
@@ -112,8 +113,9 @@ class OnedeaskDashboard(models.Model):
             month_start = datetime.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
 
             # Check-ins/Check-outs today
+            units = self.env['onedesk.unit'].search([('property_id', 'in', properties.ids)])
             reservations = self.env['onedesk.reservation'].search([
-                ('property_id', 'in', properties.ids)
+                ('unit_id', 'in', units.ids)
             ])
 
             dashboard.reservations_today_checkin = len(reservations.filtered(lambda r: r.start_date.date() == today))
@@ -162,6 +164,7 @@ class OnedeaskDashboard(models.Model):
         """Calculate financial metrics"""
         for dashboard in self:
             properties = self.env['onedesk.property'].search([('company_id', '=', dashboard.company_id.id)])
+            units = self.env['onedesk.unit'].search([('property_id', 'in', properties.ids)])
 
             today = datetime.now()
             today_date = today.date()
@@ -169,7 +172,7 @@ class OnedeaskDashboard(models.Model):
 
             # Revenue today
             completed_today = self.env['onedesk.reservation'].search([
-                ('property_id', 'in', properties.ids),
+                ('unit_id', 'in', units.ids),
                 ('status', '=', 'completed'),
                 ('end_date', '>=', today_date)
             ])
@@ -177,7 +180,7 @@ class OnedeaskDashboard(models.Model):
 
             # Revenue this week
             completed_week = self.env['onedesk.reservation'].search([
-                ('property_id', 'in', properties.ids),
+                ('unit_id', 'in', units.ids),
                 ('status', '=', 'completed'),
                 ('end_date', '>=', week_start)
             ])
@@ -185,13 +188,12 @@ class OnedeaskDashboard(models.Model):
 
             # Outstanding payments
             pending = self.env['onedesk.reservation'].search([
-                ('property_id', 'in', properties.ids),
+                ('unit_id', 'in', units.ids),
                 ('payment_status', '=', 'pending')
             ])
             dashboard.outstanding_payments = sum(pending.mapped('total_price'))
 
             # Occupancy rate this week
-            units = self.env['onedesk.unit'].search([('property_id', 'in', properties.ids)])
             if len(units) > 0:
                 occupied_week = len(units.filtered(lambda u: self.env['onedesk.reservation'].search_count([
                     ('unit_id', '=', u.id),
