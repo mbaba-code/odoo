@@ -1,6 +1,5 @@
 import logging
 from odoo import models, fields, api
-from odoo.sql_db import db
 
 _logger = logging.getLogger(__name__)
 
