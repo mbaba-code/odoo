@@ -10,9 +10,8 @@
                 <field name="partner_id" string="Customer"/>
                 <field name="company_id" string="Company"/>
                 <separator/>
-                <filter string="My Company" name="my_company" domain="[('company_id', '=', user.company_id.id)]"/>
-                <filter string="Upcoming" name="upcoming" domain="[('start_date', '>=', datetime.datetime.now().date())]"/>
-                <filter string="Past" name="past" domain="[('end_date', '&lt;', datetime.datetime.now().date())]"/>
+                <filter string="Active" name="active" domain="[('active', '=', True)]"/>
+                <filter string="Archived" name="archived" domain="[('active', '=', False)]"/>
             </search>
         </field>
     </record>
