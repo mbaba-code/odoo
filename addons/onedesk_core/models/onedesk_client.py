@@ -219,6 +219,18 @@ class OnedeskoClient(models.Model):
             record.units_count = 0
             record.reservations_count = 0
 
+    @api.onchange('accepted_tos')
+    def _onchange_accepted_tos(self):
+        """Mettre à jour la date d'acceptation automatiquement"""
+        if self.accepted_tos and not self.tos_accepted_date:
+            self.tos_accepted_date = fields.Date.today()
+
+    @api.onchange('accepted_privacy')
+    def _onchange_accepted_privacy(self):
+        """Mettre à jour la date d'acceptation automatiquement"""
+        if self.accepted_privacy and not self.privacy_accepted_date:
+            self.privacy_accepted_date = fields.Date.today()
+
     def action_mark_tos_accepted(self):
         """Marquer les conditions d'utilisation comme acceptées"""
         self.accepted_tos = True

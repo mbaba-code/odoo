@@ -194,11 +194,11 @@
                     <separator string="⚖️ Conformité"/>
                     <group>
                         <group>
-                            <field name="accepted_tos" widget="boolean" readonly="1"/>
+                            <field name="accepted_tos" widget="boolean"/>
                             <field name="tos_accepted_date" readonly="1"/>
                         </group>
                         <group>
-                            <field name="accepted_privacy" widget="boolean" readonly="1"/>
+                            <field name="accepted_privacy" widget="boolean"/>
                             <field name="privacy_accepted_date" readonly="1"/>
                         </group>
                     </group>
