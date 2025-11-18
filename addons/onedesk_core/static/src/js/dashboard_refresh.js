@@ -3,10 +3,11 @@ odoo.define('onedesk_core.dashboard_refresh', function(require) {
 
     const rpc = require('web.rpc');
     const Widget = require('web.Widget');
+    const FormController = require('web.FormController');
 
     /**
      * OneDesk Dashboard Auto-Refresh Module
-     * Handles real-time updates of dashboard metrics
+     * Handles real-time updates of dashboard metrics and widget visibility
      */
 
     const DashboardRefresh = Widget.extend({
@@ -16,6 +17,7 @@ odoo.define('onedesk_core.dashboard_refresh', function(require) {
             this.autoRefreshEnabled = false;
             this.refreshTimer = null;
             this.lastUpdateTime = null;
+            this.widgetVisibility = {};
         },
 
         /**
@@ -37,6 +39,9 @@ odoo.define('onedesk_core.dashboard_refresh', function(require) {
                 return;
             }
 
+            // Setup widget visibility listeners
+            this._setupWidgetVisibilityListeners();
+
             // Load dashboard configuration from server
             rpc.query({
                 route: '/onedesk/dashboard/config',
@@ -44,6 +49,10 @@ odoo.define('onedesk_core.dashboard_refresh', function(require) {
             }).then((config) => {
                 this.autoRefreshEnabled = config.auto_refresh;
                 this.refreshInterval = config.refresh_interval * 1000; // Convert to milliseconds
+                this.widgetVisibility = config.widget_visibility || {};
+
+                // Apply widget visibility
+                this._applyWidgetVisibility();
 
                 if (this.autoRefreshEnabled) {
                     this._startAutoRefresh();
@@ -52,6 +61,75 @@ odoo.define('onedesk_core.dashboard_refresh', function(require) {
             }).catch((error) => {
                 console.error('Error loading dashboard config:', error);
             });
+        },
+
+        /**
+         * Setup widget visibility toggle listeners
+         */
+        _setupWidgetVisibilityListeners: function() {
+            const self = this;
+
+            // Find all checkbox fields for widget visibility
+            document.querySelectorAll('[data-fieldname^="show_"]').forEach((checkbox) => {
+                checkbox.addEventListener('change', function() {
+                    const fieldName = this.getAttribute('data-fieldname');
+                    const isChecked = this.checked;
+
+                    // Update widget visibility
+                    self._toggleWidget(fieldName, isChecked);
+
+                    // Save to server
+                    self._saveWidgetVisibility(fieldName, isChecked);
+                });
+            });
+        },
+
+        /**
+         * Toggle widget visibility
+         */
+        _toggleWidget: function(fieldName, visible) {
+            const widget = document.querySelector(`[data-widget="${fieldName}"]`);
+            if (widget) {
+                if (visible) {
+                    widget.classList.remove('dashboard-widget-hidden');
+                } else {
+                    widget.classList.add('dashboard-widget-hidden');
+                }
+            }
+        },
+
+        /**
+         * Apply all widget visibility settings
+         */
+        _applyWidgetVisibility: function() {
+            const self = this;
+
+            // List of widget fields
+            const widgets = [
+                'show_properties_kpi',
+                'show_units_kpi',
+                'show_reservations_today',
+                'show_tasks_urgent',
+                'show_financial',
+                'show_occupancy_chart',
+                'show_revenue_chart'
+            ];
+
+            widgets.forEach((widget) => {
+                const checkbox = document.querySelector(`[data-fieldname="${widget}"]`);
+                if (checkbox) {
+                    const isChecked = checkbox.checked;
+                    self._toggleWidget(widget, isChecked);
+                }
+            });
+        },
+
+        /**
+         * Save widget visibility to server
+         */
+        _saveWidgetVisibility: function(fieldName, value) {
+            // This will be saved automatically when the form is saved in Odoo
+            // The checkbox change is already tracked by Odoo's form system
         },
 
         /**

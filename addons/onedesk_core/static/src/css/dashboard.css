@@ -303,3 +303,20 @@
     border-top: 1px solid #eee;
     margin-top: 2rem;
 }
+
+/* Widget Visibility - Hidden by default based on checkboxes */
+.dashboard-widget-hidden {
+    display: none !important;
+}
+
+/* Show widgets based on data-widget attribute */
+[data-widget="show_properties_kpi"],
+[data-widget="show_units_kpi"],
+[data-widget="show_reservations_today"],
+[data-widget="show_tasks_urgent"],
+[data-widget="show_financial"],
+[data-widget="show_occupancy_chart"],
+[data-widget="show_revenue_chart"] {
+    display: block;
+    transition: all 0.3s ease;
+}

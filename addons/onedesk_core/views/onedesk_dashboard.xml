@@ -21,22 +21,22 @@
                     </group>
 
                     <!-- Widget Visibility Settings -->
-                    <group string="👁️ Visibilité des Widgets" colspan="4">
+                    <group string="👁️ Visibilité des Widgets - Cochez les widgets à afficher" colspan="4">
                         <group col="2">
-                            <field name="show_properties_kpi" widget="boolean" string="Afficher le Widget Propriétés"/>
-                            <field name="show_units_kpi" widget="boolean" string="Afficher le Widget Unités"/>
-                            <field name="show_reservations_today" widget="boolean" string="Afficher le Widget Réservations"/>
-                            <field name="show_tasks_urgent" widget="boolean" string="Afficher le Widget Tâches"/>
-                            <field name="show_financial" widget="boolean" string="Afficher le Widget Financier"/>
-                            <field name="show_occupancy_chart" widget="boolean" string="Afficher le Graphique d'Occupation"/>
-                            <field name="show_revenue_chart" widget="boolean" string="Afficher le Graphique des Revenus"/>
+                            <field name="show_properties_kpi" widget="boolean" string="✅ Propriétés" onchange="_onWidgetVisibilityChange"/>
+                            <field name="show_units_kpi" widget="boolean" string="✅ Unités" onchange="_onWidgetVisibilityChange"/>
+                            <field name="show_reservations_today" widget="boolean" string="✅ Réservations" onchange="_onWidgetVisibilityChange"/>
+                            <field name="show_tasks_urgent" widget="boolean" string="✅ Tâches" onchange="_onWidgetVisibilityChange"/>
+                            <field name="show_financial" widget="boolean" string="✅ Financier" onchange="_onWidgetVisibilityChange"/>
+                            <field name="show_occupancy_chart" widget="boolean" string="📊 Occupation" onchange="_onWidgetVisibilityChange"/>
+                            <field name="show_revenue_chart" widget="boolean" string="💰 Revenus" onchange="_onWidgetVisibilityChange"/>
                         </group>
                     </group>
 
                     <!-- ==================== DASHBOARD METRICS ==================== -->
 
                     <!-- Properties KPI -->
-                    <group string="🏠 Aperçu des Propriétés" colspan="4">
+                    <group string="🏠 Aperçu des Propriétés" colspan="4" data-widget="show_properties_kpi">
                         <div style="background: #f8f9fa; padding: 12px; border-radius: 6px; border-left: 4px solid #28a745; width: 100%;" colspan="4">
                             <p style="margin: 0; font-size: 13px;">
                                 <strong>Total:</strong> <field name="total_properties" readonly="1" nolabel="1" class="oe_inline"/> |
@@ -49,7 +49,7 @@
                     </group>
 
                     <!-- Units KPI -->
-                    <group string="🚪 Aperçu des Unités" colspan="4">
+                    <group string="🚪 Aperçu des Unités" colspan="4" data-widget="show_units_kpi">
                         <div style="background: #f8f9fa; padding: 12px; border-radius: 6px; border-left: 4px solid #17a2b8; width: 100%;" colspan="4">
                             <p style="margin: 0; font-size: 13px;">
                                 <strong>Total:</strong> <field name="total_units" readonly="1" nolabel="1" class="oe_inline"/> |
@@ -61,7 +61,7 @@
                     </group>
 
                     <!-- Reservations Today -->
-                    <group string="📅 Réservations (Aujourd'hui)" colspan="4">
+                    <group string="📅 Réservations (Aujourd'hui)" colspan="4" data-widget="show_reservations_today">
                         <field name="reservations_today_checkin" readonly="1" string="Check-ins"/>
                         <field name="reservations_today_checkout" readonly="1" string="Check-outs"/>
                         <field name="reservations_pending_payment" readonly="1" string="Paiements en Attente"/>
@@ -70,7 +70,7 @@
                     </group>
 
                     <!-- Urgent Tasks -->
-                    <group string="✅ Aperçu des Tâches" colspan="4">
+                    <group string="✅ Aperçu des Tâches" colspan="4" data-widget="show_tasks_urgent">
                         <field name="tasks_overdue" readonly="1" string="🔴 Tâches en Retard"/>
                         <field name="tasks_due_today" readonly="1" string="📌 Tâches d'Aujourd'hui"/>
                         <field name="tasks_urgent_total" readonly="1" string="⚡ Tâches Urgentes"/>
@@ -78,7 +78,7 @@
                     </group>
 
                     <!-- Financial Summary -->
-                    <group string="💰 Résumé Financier" colspan="4">
+                    <group string="💰 Résumé Financier" colspan="4" data-widget="show_financial">
                         <field name="revenue_today" readonly="1" string="Revenus d'Aujourd'hui" widget="monetary"/>
                         <field name="revenue_this_week" readonly="1" string="Revenus (Cette Semaine)" widget="monetary"/>
                         <field name="outstanding_payments" readonly="1" string="Paiements Exceptionnels" widget="monetary"/>
