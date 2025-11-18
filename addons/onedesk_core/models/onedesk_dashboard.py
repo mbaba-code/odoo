@@ -142,15 +142,19 @@ class OnedeaskDashboard(models.Model):
         """Calculate tasks-related metrics"""
         for dashboard in self:
             properties = self.env['onedesk.property'].search([('company_id', '=', dashboard.company_id.id)])
+            units = self.env['onedesk.unit'].search([('property_id', 'in', properties.ids)])
+
+            # Tasks are related to reservations, which are linked to units
+            reservations = self.env['onedesk.reservation'].search([('unit_id', 'in', units.ids)])
             tasks = self.env['onedesk.task'].search([
-                ('property_id', 'in', properties.ids)
+                ('reservation_id', 'in', reservations.ids)
             ])
 
             today = datetime.now().date()
 
-            dashboard.tasks_overdue = len(tasks.filtered(lambda t: t.due_date < today and t.status != 'done'))
-            dashboard.tasks_due_today = len(tasks.filtered(lambda t: t.due_date == today and t.status != 'done'))
-            dashboard.tasks_urgent_total = len(tasks.filtered(lambda t: t.priority == '4' and t.status != 'done'))
+            dashboard.tasks_overdue = len(tasks.filtered(lambda t: t.date_start.date() < today and t.status != 'done'))
+            dashboard.tasks_due_today = len(tasks.filtered(lambda t: t.date_start.date() == today and t.status != 'done'))
+            dashboard.tasks_urgent_total = len(tasks.filtered(lambda t: t.priority == 'urgent' and t.status != 'done'))
             dashboard.tasks_in_progress = len(tasks.filtered(lambda t: t.status == 'in_progress'))
 
     # ==================== FINANCIAL METRICS ====================
