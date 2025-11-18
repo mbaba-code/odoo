@@ -119,4 +119,252 @@
         <field name="perm_unlink">False</field>
     </record>
 
+    <!-- ================== PROPERTY ACCESS (Multi-tenant filtering) ================== -->
+
+    <!-- Master Admin: all properties -->
+    <record id="rule_master_admin_property" model="ir.rule">
+        <field name="name">Master Admin - All Properties</field>
+        <field name="model_id" ref="model_onedesk_property"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('group_onedesk_master_admin'))]"/>
+        <field name="perm_read">True</field>
+        <field name="perm_write">True</field>
+        <field name="perm_create">True</field>
+        <field name="perm_unlink">False</field>
+    </record>
+
+    <!-- Support: all properties -->
+    <record id="rule_support_property_read" model="ir.rule">
+        <field name="name">Support - Read All Properties</field>
+        <field name="model_id" ref="model_onedesk_property"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('group_onedesk_support'))]"/>
+        <field name="perm_read">True</field>
+        <field name="perm_write">False</field>
+        <field name="perm_create">False</field>
+        <field name="perm_unlink">False</field>
+    </record>
+
+    <!-- Property Manager: only their company's properties -->
+    <record id="rule_property_manager_property" model="ir.rule">
+        <field name="name">Property Manager - Company Properties</field>
+        <field name="model_id" ref="model_onedesk_property"/>
+        <field name="domain_force">[('company_id', '=', user.company_id.id)]</field>
+        <field name="groups" eval="[(4, ref('group_onedesk_property_manager'))]"/>
+        <field name="perm_read">True</field>
+        <field name="perm_write">True</field>
+        <field name="perm_create">True</field>
+        <field name="perm_unlink">False</field>
+    </record>
+
+    <!-- Staff: only their company's properties (read-only) -->
+    <record id="rule_staff_property" model="ir.rule">
+        <field name="name">Staff - Company Properties (Read-Only)</field>
+        <field name="model_id" ref="model_onedesk_property"/>
+        <field name="domain_force">[('company_id', '=', user.company_id.id)]</field>
+        <field name="groups" eval="[(4, ref('group_onedesk_staff'))]"/>
+        <field name="perm_read">True</field>
+        <field name="perm_write">False</field>
+        <field name="perm_create">False</field>
+        <field name="perm_unlink">False</field>
+    </record>
+
+    <!-- Viewer: only their company's properties (read-only) -->
+    <record id="rule_viewer_property" model="ir.rule">
+        <field name="name">Viewer - Company Properties (Read-Only)</field>
+        <field name="model_id" ref="model_onedesk_property"/>
+        <field name="domain_force">[('company_id', '=', user.company_id.id)]</field>
+        <field name="groups" eval="[(4, ref('group_onedesk_viewer'))]"/>
+        <field name="perm_read">True</field>
+        <field name="perm_write">False</field>
+        <field name="perm_create">False</field>
+        <field name="perm_unlink">False</field>
+    </record>
+
+    <!-- ================== UNIT ACCESS (Multi-tenant filtering) ================== -->
+
+    <!-- Master Admin: all units -->
+    <record id="rule_master_admin_unit" model="ir.rule">
+        <field name="name">Master Admin - All Units</field>
+        <field name="model_id" ref="model_onedesk_unit"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('group_onedesk_master_admin'))]"/>
+        <field name="perm_read">True</field>
+        <field name="perm_write">True</field>
+        <field name="perm_create">True</field>
+        <field name="perm_unlink">False</field>
+    </record>
+
+    <!-- Support: all units -->
+    <record id="rule_support_unit_read" model="ir.rule">
+        <field name="name">Support - Read All Units</field>
+        <field name="model_id" ref="model_onedesk_unit"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('group_onedesk_support'))]"/>
+        <field name="perm_read">True</field>
+        <field name="perm_write">False</field>
+        <field name="perm_create">False</field>
+        <field name="perm_unlink">False</field>
+    </record>
+
+    <!-- Property Manager: only their company's units -->
+    <record id="rule_property_manager_unit" model="ir.rule">
+        <field name="name">Property Manager - Company Units</field>
+        <field name="model_id" ref="model_onedesk_unit"/>
+        <field name="domain_force">[('property_id.company_id', '=', user.company_id.id)]</field>
+        <field name="groups" eval="[(4, ref('group_onedesk_property_manager'))]"/>
+        <field name="perm_read">True</field>
+        <field name="perm_write">True</field>
+        <field name="perm_create">True</field>
+        <field name="perm_unlink">False</field>
+    </record>
+
+    <!-- Staff: only their company's units (read-only) -->
+    <record id="rule_staff_unit" model="ir.rule">
+        <field name="name">Staff - Company Units (Read-Only)</field>
+        <field name="model_id" ref="model_onedesk_unit"/>
+        <field name="domain_force">[('property_id.company_id', '=', user.company_id.id)]</field>
+        <field name="groups" eval="[(4, ref('group_onedesk_staff'))]"/>
+        <field name="perm_read">True</field>
+        <field name="perm_write">False</field>
+        <field name="perm_create">False</field>
+        <field name="perm_unlink">False</field>
+    </record>
+
+    <!-- Viewer: only their company's units (read-only) -->
+    <record id="rule_viewer_unit" model="ir.rule">
+        <field name="name">Viewer - Company Units (Read-Only)</field>
+        <field name="model_id" ref="model_onedesk_unit"/>
+        <field name="domain_force">[('property_id.company_id', '=', user.company_id.id)]</field>
+        <field name="groups" eval="[(4, ref('group_onedesk_viewer'))]"/>
+        <field name="perm_read">True</field>
+        <field name="perm_write">False</field>
+        <field name="perm_create">False</field>
+        <field name="perm_unlink">False</field>
+    </record>
+
+    <!-- ================== RESERVATION ACCESS (Multi-tenant filtering) ================== -->
+
+    <!-- Master Admin: all reservations -->
+    <record id="rule_master_admin_reservation" model="ir.rule">
+        <field name="name">Master Admin - All Reservations</field>
+        <field name="model_id" ref="model_onedesk_reservation"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('group_onedesk_master_admin'))]"/>
+        <field name="perm_read">True</field>
+        <field name="perm_write">True</field>
+        <field name="perm_create">True</field>
+        <field name="perm_unlink">False</field>
+    </record>
+
+    <!-- Support: all reservations -->
+    <record id="rule_support_reservation_read" model="ir.rule">
+        <field name="name">Support - Read All Reservations</field>
+        <field name="model_id" ref="model_onedesk_reservation"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('group_onedesk_support'))]"/>
+        <field name="perm_read">True</field>
+        <field name="perm_write">False</field>
+        <field name="perm_create">False</field>
+        <field name="perm_unlink">False</field>
+    </record>
+
+    <!-- Property Manager: only their company's reservations -->
+    <record id="rule_property_manager_reservation" model="ir.rule">
+        <field name="name">Property Manager - Company Reservations</field>
+        <field name="model_id" ref="model_onedesk_reservation"/>
+        <field name="domain_force">[('unit_id.property_id.company_id', '=', user.company_id.id)]</field>
+        <field name="groups" eval="[(4, ref('group_onedesk_property_manager'))]"/>
+        <field name="perm_read">True</field>
+        <field name="perm_write">True</field>
+        <field name="perm_create">True</field>
+        <field name="perm_unlink">False</field>
+    </record>
+
+    <!-- Staff: only their company's reservations (read-only) -->
+    <record id="rule_staff_reservation" model="ir.rule">
+        <field name="name">Staff - Company Reservations (Read-Only)</field>
+        <field name="model_id" ref="model_onedesk_reservation"/>
+        <field name="domain_force">[('unit_id.property_id.company_id', '=', user.company_id.id)]</field>
+        <field name="groups" eval="[(4, ref('group_onedesk_staff'))]"/>
+        <field name="perm_read">True</field>
+        <field name="perm_write">False</field>
+        <field name="perm_create">False</field>
+        <field name="perm_unlink">False</field>
+    </record>
+
+    <!-- Viewer: only their company's reservations (read-only) -->
+    <record id="rule_viewer_reservation" model="ir.rule">
+        <field name="name">Viewer - Company Reservations (Read-Only)</field>
+        <field name="model_id" ref="model_onedesk_reservation"/>
+        <field name="domain_force">[('unit_id.property_id.company_id', '=', user.company_id.id)]</field>
+        <field name="groups" eval="[(4, ref('group_onedesk_viewer'))]"/>
+        <field name="perm_read">True</field>
+        <field name="perm_write">False</field>
+        <field name="perm_create">False</field>
+        <field name="perm_unlink">False</field>
+    </record>
+
+    <!-- ================== INTEGRATION ACCESS (Multi-tenant filtering) ================== -->
+
+    <!-- Master Admin: all integrations -->
+    <record id="rule_master_admin_integration" model="ir.rule">
+        <field name="name">Master Admin - All Integrations</field>
+        <field name="model_id" ref="model_onedesk_integration"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('group_onedesk_master_admin'))]"/>
+        <field name="perm_read">True</field>
+        <field name="perm_write">True</field>
+        <field name="perm_create">True</field>
+        <field name="perm_unlink">False</field>
+    </record>
+
+    <!-- Support: all integrations -->
+    <record id="rule_support_integration_read" model="ir.rule">
+        <field name="name">Support - Read All Integrations</field>
+        <field name="model_id" ref="model_onedesk_integration"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('group_onedesk_support'))]"/>
+        <field name="perm_read">True</field>
+        <field name="perm_write">False</field>
+        <field name="perm_create">False</field>
+        <field name="perm_unlink">False</field>
+    </record>
+
+    <!-- Property Manager: only their company's integrations -->
+    <record id="rule_property_manager_integration" model="ir.rule">
+        <field name="name">Property Manager - Company Integrations</field>
+        <field name="model_id" ref="model_onedesk_integration"/>
+        <field name="domain_force">[('company_id', '=', user.company_id.id)]</field>
+        <field name="groups" eval="[(4, ref('group_onedesk_property_manager'))]"/>
+        <field name="perm_read">True</field>
+        <field name="perm_write">True</field>
+        <field name="perm_create">True</field>
+        <field name="perm_unlink">False</field>
+    </record>
+
+    <!-- Staff: only their company's integrations (read-only) -->
+    <record id="rule_staff_integration" model="ir.rule">
+        <field name="name">Staff - Company Integrations (Read-Only)</field>
+        <field name="model_id" ref="model_onedesk_integration"/>
+        <field name="domain_force">[('company_id', '=', user.company_id.id)]</field>
+        <field name="groups" eval="[(4, ref('group_onedesk_staff'))]"/>
+        <field name="perm_read">True</field>
+        <field name="perm_write">False</field>
+        <field name="perm_create">False</field>
+        <field name="perm_unlink">False</field>
+    </record>
+
+    <!-- Viewer: only their company's integrations (read-only) -->
+    <record id="rule_viewer_integration" model="ir.rule">
+        <field name="name">Viewer - Company Integrations (Read-Only)</field>
+        <field name="model_id" ref="model_onedesk_integration"/>
+        <field name="domain_force">[('company_id', '=', user.company_id.id)]</field>
+        <field name="groups" eval="[(4, ref('group_onedesk_viewer'))]"/>
+        <field name="perm_read">True</field>
+        <field name="perm_write">False</field>
+        <field name="perm_create">False</field>
+        <field name="perm_unlink">False</field>
+    </record>
+
 </odoo>

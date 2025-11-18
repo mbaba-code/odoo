@@ -182,13 +182,83 @@ class OnedeskoClient(models.Model):
 
     @api.model
     def create(self, vals_list):
-        """Créer de nouveaux clients avec codes uniques"""
+        """Créer de nouveaux clients avec codes uniques, companies et utilisateurs automatiques"""
         for vals in vals_list:
+            # 1. Générer un code client unique
             if not vals.get('client_code'):
-                # Générer un code client unique
                 vals['client_code'] = self._generate_client_code()
 
-        return super().create(vals_list)
+            # 2. Si pas de company_id fournie, en créer une nouvelle automatiquement
+            if not vals.get('company_id'):
+                # Créer une nouvelle Company Odoo
+                partner_name = ''
+                if vals.get('owner_partner_id'):
+                    partner = self.env['res.partner'].browse(vals['owner_partner_id'])
+                    partner_name = partner.name if partner else ''
+
+                company_name = partner_name or f"Client {vals.get('client_code', 'New')}"
+                new_company = self.env['res.company'].create({
+                    'name': company_name,
+                    'is_onedesk_client': True,
+                })
+                vals['company_id'] = new_company.id
+
+            # Marquer comme client OneDesk si nécessaire
+            if vals.get('company_id'):
+                company = self.env['res.company'].browse(vals['company_id'])
+                if not company.is_onedesk_client:
+                    company.is_onedesk_client = True
+
+        clients = super().create(vals_list)
+
+        # 3. Créer les utilisateurs (Property Manager, Staff, Viewer) après la création du client
+        for client in clients:
+            self._create_default_users(client)
+
+        return clients
+
+    def _create_default_users(self, client):
+        """Créer les utilisateurs par défaut (Property Manager, Staff, Viewer) pour un client"""
+        company = client.company_id
+        client_name = client.client_name
+
+        # Les groupes OneDesk pour les rôles
+        manager_group = self.env.ref('onedesk_core.group_onedesk_property_manager')
+        staff_group = self.env.ref('onedesk_core.group_onedesk_staff')
+        viewer_group = self.env.ref('onedesk_core.group_onedesk_viewer')
+
+        # 3.1. Créer le Property Manager
+        self.env['res.users'].create({
+            'name': f'{client_name} - Property Manager',
+            'login': f'pm_{client.client_code}@onedesk.local'.lower(),
+            'email': client.owner_partner_id.email if client.owner_partner_id else f'pm_{client.client_code}@onedesk.local',
+            'company_id': company.id,
+            'company_ids': [(6, 0, [company.id])],
+            'groups_id': [(6, 0, [manager_group.id])],
+            'state': 'new',
+        })
+
+        # 3.2. Créer le Staff
+        self.env['res.users'].create({
+            'name': f'{client_name} - Staff Member',
+            'login': f'staff_{client.client_code}@onedesk.local'.lower(),
+            'email': f'staff_{client.client_code}@onedesk.local',
+            'company_id': company.id,
+            'company_ids': [(6, 0, [company.id])],
+            'groups_id': [(6, 0, [staff_group.id])],
+            'state': 'new',
+        })
+
+        # 3.3. Créer le Viewer
+        self.env['res.users'].create({
+            'name': f'{client_name} - Viewer',
+            'login': f'viewer_{client.client_code}@onedesk.local'.lower(),
+            'email': f'viewer_{client.client_code}@onedesk.local',
+            'company_id': company.id,
+            'company_ids': [(6, 0, [company.id])],
+            'groups_id': [(6, 0, [viewer_group.id])],
+            'state': 'new',
+        })
 
     @staticmethod
     def _generate_client_code():
