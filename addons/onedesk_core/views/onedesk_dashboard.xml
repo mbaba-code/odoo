@@ -151,7 +151,7 @@
                     <!-- Charts Placeholder -->
                     <group string="📊 Analytics">
                         <div class="alert alert-info" colspan="4">
-                            <p><strong>Charts & Detailed Analytics</strong></p>
+                            <p><strong>Charts &amp; Detailed Analytics</strong></p>
                             <p>Occupancy Chart and Revenue Chart will be displayed here when configured.</p>
                         </div>
                     </group>
