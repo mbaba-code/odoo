@@ -107,12 +107,12 @@
         <field name="name">OneDesk Dashboard List</field>
         <field name="model">onedesk.dashboard</field>
         <field name="arch" type="xml">
-            <tree string="Dashboards">
+            <list string="Dashboards">
                 <field name="user_id"/>
                 <field name="company_id"/>
                 <field name="auto_refresh"/>
                 <field name="refresh_interval"/>
-            </tree>
+            </list>
         </field>
     </record>
 
