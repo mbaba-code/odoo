@@ -12,6 +12,7 @@
                 <filter string="Available" name="available" domain="[('available', '=', True)]"/>
                 <filter string="Active" name="active" domain="[('active', '=', True)]"/>
                 <filter string="Archived" name="archived" domain="[('active', '=', False)]"/>
+                <filter string="In Maintenance" name="in_maintenance" domain="[('maintenance_mode', '=', True)]"/>
             </search>
         </field>
     </record>
@@ -25,6 +26,7 @@
                 <field name="property_id"/>
                 <field name="price_per_night"/>
                 <field name="available"/>
+                <field name="maintenance_mode"/>
             </list>
         </field>
     </record>
@@ -63,6 +65,20 @@
                             <field name="cleaning_required"/>
                             <field name="cleaning_fee" widget="monetary"/>
                             <field name="cleaning_duration_hours"/>
+                        </group>
+                    </group>
+
+                    <!-- SECTION: MAINTENANCE -->
+                    <separator string="🔧 Maintenance &amp; Nettoyage"/>
+                    <group>
+                        <group>
+                            <field name="maintenance_mode"/>
+                            <field name="cleaning_required"/>
+                            <field name="cleaning_fee" widget="monetary"/>
+                        </group>
+                        <group>
+                            <field name="cleaning_duration_hours"/>
+                            <field name="maintenance_notes" placeholder="Ex: Problèmes connus, maintenance récente..."/>
                         </group>
                     </group>
 
@@ -130,7 +146,6 @@
                     <separator string="📋 Politiques"/>
                     <group>
                         <field name="cancellation_policy"/>
-                        <field name="maintenance_notes" placeholder="Ex: Problèmes connus, maintenance récente..."/>
                     </group>
 
                     <!-- SECTION: INTÉGRATION -->

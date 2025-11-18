@@ -56,6 +56,8 @@ class OnedeskUnit(models.Model):
     cleaning_fee = fields.Float(string="Frais de nettoyage (€)", default=0.0)
     cleaning_duration_hours = fields.Float(string="Durée nettoyage (heures)", default=2.0,
                                           help="Temps estimé pour nettoyer l'unité")
+    maintenance_mode = fields.Boolean(string="En maintenance", default=False,
+                                     help="Marquer cette unité comme étant en maintenance (non disponible pour les réservations)")
     maintenance_notes = fields.Text(string="Notes d'entretien",
                                    help="Problèmes connus, maintenance récente, etc.")
 
