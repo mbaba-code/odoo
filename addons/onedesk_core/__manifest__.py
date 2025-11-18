@@ -9,6 +9,7 @@
         'base', 'contacts', 'mail', 'account', 'calendar',
         'payment',              # NEW - Payment Engine
         'account_payment',      # NEW - Invoice Payment Integration
+        'website',              # NEW - Website module for portal/frontend
     ],
     'data': [
     'security/ir.model.access.csv',
