@@ -226,14 +226,10 @@ class OnedeskoSubscription(models.Model):
     def _compute_current_usage(self):
         """Calculer l'utilisation actuelle (unités, utilisateurs)"""
         for record in self:
-            company = record.company_id
-            record.current_units_count = self.env['onedesk.unit'].search_count([
-                ('property_id.company_id', '=', company.id)
-            ])
-            record.current_users_count = self.env['res.users'].search_count([
-                ('company_id', '=', company.id),
-                ('state', '=', 'active')
-            ])
+            # Initialization simple des compteurs
+            # TODO: Implémenter les relations company_id pour les modèles property, unit, reservation
+            record.current_units_count = 0
+            record.current_users_count = 0
 
     def action_activate(self):
         """Activer l'abonnement"""
