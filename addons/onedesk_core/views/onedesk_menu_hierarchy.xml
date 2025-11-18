@@ -1,0 +1,558 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- DASHBOARD ACTIONS -->
+    <record id="action_onedesk_dashboard" model="ir.actions.act_window">
+        <field name="name">Dashboard</field>
+        <field name="res_model">onedesk.property</field>
+        <field name="view_mode">dashboard,kanban,list,form</field>
+    </record>
+
+    <!-- SUBSCRIPTION PLAN ACTION -->
+    <record id="action_onedesk_subscription_plan" model="ir.actions.act_window">
+        <field name="name">Subscription Plans</field>
+        <field name="res_model">onedesk.subscription.plan</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- ==================== PROPERTIES ACTIONS ==================== -->
+    <record id="action_onedesk_property" model="ir.actions.act_window">
+        <field name="name">All Properties</field>
+        <field name="res_model">onedesk.property</field>
+        <field name="view_mode">kanban,list,form</field>
+    </record>
+
+    <record id="action_properties_active" model="ir.actions.act_window">
+        <field name="name">Active Properties</field>
+        <field name="res_model">onedesk.property</field>
+        <field name="view_mode">list,form,kanban</field>
+        <field name="domain">[('active', '=', True)]</field>
+        <field name="context">{'search_default_active': 1}</field>
+    </record>
+
+    <record id="action_properties_inactive" model="ir.actions.act_window">
+        <field name="name">Inactive Properties</field>
+        <field name="res_model">onedesk.property</field>
+        <field name="view_mode">list,form,kanban</field>
+        <field name="domain">[('active', '=', False)]</field>
+    </record>
+
+    <!-- ==================== UNITS ACTIONS ==================== -->
+    <record id="action_onedesk_unit" model="ir.actions.act_window">
+        <field name="name">All Units</field>
+        <field name="res_model">onedesk.unit</field>
+        <field name="view_mode">kanban,list,form</field>
+    </record>
+
+    <record id="action_units_by_property" model="ir.actions.act_window">
+        <field name="name">Units by Property</field>
+        <field name="res_model">onedesk.unit</field>
+        <field name="view_mode">list,form,kanban</field>
+        <field name="context">{'group_by': 'property_id'}</field>
+    </record>
+
+    <record id="action_units_active" model="ir.actions.act_window">
+        <field name="name">Available Units</field>
+        <field name="res_model">onedesk.unit</field>
+        <field name="view_mode">list,form,kanban</field>
+        <field name="domain">[('active', '=', True)]</field>
+    </record>
+
+    <record id="action_units_inactive" model="ir.actions.act_window">
+        <field name="name">Inactive Units</field>
+        <field name="res_model">onedesk.unit</field>
+        <field name="view_mode">list,form,kanban</field>
+        <field name="domain">[('active', '=', False)]</field>
+    </record>
+
+    <record id="action_units_maintenance" model="ir.actions.act_window">
+        <field name="name">Units in Maintenance</field>
+        <field name="res_model">onedesk.unit</field>
+        <field name="view_mode">list,form,kanban</field>
+        <field name="domain">[('maintenance_mode', '=', True)]</field>
+    </record>
+
+    <!-- ==================== RESERVATIONS ACTIONS ==================== -->
+    <record id="action_onedesk_reservation" model="ir.actions.act_window">
+        <field name="name">All Reservations</field>
+        <field name="res_model">onedesk.reservation</field>
+        <field name="view_mode">kanban,list,form</field>
+    </record>
+
+    <!-- By Status -->
+    <record id="action_reservations_pending" model="ir.actions.act_window">
+        <field name="name">Pending Reservations</field>
+        <field name="res_model">onedesk.reservation</field>
+        <field name="view_mode">list,form,kanban</field>
+        <field name="domain">[('status', '=', 'draft')]</field>
+    </record>
+
+    <record id="action_reservations_confirmed" model="ir.actions.act_window">
+        <field name="name">Confirmed Reservations</field>
+        <field name="res_model">onedesk.reservation</field>
+        <field name="view_mode">list,form,kanban</field>
+        <field name="domain">[('status', '=', 'confirmed')]</field>
+    </record>
+
+    <record id="action_reservations_checkedin" model="ir.actions.act_window">
+        <field name="name">Checked In</field>
+        <field name="res_model">onedesk.reservation</field>
+        <field name="view_mode">list,form,kanban</field>
+        <field name="domain">[('status', '=', 'checked_in')]</field>
+    </record>
+
+    <record id="action_reservations_completed" model="ir.actions.act_window">
+        <field name="name">Completed Reservations</field>
+        <field name="res_model">onedesk.reservation</field>
+        <field name="view_mode">list,form,kanban</field>
+        <field name="domain">[('status', '=', 'completed')]</field>
+    </record>
+
+    <record id="action_reservations_cancelled" model="ir.actions.act_window">
+        <field name="name">Cancelled Reservations</field>
+        <field name="res_model">onedesk.reservation</field>
+        <field name="view_mode">list,form,kanban</field>
+        <field name="domain">[('status', '=', 'cancelled')]</field>
+    </record>
+
+    <!-- Timeline -->
+    <record id="action_reservations_this_week" model="ir.actions.act_window">
+        <field name="name">This Week</field>
+        <field name="res_model">onedesk.reservation</field>
+        <field name="view_mode">list,form,kanban</field>
+        <field name="context">{'search_default_week': 1}</field>
+    </record>
+
+    <record id="action_reservations_this_month" model="ir.actions.act_window">
+        <field name="name">This Month</field>
+        <field name="res_model">onedesk.reservation</field>
+        <field name="view_mode">list,form,kanban</field>
+        <field name="context">{'search_default_month': 1}</field>
+    </record>
+
+    <record id="action_reservations_upcoming" model="ir.actions.act_window">
+        <field name="name">Upcoming Reservations</field>
+        <field name="res_model">onedesk.reservation</field>
+        <field name="view_mode">list,form,kanban</field>
+        <field name="domain">[('start_date', '>=', (context_today()).strftime('%Y-%m-%d'))]</field>
+    </record>
+
+    <!-- Quick Actions -->
+    <record id="action_reservations_checkin_today" model="ir.actions.act_window">
+        <field name="name">Check-in Due Today</field>
+        <field name="res_model">onedesk.reservation</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'search_default_checkin_today': 1}</field>
+    </record>
+
+    <record id="action_reservations_checkout_today" model="ir.actions.act_window">
+        <field name="name">Check-out Today</field>
+        <field name="res_model">onedesk.reservation</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'search_default_checkout_today': 1}</field>
+    </record>
+
+    <!-- ==================== TASKS ACTIONS ==================== -->
+    <record id="action_onedesk_task" model="ir.actions.act_window">
+        <field name="name">All Tasks</field>
+        <field name="res_model">onedesk.task</field>
+        <field name="view_mode">kanban,list,form</field>
+    </record>
+
+    <!-- By Status -->
+    <record id="action_tasks_todo" model="ir.actions.act_window">
+        <field name="name">To Do</field>
+        <field name="res_model">onedesk.task</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="domain">[('status', '=', 'todo')]</field>
+    </record>
+
+    <record id="action_tasks_in_progress" model="ir.actions.act_window">
+        <field name="name">In Progress</field>
+        <field name="res_model">onedesk.task</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="domain">[('status', '=', 'in_progress')]</field>
+    </record>
+
+    <record id="action_tasks_done" model="ir.actions.act_window">
+        <field name="name">Done</field>
+        <field name="res_model">onedesk.task</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="domain">[('status', '=', 'done')]</field>
+    </record>
+
+    <record id="action_tasks_blocked" model="ir.actions.act_window">
+        <field name="name">Blocked</field>
+        <field name="res_model">onedesk.task</field>
+        <field name="view_mode">list,form,kanban</field>
+        <field name="domain">[('status', '=', 'blocked')]</field>
+    </record>
+
+    <record id="action_tasks_overdue" model="ir.actions.act_window">
+        <field name="name">Overdue Tasks</field>
+        <field name="res_model">onedesk.task</field>
+        <field name="view_mode">list,form,kanban</field>
+        <field name="context">{'search_default_overdue': 1}</field>
+    </record>
+
+    <!-- By Priority -->
+    <record id="action_tasks_urgent" model="ir.actions.act_window">
+        <field name="name">Urgent Tasks</field>
+        <field name="res_model">onedesk.task</field>
+        <field name="view_mode">list,form,kanban</field>
+        <field name="domain">[('priority', '=', '4')]</field>
+    </record>
+
+    <record id="action_tasks_high" model="ir.actions.act_window">
+        <field name="name">High Priority</field>
+        <field name="res_model">onedesk.task</field>
+        <field name="view_mode">list,form,kanban</field>
+        <field name="domain">[('priority', 'in', ['3', '4'])]</field>
+    </record>
+
+    <record id="action_tasks_medium" model="ir.actions.act_window">
+        <field name="name">Medium Priority</field>
+        <field name="res_model">onedesk.task</field>
+        <field name="view_mode">list,form,kanban</field>
+        <field name="domain">[('priority', '=', '2')]</field>
+    </record>
+
+    <record id="action_tasks_low" model="ir.actions.act_window">
+        <field name="name">Low Priority</field>
+        <field name="res_model">onedesk.task</field>
+        <field name="view_mode">list,form,kanban</field>
+        <field name="domain">[('priority', '=', '1')]</field>
+    </record>
+
+    <!-- Timeline -->
+    <record id="action_tasks_due_today" model="ir.actions.act_window">
+        <field name="name">Due Today</field>
+        <field name="res_model">onedesk.task</field>
+        <field name="view_mode">list,form,kanban</field>
+        <field name="context">{'search_default_due_today': 1}</field>
+    </record>
+
+    <record id="action_tasks_due_this_week" model="ir.actions.act_window">
+        <field name="name">Due This Week</field>
+        <field name="res_model">onedesk.task</field>
+        <field name="view_mode">list,form,kanban</field>
+        <field name="context">{'search_default_due_week': 1}</field>
+    </record>
+
+    <record id="action_tasks_due_this_month" model="ir.actions.act_window">
+        <field name="name">Due This Month</field>
+        <field name="res_model">onedesk.task</field>
+        <field name="view_mode">list,form,kanban</field>
+        <field name="context">{'search_default_due_month': 1}</field>
+    </record>
+
+    <!-- HIERARCHICAL MENUS -->
+
+    <!-- Root Menu -->
+    <menuitem id="menu_onedesk_root"
+              name="OneDesk"
+              sequence="10"
+              web_icon="base/static/img/icons/stock_icon.svg"/>
+
+    <!-- Dashboard -->
+    <menuitem id="menu_onedesk_dashboard"
+              name="📊 Dashboard"
+              parent="menu_onedesk_root"
+              action="action_onedesk_dashboard"
+              sequence="5"/>
+
+    <!-- PROPERTIES MENU -->
+    <menuitem id="menu_onedesk_property"
+              name="🏠 Properties"
+              parent="menu_onedesk_root"
+              sequence="10"/>
+
+    <menuitem id="menu_property_all"
+              name="All Properties"
+              parent="menu_onedesk_property"
+              action="action_onedesk_property"
+              sequence="10"/>
+
+    <menuitem id="menu_property_status"
+              name="By Status"
+              parent="menu_onedesk_property"
+              sequence="20"/>
+
+    <menuitem id="menu_property_active"
+              name="Active Properties"
+              parent="menu_property_status"
+              action="action_properties_active"
+              sequence="10"/>
+
+    <menuitem id="menu_property_inactive"
+              name="Inactive Properties"
+              parent="menu_property_status"
+              action="action_properties_inactive"
+              sequence="20"/>
+
+    <!-- UNITS MENU -->
+    <menuitem id="menu_onedesk_unit"
+              name="🚪 Units"
+              parent="menu_onedesk_root"
+              sequence="20"/>
+
+    <menuitem id="menu_unit_all"
+              name="All Units"
+              parent="menu_onedesk_unit"
+              action="action_onedesk_unit"
+              sequence="10"/>
+
+    <menuitem id="menu_unit_organization"
+              name="Organization"
+              parent="menu_onedesk_unit"
+              sequence="20"/>
+
+    <menuitem id="menu_unit_by_property"
+              name="View by Property"
+              parent="menu_unit_organization"
+              action="action_units_by_property"
+              sequence="10"/>
+
+    <menuitem id="menu_unit_availability"
+              name="Availability"
+              parent="menu_onedesk_unit"
+              sequence="30"/>
+
+    <menuitem id="menu_unit_available"
+              name="Available Now"
+              parent="menu_unit_availability"
+              action="action_units_active"
+              sequence="10"/>
+
+    <menuitem id="menu_unit_status"
+              name="Status"
+              parent="menu_onedesk_unit"
+              sequence="40"/>
+
+    <menuitem id="menu_unit_maintenance"
+              name="Maintenance Units"
+              parent="menu_unit_status"
+              action="action_units_maintenance"
+              sequence="10"/>
+
+    <menuitem id="menu_unit_inactive"
+              name="Inactive Units"
+              parent="menu_unit_status"
+              action="action_units_inactive"
+              sequence="20"/>
+
+    <!-- RESERVATIONS MENU -->
+    <menuitem id="menu_onedesk_reservation"
+              name="📅 Reservations"
+              parent="menu_onedesk_root"
+              sequence="30"/>
+
+    <menuitem id="menu_reservation_all"
+              name="All Reservations"
+              parent="menu_onedesk_reservation"
+              action="action_onedesk_reservation"
+              sequence="10"/>
+
+    <menuitem id="menu_reservation_status"
+              name="By Status"
+              parent="menu_onedesk_reservation"
+              sequence="20"/>
+
+    <menuitem id="menu_reservation_pending"
+              name="Pending"
+              parent="menu_reservation_status"
+              action="action_reservations_pending"
+              sequence="10"/>
+
+    <menuitem id="menu_reservation_confirmed"
+              name="Confirmed"
+              parent="menu_reservation_status"
+              action="action_reservations_confirmed"
+              sequence="20"/>
+
+    <menuitem id="menu_reservation_checkedin"
+              name="Checked In"
+              parent="menu_reservation_status"
+              action="action_reservations_checkedin"
+              sequence="30"/>
+
+    <menuitem id="menu_reservation_completed"
+              name="Completed"
+              parent="menu_reservation_status"
+              action="action_reservations_completed"
+              sequence="40"/>
+
+    <menuitem id="menu_reservation_cancelled"
+              name="Cancelled"
+              parent="menu_reservation_status"
+              action="action_reservations_cancelled"
+              sequence="50"/>
+
+    <menuitem id="menu_reservation_timeline"
+              name="Timeline"
+              parent="menu_onedesk_reservation"
+              sequence="30"/>
+
+    <menuitem id="menu_reservation_this_week"
+              name="This Week"
+              parent="menu_reservation_timeline"
+              action="action_reservations_this_week"
+              sequence="10"/>
+
+    <menuitem id="menu_reservation_this_month"
+              name="This Month"
+              parent="menu_reservation_timeline"
+              action="action_reservations_this_month"
+              sequence="20"/>
+
+    <menuitem id="menu_reservation_upcoming"
+              name="Upcoming"
+              parent="menu_reservation_timeline"
+              action="action_reservations_upcoming"
+              sequence="30"/>
+
+    <menuitem id="menu_reservation_quick"
+              name="Quick Access"
+              parent="menu_onedesk_reservation"
+              sequence="40"/>
+
+    <menuitem id="menu_reservation_checkin_today"
+              name="Check-in Due Today"
+              parent="menu_reservation_quick"
+              action="action_reservations_checkin_today"
+              sequence="10"/>
+
+    <menuitem id="menu_reservation_checkout_today"
+              name="Check-out Today"
+              parent="menu_reservation_quick"
+              action="action_reservations_checkout_today"
+              sequence="20"/>
+
+    <!-- TASKS MENU -->
+    <menuitem id="menu_onedesk_task"
+              name="✅ Tasks"
+              parent="menu_onedesk_root"
+              sequence="40"/>
+
+    <menuitem id="menu_task_all"
+              name="All Tasks"
+              parent="menu_onedesk_task"
+              action="action_onedesk_task"
+              sequence="10"/>
+
+    <menuitem id="menu_task_status"
+              name="By Status"
+              parent="menu_onedesk_task"
+              sequence="20"/>
+
+    <menuitem id="menu_task_todo"
+              name="To Do"
+              parent="menu_task_status"
+              action="action_tasks_todo"
+              sequence="10"/>
+
+    <menuitem id="menu_task_in_progress"
+              name="In Progress"
+              parent="menu_task_status"
+              action="action_tasks_in_progress"
+              sequence="20"/>
+
+    <menuitem id="menu_task_done"
+              name="Done"
+              parent="menu_task_status"
+              action="action_tasks_done"
+              sequence="30"/>
+
+    <menuitem id="menu_task_blocked"
+              name="Blocked"
+              parent="menu_task_status"
+              action="action_tasks_blocked"
+              sequence="40"/>
+
+    <menuitem id="menu_task_overdue"
+              name="Overdue"
+              parent="menu_task_status"
+              action="action_tasks_overdue"
+              sequence="50"/>
+
+    <menuitem id="menu_task_priority"
+              name="By Priority"
+              parent="menu_onedesk_task"
+              sequence="30"/>
+
+    <menuitem id="menu_task_urgent"
+              name="🔴 Urgent"
+              parent="menu_task_priority"
+              action="action_tasks_urgent"
+              sequence="10"/>
+
+    <menuitem id="menu_task_high"
+              name="🟠 High"
+              parent="menu_task_priority"
+              action="action_tasks_high"
+              sequence="20"/>
+
+    <menuitem id="menu_task_medium"
+              name="🟡 Medium"
+              parent="menu_task_priority"
+              action="action_tasks_medium"
+              sequence="30"/>
+
+    <menuitem id="menu_task_low"
+              name="🟢 Low"
+              parent="menu_task_priority"
+              action="action_tasks_low"
+              sequence="40"/>
+
+    <menuitem id="menu_task_timeline"
+              name="Timeline"
+              parent="menu_onedesk_task"
+              sequence="40"/>
+
+    <menuitem id="menu_task_due_today"
+              name="Due Today"
+              parent="menu_task_timeline"
+              action="action_tasks_due_today"
+              sequence="10"/>
+
+    <menuitem id="menu_task_due_week"
+              name="Due This Week"
+              parent="menu_task_timeline"
+              action="action_tasks_due_this_week"
+              sequence="20"/>
+
+    <menuitem id="menu_task_due_month"
+              name="Due This Month"
+              parent="menu_task_timeline"
+              action="action_tasks_due_this_month"
+              sequence="30"/>
+
+    <!-- INTEGRATION MENU (existing) -->
+    <menuitem id="menu_onedesk_integration"
+              name="🔄 Integration"
+              parent="menu_onedesk_root"
+              sequence="50"/>
+
+    <!-- SETTINGS MENU -->
+    <menuitem id="menu_onedesk_settings"
+              name="⚙️ Settings"
+              parent="menu_onedesk_root"
+              sequence="100"/>
+
+    <menuitem id="menu_settings_subscription"
+              name="Subscription Management"
+              parent="menu_onedesk_settings"
+              action="action_onedesk_subscription_plan"
+              sequence="10"/>
+
+    <menuitem id="menu_settings_groups"
+              name="Team &amp; Permissions"
+              parent="menu_onedesk_settings"
+              sequence="20"/>
+
+    <menuitem id="menu_settings_audit"
+              name="Audit Logs"
+              parent="menu_onedesk_settings"
+              action="action_onedesk_audit_log"
+              sequence="30"/>
+
+</odoo>

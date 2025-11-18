@@ -15,7 +15,7 @@
     'security/ir.model.access.csv',
 
     # Menus FIRST (avant toutes les autres vues qui les référencent)
-    'views/onedesk_menu_views.xml',
+    'views/onedesk_menu_hierarchy.xml',
 
     # Vues ensuite (ça charge les models)
     # ⚠️ ORDRE IMPORTANT: seasonal_price AVANT unit car unit en dépend
