@@ -302,7 +302,7 @@
               sequence="10"/>
 
     <menuitem id="menu_unit_organization"
-              name="Organization"
+              name="By Property"
               parent="menu_onedesk_unit"
               sequence="20"/>
 
