@@ -685,6 +685,9 @@ class OnedeskIntegration(models.Model):
                 # S'assurer que le partenaire trouvé a une company_id assignée
                 if not partner.company_id:
                     partner.sudo().write({'company_id': self.company_id.id})
+                    # Invalider le cache et recharger le partenaire
+                    self.env.invalidate_all()
+                    partner = Partner.sudo().browse(partner.id)
                 return partner
 
         # Puis par nom (sudo() pour contourner les ir.rules)
@@ -694,6 +697,9 @@ class OnedeskIntegration(models.Model):
                 # S'assurer que le partenaire trouvé a une company_id assignée
                 if not partner.company_id:
                     partner.sudo().write({'company_id': self.company_id.id})
+                    # Invalider le cache et recharger le partenaire
+                    self.env.invalidate_all()
+                    partner = Partner.sudo().browse(partner.id)
                 return partner
 
         # Crée le contact avec toutes les infos disponibles
