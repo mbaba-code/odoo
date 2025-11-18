@@ -265,6 +265,7 @@ class OneDeskReservation(models.Model):
                 'allday': False,
                 'privacy': 'public',
                 'show_as': 'busy',
+                'company_id': reservation.unit_id.property_id.company_id.id,  # Isolate by company
             })
 
             # Lier l'événement à la réservation (sudo() pour contourner les ir.rules)

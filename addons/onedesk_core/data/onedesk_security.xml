@@ -455,11 +455,11 @@
         <field name="perm_unlink">False</field>
     </record>
 
-    <!-- Property Manager: only their company's partners (or partners without company_id for system operations) -->
+    <!-- Property Manager: only their company's partners -->
     <record id="rule_property_manager_partner" model="ir.rule">
         <field name="name">Property Manager - Company Partners</field>
         <field name="model_id" ref="base.model_res_partner"/>
-        <field name="domain_force">['|', ('company_id', '=', user.company_id.id), ('company_id', '=', False)]</field>
+        <field name="domain_force">[('company_id', '=', user.company_id.id)]</field>
         <field name="groups" eval="[(4, ref('group_onedesk_property_manager'))]"/>
         <field name="perm_read">True</field>
         <field name="perm_write">True</field>
@@ -467,11 +467,11 @@
         <field name="perm_unlink">False</field>
     </record>
 
-    <!-- Staff: only their company's partners (or partners without company_id for system operations) -->
+    <!-- Staff: only their company's partners -->
     <record id="rule_staff_partner" model="ir.rule">
         <field name="name">Staff - Company Partners</field>
         <field name="model_id" ref="base.model_res_partner"/>
-        <field name="domain_force">['|', ('company_id', '=', user.company_id.id), ('company_id', '=', False)]</field>
+        <field name="domain_force">[('company_id', '=', user.company_id.id)]</field>
         <field name="groups" eval="[(4, ref('group_onedesk_staff'))]"/>
         <field name="perm_read">True</field>
         <field name="perm_write">True</field>
@@ -479,11 +479,49 @@
         <field name="perm_unlink">False</field>
     </record>
 
-    <!-- Viewer: only their company's partners, read-only (or partners without company_id for system operations) -->
+    <!-- Viewer: only their company's partners (read-only) -->
     <record id="rule_viewer_partner" model="ir.rule">
         <field name="name">Viewer - Company Partners (Read-Only)</field>
         <field name="model_id" ref="base.model_res_partner"/>
-        <field name="domain_force">['|', ('company_id', '=', user.company_id.id), ('company_id', '=', False)]</field>
+        <field name="domain_force">[('company_id', '=', user.company_id.id)]</field>
+        <field name="groups" eval="[(4, ref('group_onedesk_viewer'))]"/>
+        <field name="perm_read">True</field>
+        <field name="perm_write">False</field>
+        <field name="perm_create">False</field>
+        <field name="perm_unlink">False</field>
+    </record>
+
+    <!-- ================== CALENDAR EVENT ACCESS (Multi-tenant filtering) ================== -->
+
+    <!-- Property Manager: only their company's calendar events -->
+    <record id="rule_property_manager_calendar_event" model="ir.rule">
+        <field name="name">Property Manager - Company Calendar Events</field>
+        <field name="model_id" ref="calendar.model_calendar_event"/>
+        <field name="domain_force">[('company_id', '=', user.company_id.id)]</field>
+        <field name="groups" eval="[(4, ref('group_onedesk_property_manager'))]"/>
+        <field name="perm_read">True</field>
+        <field name="perm_write">True</field>
+        <field name="perm_create">True</field>
+        <field name="perm_unlink">False</field>
+    </record>
+
+    <!-- Staff: only their company's calendar events -->
+    <record id="rule_staff_calendar_event" model="ir.rule">
+        <field name="name">Staff - Company Calendar Events</field>
+        <field name="model_id" ref="calendar.model_calendar_event"/>
+        <field name="domain_force">[('company_id', '=', user.company_id.id)]</field>
+        <field name="groups" eval="[(4, ref('group_onedesk_staff'))]"/>
+        <field name="perm_read">True</field>
+        <field name="perm_write">True</field>
+        <field name="perm_create">True</field>
+        <field name="perm_unlink">False</field>
+    </record>
+
+    <!-- Viewer: only their company's calendar events (read-only) -->
+    <record id="rule_viewer_calendar_event" model="ir.rule">
+        <field name="name">Viewer - Company Calendar Events (Read-Only)</field>
+        <field name="model_id" ref="calendar.model_calendar_event"/>
+        <field name="domain_force">[('company_id', '=', user.company_id.id)]</field>
         <field name="groups" eval="[(4, ref('group_onedesk_viewer'))]"/>
         <field name="perm_read">True</field>
         <field name="perm_write">False</field>
