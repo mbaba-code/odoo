@@ -137,6 +137,7 @@
                 <field name="max_units"/>
                 <field name="max_users"/>
                 <field name="include_channel_manager"/>
+                <field name="include_accounting"/>
                 <templates>
                     <t t-name="card">
                         <div class="oe_kanban_card o_kanban_global_click">
