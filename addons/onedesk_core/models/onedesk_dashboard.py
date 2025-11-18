@@ -12,6 +12,18 @@ class OnedeaskDashboard(models.Model):
     user_id = fields.Many2one('res.users', string="User", default=lambda self: self.env.user, required=True, ondelete='cascade')
     company_id = fields.Many2one('res.company', string="Company", default=lambda self: self.env.company)
 
+    # Helper method to get accessible companies based on user role
+    def _get_accessible_companies(self):
+        """Returns list of company IDs accessible to current user based on their role"""
+        user = self.user_id or self.env.user
+
+        # Master Admin and Support can see ALL companies
+        if user.has_group('onedesk_core.group_onedesk_master_admin') or user.has_group('onedesk_core.group_onedesk_support'):
+            return self.env['res.company'].search([]).ids
+
+        # Other users can only see their own company
+        return [user.company_id.id]
+
     # Widget visibility configuration
     show_properties_kpi = fields.Boolean(string="Show Properties KPI", default=True)
     show_units_kpi = fields.Boolean(string="Show Units KPI", default=True)
@@ -32,11 +44,12 @@ class OnedeaskDashboard(models.Model):
     properties_occupancy_rate = fields.Float(string="Properties Occupancy Rate", compute='_compute_properties_metrics')
     revenue_this_month = fields.Float(string="Revenue This Month", compute='_compute_properties_metrics')
 
-    @api.depends('company_id')
+    @api.depends('company_id', 'user_id')
     def _compute_properties_metrics(self):
         """Calculate properties-related metrics"""
         for dashboard in self:
-            properties = self.env['onedesk.property'].search([('company_id', '=', dashboard.company_id.id)])
+            company_ids = dashboard._get_accessible_companies()
+            properties = self.env['onedesk.property'].search([('company_id', 'in', company_ids)])
 
             dashboard.total_properties = len(properties)
             dashboard.active_properties = len(properties.filtered('active'))
@@ -72,11 +85,12 @@ class OnedeaskDashboard(models.Model):
     maintenance_units = fields.Integer(string="Units in Maintenance", compute='_compute_units_metrics')
     units_occupancy_rate = fields.Float(string="Units Occupancy Rate", compute='_compute_units_metrics')
 
-    @api.depends('company_id')
+    @api.depends('company_id', 'user_id')
     def _compute_units_metrics(self):
         """Calculate units-related metrics"""
         for dashboard in self:
-            properties = self.env['onedesk.property'].search([('company_id', '=', dashboard.company_id.id)])
+            company_ids = dashboard._get_accessible_companies()
+            properties = self.env['onedesk.property'].search([('company_id', 'in', company_ids)])
             units = self.env['onedesk.unit'].search([('property_id', 'in', properties.ids)])
 
             dashboard.total_units = len(units)
@@ -103,11 +117,12 @@ class OnedeaskDashboard(models.Model):
     reservations_pending_payment_amount = fields.Float(string="Pending Payment Amount", compute='_compute_reservations_metrics')
     reservations_confirmed_month = fields.Integer(string="Confirmed This Month", compute='_compute_reservations_metrics')
 
-    @api.depends('company_id')
+    @api.depends('company_id', 'user_id')
     def _compute_reservations_metrics(self):
         """Calculate reservations-related metrics"""
         for dashboard in self:
-            properties = self.env['onedesk.property'].search([('company_id', '=', dashboard.company_id.id)])
+            company_ids = dashboard._get_accessible_companies()
+            properties = self.env['onedesk.property'].search([('company_id', 'in', company_ids)])
 
             today = datetime.now().date()
             month_start = datetime.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
@@ -137,11 +152,12 @@ class OnedeaskDashboard(models.Model):
     tasks_urgent_total = fields.Integer(string="Urgent Tasks Total", compute='_compute_tasks_metrics')
     tasks_in_progress = fields.Integer(string="Tasks In Progress", compute='_compute_tasks_metrics')
 
-    @api.depends('company_id')
+    @api.depends('company_id', 'user_id')
     def _compute_tasks_metrics(self):
         """Calculate tasks-related metrics"""
         for dashboard in self:
-            properties = self.env['onedesk.property'].search([('company_id', '=', dashboard.company_id.id)])
+            company_ids = dashboard._get_accessible_companies()
+            properties = self.env['onedesk.property'].search([('company_id', 'in', company_ids)])
             units = self.env['onedesk.unit'].search([('property_id', 'in', properties.ids)])
 
             # Tasks are related to reservations, which are linked to units
@@ -163,11 +179,12 @@ class OnedeaskDashboard(models.Model):
     outstanding_payments = fields.Float(string="Outstanding Payments", compute='_compute_financial_metrics')
     occupancy_rate_week = fields.Float(string="Occupancy Rate (This Week)", compute='_compute_financial_metrics')
 
-    @api.depends('company_id')
+    @api.depends('company_id', 'user_id')
     def _compute_financial_metrics(self):
         """Calculate financial metrics"""
         for dashboard in self:
-            properties = self.env['onedesk.property'].search([('company_id', '=', dashboard.company_id.id)])
+            company_ids = dashboard._get_accessible_companies()
+            properties = self.env['onedesk.property'].search([('company_id', 'in', company_ids)])
             units = self.env['onedesk.unit'].search([('property_id', 'in', properties.ids)])
 
             today = datetime.now()
