@@ -339,3 +339,145 @@ class OneDeskWebsite(http.Controller):
             'plans': plans,
             'page_title': 'Plans d\'abonnement OneDesk',
         })
+
+    @http.route('/onedesk/subscription/<model("onedesk.subscription.plan"):plan_id>', type='http', auth='public', website=True)
+    def subscription_form(self, plan_id, **kw):
+        """Formulaire de souscription pour un plan spécifique"""
+        return request.render('website_onedesk.subscription_form', {
+            'plan': plan_id,
+            'page_title': f'S\'abonner au plan {plan_id.name}',
+        })
+
+    @http.route('/onedesk/subscription/create', type='http', auth='public', website=True, methods=['POST'], csrf=False)
+    def create_subscription(self, **kw):
+        """Crée une souscription et envoie les emails"""
+        try:
+            # Récupère les données du formulaire
+            plan_id = int(kw.get('plan_id'))
+            company_name = kw.get('company_name', '').strip()
+            contact_name = kw.get('contact_name', '').strip()
+            email = kw.get('email', '').strip()
+            phone = kw.get('phone', '').strip()
+            num_units = int(kw.get('num_units', 0))
+            terms_accepted = kw.get('terms_accepted') == 'on'
+
+            # Valide les champs requis
+            if not all([company_name, contact_name, email, num_units]):
+                return http.Response(
+                    json.dumps({
+                        'status': 'error',
+                        'message': 'Tous les champs marqués avec * sont requis.',
+                    }),
+                    content_type='application/json'
+                )
+
+            if not terms_accepted:
+                return http.Response(
+                    json.dumps({
+                        'status': 'error',
+                        'message': 'Veuillez accepter les conditions d\'utilisation.',
+                    }),
+                    content_type='application/json'
+                )
+
+            # Récupère le plan
+            plan = request.env['onedesk.subscription.plan'].browse(plan_id)
+            if not plan.exists():
+                return http.Response(
+                    json.dumps({
+                        'status': 'error',
+                        'message': 'Ce plan n\'existe pas.',
+                    }),
+                    content_type='application/json'
+                )
+
+            # Crée ou récupère la société client
+            Company = request.env['res.company']
+            company = Company.search([('name', '=', company_name)], limit=1)
+            if not company:
+                company = Company.create({
+                    'name': company_name,
+                    'is_onedesk_client': True,
+                })
+
+            # Crée ou récupère le contact
+            Partner = request.env['res.partner']
+            partner = Partner.search([('email', '=', email)], limit=1)
+            if not partner:
+                partner = Partner.create({
+                    'name': contact_name,
+                    'email': email,
+                    'phone': phone if phone else False,
+                    'company_id': company.id,
+                })
+
+            # Crée la souscription
+            subscription = request.env['onedesk.subscription'].create({
+                'company_id': company.id,
+                'plan_id': plan.id,
+                'state': 'draft',
+                'billing_contact_id': partner.id,
+            })
+
+            _logger.info(f'✅ Subscription created: {subscription.subscription_id} for {company_name}')
+
+            # Prépare les données pour les emails
+            context_data = {
+                'subscription': subscription,
+                'plan': plan,
+                'company': company,
+                'contact': partner,
+                'num_units': num_units,
+                'plan_display_name': plan.get_display_name(),
+            }
+
+            # Envoie l'email de confirmation au client
+            try:
+                template_client = request.env.ref('website_onedesk.email_subscription_confirmation')
+                template_client.send_mail(subscription.id, force_send=True, email_values={
+                    'email_to': email,
+                })
+                _logger.info(f'✅ Confirmation email sent to {email}')
+            except Exception as e:
+                _logger.warning(f'⚠️ Error sending client email: {e}')
+
+            # Envoie l'email à l'admin
+            try:
+                admin_email = request.env['ir.config_parameter'].sudo().get_param('onedesk.admin_email')
+                if admin_email:
+                    template_admin = request.env.ref('website_onedesk.email_subscription_admin_notification')
+                    template_admin.send_mail(subscription.id, force_send=True, email_values={
+                        'email_to': admin_email,
+                    })
+                    _logger.info(f'✅ Admin notification email sent to {admin_email}')
+            except Exception as e:
+                _logger.warning(f'⚠️ Error sending admin email: {e}')
+
+            response = {
+                'status': 'success',
+                'message': f'✅ Souscription créée avec succès!\n\nUn email de confirmation a été envoyé à {email}.\n\nNuméro de souscription: {subscription.subscription_id}',
+                'subscription_id': subscription.id,
+            }
+            _logger.info(f'Returning success response: {response}')
+            return http.Response(json.dumps(response), content_type='application/json')
+
+        except ValueError as e:
+            _logger.error(f'ValueError: {e}')
+            return http.Response(
+                json.dumps({
+                    'status': 'error',
+                    'message': 'Données invalides. Veuillez vérifier votre saisie.',
+                }),
+                content_type='application/json'
+            )
+
+        except Exception as e:
+            error_msg = str(e)
+            _logger.exception(f'Unexpected error creating subscription: {error_msg}')
+            return http.Response(
+                json.dumps({
+                    'status': 'error',
+                    'message': f'Une erreur s\'est produite: {error_msg}',
+                }),
+                content_type='application/json'
+            )

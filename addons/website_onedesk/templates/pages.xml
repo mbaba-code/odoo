@@ -820,4 +820,206 @@
         </t>
     </template>
 
+    <!-- ========================= -->
+    <!-- PRICING / SUBSCRIPTION PAGE -->
+    <!-- ========================= -->
+    <template id="subscription_plans" name="Subscription Plans Pricing">
+        <t t-call="website.layout">
+            <div class="container mt-5">
+                <!-- Header Section -->
+                <div class="row mb-5">
+                    <div class="col-lg-8 mx-auto text-center">
+                        <h1 class="display-4 mb-3">💰 Nos Plans d&apos;Abonnement</h1>
+                        <p class="lead text-muted">Choisissez le plan qui correspond à votre entreprise</p>
+                        <p class="text-muted">Gestion complète de vos propriétés de location avec OneDesk</p>
+                    </div>
+                </div>
+
+                <!-- Pricing Cards -->
+                <div class="row g-4 mb-5">
+                    <t t-foreach="plans" t-as="plan">
+                        <div class="col-lg-4 col-md-6">
+                            <div class="card h-100 shadow-sm border-0 plan-card">
+                                <!-- Plan Header -->
+                                <div class="card-header bg-light border-0 pt-4 pb-3">
+                                    <h5 class="card-title mb-2" t-esc="plan.name"></h5>
+                                    <p class="text-muted small mb-0" t-esc="plan.description"></p>
+                                </div>
+
+                                <div class="card-body">
+                                    <!-- Pricing -->
+                                    <div class="mb-4">
+                                        <t t-if="plan.billing_model == &apos;per_unit&apos;">
+                                            <div class="price-display">
+                                                <span class="h3" t-esc="&apos;{:.0f}€&apos;.format(plan.price_per_unit)"></span>
+                                                <span class="text-muted">/unité/mois</span>
+                                            </div>
+                                        </t>
+                                        <t t-elif="plan.billing_model == &apos;commission&apos;">
+                                            <div class="price-display">
+                                                <span class="h3" t-esc="&apos;{:.1f}%&apos;.format(plan.commission_percentage)"></span>
+                                                <span class="text-muted"> commission</span>
+                                            </div>
+                                            <small class="text-muted d-block mt-2">
+                                                Facturation
+                                                <t t-esc="dict(plan._fields[&apos;commission_period&apos;].selection).get(plan.commission_period, &apos;mensuelle&apos;)"></t>
+                                            </small>
+                                        </t>
+                                    </div>
+
+                                    <!-- Setup Fee -->
+                                    <t t-if="plan.setup_fee > 0">
+                                        <div class="alert alert-info small mb-3">
+                                            <strong>Frais de setup:</strong>
+                                            <t t-esc="&apos;{:.0f}€&apos;.format(plan.setup_fee)"></t>
+                                        </div>
+                                    </t>
+
+                                    <!-- Features List -->
+                                    <div class="features-list mb-4">
+                                        <h6 class="mb-3 text-dark">Inclus:</h6>
+                                        <ul class="list-unstyled">
+                                            <!-- Properties -->
+                                            <li class="mb-2">
+                                                <i class="fa fa-building text-success"></i>
+                                                <t t-if="plan.max_properties == -1">
+                                                    Propriétés illimitées
+                                                </t>
+                                                <t t-else="">
+                                                    Jusqu&apos;à
+                                                    <strong>
+                                                        <t t-esc="plan.max_properties"></t>
+                                                    </strong>
+                                                    propriét<t t-if="plan.max_properties > 1">és</t><t t-else="">é</t>
+                                                </t>
+                                            </li>
+
+                                            <!-- Units -->
+                                            <li class="mb-2">
+                                                <i class="fa fa-door-open text-success"></i>
+                                                <t t-if="plan.max_units == -1">
+                                                    Unités illimitées
+                                                </t>
+                                                <t t-else="">
+                                                    Jusqu&apos;à
+                                                    <strong>
+                                                        <t t-esc="plan.max_units"></t>
+                                                    </strong>
+                                                    unit<t t-if="plan.max_units > 1">és</t><t t-else="">é</t>
+                                                </t>
+                                            </li>
+
+                                            <!-- Users -->
+                                            <li class="mb-2">
+                                                <i class="fa fa-users text-success"></i>
+                                                <strong>
+                                                    <t t-esc="plan.max_users"></t>
+                                                </strong>
+                                                utilisateur<t t-if="plan.max_users > 1">s</t>
+                                            </li>
+
+                                            <!-- Support -->
+                                            <li class="mb-2">
+                                                <i class="fa fa-headset text-success"></i>
+                                                <t t-if="plan.includes_support">
+                                                    Support
+                                                    <t t-esc="dict(plan._fields[&apos;support_hours&apos;].selection).get(plan.support_hours, &apos;N/A&apos;)"></t>
+                                                </t>
+                                                <t t-else="">
+                                                    Sans support
+                                                </t>
+                                            </li>
+
+                                            <!-- Channel Manager -->
+                                            <t t-if="plan.include_channel_manager">
+                                                <li class="mb-2">
+                                                    <i class="fa fa-share-alt text-success"></i>
+                                                    Gestionnaire multi-canaux
+                                                </li>
+                                            </t>
+
+                                            <!-- Accounting -->
+                                            <t t-if="plan.include_accounting">
+                                                <li class="mb-2">
+                                                    <i class="fa fa-calculator text-success"></i>
+                                                    Module comptable
+                                                </li>
+                                            </t>
+
+                                            <!-- Analytics -->
+                                            <t t-if="plan.include_advanced_analytics">
+                                                <li class="mb-2">
+                                                    <i class="fa fa-chart-bar text-success"></i>
+                                                    Analytique avancée
+                                                </li>
+                                            </t>
+                                        </ul>
+                                    </div>
+                                </div>
+
+                                <!-- CTA Button -->
+                                <div class="card-footer bg-white border-top">
+                                    <a t-attf-href="/onedesk/subscription/{{ plan.id }}" class="btn btn-primary w-100">
+                                        Choisir ce plan →
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </div>
+
+                <!-- No Plans Message -->
+                <t t-if="not plans">
+                    <div class="alert alert-warning text-center">
+                        <p>Aucun plan d&apos;abonnement disponible pour le moment.</p>
+                        <p class="text-muted small">Veuillez nous contacter pour plus d&apos;informations.</p>
+                    </div>
+                </t>
+
+                <!-- Footer CTA -->
+                <div class="row mt-5 pt-5 border-top">
+                    <div class="col-lg-8 mx-auto text-center">
+                        <h4 class="mb-3">Des questions sur nos plans?</h4>
+                        <p class="text-muted mb-4">Notre équipe est là pour vous aider à trouver la solution idéale</p>
+                        <a href="#contact" class="btn btn-outline-primary btn-lg">
+                            <i class="fa fa-envelope"></i> Nous contacter
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Styling -->
+            <style>
+                .plan-card {
+                    transition: transform 0.3s ease, box-shadow 0.3s ease;
+                }
+
+                .plan-card:hover {
+                    transform: translateY(-5px);
+                    box-shadow: 0 1rem 2rem rgba(0, 0, 0, 0.15) !important;
+                }
+
+                .price-display {
+                    display: flex;
+                    align-items: baseline;
+                    gap: 0.5rem;
+                }
+
+                .features-list ul li {
+                    font-size: 0.95rem;
+                    color: #555;
+                }
+
+                .features-list i {
+                    width: 20px;
+                    margin-right: 8px;
+                }
+
+                .card-header {
+                    border-bottom: 1px solid #e9ecef;
+                }
+            </style>
+        </t>
+    </template>
+
 </odoo>
