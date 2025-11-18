@@ -19,3 +19,4 @@ from . import account_move
 
 # ← NOUVEAU : Overrides pour assurer la cohérence des données
 from . import res_partner_override
+from . import calendar_event_override
