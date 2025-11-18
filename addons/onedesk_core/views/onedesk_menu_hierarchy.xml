@@ -6,6 +6,7 @@
         <field name="res_model">onedesk.dashboard</field>
         <field name="view_mode">form,list,kanban,pivot</field>
         <field name="view_ids" eval="[
+            (5, 0),
             (0, 0, {'view_mode': 'form', 'view_id': ref('view_onedesk_dashboard_form')}),
             (0, 0, {'view_mode': 'list', 'view_id': ref('view_onedesk_dashboard_list')}),
             (0, 0, {'view_mode': 'kanban', 'view_id': ref('view_onedesk_dashboard_kanban')}),
