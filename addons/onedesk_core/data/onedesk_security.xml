@@ -429,4 +429,77 @@
         <field name="perm_unlink">False</field>
     </record>
 
+    <!-- ================== WEBSITE MODULE ACCESS RESTRICTIONS ================== -->
+    <!-- Deny Staff access to website module - they should not configure websites -->
+    <record id="rule_staff_website_deny" model="ir.rule">
+        <field name="name">Staff - Deny Website Access</field>
+        <field name="model_id" ref="website.model_website"/>
+        <field name="domain_force">[(1, '=', 0)]</field>
+        <field name="groups" eval="[(4, ref('group_onedesk_staff'))]"/>
+        <field name="perm_read">False</field>
+        <field name="perm_write">False</field>
+        <field name="perm_create">False</field>
+        <field name="perm_unlink">False</field>
+    </record>
+
+    <!-- Deny Viewer access to website module -->
+    <record id="rule_viewer_website_deny" model="ir.rule">
+        <field name="name">Viewer - Deny Website Access</field>
+        <field name="model_id" ref="website.model_website"/>
+        <field name="domain_force">[(1, '=', 0)]</field>
+        <field name="groups" eval="[(4, ref('group_onedesk_viewer'))]"/>
+        <field name="perm_read">False</field>
+        <field name="perm_write">False</field>
+        <field name="perm_create">False</field>
+        <field name="perm_unlink">False</field>
+    </record>
+
+    <!-- Deny Staff access to website.page -->
+    <record id="rule_staff_website_page_deny" model="ir.rule">
+        <field name="name">Staff - Deny Website Pages Access</field>
+        <field name="model_id" ref="website.model_website_page"/>
+        <field name="domain_force">[(1, '=', 0)]</field>
+        <field name="groups" eval="[(4, ref('group_onedesk_staff'))]"/>
+        <field name="perm_read">False</field>
+        <field name="perm_write">False</field>
+        <field name="perm_create">False</field>
+        <field name="perm_unlink">False</field>
+    </record>
+
+    <!-- Deny Viewer access to website.page -->
+    <record id="rule_viewer_website_page_deny" model="ir.rule">
+        <field name="name">Viewer - Deny Website Pages Access</field>
+        <field name="model_id" ref="website.model_website_page"/>
+        <field name="domain_force">[(1, '=', 0)]</field>
+        <field name="groups" eval="[(4, ref('group_onedesk_viewer'))]"/>
+        <field name="perm_read">False</field>
+        <field name="perm_write">False</field>
+        <field name="perm_create">False</field>
+        <field name="perm_unlink">False</field>
+    </record>
+
+    <!-- Deny Support access to website module -->
+    <record id="rule_support_website_deny" model="ir.rule">
+        <field name="name">Support - Deny Website Access</field>
+        <field name="model_id" ref="website.model_website"/>
+        <field name="domain_force">[(1, '=', 0)]</field>
+        <field name="groups" eval="[(4, ref('group_onedesk_support'))]"/>
+        <field name="perm_read">False</field>
+        <field name="perm_write">False</field>
+        <field name="perm_create">False</field>
+        <field name="perm_unlink">False</field>
+    </record>
+
+    <!-- Deny Support access to website.page -->
+    <record id="rule_support_website_page_deny" model="ir.rule">
+        <field name="name">Support - Deny Website Pages Access</field>
+        <field name="model_id" ref="website.model_website_page"/>
+        <field name="domain_force">[(1, '=', 0)]</field>
+        <field name="groups" eval="[(4, ref('group_onedesk_support'))]"/>
+        <field name="perm_read">False</field>
+        <field name="perm_write">False</field>
+        <field name="perm_create">False</field>
+        <field name="perm_unlink">False</field>
+    </record>
+
 </odoo>
