@@ -395,7 +395,7 @@ class OneDeskWebsite(http.Controller):
             Company = request.env['res.company']
             company = Company.search([('name', '=', company_name)], limit=1)
             if not company:
-                company = Company.create({
+                company = Company.sudo().create({
                     'name': company_name,
                     'is_onedesk_client': True,
                 })
@@ -404,7 +404,7 @@ class OneDeskWebsite(http.Controller):
             Partner = request.env['res.partner']
             partner = Partner.search([('email', '=', email)], limit=1)
             if not partner:
-                partner = Partner.create({
+                partner = Partner.sudo().create({
                     'name': contact_name,
                     'email': email,
                     'phone': phone if phone else False,
@@ -412,7 +412,7 @@ class OneDeskWebsite(http.Controller):
                 })
 
             # Crée la souscription
-            subscription = request.env['onedesk.subscription'].create({
+            subscription = request.env['onedesk.subscription'].sudo().create({
                 'company_id': company.id,
                 'plan_id': plan.id,
                 'state': 'draft',
