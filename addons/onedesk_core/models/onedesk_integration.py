@@ -519,6 +519,7 @@ class OnedeskIntegration(models.Model):
                 partner = self.env['res.partner'].sudo().create({
                     'name': 'Client externe',
                     'comment': f"Réservation importée depuis {self.provider_id.name}",
+                    'company_id': self.company_id.id,  # Assigner la compagnie
                 })
                 _logger.info(f"👤 Contact générique créé")
             except Exception as e:
@@ -699,6 +700,7 @@ class OnedeskIntegration(models.Model):
                 'email': guest_email if guest_email else False,
                 'phone': guest_phone if guest_phone else False,
                 'comment': f"Importé depuis {self.provider_id.name}",
+                'company_id': self.company_id.id,  # Assigner la compagnie
             })
             _logger.info(f"👤 Contact créé: {partner.name}")
             return partner
