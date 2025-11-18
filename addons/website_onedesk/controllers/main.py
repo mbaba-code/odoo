@@ -325,3 +325,17 @@ class OneDeskWebsite(http.Controller):
                 'available': False,
                 'message': f'Erreur: {str(e)}',
             }
+
+    # ==================== SUBSCRIPTION / PRICING ====================
+
+    @http.route('/onedesk/subscription', type='http', auth='public', website=True)
+    def subscription_plans(self, **kw):
+        """Page de plans d'abonnement"""
+        plans = request.env['onedesk.subscription.plan'].search([
+            ('active', '=', True)
+        ], order='sequence')
+
+        return request.render('website_onedesk.subscription_plans', {
+            'plans': plans,
+            'page_title': 'Plans d\'abonnement OneDesk',
+        })
