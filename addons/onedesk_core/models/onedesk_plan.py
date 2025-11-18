@@ -126,6 +126,7 @@ class OnedeskoSubscription(models.Model):
         'res.company',
         string="Société client",
         required=True,
+        default=lambda self: self.env.company,
         ondelete='cascade'
     )
     plan_id = fields.Many2one(
