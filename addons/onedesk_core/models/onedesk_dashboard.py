@@ -12,6 +12,10 @@ class OnedeaskDashboard(models.Model):
     user_id = fields.Many2one('res.users', string="User", default=lambda self: self.env.user, required=True, ondelete='cascade')
     company_id = fields.Many2one('res.company', string="Company", default=lambda self: self.env.company)
 
+    _sql_constraints = [
+        ('unique_user_company', 'unique(user_id, company_id)', 'Un utilisateur ne peut avoir qu\'un seul tableau de bord par compagnie')
+    ]
+
     # Helper method to get accessible companies based on user role
     def _get_accessible_companies(self):
         """Returns list of company IDs accessible to current user based on their role"""
@@ -253,6 +257,8 @@ class OnedeaskDashboard(models.Model):
             # Set defaults for new dashboard
             res['user_id'] = self.env.user.id
             res['company_id'] = self.env.company.id
+            res['auto_refresh'] = True
+            res['refresh_interval'] = 300  # 5 minutes default
 
         return res
 
