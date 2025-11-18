@@ -429,4 +429,66 @@
         <field name="perm_unlink">False</field>
     </record>
 
+    <!-- ================== PARTNER/CONTACT ACCESS (Multi-tenant filtering) ================== -->
+
+    <!-- Master Admin: all partners -->
+    <record id="rule_master_admin_partner" model="ir.rule">
+        <field name="name">Master Admin - All Partners</field>
+        <field name="model_id" ref="base.model_res_partner"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('group_onedesk_master_admin'))]"/>
+        <field name="perm_read">True</field>
+        <field name="perm_write">True</field>
+        <field name="perm_create">True</field>
+        <field name="perm_unlink">False</field>
+    </record>
+
+    <!-- Support: all partners (read-only) -->
+    <record id="rule_support_partner_read" model="ir.rule">
+        <field name="name">Support - Read All Partners</field>
+        <field name="model_id" ref="base.model_res_partner"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('group_onedesk_support'))]"/>
+        <field name="perm_read">True</field>
+        <field name="perm_write">False</field>
+        <field name="perm_create">False</field>
+        <field name="perm_unlink">False</field>
+    </record>
+
+    <!-- Property Manager: only their company's partners -->
+    <record id="rule_property_manager_partner" model="ir.rule">
+        <field name="name">Property Manager - Company Partners</field>
+        <field name="model_id" ref="base.model_res_partner"/>
+        <field name="domain_force">[('company_id', '=', user.company_id.id)]</field>
+        <field name="groups" eval="[(4, ref('group_onedesk_property_manager'))]"/>
+        <field name="perm_read">True</field>
+        <field name="perm_write">True</field>
+        <field name="perm_create">True</field>
+        <field name="perm_unlink">False</field>
+    </record>
+
+    <!-- Staff: only their company's partners -->
+    <record id="rule_staff_partner" model="ir.rule">
+        <field name="name">Staff - Company Partners</field>
+        <field name="model_id" ref="base.model_res_partner"/>
+        <field name="domain_force">[('company_id', '=', user.company_id.id)]</field>
+        <field name="groups" eval="[(4, ref('group_onedesk_staff'))]"/>
+        <field name="perm_read">True</field>
+        <field name="perm_write">True</field>
+        <field name="perm_create">True</field>
+        <field name="perm_unlink">False</field>
+    </record>
+
+    <!-- Viewer: only their company's partners (read-only) -->
+    <record id="rule_viewer_partner" model="ir.rule">
+        <field name="name">Viewer - Company Partners (Read-Only)</field>
+        <field name="model_id" ref="base.model_res_partner"/>
+        <field name="domain_force">[('company_id', '=', user.company_id.id)]</field>
+        <field name="groups" eval="[(4, ref('group_onedesk_viewer'))]"/>
+        <field name="perm_read">True</field>
+        <field name="perm_write">False</field>
+        <field name="perm_create">False</field>
+        <field name="perm_unlink">False</field>
+    </record>
+
 </odoo>
