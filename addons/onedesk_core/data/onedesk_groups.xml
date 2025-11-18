@@ -59,7 +59,7 @@
               name="Plans de tarification"
               parent="menu_onedesk_admin_root"
               groups="group_onedesk_master_admin"
-              action="onedesk_core.action_onedesk_subscription_plan"
+              action="onedesk_core.action_onedesk_plan"
               sequence="3"/>
 
     <menuitem id="menu_onedesk_admin_logs"
