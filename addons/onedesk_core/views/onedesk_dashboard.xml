@@ -6,7 +6,7 @@
         <field name="model">onedesk.dashboard</field>
         <field name="priority">1</field>
         <field name="arch" type="xml">
-            <form string="Tableau de bord" create="false" edit="true" delete="false">
+            <form string="Tableau de bord" create="true" edit="true" delete="false">
                 <sheet>
                     <h1 class="text-center mb-3">📊 Tableau de Bord OneDesk</h1>
 

@@ -6,7 +6,6 @@
         <field name="res_model">onedesk.dashboard</field>
         <field name="view_mode">form,list,kanban,pivot</field>
         <field name="context">{'default_user_id': uid, 'default_company_id': company_id}</field>
-        <field name="domain">[('user_id', '=', uid), ('company_id', '=', company_id)]</field>
         <field name="view_ids" eval="[
             (5, 0),
             (0, 0, {'view_mode': 'form', 'view_id': ref('view_onedesk_dashboard_form')}),
