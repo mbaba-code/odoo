@@ -110,12 +110,12 @@ class OnedeskoClient(models.Model):
 
     # Settings
     timezone = fields.Selection(
-        'tz_list',
+        selection='_get_timezones',
         string="Fuseau horaire",
         default='Europe/Paris'
     )
     language = fields.Selection(
-        'lang_list',
+        selection='_get_languages',
         string="Langue",
         default='fr_FR'
     )
@@ -161,6 +161,24 @@ class OnedeskoClient(models.Model):
         compute='_compute_usage_stats',
         readonly=True
     )
+
+    @api.model
+    def _get_timezones(self):
+        """Retourner la liste des fuseaux horaires disponibles"""
+        import pytz
+        return [(tz, tz) for tz in pytz.common_timezones]
+
+    @api.model
+    def _get_languages(self):
+        """Retourner la liste des langues disponibles"""
+        return [
+            ('fr_FR', 'Français'),
+            ('en_US', 'English'),
+            ('es_ES', 'Español'),
+            ('it_IT', 'Italiano'),
+            ('de_DE', 'Deutsch'),
+            ('pt_BR', 'Português'),
+        ]
 
     @api.model
     def create(self, vals):
