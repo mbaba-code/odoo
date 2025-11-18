@@ -159,11 +159,11 @@
                                 <!-- Features -->
                                 <ul style="list-style: none; padding: 0; margin: 0; font-size: 12px; color: #666;">
                                     <li style="padding: 4px 0;">
-                                        <i class="fa" t-attf-class="fa-{{ 'check text-success' if record.include_channel_manager.raw_value else 'times text-danger' }}"></i>
+                                        <i class="fa" t-att-class="'fa-check text-success' if record.include_channel_manager.raw_value else 'fa-times text-danger'"></i>
                                         Gestionnaire multi-canaux
                                     </li>
                                     <li style="padding: 4px 0;">
-                                        <i class="fa" t-attf-class="fa-{{ 'check text-success' if record.include_accounting.raw_value else 'times text-danger' }}"></i>
+                                        <i class="fa" t-att-class="'fa-check text-success' if record.include_accounting.raw_value else 'fa-times text-danger'"></i>
                                         Module comptable
                                     </li>
                                 </ul>
