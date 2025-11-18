@@ -15,6 +15,9 @@ class OnedeskUnit(models.Model):
         help="Entreprise (héritée de la propriété)"
     )
 
+    # ========== ARCHIVE ==========
+    active = fields.Boolean(default=True)
+
     name = fields.Char(string="Nom de l'unité", required=True)
     property_id = fields.Many2one('onedesk.property', string="Propriété", required=True)
 

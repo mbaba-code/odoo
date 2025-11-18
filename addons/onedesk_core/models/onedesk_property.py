@@ -15,6 +15,9 @@ class OnedeskProperty(models.Model):
         help="Entreprise propriétaire de cette propriété"
     )
 
+    # ========== ARCHIVE ==========
+    active = fields.Boolean(default=True)
+
     # ========== BASIC INFO ==========
     name = fields.Char(string="Nom de la propriété", required=True, tracking=True)
     address = fields.Char(string="Adresse", required=True)

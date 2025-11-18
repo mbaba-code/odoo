@@ -145,11 +145,11 @@
         <field name="perm_unlink">False</field>
     </record>
 
-    <!-- Property Manager: only their company's properties -->
+    <!-- Property Manager: only their company's active properties -->
     <record id="rule_property_manager_property" model="ir.rule">
         <field name="name">Property Manager - Company Properties</field>
         <field name="model_id" ref="model_onedesk_property"/>
-        <field name="domain_force">[('company_id', '=', user.company_id.id)]</field>
+        <field name="domain_force">[('company_id', '=', user.company_id.id), ('active', '=', True)]</field>
         <field name="groups" eval="[(4, ref('group_onedesk_property_manager'))]"/>
         <field name="perm_read">True</field>
         <field name="perm_write">True</field>
@@ -157,11 +157,11 @@
         <field name="perm_unlink">False</field>
     </record>
 
-    <!-- Staff: only their company's properties (read-only) -->
+    <!-- Staff: only their company's active properties (read-only) -->
     <record id="rule_staff_property" model="ir.rule">
         <field name="name">Staff - Company Properties (Read-Only)</field>
         <field name="model_id" ref="model_onedesk_property"/>
-        <field name="domain_force">[('company_id', '=', user.company_id.id)]</field>
+        <field name="domain_force">[('company_id', '=', user.company_id.id), ('active', '=', True)]</field>
         <field name="groups" eval="[(4, ref('group_onedesk_staff'))]"/>
         <field name="perm_read">True</field>
         <field name="perm_write">False</field>
@@ -169,11 +169,11 @@
         <field name="perm_unlink">False</field>
     </record>
 
-    <!-- Viewer: only their company's properties (read-only) -->
+    <!-- Viewer: only their company's active properties (read-only) -->
     <record id="rule_viewer_property" model="ir.rule">
         <field name="name">Viewer - Company Properties (Read-Only)</field>
         <field name="model_id" ref="model_onedesk_property"/>
-        <field name="domain_force">[('company_id', '=', user.company_id.id)]</field>
+        <field name="domain_force">[('company_id', '=', user.company_id.id), ('active', '=', True)]</field>
         <field name="groups" eval="[(4, ref('group_onedesk_viewer'))]"/>
         <field name="perm_read">True</field>
         <field name="perm_write">False</field>
@@ -207,11 +207,11 @@
         <field name="perm_unlink">False</field>
     </record>
 
-    <!-- Property Manager: only their company's units -->
+    <!-- Property Manager: only their company's active units -->
     <record id="rule_property_manager_unit" model="ir.rule">
         <field name="name">Property Manager - Company Units</field>
         <field name="model_id" ref="model_onedesk_unit"/>
-        <field name="domain_force">[('property_id.company_id', '=', user.company_id.id)]</field>
+        <field name="domain_force">[('property_id.company_id', '=', user.company_id.id), ('active', '=', True)]</field>
         <field name="groups" eval="[(4, ref('group_onedesk_property_manager'))]"/>
         <field name="perm_read">True</field>
         <field name="perm_write">True</field>
@@ -219,11 +219,11 @@
         <field name="perm_unlink">False</field>
     </record>
 
-    <!-- Staff: only their company's units (read-only) -->
+    <!-- Staff: only their company's active units (read-only) -->
     <record id="rule_staff_unit" model="ir.rule">
         <field name="name">Staff - Company Units (Read-Only)</field>
         <field name="model_id" ref="model_onedesk_unit"/>
-        <field name="domain_force">[('property_id.company_id', '=', user.company_id.id)]</field>
+        <field name="domain_force">[('property_id.company_id', '=', user.company_id.id), ('active', '=', True)]</field>
         <field name="groups" eval="[(4, ref('group_onedesk_staff'))]"/>
         <field name="perm_read">True</field>
         <field name="perm_write">False</field>
@@ -231,11 +231,11 @@
         <field name="perm_unlink">False</field>
     </record>
 
-    <!-- Viewer: only their company's units (read-only) -->
+    <!-- Viewer: only their company's active units (read-only) -->
     <record id="rule_viewer_unit" model="ir.rule">
         <field name="name">Viewer - Company Units (Read-Only)</field>
         <field name="model_id" ref="model_onedesk_unit"/>
-        <field name="domain_force">[('property_id.company_id', '=', user.company_id.id)]</field>
+        <field name="domain_force">[('property_id.company_id', '=', user.company_id.id), ('active', '=', True)]</field>
         <field name="groups" eval="[(4, ref('group_onedesk_viewer'))]"/>
         <field name="perm_read">True</field>
         <field name="perm_write">False</field>
@@ -269,11 +269,11 @@
         <field name="perm_unlink">False</field>
     </record>
 
-    <!-- Property Manager: only their company's reservations -->
+    <!-- Property Manager: only their company's active reservations -->
     <record id="rule_property_manager_reservation" model="ir.rule">
         <field name="name">Property Manager - Company Reservations</field>
         <field name="model_id" ref="model_onedesk_reservation"/>
-        <field name="domain_force">[('unit_id.property_id.company_id', '=', user.company_id.id)]</field>
+        <field name="domain_force">[('unit_id.property_id.company_id', '=', user.company_id.id), ('active', '=', True)]</field>
         <field name="groups" eval="[(4, ref('group_onedesk_property_manager'))]"/>
         <field name="perm_read">True</field>
         <field name="perm_write">True</field>
@@ -281,11 +281,11 @@
         <field name="perm_unlink">False</field>
     </record>
 
-    <!-- Staff: only their company's reservations (read-only) -->
+    <!-- Staff: only their company's active reservations (read-only) -->
     <record id="rule_staff_reservation" model="ir.rule">
         <field name="name">Staff - Company Reservations (Read-Only)</field>
         <field name="model_id" ref="model_onedesk_reservation"/>
-        <field name="domain_force">[('unit_id.property_id.company_id', '=', user.company_id.id)]</field>
+        <field name="domain_force">[('unit_id.property_id.company_id', '=', user.company_id.id), ('active', '=', True)]</field>
         <field name="groups" eval="[(4, ref('group_onedesk_staff'))]"/>
         <field name="perm_read">True</field>
         <field name="perm_write">False</field>
@@ -293,11 +293,11 @@
         <field name="perm_unlink">False</field>
     </record>
 
-    <!-- Viewer: only their company's reservations (read-only) -->
+    <!-- Viewer: only their company's active reservations (read-only) -->
     <record id="rule_viewer_reservation" model="ir.rule">
         <field name="name">Viewer - Company Reservations (Read-Only)</field>
         <field name="model_id" ref="model_onedesk_reservation"/>
-        <field name="domain_force">[('unit_id.property_id.company_id', '=', user.company_id.id)]</field>
+        <field name="domain_force">[('unit_id.property_id.company_id', '=', user.company_id.id), ('active', '=', True)]</field>
         <field name="groups" eval="[(4, ref('group_onedesk_viewer'))]"/>
         <field name="perm_read">True</field>
         <field name="perm_write">False</field>

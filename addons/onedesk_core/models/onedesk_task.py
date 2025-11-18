@@ -5,6 +5,9 @@ class OnedeskTask(models.Model):
     _description = 'Tâches du personnel'
     _rec_name = 'name'
 
+    # ========== ARCHIVE ==========
+    active = fields.Boolean(default=True)
+
     name = fields.Char(string='Nom de la tâche', required=True)
     task_type = fields.Selection([
         ('checkin', 'Check-in'),

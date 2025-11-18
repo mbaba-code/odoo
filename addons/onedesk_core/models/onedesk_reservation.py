@@ -18,6 +18,9 @@ class OneDeskReservation(models.Model):
         help="Entreprise (héritée de l'unité)"
     )
 
+    # ========== ARCHIVE ==========
+    active = fields.Boolean(default=True)
+
     # Champs de base
     name = fields.Char(string='Reservation Reference', required=True, copy=False, default='New')
     unit_id = fields.Many2one('onedesk.unit', string='Unit', required=True)
