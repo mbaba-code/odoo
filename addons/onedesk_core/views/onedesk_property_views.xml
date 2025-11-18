@@ -1,4 +1,20 @@
 <odoo>
+    <!-- Search view for filtering properties -->
+    <record id="view_property_search" model="ir.ui.view">
+        <field name="name">onedesk.property.search</field>
+        <field name="model">onedesk.property</field>
+        <field name="arch" type="xml">
+            <search string="Properties">
+                <field name="name" string="Property Name"/>
+                <field name="address" string="Address"/>
+                <field name="company_id" string="Company"/>
+                <separator/>
+                <filter string="My Company" name="my_company" domain="[('company_id', '=', user.company_id.id)]"/>
+                <filter string="All Companies" name="all_companies" domain="[(1, '=', 1)]"/>
+            </search>
+        </field>
+    </record>
+
     <!-- Liste des propriétés -->
     <record id="view_property_list" model="ir.ui.view">
         <field name="name">onedesk.property.list</field>

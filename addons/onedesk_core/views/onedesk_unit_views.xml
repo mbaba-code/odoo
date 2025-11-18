@@ -1,4 +1,20 @@
 <odoo>
+    <!-- Search view for filtering units -->
+    <record id="view_unit_search" model="ir.ui.view">
+        <field name="name">onedesk.unit.search</field>
+        <field name="model">onedesk.unit</field>
+        <field name="arch" type="xml">
+            <search string="Units">
+                <field name="name" string="Unit Name"/>
+                <field name="property_id" string="Property"/>
+                <field name="company_id" string="Company"/>
+                <separator/>
+                <filter string="My Company" name="my_company" domain="[('company_id', '=', user.company_id.id)]"/>
+                <filter string="Available" name="available" domain="[('available', '=', True)]"/>
+            </search>
+        </field>
+    </record>
+
     <record id="view_unit_list" model="ir.ui.view">
         <field name="name">onedesk.unit.list</field>
         <field name="model">onedesk.unit</field>

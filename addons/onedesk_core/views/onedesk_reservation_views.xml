@@ -1,7 +1,21 @@
 <odoo>
-    <!-- ========================= -->
-    <!-- VUES POUR LES RESERVATIONS -->
-    <!-- ========================= -->
+    <!-- Search view for filtering reservations -->
+    <record id="view_reservation_search" model="ir.ui.view">
+        <field name="name">onedesk.reservation.search</field>
+        <field name="model">onedesk.reservation</field>
+        <field name="arch" type="xml">
+            <search string="Reservations">
+                <field name="name" string="Reservation"/>
+                <field name="unit_id" string="Unit"/>
+                <field name="partner_id" string="Customer"/>
+                <field name="company_id" string="Company"/>
+                <separator/>
+                <filter string="My Company" name="my_company" domain="[('company_id', '=', user.company_id.id)]"/>
+                <filter string="Upcoming" name="upcoming" domain="[('start_date', '>=', datetime.datetime.now().date())]"/>
+                <filter string="Past" name="past" domain="[('end_date', '&lt;', datetime.datetime.now().date())]"/>
+            </search>
+        </field>
+    </record>
 
     <!-- Vue liste -->
     <record id="view_reservation_list" model="ir.ui.view">
