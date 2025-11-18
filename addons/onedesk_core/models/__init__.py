@@ -16,3 +16,6 @@ from . import onedesk_client
 from . import res_company
 from . import onedesk_audit_log
 from . import account_move
+
+# ← NOUVEAU : Overrides pour assurer la cohérence des données
+from . import res_partner_override
