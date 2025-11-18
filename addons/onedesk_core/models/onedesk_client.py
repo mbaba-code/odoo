@@ -132,9 +132,9 @@ class OnedeskoClient(models.Model):
     notify_system_alerts = fields.Boolean(string="Alertes système", default=True)
 
     # Compliance
-    accepted_tos = fields.Boolean(string="Conditions acceptées", readonly=True)
+    accepted_tos = fields.Boolean(string="Conditions acceptées")
     tos_accepted_date = fields.Date(string="Date d'acceptation des conditions", readonly=True)
-    accepted_privacy = fields.Boolean(string="Politique de confidentialité acceptée", readonly=True)
+    accepted_privacy = fields.Boolean(string="Politique de confidentialité acceptée")
     privacy_accepted_date = fields.Date(string="Date d'acceptation de la confidentialité", readonly=True)
 
     # Admin notes
