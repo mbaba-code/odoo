@@ -678,18 +678,18 @@ class OnedeskIntegration(models.Model):
 
         Partner = self.env['res.partner']
 
-        # Cherche d'abord par email
+        # Cherche d'abord par email (sudo() pour contourner les ir.rules)
         if guest_email:
-            partner = Partner.search([('email', '=', guest_email)], limit=1)
+            partner = Partner.sudo().search([('email', '=', guest_email)], limit=1)
             if partner:
                 # S'assurer que le partenaire trouvé a une company_id assignée
                 if not partner.company_id:
                     partner.sudo().write({'company_id': self.company_id.id})
                 return partner
 
-        # Puis par nom
+        # Puis par nom (sudo() pour contourner les ir.rules)
         if guest_name:
-            partner = Partner.search([('name', '=', guest_name)], limit=1)
+            partner = Partner.sudo().search([('name', '=', guest_name)], limit=1)
             if partner:
                 # S'assurer que le partenaire trouvé a une company_id assignée
                 if not partner.company_id:
