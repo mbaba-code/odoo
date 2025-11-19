@@ -121,6 +121,18 @@
 
     <!-- ================== PROPERTY ACCESS (Multi-tenant filtering) ================== -->
 
+    <!-- System Admin (Odoo native): all properties -->
+    <record id="rule_system_admin_property" model="ir.rule">
+        <field name="name">System Admin - All Properties</field>
+        <field name="model_id" ref="model_onedesk_property"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('base.group_system'))]"/>
+        <field name="perm_read">True</field>
+        <field name="perm_write">True</field>
+        <field name="perm_create">True</field>
+        <field name="perm_unlink">True</field>
+    </record>
+
     <!-- Master Admin: all properties -->
     <record id="rule_master_admin_property" model="ir.rule">
         <field name="name">Master Admin - All Properties</field>
@@ -182,6 +194,18 @@
     </record>
 
     <!-- ================== UNIT ACCESS (Multi-tenant filtering) ================== -->
+
+    <!-- System Admin (Odoo native): all units -->
+    <record id="rule_system_admin_unit" model="ir.rule">
+        <field name="name">System Admin - All Units</field>
+        <field name="model_id" ref="model_onedesk_unit"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('base.group_system'))]"/>
+        <field name="perm_read">True</field>
+        <field name="perm_write">True</field>
+        <field name="perm_create">True</field>
+        <field name="perm_unlink">True</field>
+    </record>
 
     <!-- Master Admin: all units -->
     <record id="rule_master_admin_unit" model="ir.rule">
@@ -257,6 +281,18 @@
 
     <!-- ================== RESERVATION ACCESS (Multi-tenant filtering) ================== -->
 
+    <!-- System Admin (Odoo native): all reservations -->
+    <record id="rule_system_admin_reservation" model="ir.rule">
+        <field name="name">System Admin - All Reservations</field>
+        <field name="model_id" ref="model_onedesk_reservation"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('base.group_system'))]"/>
+        <field name="perm_read">True</field>
+        <field name="perm_write">True</field>
+        <field name="perm_create">True</field>
+        <field name="perm_unlink">True</field>
+    </record>
+
     <!-- Master Admin: all reservations -->
     <record id="rule_master_admin_reservation" model="ir.rule">
         <field name="name">Master Admin - All Reservations</field>
@@ -331,6 +367,18 @@
 
     <!-- ================== TASK ACCESS (Multi-tenant filtering) ================== -->
 
+    <!-- System Admin (Odoo native): all tasks -->
+    <record id="rule_system_admin_task" model="ir.rule">
+        <field name="name">System Admin - All Tasks</field>
+        <field name="model_id" ref="model_onedesk_task"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('base.group_system'))]"/>
+        <field name="perm_read">True</field>
+        <field name="perm_write">True</field>
+        <field name="perm_create">True</field>
+        <field name="perm_unlink">True</field>
+    </record>
+
     <!-- Master Admin: all tasks -->
     <record id="rule_master_admin_task" model="ir.rule">
         <field name="name">Master Admin - All Tasks</field>
@@ -392,6 +440,18 @@
     </record>
 
     <!-- ================== INTEGRATION ACCESS (Multi-tenant filtering) ================== -->
+
+    <!-- System Admin (Odoo native): all integrations -->
+    <record id="rule_system_admin_integration" model="ir.rule">
+        <field name="name">System Admin - All Integrations</field>
+        <field name="model_id" ref="model_onedesk_integration"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('base.group_system'))]"/>
+        <field name="perm_read">True</field>
+        <field name="perm_write">True</field>
+        <field name="perm_create">True</field>
+        <field name="perm_unlink">True</field>
+    </record>
 
     <!-- Master Admin: all integrations -->
     <record id="rule_master_admin_integration" model="ir.rule">
