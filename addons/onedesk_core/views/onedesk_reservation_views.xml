@@ -321,7 +321,7 @@
         <field name="arch" type="xml">
             <calendar string="📅 Calendrier des Réservations" date_start="start_date" date_stop="end_date" color="status" mode="month" event_open_popup="true">
                 <field name="unit_id"/>
-                <field name="guest_id"/>
+                <field name="partner_id"/>
                 <field name="status"/>
                 <field name="total_price"/>
                 <field name="payment_status"/>
