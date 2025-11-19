@@ -20,9 +20,9 @@
                     <div class="dashboard-filters">
                         <group string="⏰ Sélectionnez la période d'analyse" colspan="4">
                             <field name="period_type" widget="radio" colspan="4" nolabel="1"/>
-                            <group attrs="{'invisible': [('period_type', '!=', 'custom')]}" colspan="4">
-                                <field name="date_from" string="De (From)"/>
-                                <field name="date_to" string="À (To)"/>
+                            <group colspan="4">
+                                <field name="date_from" string="De (From)" help="Utilisé uniquement si période = Personnalisée"/>
+                                <field name="date_to" string="À (To)" help="Utilisé uniquement si période = Personnalisée"/>
                             </group>
                         </group>
                     </div>
@@ -135,7 +135,7 @@
                     <group colspan="4">
                         <group col="2">
                             <field name="auto_refresh" widget="boolean" string="Auto-Rafraîchissement"/>
-                            <field name="refresh_interval" attrs="{'readonly': [('auto_refresh', '=', False)]}" string="Intervalle (secondes)"/>
+                            <field name="refresh_interval" string="Intervalle (secondes)"/>
                         </group>
                     </group>
 
