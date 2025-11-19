@@ -338,9 +338,9 @@
         <field name="view_ids" eval="[
             (5, 0),
             (0, 0, {'view_mode': 'calendar', 'view_id': ref('view_onedesk_reservation_calendar')}),
-            (0, 0, {'view_mode': 'list', 'view_id': ref('view_onedesk_reservation_list')}),
-            (0, 0, {'view_mode': 'form', 'view_id': ref('view_onedesk_reservation_form')}),
-            (0, 0, {'view_mode': 'kanban', 'view_id': ref('view_onedesk_reservation_kanban')})
+            (0, 0, {'view_mode': 'list', 'view_id': ref('view_reservation_list')}),
+            (0, 0, {'view_mode': 'form', 'view_id': ref('view_reservation_form')}),
+            (0, 0, {'view_mode': 'kanban', 'view_id': ref('view_reservation_kanban')})
         ]"/>
     </record>
 </odoo>
