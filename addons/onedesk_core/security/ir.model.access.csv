@@ -90,4 +90,7 @@ access_dashboard_users_staff,dashboard.users.staff,model_onedesk_dashboard_users
 access_dashboard_users_viewer,dashboard.users.viewer,model_onedesk_dashboard_users,onedesk_core.group_onedesk_viewer,1,0,0,0
 access_dashboard_users_admin,dashboard.users.admin,model_onedesk_dashboard_users,onedesk_core.group_onedesk_master_admin,1,1,1,1
 access_dashboard_users_support,dashboard.users.support,model_onedesk_dashboard_users,onedesk_core.group_onedesk_support,1,1,1,1
+access_res_partner_portal,res.partner.portal,base.model_res_partner,base.group_portal,1,1,1,0
+access_onedesk_reservation_portal,onedesk.reservation.portal,model_onedesk_reservation,base.group_portal,1,1,1,0
+access_onedesk_unit_portal,onedesk.unit.portal,model_onedesk_unit,base.group_portal,1,0,0,0
 
