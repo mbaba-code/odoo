@@ -256,3 +256,109 @@ class OnedeskDashboardController(http.Controller):
             'status': 'success',
             'data': user_stats
         }
+
+    @http.route('/onedesk/dashboard/period-comparison', type='json', auth='user')
+    def period_comparison(self, metric='revenue'):
+        """Compare current period with previous period"""
+        dashboard = request.env['onedesk.dashboard'].search([
+            ('user_id', '=', request.env.user.id),
+            ('company_id', '=', request.env.company.id)
+        ], limit=1)
+
+        if not dashboard:
+            return {'status': 'error', 'message': 'Dashboard not found'}
+
+        date_from, date_to = self._get_date_range(dashboard)
+        company_ids = dashboard._get_accessible_companies()
+        properties = request.env['onedesk.property'].search([('company_id', 'in', company_ids)])
+        units = request.env['onedesk.unit'].search([('property_id', 'in', properties.ids)])
+
+        # Get previous period (same length as current period)
+        period_length = (date_to - date_from).days + 1
+        prev_date_to = date_from - timedelta(days=1)
+        prev_date_from = prev_date_to - timedelta(days=period_length - 1)
+
+        # Calculate current period metric
+        if metric == 'revenue':
+            current = sum(request.env['onedesk.reservation'].search([
+                ('unit_id', 'in', units.ids),
+                ('status', '=', 'completed'),
+                ('end_date', '>=', date_from),
+                ('end_date', '<=', date_to)
+            ]).mapped('total_price'))
+
+            previous = sum(request.env['onedesk.reservation'].search([
+                ('unit_id', 'in', units.ids),
+                ('status', '=', 'completed'),
+                ('end_date', '>=', prev_date_from),
+                ('end_date', '<=', prev_date_to)
+            ]).mapped('total_price'))
+
+        elif metric == 'reservations':
+            current = request.env['onedesk.reservation'].search_count([
+                ('unit_id', 'in', units.ids),
+                ('status', 'in', ['confirmed', 'checked_in', 'completed']),
+                ('start_date', '>=', date_from),
+                ('start_date', '<=', date_to)
+            ])
+
+            previous = request.env['onedesk.reservation'].search_count([
+                ('unit_id', 'in', units.ids),
+                ('status', 'in', ['confirmed', 'checked_in', 'completed']),
+                ('start_date', '>=', prev_date_from),
+                ('start_date', '<=', prev_date_to)
+            ])
+
+        elif metric == 'occupancy':
+            current_occupied = 0
+            for unit in units:
+                if request.env['onedesk.reservation'].search_count([
+                    ('unit_id', '=', unit.id),
+                    ('status', 'in', ['confirmed', 'checked_in']),
+                    ('start_date', '<=', date_to),
+                    ('end_date', '>=', date_from)
+                ]):
+                    current_occupied += 1
+            current = (current_occupied / len(units) * 100) if units else 0
+
+            previous_occupied = 0
+            for unit in units:
+                if request.env['onedesk.reservation'].search_count([
+                    ('unit_id', '=', unit.id),
+                    ('status', 'in', ['confirmed', 'checked_in']),
+                    ('start_date', '<=', prev_date_to),
+                    ('end_date', '>=', prev_date_from)
+                ]):
+                    previous_occupied += 1
+            previous = (previous_occupied / len(units) * 100) if units else 0
+        else:
+            current = 0
+            previous = 0
+
+        # Calculate percentage change
+        if previous > 0:
+            percentage_change = ((current - previous) / previous * 100)
+        else:
+            percentage_change = 0 if current == 0 else 100
+
+        # Determine trend indicator
+        if percentage_change > 0:
+            trend = '↑'
+            trend_class = 'positive'
+        elif percentage_change < 0:
+            trend = '↓'
+            trend_class = 'negative'
+        else:
+            trend = '→'
+            trend_class = 'neutral'
+
+        return {
+            'status': 'success',
+            'metric': metric,
+            'current_value': round(current, 2),
+            'previous_value': round(previous, 2),
+            'percentage_change': round(percentage_change, 2),
+            'trend': trend,
+            'trend_class': trend_class,
+            'period_length': period_length
+        }
