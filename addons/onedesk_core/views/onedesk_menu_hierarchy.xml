@@ -1,19 +1,37 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <!-- DASHBOARD ACTIONS -->
-    <record id="action_onedesk_dashboard" model="ir.actions.act_window">
+    <!-- DASHBOARD SERVER ACTION -->
+    <record id="action_onedesk_dashboard" model="ir.actions.server">
         <field name="name">Tableau de bord</field>
-        <field name="res_model">onedesk.dashboard</field>
-        <field name="view_mode">form,list,kanban,pivot</field>
-        <field name="context">{'default_user_id': uid, 'search_default_user_id': uid}</field>
-        <field name="domain">[('user_id', '=', uid)]</field>
-        <field name="view_ids" eval="[
-            (5, 0),
-            (0, 0, {'view_mode': 'form', 'view_id': ref('view_onedesk_dashboard_form')}),
-            (0, 0, {'view_mode': 'list', 'view_id': ref('view_onedesk_dashboard_list')}),
-            (0, 0, {'view_mode': 'kanban', 'view_id': ref('view_onedesk_dashboard_kanban')}),
-            (0, 0, {'view_mode': 'pivot', 'view_id': ref('view_onedesk_dashboard_pivot')})
-        ]"/>
+        <field name="type">ir.actions.server</field>
+        <field name="model_id" ref="model_onedesk_dashboard"/>
+        <field name="code">
+dashboard = env['onedesk.dashboard'].search([
+    ('user_id', '=', env.user.id),
+    ('company_id', '=', env.company.id)
+], limit=1)
+
+if not dashboard:
+    dashboard = env['onedesk.dashboard'].create({
+        'user_id': env.user.id,
+        'company_id': env.company.id,
+        'auto_refresh': True,
+        'refresh_interval': 300
+    })
+
+action = {
+    'type': 'ir.actions.act_window',
+    'res_model': 'onedesk.dashboard',
+    'res_id': dashboard.id,
+    'view_mode': 'form,list,kanban,pivot',
+    'views': [
+        (env.ref('onedesk_core.view_onedesk_dashboard_form').id, 'form'),
+        (env.ref('onedesk_core.view_onedesk_dashboard_list').id, 'list'),
+        (env.ref('onedesk_core.view_onedesk_dashboard_kanban').id, 'kanban'),
+        (env.ref('onedesk_core.view_onedesk_dashboard_pivot').id, 'pivot'),
+    ]
+}
+        </field>
     </record>
 
     <!-- SUBSCRIPTION PLAN ACTION -->
