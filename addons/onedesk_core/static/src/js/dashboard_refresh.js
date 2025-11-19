@@ -4,41 +4,6 @@ odoo.define('onedesk_core.dashboard_refresh', function(require) {
     const rpc = require('web.rpc');
     const Widget = require('web.Widget');
     const FormController = require('web.FormController');
-    const session = require('web.session');
-
-    // Intercept dashboard list view to auto-open form view
-    const ListView = require('web.ListView');
-    const originalListView = ListView.prototype.init;
-
-    ListView.prototype.init = function(parent, dataset, columns, options) {
-        originalListView.call(this, parent, dataset, columns, options);
-
-        // If this is the dashboard list view
-        if (this.model === 'onedesk.dashboard') {
-            // Store reference to parent view controller to handle redirect
-            this.dashboardListView = true;
-        }
-    };
-
-    const ListController = require('web.ListController');
-    const originalListControllerRender = ListController.prototype.render;
-
-    ListController.prototype.render = function() {
-        const result = originalListControllerRender.call(this);
-
-        // If this is dashboard list view, check if there's only one record
-        if (this.model === 'onedesk.dashboard') {
-            setTimeout(() => {
-                const rows = this.$('.o_list_table tbody tr');
-                if (rows.length === 1) {
-                    // Click the row to open the form view
-                    rows.first().click();
-                }
-            }, 100);
-        }
-
-        return result;
-    };
 
     /**
      * OneDesk Dashboard Auto-Refresh Module
