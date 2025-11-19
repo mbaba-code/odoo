@@ -273,10 +273,21 @@ class OnedeaskDashboard(models.Model):
         if not dashboard:
             dashboard = self.create({
                 'user_id': self.env.user.id,
-                'company_id': self.env.company.id
+                'company_id': self.env.company.id,
+                'auto_refresh': True,
+                'refresh_interval': 300
             })
 
         return dashboard
+
+    @api.model
+    def web_search_read(self, domain=None, fields=None, offset=0, limit=None, order=None):
+        """Override web_search_read to auto-create dashboard if needed"""
+        # Ensure user has a dashboard before loading list view
+        self.get_user_dashboard()
+
+        # Call parent method
+        return super().web_search_read(domain=domain, fields=fields, offset=offset, limit=limit, order=order)
 
     def get_dashboard_data(self):
         """Get all dashboard data for real-time refresh"""
