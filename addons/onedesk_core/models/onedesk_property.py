@@ -128,3 +128,62 @@ class OnedeskProperty(models.Model):
                     record.unit_ids.mapped('occupancy_percentage')
                 ) / len(record.unit_ids)
                 record.total_occupancy_percentage = avg_occupancy
+
+
+    # ==================== PROPERTY PERFORMANCE METRICS ====================
+    @api.model
+    def get_property_ranking(self, limit=10, order_by='revenue'):
+        """Get properties ranked by performance"""
+        properties = self.env['onedesk.property'].search([], order='create_date desc')
+
+        ranking_data = []
+        for prop in properties:
+            units = self.env['onedesk.unit'].search([('property_id', '=', prop.id)])
+            
+            # Revenue this month
+            today = datetime.now()
+            month_start = today.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+            month_revenue = sum(self.env['onedesk.reservation'].search([
+                ('unit_id', 'in', units.ids),
+                ('status', '=', 'completed'),
+                ('end_date', '>=', month_start)
+            ]).mapped('total_price'))
+
+            # Occupancy rate
+            occupied_units = 0
+            for unit in units:
+                if self.env['onedesk.reservation'].search_count([
+                    ('unit_id', '=', unit.id),
+                    ('status', 'in', ['confirmed', 'checked_in']),
+                    ('start_date', '<=', today.date()),
+                    ('end_date', '>=', today.date())
+                ]):
+                    occupied_units += 1
+            
+            occupancy_rate = (occupied_units / len(units) * 100) if units else 0
+
+            # Total reservations
+            total_reservations = self.env['onedesk.reservation'].search_count([
+                ('unit_id', 'in', units.ids),
+                ('status', 'in', ['confirmed', 'checked_in', 'completed'])
+            ])
+
+            ranking_data.append({
+                'id': prop.id,
+                'name': prop.name,
+                'revenue_month': month_revenue,
+                'occupancy_rate': occupancy_rate,
+                'total_reservations': total_reservations,
+                'active_units': len(units.filtered('active')),
+                'total_units': len(units),
+            })
+
+        # Sort by order_by parameter
+        if order_by == 'revenue':
+            ranking_data.sort(key=lambda x: x['revenue_month'], reverse=True)
+        elif order_by == 'occupancy':
+            ranking_data.sort(key=lambda x: x['occupancy_rate'], reverse=True)
+        elif order_by == 'reservations':
+            ranking_data.sort(key=lambda x: x['total_reservations'], reverse=True)
+
+        return ranking_data[:limit]

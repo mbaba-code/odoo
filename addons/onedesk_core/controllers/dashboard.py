@@ -185,3 +185,74 @@ class OnedeskDashboardController(http.Controller):
             'data': data,
             'period': dashboard.period_type
         }
+
+    @http.route('/onedesk/dashboard/properties-ranking', type='json', auth='user')
+    def properties_ranking(self, order_by='revenue'):
+        """Get property ranking by performance"""
+        try:
+            ranking = request.env['onedesk.property'].get_property_ranking(limit=10, order_by=order_by)
+            return {
+                'status': 'success',
+                'data': ranking
+            }
+        except Exception as e:
+            return {
+                'status': 'error',
+                'message': str(e)
+            }
+
+    @http.route('/onedesk/dashboard/user-activity', type='json', auth='user')
+    def user_activity(self):
+        """Get user activity and productivity metrics"""
+        company_ids = request.env['onedesk.dashboard'].search([
+            ('user_id', '=', request.env.user.id),
+            ('company_id', '=', request.env.company.id)
+        ], limit=1)._get_accessible_companies()
+
+        today = datetime.now().date()
+        month_start = datetime.now().replace(day=1).date()
+
+        # Get all users with reservations in accessible companies
+        all_users = request.env['res.users'].search([
+            ('company_id', 'in', company_ids),
+            ('active', '=', True)
+        ])
+
+        user_stats = []
+        for user in all_users[:20]:  # Top 20 active users
+            # Reservations created by user this month
+            reservations_created = request.env['onedesk.reservation'].search_count([
+                ('create_uid', '=', user.id),
+                ('create_date', '>=', month_start)
+            ])
+
+            # Tasks created by user this month
+            tasks_created = request.env['onedesk.task'].search_count([
+                ('create_uid', '=', user.id),
+                ('create_date', '>=', month_start)
+            ])
+
+            # Tasks completed by user this month
+            tasks_completed = request.env['onedesk.task'].search_count([
+                ('user_id', '=', user.id),
+                ('status', '=', 'done'),
+                ('write_date', '>=', month_start)
+            ])
+
+            if reservations_created > 0 or tasks_created > 0 or tasks_completed > 0:
+                user_stats.append({
+                    'user_id': user.id,
+                    'user_name': user.name,
+                    'reservations_created': reservations_created,
+                    'tasks_created': tasks_created,
+                    'tasks_completed': tasks_completed,
+                    'productivity_score': (reservations_created * 10) + (tasks_created * 5) + (tasks_completed * 7)
+                })
+
+        # Sort by productivity score
+        user_stats.sort(key=lambda x: x['productivity_score'], reverse=True)
+
+        return {
+            'status': 'success',
+            'data': user_stats
+        }

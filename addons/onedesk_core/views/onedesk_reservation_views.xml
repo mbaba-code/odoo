@@ -313,3 +313,35 @@
         </field>
     </record>
 </odoo>
+
+    <!-- Reservations Calendar View - Professional Schedule -->
+    <record id="view_onedesk_reservation_calendar" model="ir.ui.view">
+        <field name="name">OneDesk Reservations Calendar</field>
+        <field name="model">onedesk.reservation</field>
+        <field name="priority">25</field>
+        <field name="arch" type="xml">
+            <calendar string="📅 Calendrier des Réservations" date_start="start_date" date_stop="end_date" color="status" mode="month" event_open_popup="true">
+                <field name="unit_id"/>
+                <field name="guest_id"/>
+                <field name="status"/>
+                <field name="total_price"/>
+                <field name="payment_status"/>
+            </calendar>
+        </field>
+    </record>
+
+    <!-- Reservations Calendar Action -->
+    <record id="action_reservation_calendar" model="ir.actions.act_window">
+        <field name="name">Calendrier des Réservations</field>
+        <field name="res_model">onedesk.reservation</field>
+        <field name="view_mode">calendar,list,form,kanban</field>
+        <field name="context">{'default_status': 'confirmed'}</field>
+        <field name="view_ids" eval="[
+            (5, 0),
+            (0, 0, {'view_mode': 'calendar', 'view_id': ref('view_onedesk_reservation_calendar')}),
+            (0, 0, {'view_mode': 'list', 'view_id': ref('view_onedesk_reservation_list')}),
+            (0, 0, {'view_mode': 'form', 'view_id': ref('view_onedesk_reservation_form')}),
+            (0, 0, {'view_mode': 'kanban', 'view_id': ref('view_onedesk_reservation_kanban')})
+        ]"/>
+    </record>
+
