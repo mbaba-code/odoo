@@ -84,7 +84,7 @@
     <record id="action_onedesk_reservation" model="ir.actions.act_window">
         <field name="name">All Reservations</field>
         <field name="res_model">onedesk.reservation</field>
-        <field name="view_mode">kanban,list,form</field>
+        <field name="view_mode">kanban,list,form,calendar,graph,pivot</field>
     </record>
 
     <!-- By Status -->

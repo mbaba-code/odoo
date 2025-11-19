@@ -210,7 +210,7 @@
     <record id="action_onedesk_property" model="ir.actions.act_window">
         <field name="name">Properties</field>
         <field name="res_model">onedesk.property</field>
-        <field name="view_mode">kanban,list,form</field>
+        <field name="view_mode">kanban,list,form,calendar,graph,pivot</field>
     </record>
 
     <!-- Sous-menu Propriétés -->
@@ -227,5 +227,29 @@
         </calendar>
     </field>
 </record>
+
+    <!-- Graph View for Property Analysis -->
+    <record id="view_property_graph" model="ir.ui.view">
+        <field name="name">onedesk.property.graph</field>
+        <field name="model">onedesk.property</field>
+        <field name="arch" type="xml">
+            <graph string="Propriétés" type="bar">
+                <field name="property_type" type="row"/>
+                <field name="total_units" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <!-- Pivot View for Property Analysis -->
+    <record id="view_property_pivot" model="ir.ui.view">
+        <field name="name">onedesk.property.pivot</field>
+        <field name="model">onedesk.property</field>
+        <field name="arch" type="xml">
+            <pivot string="Propriétés">
+                <field name="property_type" type="row"/>
+                <field name="total_units" type="measure"/>
+            </pivot>
+        </field>
+    </record>
 
 </odoo>

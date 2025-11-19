@@ -343,4 +343,30 @@
             (0, 0, {'view_mode': 'kanban', 'view_id': ref('view_reservation_kanban')})
         ]"/>
     </record>
+
+    <!-- Graph View for Analytics -->
+    <record id="view_reservation_graph" model="ir.ui.view">
+        <field name="name">onedesk.reservation.graph</field>
+        <field name="model">onedesk.reservation</field>
+        <field name="arch" type="xml">
+            <graph string="Réservations" type="bar">
+                <field name="unit_id" type="row"/>
+                <field name="total_price" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <!-- Pivot View for Analysis -->
+    <record id="view_reservation_pivot" model="ir.ui.view">
+        <field name="name">onedesk.reservation.pivot</field>
+        <field name="model">onedesk.reservation</field>
+        <field name="arch" type="xml">
+            <pivot string="Réservations">
+                <field name="start_date" type="row" interval="month"/>
+                <field name="unit_id" type="column"/>
+                <field name="total_price" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
 </odoo>

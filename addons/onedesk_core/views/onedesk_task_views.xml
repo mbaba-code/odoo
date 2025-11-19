@@ -41,7 +41,7 @@
     <record id="action_onedesk_task" model="ir.actions.act_window">
         <field name="name">Tâches</field>
         <field name="res_model">onedesk.task</field>
-        <field name="view_mode">list,form,calendar</field>
+        <field name="view_mode">kanban,list,form,calendar,graph,pivot</field>
     </record>
 
     <!-- Sous-menu sous OneDesk -->
@@ -61,4 +61,56 @@
             </calendar>
         </field>
     </record>
+
+    <!-- Kanban View for Task Management -->
+    <record id="view_onedesk_task_kanban" model="ir.ui.view">
+        <field name="name">onedesk.task.kanban</field>
+        <field name="model">onedesk.task</field>
+        <field name="arch" type="xml">
+            <kanban string="Tâches" default_group_by="status">
+                <field name="id"/>
+                <field name="name"/>
+                <field name="status"/>
+                <field name="assigned_to"/>
+                <field name="priority"/>
+                <templates>
+                    <t t-name="card">
+                        <div class="oe_kanban_card">
+                            <div class="oe_kanban_global_click">
+                                <h4><field name="name"/></h4>
+                                <div>Assigné à: <field name="assigned_to"/></div>
+                                <div>Priorité: <field name="priority"/></div>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- Graph View for Task Analytics -->
+    <record id="view_onedesk_task_graph" model="ir.ui.view">
+        <field name="name">onedesk.task.graph</field>
+        <field name="model">onedesk.task</field>
+        <field name="arch" type="xml">
+            <graph string="Tâches" type="bar">
+                <field name="status" type="row"/>
+                <field name="id" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <!-- Pivot View for Task Analysis -->
+    <record id="view_onedesk_task_pivot" model="ir.ui.view">
+        <field name="name">onedesk.task.pivot</field>
+        <field name="model">onedesk.task</field>
+        <field name="arch" type="xml">
+            <pivot string="Tâches">
+                <field name="status" type="row"/>
+                <field name="assigned_to" type="column"/>
+                <field name="id" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
 </odoo>
