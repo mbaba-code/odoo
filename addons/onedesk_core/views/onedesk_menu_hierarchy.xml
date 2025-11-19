@@ -268,6 +268,31 @@
               parent="menu_onedesk_root"
               sequence="5"/>
 
+    <!-- Dashboard Menu Items -->
+    <menuitem id="menu_dashboard_sales"
+              name="Sales"
+              parent="menu_onedesk_dashboards"
+              action="action_dashboard_sales"
+              sequence="10"/>
+
+    <menuitem id="menu_dashboard_reservations"
+              name="Reservations"
+              parent="menu_onedesk_dashboards"
+              action="action_dashboard_reservations"
+              sequence="20"/>
+
+    <menuitem id="menu_dashboard_properties"
+              name="Properties"
+              parent="menu_onedesk_dashboards"
+              action="action_dashboard_properties"
+              sequence="30"/>
+
+    <menuitem id="menu_dashboard_users"
+              name="Users &amp; Team"
+              parent="menu_onedesk_dashboards"
+              action="action_dashboard_users"
+              sequence="40"/>
+
     <!-- PROPERTIES MENU -->
     <menuitem id="menu_onedesk_property"
               name="🏠 Properties"

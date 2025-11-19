@@ -248,9 +248,4 @@
         </field>
     </record>
 
-    <!-- ========================================
-         RESERVATIONS DASHBOARD - MENU ITEM
-         ======================================== -->
-    <menuitem id="menu_dashboard_reservations" parent="menu_onedesk_dashboards" name="Reservations" action="action_dashboard_reservations" sequence="20"/>
-
 </odoo>

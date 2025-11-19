@@ -239,9 +239,4 @@
         </field>
     </record>
 
-    <!-- ========================================
-         SALES DASHBOARD - MENU ITEM
-         ======================================== -->
-    <menuitem id="menu_dashboard_sales" parent="menu_onedesk_dashboards" name="Sales" action="action_dashboard_sales" sequence="10"/>
-
 </odoo>

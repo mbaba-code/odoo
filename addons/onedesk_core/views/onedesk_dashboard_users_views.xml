@@ -271,9 +271,4 @@
         </field>
     </record>
 
-    <!-- ========================================
-         USERS DASHBOARD - MENU ITEM
-         ======================================== -->
-    <menuitem id="menu_dashboard_users" parent="menu_onedesk_dashboards" name="Users &amp; Team" action="action_dashboard_users" sequence="40"/>
-
 </odoo>
