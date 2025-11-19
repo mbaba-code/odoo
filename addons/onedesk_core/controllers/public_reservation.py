@@ -22,8 +22,18 @@ class PublicReservationController(http.Controller):
         Unit = request.env['onedesk.unit'].sudo()
         units = Unit.search([('active', '=', True)])
 
+        # Pré-charger les noms des propriétés pour éviter les vérifications de permission dans le template
+        units_data = [
+            {
+                'id': unit.id,
+                'name': unit.name,
+                'property_name': unit.property_id.name,
+            }
+            for unit in units
+        ]
+
         return request.render('onedesk_core.public_reservation_form_template', {
-            'units': units,
+            'units': units_data,
         })
 
     @http.route('/onedesk/public/reservation/create', type='json', auth='public', csrf=False)
@@ -200,15 +210,18 @@ class PublicReservationController(http.Controller):
         Unit = request.env['onedesk.unit'].sudo()
         units = Unit.search([('active', '=', True)])
 
+        # Pré-charger les données pour éviter les vérifications de permission
+        units_data = [
+            {
+                'id': unit.id,
+                'name': unit.name,
+                'property': unit.property_id.name,
+                'price': unit.nightly_price,
+            }
+            for unit in units
+        ]
+
         return {
             'status': 'success',
-            'units': [
-                {
-                    'id': unit.id,
-                    'name': unit.name,
-                    'property': unit.property_id.name,
-                    'price': unit.nightly_price,
-                }
-                for unit in units
-            ]
+            'units': units_data
         }

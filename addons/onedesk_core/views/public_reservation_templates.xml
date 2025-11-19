@@ -42,8 +42,8 @@
                                 <select class="form-select" id="unit_id" name="unit_id" required="required">
                                     <option value="">-- Sélectionner une unité --</option>
                                     <t t-foreach="units" t-as="unit">
-                                        <option t-att-value="unit.id">
-                                            <t t-esc="unit.name"/> - <t t-esc="unit.property_id.name"/>
+                                        <option t-att-value="unit['id']">
+                                            <t t-esc="unit['name']"/> - <t t-esc="unit['property_name']"/>
                                         </option>
                                     </t>
                                 </select>
