@@ -312,7 +312,6 @@
             </p>
         </field>
     </record>
-</odoo>
 
     <!-- Reservations Calendar View - Professional Schedule -->
     <record id="view_onedesk_reservation_calendar" model="ir.ui.view">
@@ -344,4 +343,4 @@
             (0, 0, {'view_mode': 'kanban', 'view_id': ref('view_onedesk_reservation_kanban')})
         ]"/>
     </record>
-
+</odoo>
