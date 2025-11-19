@@ -27,7 +27,7 @@ class PublicReservationController(http.Controller):
             {
                 'id': unit.id,
                 'name': unit.name,
-                'property_name': unit.property_id.name,
+                'property_name': unit.sudo().property_id.sudo().name,
             }
             for unit in units
         ]
@@ -215,7 +215,7 @@ class PublicReservationController(http.Controller):
             {
                 'id': unit.id,
                 'name': unit.name,
-                'property': unit.property_id.name,
+                'property': unit.sudo().property_id.sudo().name,
                 'price': unit.nightly_price,
             }
             for unit in units
