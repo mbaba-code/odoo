@@ -8,7 +8,7 @@
                     <div class="col-lg-8 offset-lg-2">
                         <h1 class="mb-4">Réserver une unité</h1>
 
-                        <form id="reservation_form" class="needs-validation" novalidate>
+                        <form id="reservation_form" class="needs-validation" novalidate="novalidate">
                             <div class="row">
                                 <div class="col-md-6">
                                     <div class="form-group mb-3">
