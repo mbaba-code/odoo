@@ -93,4 +93,11 @@ access_dashboard_users_support,dashboard.users.support,model_onedesk_dashboard_u
 access_res_partner_portal,res.partner.portal,base.model_res_partner,base.group_portal,1,1,1,0
 access_onedesk_reservation_portal,onedesk.reservation.portal,model_onedesk_reservation,base.group_portal,1,1,1,0
 access_onedesk_unit_portal,onedesk.unit.portal,model_onedesk_unit,base.group_portal,1,0,0,0
+access_onedesk_property_portal,onedesk.property.portal,model_onedesk_property,base.group_portal,1,0,0,0
+access_onedesk_property_system,onedesk.property.system,model_onedesk_property,base.group_system,1,1,1,1
+access_onedesk_property_master_admin,onedesk.property.master_admin,model_onedesk_property,onedesk_core.group_onedesk_master_admin,1,1,1,1
+access_onedesk_unit_system,onedesk.unit.system,model_onedesk_unit,base.group_system,1,1,1,1
+access_onedesk_unit_master_admin,onedesk.unit.master_admin,model_onedesk_unit,onedesk_core.group_onedesk_master_admin,1,1,1,1
+access_res_partner_system,res.partner.system,base.model_res_partner,base.group_system,1,1,1,1
+access_res_partner_master_admin,res.partner.master_admin,base.model_res_partner,onedesk_core.group_onedesk_master_admin,1,1,1,1
 
