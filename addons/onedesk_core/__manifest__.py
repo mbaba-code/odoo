@@ -36,6 +36,7 @@
     'views/onedesk_integration_views.xml',
     'views/onedesk_integration_menu.xml',
     'views/oauth_templates.xml',
+    'views/public_reservation_templates.xml',
 
     # Multi-tenant views (admin)
     'views/onedesk_plan_views.xml',

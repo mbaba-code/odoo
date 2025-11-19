@@ -1,0 +1,220 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- PUBLIC RESERVATION FORM TEMPLATE -->
+    <template id="public_reservation_form_template" name="Public Reservation Form">
+        <t t-call="website.layout">
+            <div class="container mt-4">
+                <div class="row">
+                    <div class="col-lg-8 offset-lg-2">
+                        <h1 class="mb-4">Réserver une unité</h1>
+
+                        <form id="reservation_form" class="needs-validation" novalidate>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group mb-3">
+                                        <label for="first_name" class="form-label">Prénom</label>
+                                        <input type="text" class="form-control" id="first_name" name="first_name" required/>
+                                        <div class="invalid-feedback">Le prénom est requis.</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group mb-3">
+                                        <label for="last_name" class="form-label">Nom</label>
+                                        <input type="text" class="form-control" id="last_name" name="last_name" required/>
+                                        <div class="invalid-feedback">Le nom est requis.</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-group mb-3">
+                                <label for="email" class="form-label">Email</label>
+                                <input type="email" class="form-control" id="email" name="email" required/>
+                                <div class="invalid-feedback">Un email valide est requis.</div>
+                            </div>
+
+                            <div class="form-group mb-3">
+                                <label for="phone" class="form-label">Téléphone (optionnel)</label>
+                                <input type="tel" class="form-control" id="phone" name="phone"/>
+                            </div>
+
+                            <div class="form-group mb-3">
+                                <label for="unit_id" class="form-label">Unité</label>
+                                <select class="form-select" id="unit_id" name="unit_id" required>
+                                    <option value="">-- Sélectionner une unité --</option>
+                                    <t t-foreach="units" t-as="unit">
+                                        <option t-att-value="unit.id">
+                                            <t t-esc="unit.name"/> - <t t-esc="unit.property_id.name"/>
+                                        </option>
+                                    </t>
+                                </select>
+                                <div class="invalid-feedback">Veuillez sélectionner une unité.</div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group mb-3">
+                                        <label for="start_date" class="form-label">Date d'arrivée</label>
+                                        <input type="date" class="form-control" id="start_date" name="start_date" required/>
+                                        <div class="invalid-feedback">Une date de début est requise.</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group mb-3">
+                                        <label for="end_date" class="form-label">Date de départ</label>
+                                        <input type="date" class="form-control" id="end_date" name="end_date" required/>
+                                        <div class="invalid-feedback">Une date de fin est requise.</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-group mb-3">
+                                <label for="guest_notes" class="form-label">Notes additionnelles (optionnel)</label>
+                                <textarea class="form-control" id="guest_notes" name="guest_notes" rows="4"></textarea>
+                            </div>
+
+                            <div id="error_message" class="alert alert-danger" role="alert" style="display: none;"></div>
+                            <div id="success_message" class="alert alert-success" role="alert" style="display: none;"></div>
+
+                            <button type="submit" class="btn btn-primary btn-lg w-100">Soumettre la réservation</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <script>
+                document.getElementById('reservation_form').addEventListener('submit', function(e) {
+                    e.preventDefault();
+
+                    // Valider le formulaire
+                    if (!this.checkValidity() === false) {
+                        e.stopPropagation();
+                    }
+
+                    this.classList.add('was-validated');
+
+                    if (!this.checkValidity()) {
+                        return;
+                    }
+
+                    // Recueillir les données du formulaire
+                    const formData = {
+                        first_name: document.getElementById('first_name').value,
+                        last_name: document.getElementById('last_name').value,
+                        email: document.getElementById('email').value,
+                        phone: document.getElementById('phone').value,
+                        unit_id: document.getElementById('unit_id').value,
+                        start_date: document.getElementById('start_date').value,
+                        end_date: document.getElementById('end_date').value,
+                        guest_notes: document.getElementById('guest_notes').value,
+                    };
+
+                    // Envoyer la requête
+                    fetch('/onedesk/public/reservation/create', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(formData),
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        const errorMsg = document.getElementById('error_message');
+                        const successMsg = document.getElementById('success_message');
+
+                        if (data.status === 'success') {
+                            successMsg.textContent = data.message;
+                            successMsg.style.display = 'block';
+                            errorMsg.style.display = 'none';
+
+                            // Rediriger après 3 secondes
+                            setTimeout(() => {
+                                window.location.href = data.redirect_url;
+                            }, 3000);
+                        } else {
+                            errorMsg.textContent = data.message;
+                            errorMsg.style.display = 'block';
+                            successMsg.style.display = 'none';
+                        }
+                    })
+                    .catch(error => {
+                        document.getElementById('error_message').textContent = 'Une erreur est survenue: ' + error;
+                        document.getElementById('error_message').style.display = 'block';
+                    });
+                });
+            </script>
+        </t>
+    </template>
+
+    <!-- PUBLIC RESERVATION CONFIRMATION TEMPLATE -->
+    <template id="public_reservation_confirm_template" name="Reservation Confirmation">
+        <t t-call="website.layout">
+            <div class="container mt-5">
+                <div class="row">
+                    <div class="col-lg-8 offset-lg-2">
+                        <div class="alert alert-success" role="alert">
+                            <h4 class="alert-heading">Réservation confirmée!</h4>
+                            <p>Votre réservation a été créée avec succès. Un email de confirmation a été envoyé à <strong><t t-esc="partner.email"/></strong></p>
+                        </div>
+
+                        <h2 class="mb-4">Détails de votre réservation</h2>
+
+                        <div class="card">
+                            <div class="card-body">
+                                <p>
+                                    <strong>Numéro de réservation:</strong> <t t-esc="reservation.name"/>
+                                </p>
+                                <p>
+                                    <strong>Client:</strong> <t t-esc="partner.name"/>
+                                </p>
+                                <p>
+                                    <strong>Unité:</strong> <t t-esc="unit.name"/>
+                                </p>
+                                <p>
+                                    <strong>Propriété:</strong> <t t-esc="unit.property_id.name"/>
+                                </p>
+                                <p>
+                                    <strong>Date d'arrivée:</strong> <t t-esc="reservation.start_date.strftime('%d/%m/%Y %H:%M')"/>
+                                </p>
+                                <p>
+                                    <strong>Date de départ:</strong> <t t-esc="reservation.end_date.strftime('%d/%m/%Y %H:%M')"/>
+                                </p>
+                                <p>
+                                    <strong>Nombre de nuits:</strong> <t t-esc="reservation.number_of_nights"/>
+                                </p>
+                                <p>
+                                    <strong>Prix total:</strong> <t t-esc="reservation.total_price"/> €
+                                </p>
+                                <p>
+                                    <strong>Statut:</strong> <t t-esc="reservation.status"/>
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="mt-4">
+                            <p>Vous recevrez bientôt les modalités de paiement par email.</p>
+                            <a href="/" class="btn btn-primary">Retour à l'accueil</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <!-- RESERVATION NOT FOUND TEMPLATE -->
+    <template id="reservation_not_found_template" name="Reservation Not Found">
+        <t t-call="website.layout">
+            <div class="container mt-5">
+                <div class="row">
+                    <div class="col-lg-8 offset-lg-2">
+                        <div class="alert alert-danger" role="alert">
+                            <h4 class="alert-heading">Erreur</h4>
+                            <p><t t-esc="message"/></p>
+                        </div>
+                        <a href="/" class="btn btn-primary">Retour à l'accueil</a>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+
+</odoo>
