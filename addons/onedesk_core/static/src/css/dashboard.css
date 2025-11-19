@@ -203,6 +203,24 @@
     gap: 0.75rem;
 }
 
+/* ==================== CHARTS SECTION ==================== */
+.charts-section {
+    border-left-color: #667eea !important;
+}
+
+.charts-section #revenue-chart-container,
+.charts-section #occupancy-chart-container,
+.charts-section #reservations-chart-container {
+    background: #f9fafb;
+    border-radius: 8px;
+    padding: 1rem;
+    border: 1px solid #e8eaed;
+}
+
+.charts-section canvas {
+    max-height: 300px;
+}
+
 /* Dashboard Update Time */
 .dashboard-update-time {
     font-weight: bold;

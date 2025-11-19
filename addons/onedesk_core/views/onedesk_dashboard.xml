@@ -153,6 +153,33 @@
                         </group>
                     </group>
 
+                    <!-- ==================== CHARTS SECTION ==================== -->
+                    <separator string="📈 Graphiques &amp; Analyses"/>
+
+                    <!-- Revenue Chart -->
+                    <div class="dashboard-section charts-section" data-widget="show_revenue_chart">
+                        <h2 class="section-title">💰 Tendance des Revenus</h2>
+                        <div id="revenue-chart-container" style="position: relative; height: 300px; padding: 15px;">
+                            <canvas style="max-height: 300px;"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Occupancy Chart -->
+                    <div class="dashboard-section charts-section" data-widget="show_occupancy_chart">
+                        <h2 class="section-title">📊 Taux d'Occupation par Propriété</h2>
+                        <div id="occupancy-chart-container" style="position: relative; height: 300px; padding: 15px;">
+                            <canvas style="max-height: 300px;"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Reservations Chart -->
+                    <div class="dashboard-section charts-section">
+                        <h2 class="section-title">📅 Réservations par Statut</h2>
+                        <div id="reservations-chart-container" style="position: relative; height: 300px; padding: 15px;">
+                            <canvas style="max-height: 300px;"></canvas>
+                        </div>
+                    </div>
+
                     <!-- Footer -->
                     <footer class="dashboard-footer">
                         <div class="footer-info">

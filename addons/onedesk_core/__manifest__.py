@@ -54,8 +54,13 @@
     # Assets (CSS, JavaScript)
     'assets': {
         'web.assets_backend': [
+            # Chart.js for graphs
+            'https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js',
+
+            # OneDesk Dashboard CSS & JS
             'onedesk_core/static/src/css/dashboard.css',
             'onedesk_core/static/src/js/dashboard_refresh.js',
+            'onedesk_core/static/src/js/dashboard_charts.js',
         ]
     },
     
