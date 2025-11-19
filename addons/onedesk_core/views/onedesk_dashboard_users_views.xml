@@ -1,0 +1,279 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ========================================
+         USERS DASHBOARD - SEARCH VIEW
+         ======================================== -->
+    <record id="view_dashboard_users_search" model="ir.ui.view">
+        <field name="name">onedesk.dashboard.users.search</field>
+        <field name="model">onedesk.dashboard.users</field>
+        <field name="arch" type="xml">
+            <search string="Users Dashboard Filters">
+                <field name="user_id" string="User"/>
+                <field name="company_id" string="Company"/>
+                <separator/>
+                <filter string="Today" name="today" domain="[('period_type', '=', 'today')]"/>
+                <filter string="This Week" name="week" domain="[('period_type', '=', 'week')]"/>
+                <filter string="This Month" name="month" domain="[('period_type', '=', 'month')]"/>
+                <filter string="This Year" name="year" domain="[('period_type', '=', 'year')]"/>
+            </search>
+        </field>
+    </record>
+
+    <!-- ========================================
+         USERS DASHBOARD - KANBAN VIEW
+         ======================================== -->
+    <record id="view_dashboard_users_kanban" model="ir.ui.view">
+        <field name="name">onedesk.dashboard.users.kanban</field>
+        <field name="model">onedesk.dashboard.users</field>
+        <field name="arch" type="xml">
+            <kanban string="Users Dashboard" default_group_by="period_type">
+                <field name="id"/>
+                <field name="user_id"/>
+                <field name="company_id"/>
+                <field name="period_type"/>
+                <field name="total_users"/>
+                <field name="total_actions"/>
+                <field name="team_productivity_score"/>
+                <field name="completed_tasks"/>
+                <field name="total_tasks"/>
+                <templates>
+                    <t t-name="card">
+                        <div class="oe_kanban_card">
+                            <div class="oe_kanban_global_click">
+                                <!-- Header -->
+                                <div style="background: linear-gradient(135deg, #e83e8c 0%, #c82f5f 100%); color: white; padding: 12px; border-radius: 4px 4px 0 0; margin: -4px -4px 8px -4px;">
+                                    <h4 style="margin: 0; font-weight: bold;">
+                                        <field name="user_id"/>
+                                    </h4>
+                                    <div style="font-size: 11px; opacity: 0.9;">
+                                        <field name="company_id"/>
+                                    </div>
+                                </div>
+
+                                <!-- Main Metrics -->
+                                <div style="padding: 10px;">
+                                    <!-- Total Users -->
+                                    <div style="margin-bottom: 12px; padding: 8px; background: #ffe0ed; border-left: 4px solid #e83e8c; border-radius: 2px;">
+                                        <div style="font-size: 10px; color: #666; margin-bottom: 2px;">👥 Total Users</div>
+                                        <div style="font-size: 16px; font-weight: bold; color: #e83e8c;">
+                                            <field name="total_users"/>
+                                        </div>
+                                    </div>
+
+                                    <!-- Total Actions -->
+                                    <div style="margin-bottom: 12px; padding: 8px; background: #f0f9ff; border-left: 4px solid #0066cc; border-radius: 2px;">
+                                        <div style="font-size: 10px; color: #666; margin-bottom: 2px;">⚡ Total Actions</div>
+                                        <div style="font-size: 14px; font-weight: bold; color: #0066cc;">
+                                            <field name="total_actions"/> actions
+                                        </div>
+                                    </div>
+
+                                    <!-- Completed Tasks -->
+                                    <div style="margin-bottom: 12px; padding: 8px; background: #f0fff4; border-left: 4px solid #28a745; border-radius: 2px;">
+                                        <div style="font-size: 10px; color: #666; margin-bottom: 2px;">✅ Completed Tasks</div>
+                                        <div style="font-size: 14px; font-weight: bold; color: #28a745;">
+                                            <field name="completed_tasks"/>/<field name="total_tasks"/>
+                                        </div>
+                                    </div>
+
+                                    <!-- Pending Tasks -->
+                                    <div style="margin-bottom: 12px; padding: 8px; background: #fff9f0; border-left: 4px solid #ffc107; border-radius: 2px;">
+                                        <div style="font-size: 10px; color: #666; margin-bottom: 2px;">⏳ Pending Tasks</div>
+                                        <div style="font-size: 14px; font-weight: bold; color: #ffc107;">
+                                            <field name="pending_tasks"/> pending
+                                        </div>
+                                    </div>
+
+                                    <!-- Productivity Score -->
+                                    <div style="margin-bottom: 12px; padding: 8px; background: #f8f9ff; border-left: 4px solid #667eea; border-radius: 2px;">
+                                        <div style="font-size: 10px; color: #666; margin-bottom: 2px;">🎯 Productivity Score</div>
+                                        <div style="font-size: 14px; font-weight: bold; color: #667eea;">
+                                            <field name="team_productivity_score"/>/100
+                                        </div>
+                                    </div>
+
+                                    <!-- Activity Growth -->
+                                    <div style="margin-bottom: 12px; padding: 8px; border-left: 4px solid #28a745; border-radius: 2px;" t-attf-style="background: #{{'f0fff4' if record.activity_growth.value >= 0 else 'fff0f0'}}">
+                                        <div style="font-size: 10px; color: #666; margin-bottom: 2px;">📈 Activity Growth</div>
+                                        <div t-attf-style="font-size: 14px; font-weight: bold; color: #{{'28a745' if record.activity_growth.value >= 0 else 'dc3545'}}">
+                                            <field name="activity_growth"/>%
+                                        </div>
+                                    </div>
+
+                                    <!-- Period -->
+                                    <div style="padding: 8px; background: #f9f9f9; border-left: 4px solid #999; border-radius: 2px;">
+                                        <div style="font-size: 10px; color: #666; margin-bottom: 2px;">📅 Period</div>
+                                        <div style="font-size: 12px; font-weight: bold; color: #333;">
+                                            <field name="period_type"/>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- ========================================
+         USERS DASHBOARD - LIST VIEW
+         ======================================== -->
+    <record id="view_dashboard_users_list" model="ir.ui.view">
+        <field name="name">onedesk.dashboard.users.list</field>
+        <field name="model">onedesk.dashboard.users</field>
+        <field name="arch" type="xml">
+            <list string="Users Dashboard">
+                <field name="user_id"/>
+                <field name="company_id"/>
+                <field name="period_type"/>
+                <field name="total_users"/>
+                <field name="active_users"/>
+                <field name="total_actions"/>
+                <field name="average_actions_per_user"/>
+                <field name="total_tasks"/>
+                <field name="completed_tasks"/>
+                <field name="team_productivity_score"/>
+                <field name="activity_growth"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ========================================
+         USERS DASHBOARD - CALENDAR VIEW
+         ======================================== -->
+    <record id="view_dashboard_users_calendar" model="ir.ui.view">
+        <field name="name">onedesk.dashboard.users.calendar</field>
+        <field name="model">onedesk.dashboard.users</field>
+        <field name="arch" type="xml">
+            <calendar string="Users Activity Timeline" date_start="date_from" date_stop="date_to" mode="month" color="period_type">
+                <field name="user_id"/>
+                <field name="total_actions"/>
+                <field name="completed_tasks"/>
+                <field name="period_type"/>
+            </calendar>
+        </field>
+    </record>
+
+    <!-- ========================================
+         USERS DASHBOARD - FORM VIEW
+         ======================================== -->
+    <record id="view_dashboard_users_form" model="ir.ui.view">
+        <field name="name">onedesk.dashboard.users.form</field>
+        <field name="model">onedesk.dashboard.users</field>
+        <field name="arch" type="xml">
+            <form string="Users Dashboard" create="true">
+                <!-- Header with gradient -->
+                <div style="background: linear-gradient(135deg, #e83e8c 0%, #c82f5f 100%); color: white; padding: 20px; margin: -16px -16px 16px -16px; border-radius: 4px 4px 0 0;">
+                    <h2 style="margin: 0;">👥 Users &amp; Team Dashboard</h2>
+                    <p style="margin: 5px 0 0 0; opacity: 0.9; font-size: 13px;">Track employee activity, productivity, and performance</p>
+                </div>
+
+                <!-- Basic Info -->
+                <group>
+                    <group>
+                        <field name="user_id"/>
+                        <field name="company_id"/>
+                    </group>
+                    <group>
+                        <field name="period_type"/>
+                    </group>
+                </group>
+
+                <!-- Period Configuration -->
+                <group string="📅 Period Configuration" name="period_config">
+                    <group>
+                        <field name="date_from"/>
+                    </group>
+                    <group>
+                        <field name="date_to"/>
+                    </group>
+                </group>
+
+                <separator string="👥 User Metrics"/>
+                <group>
+                    <group>
+                        <field name="total_users" readonly="1"/>
+                        <field name="active_users" readonly="1"/>
+                    </group>
+                    <group>
+                        <field name="inactive_users" readonly="1"/>
+                        <field name="most_active_user" readonly="1"/>
+                    </group>
+                </group>
+
+                <separator string="⚡ Activity Metrics"/>
+                <group>
+                    <group>
+                        <field name="total_actions" readonly="1"/>
+                        <field name="average_actions_per_user" readonly="1"/>
+                    </group>
+                </group>
+
+                <separator string="📋 Task Metrics"/>
+                <group>
+                    <group>
+                        <field name="total_tasks" readonly="1"/>
+                        <field name="completed_tasks" readonly="1"/>
+                    </group>
+                    <group>
+                        <field name="pending_tasks" readonly="1"/>
+                    </group>
+                </group>
+
+                <separator string="🎯 Productivity"/>
+                <group>
+                    <group>
+                        <field name="team_productivity_score" readonly="1"/>
+                    </group>
+                </group>
+
+                <separator string="📈 Comparison Metrics"/>
+                <group>
+                    <group>
+                        <field name="previous_period_actions" readonly="1"/>
+                        <field name="activity_growth" readonly="1"/>
+                    </group>
+                </group>
+            </form>
+        </field>
+    </record>
+
+    <!-- ========================================
+         USERS DASHBOARD - GRAPH VIEW
+         ======================================== -->
+    <record id="view_dashboard_users_graph" model="ir.ui.view">
+        <field name="name">onedesk.dashboard.users.graph</field>
+        <field name="model">onedesk.dashboard.users</field>
+        <field name="arch" type="xml">
+            <graph string="Users Analytics" type="bar">
+                <field name="user_id" type="row"/>
+                <field name="total_actions" type="measure"/>
+                <field name="completed_tasks" type="measure"/>
+                <field name="team_productivity_score" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <!-- ========================================
+         USERS DASHBOARD - ACTION
+         ======================================== -->
+    <record id="action_dashboard_users" model="ir.actions.act_window">
+        <field name="name">Users &amp; Team Dashboard</field>
+        <field name="res_model">onedesk.dashboard.users</field>
+        <field name="view_mode">form,kanban,list,calendar,graph</field>
+        <field name="context">{'default_user_id': uid, 'default_company_id': company_id}</field>
+        <field name="domain">[('user_id', '=', uid)]</field>
+        <field name="help" type="html">
+            <p class="oe_view_nocontent_create">
+                View your team performance dashboard.
+            </p>
+        </field>
+    </record>
+
+    <!-- ========================================
+         USERS DASHBOARD - MENU ITEM
+         ======================================== -->
+    <menuitem id="menu_dashboard_users" parent="menu_onedesk_dashboards" name="Users &amp; Team" action="action_dashboard_users" sequence="40"/>
+
+</odoo>

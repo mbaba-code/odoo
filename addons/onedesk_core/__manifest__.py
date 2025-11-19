@@ -14,8 +14,12 @@
     'data': [
     'security/ir.model.access.csv',
 
-    # Dashboard FIRST (car le menu y référence des actions)
+    # Dashboards FIRST (car le menu y référence des actions)
     'views/onedesk_dashboard.xml',
+    'views/onedesk_dashboard_sales_views.xml',
+    'views/onedesk_dashboard_reservations_views.xml',
+    'views/onedesk_dashboard_properties_views.xml',
+    'views/onedesk_dashboard_users_views.xml',
 
     # Menus ensuite (qui référencent les actions)
     'views/onedesk_menu_hierarchy.xml',

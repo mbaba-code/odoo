@@ -23,3 +23,7 @@ from . import calendar_event_override
 
 # ← NOUVEAU : Dashboard
 from . import onedesk_dashboard
+from . import onedesk_dashboard_sales
+from . import onedesk_dashboard_reservations
+from . import onedesk_dashboard_properties
+from . import onedesk_dashboard_users

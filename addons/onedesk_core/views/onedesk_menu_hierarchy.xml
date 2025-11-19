@@ -262,11 +262,10 @@
               sequence="10"
               web_icon="base/static/img/icons/stock_icon.svg"/>
 
-    <!-- Dashboard -->
-    <menuitem id="menu_onedesk_dashboard"
-              name="📊 Dashboard"
+    <!-- Dashboard Parent Menu -->
+    <menuitem id="menu_onedesk_dashboards"
+              name="📊 Dashboards"
               parent="menu_onedesk_root"
-              action="action_onedesk_dashboard"
               sequence="5"/>
 
     <!-- PROPERTIES MENU -->

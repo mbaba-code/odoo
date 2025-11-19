@@ -1,0 +1,273 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ========================================
+         PROPERTIES DASHBOARD - SEARCH VIEW
+         ======================================== -->
+    <record id="view_dashboard_properties_search" model="ir.ui.view">
+        <field name="name">onedesk.dashboard.properties.search</field>
+        <field name="model">onedesk.dashboard.properties</field>
+        <field name="arch" type="xml">
+            <search string="Properties Dashboard Filters">
+                <field name="user_id" string="User"/>
+                <field name="company_id" string="Company"/>
+                <separator/>
+                <filter string="Today" name="today" domain="[('period_type', '=', 'today')]"/>
+                <filter string="This Week" name="week" domain="[('period_type', '=', 'week')]"/>
+                <filter string="This Month" name="month" domain="[('period_type', '=', 'month')]"/>
+                <filter string="This Year" name="year" domain="[('period_type', '=', 'year')]"/>
+            </search>
+        </field>
+    </record>
+
+    <!-- ========================================
+         PROPERTIES DASHBOARD - KANBAN VIEW
+         ======================================== -->
+    <record id="view_dashboard_properties_kanban" model="ir.ui.view">
+        <field name="name">onedesk.dashboard.properties.kanban</field>
+        <field name="model">onedesk.dashboard.properties</field>
+        <field name="arch" type="xml">
+            <kanban string="Properties Dashboard" default_group_by="period_type">
+                <field name="id"/>
+                <field name="user_id"/>
+                <field name="company_id"/>
+                <field name="period_type"/>
+                <field name="total_properties"/>
+                <field name="active_properties"/>
+                <field name="total_property_revenue"/>
+                <field name="average_property_revenue"/>
+                <field name="revenue_growth"/>
+                <field name="total_units"/>
+                <templates>
+                    <t t-name="card">
+                        <div class="oe_kanban_card">
+                            <div class="oe_kanban_global_click">
+                                <!-- Header -->
+                                <div style="background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%); color: white; padding: 12px; border-radius: 4px 4px 0 0; margin: -4px -4px 8px -4px;">
+                                    <h4 style="margin: 0; font-weight: bold;">
+                                        <field name="user_id"/>
+                                    </h4>
+                                    <div style="font-size: 11px; opacity: 0.9;">
+                                        <field name="company_id"/>
+                                    </div>
+                                </div>
+
+                                <!-- Main Metrics -->
+                                <div style="padding: 10px;">
+                                    <!-- Total Properties -->
+                                    <div style="margin-bottom: 12px; padding: 8px; background: #f0fff4; border-left: 4px solid #28a745; border-radius: 2px;">
+                                        <div style="font-size: 10px; color: #666; margin-bottom: 2px;">🏠 Total Properties</div>
+                                        <div style="font-size: 16px; font-weight: bold; color: #28a745;">
+                                            <field name="total_properties"/>
+                                        </div>
+                                    </div>
+
+                                    <!-- Active Properties -->
+                                    <div style="margin-bottom: 12px; padding: 8px; background: #f0f9ff; border-left: 4px solid #0066cc; border-radius: 2px;">
+                                        <div style="font-size: 10px; color: #666; margin-bottom: 2px;">✅ Active</div>
+                                        <div style="font-size: 14px; font-weight: bold; color: #0066cc;">
+                                            <field name="active_properties"/> active
+                                        </div>
+                                    </div>
+
+                                    <!-- Total Revenue -->
+                                    <div style="margin-bottom: 12px; padding: 8px; background: #fff9f0; border-left: 4px solid #ffc107; border-radius: 2px;">
+                                        <div style="font-size: 10px; color: #666; margin-bottom: 2px;">💰 Total Revenue</div>
+                                        <div style="font-size: 14px; font-weight: bold; color: #ffc107;">
+                                            <field name="total_property_revenue" widget="monetary"/>
+                                        </div>
+                                    </div>
+
+                                    <!-- Average Revenue per Property -->
+                                    <div style="margin-bottom: 12px; padding: 8px; background: #f8f9ff; border-left: 4px solid #667eea; border-radius: 2px;">
+                                        <div style="font-size: 10px; color: #666; margin-bottom: 2px;">📊 Avg per Property</div>
+                                        <div style="font-size: 14px; font-weight: bold; color: #667eea;">
+                                            <field name="average_property_revenue" widget="monetary"/>
+                                        </div>
+                                    </div>
+
+                                    <!-- Total Units -->
+                                    <div style="margin-bottom: 12px; padding: 8px; background: #f0f7ff; border-left: 4px solid #0066cc; border-radius: 2px;">
+                                        <div style="font-size: 10px; color: #666; margin-bottom: 2px;">🛏️ Total Units</div>
+                                        <div style="font-size: 14px; font-weight: bold; color: #0066cc;">
+                                            <field name="total_units"/> units
+                                        </div>
+                                    </div>
+
+                                    <!-- Growth Rate -->
+                                    <div style="margin-bottom: 12px; padding: 8px; border-left: 4px solid #28a745; border-radius: 2px;" t-attf-style="background: #{{'f0fff4' if record.revenue_growth.value >= 0 else 'fff0f0'}}">
+                                        <div style="font-size: 10px; color: #666; margin-bottom: 2px;">📈 Growth</div>
+                                        <div t-attf-style="font-size: 14px; font-weight: bold; color: #{{'28a745' if record.revenue_growth.value >= 0 else 'dc3545'}}">
+                                            <field name="revenue_growth"/>%
+                                        </div>
+                                    </div>
+
+                                    <!-- Period -->
+                                    <div style="padding: 8px; background: #f9f9f9; border-left: 4px solid #999; border-radius: 2px;">
+                                        <div style="font-size: 10px; color: #666; margin-bottom: 2px;">📅 Period</div>
+                                        <div style="font-size: 12px; font-weight: bold; color: #333;">
+                                            <field name="period_type"/>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- ========================================
+         PROPERTIES DASHBOARD - LIST VIEW
+         ======================================== -->
+    <record id="view_dashboard_properties_list" model="ir.ui.view">
+        <field name="name">onedesk.dashboard.properties.list</field>
+        <field name="model">onedesk.dashboard.properties</field>
+        <field name="arch" type="xml">
+            <list string="Properties Dashboard">
+                <field name="user_id"/>
+                <field name="company_id"/>
+                <field name="period_type"/>
+                <field name="total_properties"/>
+                <field name="active_properties"/>
+                <field name="inactive_properties"/>
+                <field name="total_units"/>
+                <field name="occupied_units"/>
+                <field name="total_property_revenue" widget="monetary"/>
+                <field name="average_property_revenue" widget="monetary"/>
+                <field name="revenue_growth"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ========================================
+         PROPERTIES DASHBOARD - CALENDAR VIEW
+         ======================================== -->
+    <record id="view_dashboard_properties_calendar" model="ir.ui.view">
+        <field name="name">onedesk.dashboard.properties.calendar</field>
+        <field name="model">onedesk.dashboard.properties</field>
+        <field name="arch" type="xml">
+            <calendar string="Properties Timeline" date_start="date_from" date_stop="date_to" mode="month" color="period_type">
+                <field name="user_id"/>
+                <field name="total_properties"/>
+                <field name="total_property_revenue"/>
+                <field name="period_type"/>
+            </calendar>
+        </field>
+    </record>
+
+    <!-- ========================================
+         PROPERTIES DASHBOARD - FORM VIEW
+         ======================================== -->
+    <record id="view_dashboard_properties_form" model="ir.ui.view">
+        <field name="name">onedesk.dashboard.properties.form</field>
+        <field name="model">onedesk.dashboard.properties</field>
+        <field name="arch" type="xml">
+            <form string="Properties Dashboard" create="true">
+                <!-- Header with gradient -->
+                <div style="background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%); color: white; padding: 20px; margin: -16px -16px 16px -16px; border-radius: 4px 4px 0 0;">
+                    <h2 style="margin: 0;">🏠 Properties Dashboard</h2>
+                    <p style="margin: 5px 0 0 0; opacity: 0.9; font-size: 13px;">Track property portfolio, revenue, and occupancy</p>
+                </div>
+
+                <!-- Basic Info -->
+                <group>
+                    <group>
+                        <field name="user_id"/>
+                        <field name="company_id"/>
+                    </group>
+                    <group>
+                        <field name="period_type"/>
+                    </group>
+                </group>
+
+                <!-- Period Configuration -->
+                <group string="📅 Period Configuration" name="period_config">
+                    <group>
+                        <field name="date_from"/>
+                    </group>
+                    <group>
+                        <field name="date_to"/>
+                    </group>
+                </group>
+
+                <separator string="🏠 Property Metrics"/>
+                <group>
+                    <group>
+                        <field name="total_properties" readonly="1"/>
+                        <field name="active_properties" readonly="1"/>
+                    </group>
+                    <group>
+                        <field name="inactive_properties" readonly="1"/>
+                        <field name="maintenance_properties" readonly="1"/>
+                    </group>
+                </group>
+
+                <separator string="🛏️ Unit Metrics"/>
+                <group>
+                    <group>
+                        <field name="total_units" readonly="1"/>
+                        <field name="occupied_units" readonly="1"/>
+                    </group>
+                </group>
+
+                <separator string="💰 Revenue Metrics"/>
+                <group>
+                    <group>
+                        <field name="total_property_revenue" readonly="1" widget="monetary"/>
+                        <field name="average_property_revenue" readonly="1" widget="monetary"/>
+                    </group>
+                    <group>
+                        <field name="top_property_revenue" readonly="1" widget="monetary"/>
+                    </group>
+                </group>
+
+                <separator string="📈 Comparison Metrics"/>
+                <group>
+                    <group>
+                        <field name="previous_period_revenue" readonly="1" widget="monetary"/>
+                        <field name="revenue_growth" readonly="1"/>
+                    </group>
+                </group>
+            </form>
+        </field>
+    </record>
+
+    <!-- ========================================
+         PROPERTIES DASHBOARD - GRAPH VIEW
+         ======================================== -->
+    <record id="view_dashboard_properties_graph" model="ir.ui.view">
+        <field name="name">onedesk.dashboard.properties.graph</field>
+        <field name="model">onedesk.dashboard.properties</field>
+        <field name="arch" type="xml">
+            <graph string="Properties Analytics" type="bar">
+                <field name="user_id" type="row"/>
+                <field name="total_property_revenue" type="measure"/>
+                <field name="total_units" type="measure"/>
+                <field name="occupied_units" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <!-- ========================================
+         PROPERTIES DASHBOARD - ACTION
+         ======================================== -->
+    <record id="action_dashboard_properties" model="ir.actions.act_window">
+        <field name="name">Properties Dashboard</field>
+        <field name="res_model">onedesk.dashboard.properties</field>
+        <field name="view_mode">form,kanban,list,calendar,graph</field>
+        <field name="context">{'default_user_id': uid, 'default_company_id': company_id}</field>
+        <field name="domain">[('user_id', '=', uid)]</field>
+        <field name="help" type="html">
+            <p class="oe_view_nocontent_create">
+                View your properties portfolio dashboard.
+            </p>
+        </field>
+    </record>
+
+    <!-- ========================================
+         PROPERTIES DASHBOARD - MENU ITEM
+         ======================================== -->
+    <menuitem id="menu_dashboard_properties" parent="menu_onedesk_dashboards" name="Properties" action="action_dashboard_properties" sequence="30"/>
+
+</odoo>
