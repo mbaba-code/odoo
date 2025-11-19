@@ -13,14 +13,14 @@
                                 <div class="col-md-6">
                                     <div class="form-group mb-3">
                                         <label for="first_name" class="form-label">Prénom</label>
-                                        <input type="text" class="form-control" id="first_name" name="first_name" required/>
+                                        <input type="text" class="form-control" id="first_name" name="first_name" required="required"/>
                                         <div class="invalid-feedback">Le prénom est requis.</div>
                                     </div>
                                 </div>
                                 <div class="col-md-6">
                                     <div class="form-group mb-3">
                                         <label for="last_name" class="form-label">Nom</label>
-                                        <input type="text" class="form-control" id="last_name" name="last_name" required/>
+                                        <input type="text" class="form-control" id="last_name" name="last_name" required="required"/>
                                         <div class="invalid-feedback">Le nom est requis.</div>
                                     </div>
                                 </div>
@@ -28,7 +28,7 @@
 
                             <div class="form-group mb-3">
                                 <label for="email" class="form-label">Email</label>
-                                <input type="email" class="form-control" id="email" name="email" required/>
+                                <input type="email" class="form-control" id="email" name="email" required="required"/>
                                 <div class="invalid-feedback">Un email valide est requis.</div>
                             </div>
 
@@ -39,7 +39,7 @@
 
                             <div class="form-group mb-3">
                                 <label for="unit_id" class="form-label">Unité</label>
-                                <select class="form-select" id="unit_id" name="unit_id" required>
+                                <select class="form-select" id="unit_id" name="unit_id" required="required">
                                     <option value="">-- Sélectionner une unité --</option>
                                     <t t-foreach="units" t-as="unit">
                                         <option t-att-value="unit.id">
@@ -54,14 +54,14 @@
                                 <div class="col-md-6">
                                     <div class="form-group mb-3">
                                         <label for="start_date" class="form-label">Date d'arrivée</label>
-                                        <input type="date" class="form-control" id="start_date" name="start_date" required/>
+                                        <input type="date" class="form-control" id="start_date" name="start_date" required="required"/>
                                         <div class="invalid-feedback">Une date de début est requise.</div>
                                     </div>
                                 </div>
                                 <div class="col-md-6">
                                     <div class="form-group mb-3">
                                         <label for="end_date" class="form-label">Date de départ</label>
-                                        <input type="date" class="form-control" id="end_date" name="end_date" required/>
+                                        <input type="date" class="form-control" id="end_date" name="end_date" required="required"/>
                                         <div class="invalid-feedback">Une date de fin est requise.</div>
                                     </div>
                                 </div>
