@@ -16,6 +16,72 @@
         ]"/>
     </record>
 
+    <!-- ========================================
+         DASHBOARD ACTIONS (for Tableau de bord menu)
+         ======================================== -->
+
+    <!-- 1. Réservations Dashboard -->
+    <record id="action_reservation_dashboard" model="ir.actions.act_window">
+        <field name="name">Réservations</field>
+        <field name="res_model">onedesk.reservation</field>
+        <field name="view_mode">kanban,list,calendar,graph,pivot</field>
+        <field name="help" type="html">
+            <p class="oe_view_nocontent_create">Créez une nouvelle réservation</p>
+        </field>
+    </record>
+
+    <!-- 2. Propriétés Dashboard -->
+    <record id="action_property_dashboard" model="ir.actions.act_window">
+        <field name="name">Propriétés</field>
+        <field name="res_model">onedesk.property</field>
+        <field name="view_mode">kanban,list,calendar,graph,pivot</field>
+        <field name="help" type="html">
+            <p class="oe_view_nocontent_create">Créez une nouvelle propriété</p>
+        </field>
+    </record>
+
+    <!-- 3. Revenus Dashboard (basé sur réservations avec focus finances) -->
+    <record id="action_revenue_dashboard" model="ir.actions.act_window">
+        <field name="name">Revenus</field>
+        <field name="res_model">onedesk.reservation</field>
+        <field name="view_mode">graph,pivot,list,kanban,calendar</field>
+        <field name="context">{'default_view': 'graph'}</field>
+        <field name="help" type="html">
+            <p class="oe_view_nocontent">Aucune donnée de revenus</p>
+        </field>
+    </record>
+
+    <!-- 4. Planning Dashboard (basé sur réservations avec focus calendrier) -->
+    <record id="action_planning_dashboard" model="ir.actions.act_window">
+        <field name="name">Planning</field>
+        <field name="res_model">onedesk.reservation</field>
+        <field name="view_mode">calendar,list,kanban,graph,pivot</field>
+        <field name="help" type="html">
+            <p class="oe_view_nocontent">Aucune réservation planifiée</p>
+        </field>
+    </record>
+
+    <!-- 5. Opérations Dashboard -->
+    <record id="action_operation_dashboard" model="ir.actions.act_window">
+        <field name="name">Opérations</field>
+        <field name="res_model">onedesk.task</field>
+        <field name="view_mode">kanban,list,calendar,graph,pivot</field>
+        <field name="help" type="html">
+            <p class="oe_view_nocontent_create">Créez une nouvelle tâche</p>
+        </field>
+    </record>
+
+    <!-- 6. Équipe Dashboard -->
+    <record id="action_team_dashboard" model="ir.actions.act_window">
+        <field name="name">Équipe</field>
+        <field name="res_model">res.users</field>
+        <field name="view_mode">kanban,list,graph,pivot</field>
+        <field name="domain">[('groups_id.name', 'ilike', 'OneDesk')]</field>
+        <field name="help" type="html">
+            <p class="oe_view_nocontent">Aucun utilisateur OneDesk</p>
+        </field>
+    </record>
+
     <!-- SUBSCRIPTION PLAN ACTION -->
     <record id="action_onedesk_subscription_plan" model="ir.actions.act_window">
         <field name="name">Subscription Plans</field>
@@ -606,70 +672,5 @@
               action="action_onedesk_audit_log"
               sequence="30"/>
 
-    <!-- ========================================
-         DASHBOARD ACTIONS (for Tableau de bord menu)
-         ======================================== -->
-
-    <!-- 1. Réservations Dashboard -->
-    <record id="action_reservation_dashboard" model="ir.actions.act_window">
-        <field name="name">Réservations</field>
-        <field name="res_model">onedesk.reservation</field>
-        <field name="view_mode">kanban,list,calendar,graph,pivot</field>
-        <field name="help" type="html">
-            <p class="oe_view_nocontent_create">Créez une nouvelle réservation</p>
-        </field>
-    </record>
-
-    <!-- 2. Propriétés Dashboard -->
-    <record id="action_property_dashboard" model="ir.actions.act_window">
-        <field name="name">Propriétés</field>
-        <field name="res_model">onedesk.property</field>
-        <field name="view_mode">kanban,list,calendar,graph,pivot</field>
-        <field name="help" type="html">
-            <p class="oe_view_nocontent_create">Créez une nouvelle propriété</p>
-        </field>
-    </record>
-
-    <!-- 3. Revenus Dashboard (basé sur réservations avec focus finances) -->
-    <record id="action_revenue_dashboard" model="ir.actions.act_window">
-        <field name="name">Revenus</field>
-        <field name="res_model">onedesk.reservation</field>
-        <field name="view_mode">graph,pivot,list,kanban,calendar</field>
-        <field name="context">{'default_view': 'graph'}</field>
-        <field name="help" type="html">
-            <p class="oe_view_nocontent">Aucune donnée de revenus</p>
-        </field>
-    </record>
-
-    <!-- 4. Planning Dashboard (basé sur réservations avec focus calendrier) -->
-    <record id="action_planning_dashboard" model="ir.actions.act_window">
-        <field name="name">Planning</field>
-        <field name="res_model">onedesk.reservation</field>
-        <field name="view_mode">calendar,list,kanban,graph,pivot</field>
-        <field name="help" type="html">
-            <p class="oe_view_nocontent">Aucune réservation planifiée</p>
-        </field>
-    </record>
-
-    <!-- 5. Opérations Dashboard -->
-    <record id="action_operation_dashboard" model="ir.actions.act_window">
-        <field name="name">Opérations</field>
-        <field name="res_model">onedesk.task</field>
-        <field name="view_mode">kanban,list,calendar,graph,pivot</field>
-        <field name="help" type="html">
-            <p class="oe_view_nocontent_create">Créez une nouvelle tâche</p>
-        </field>
-    </record>
-
-    <!-- 6. Équipe Dashboard -->
-    <record id="action_team_dashboard" model="ir.actions.act_window">
-        <field name="name">Équipe</field>
-        <field name="res_model">res.users</field>
-        <field name="view_mode">kanban,list,graph,pivot</field>
-        <field name="domain">[('groups_id.name', 'ilike', 'OneDesk')]</field>
-        <field name="help" type="html">
-            <p class="oe_view_nocontent">Aucun utilisateur OneDesk</p>
-        </field>
-    </record>
 
 </odoo>
