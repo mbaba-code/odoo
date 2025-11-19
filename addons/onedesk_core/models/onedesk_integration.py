@@ -404,6 +404,7 @@ class OnedeskIntegration(models.Model):
                 res_data = {
                     'id': str(component.get('uid')),
                     'name': str(component.get('summary', 'Réservation')),
+                    'unit_name': str(component.get('summary', '')),  # FIX BUG #1: Map SUMMARY to unit_name
                     'start_date': component.get('dtstart').dt if component.get('dtstart') else False,
                     'end_date': component.get('dtend').dt if component.get('dtend') else False,
                     'description': description,
@@ -571,12 +572,45 @@ class OnedeskIntegration(models.Model):
 
         return True
 
+    def _extract_property_name_from_location(self, location):
+        """Extract a meaningful property name from location address
+
+        Examples:
+        "42 Rue des Francs-Bourgeois, 75004 Paris, France" → "Paris" or "75004 Paris"
+        "123 Rue de la Paix, 69000 Lyon, France" → "Lyon" or "69000 Lyon"
+        """
+        if not location:
+            return 'Propriété importée'
+
+        # Clean up escaped characters
+        location = location.replace('\\,', ',')
+
+        # Split by comma to get parts
+        parts = [p.strip() for p in location.split(',')]
+
+        if len(parts) >= 2:
+            # Try to extract postal code + city pattern (e.g., "75004 Paris")
+            # Usually the second-to-last part is postal code + city
+            postal_city = parts[-2] if len(parts) >= 2 else parts[-1]
+            # Pattern: "12345 CityName"
+            import re
+            match = re.match(r'(\d{5})\s+(.+)', postal_city.strip())
+            if match:
+                return f"{match.group(2)}"  # Return just the city name
+            else:
+                # If no postal code, return the second-to-last part as is
+                return postal_city.strip()
+
+        # Fallback: return the whole location
+        return location[:50] if len(location) > 50 else location
+
     def _find_or_create_property(self, data):
         """Trouve ou crée la propriété pour une unité importée"""
+        # FIX BUG #2: Extract meaningful property name from location
         property_name = (
             data.get('property_name') or
             data.get('listing_name') or
-            data.get('location') or
+            self._extract_property_name_from_location(data.get('location')) or
             'Propriété importée'
         )
 
@@ -602,14 +636,14 @@ class OnedeskIntegration(models.Model):
 
     def _find_or_create_unit(self, data):
         """Trouve ou crée l'unité"""
-        # Priorité: unit_name SEUL, pas property_name pour unit
+        # FIX BUG #3: unit_name should come from iCal SUMMARY (now properly mapped in _sync_ical)
         unit_name = data.get('unit_name') or data.get('listing_name')
 
-        # Fallback pour la propriété
+        # Extract property name using the same logic as _find_or_create_property
         property_name = (
             data.get('property_name') or
             data.get('listing_name') or
-            data.get('location') or
+            self._extract_property_name_from_location(data.get('location')) or
             'Propriété importée'
         )
 
