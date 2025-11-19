@@ -1,28 +1,206 @@
-/* OneDesk Dashboard Styles */
+/* ==================== ONEDESK DASHBOARD PROFESSIONAL STYLES ==================== */
 
-/* Dashboard Container */
-.onedesk-dashboard {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+* {
+    box-sizing: border-box;
 }
 
-/* Dashboard Header */
+/* Dashboard Container */
+.onedesk-dashboard-form,
+.o_dashboard_sheet {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background: #f5f6f8;
+    padding: 2rem;
+}
+
+/* ==================== DASHBOARD HEADER ==================== */
 .dashboard-header {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
-    padding: 2rem;
-    border-radius: 8px;
-    margin-bottom: 2rem;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    padding: 2.5rem;
+    border-radius: 12px;
+    margin-bottom: 2.5rem;
+    box-shadow: 0 8px 16px rgba(102, 126, 234, 0.25);
+    text-align: center;
 }
 
-.dashboard-header h1 {
+.header-title h1 {
     margin: 0;
-    font-size: 2rem;
+    font-size: 2.5rem;
+    font-weight: 700;
+    letter-spacing: -0.5px;
 }
 
-.dashboard-header p {
-    margin: 0.5rem 0 0 0;
-    opacity: 0.9;
+.header-title p {
+    margin: 0.75rem 0 0 0;
+    opacity: 0.95;
+    font-size: 1rem;
+    font-weight: 300;
+}
+
+/* ==================== PERIOD FILTERS ==================== */
+.dashboard-filters {
+    background: white;
+    padding: 1.75rem;
+    border-radius: 10px;
+    margin-bottom: 2.5rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    border: 1px solid #e8eaed;
+}
+
+.dashboard-filters .form-group {
+    margin-bottom: 0;
+}
+
+.dashboard-filters .form-inline {
+    display: flex;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.dashboard-filters input[type="radio"] {
+    margin-right: 0.5rem;
+    cursor: pointer;
+}
+
+/* ==================== KPI CARDS SECTION ==================== */
+.dashboard-kpis {
+    margin-bottom: 3rem;
+}
+
+.kpi-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.kpi-card {
+    background: white;
+    border-radius: 10px;
+    padding: 1.75rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    border: 1px solid #e8eaed;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+}
+
+.kpi-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #667eea, #764ba2);
+}
+
+.kpi-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+    border-color: #667eea;
+}
+
+.kpi-card.kpi-properties::before {
+    background: linear-gradient(90deg, #28a745, #20c997);
+}
+
+.kpi-card.kpi-units::before {
+    background: linear-gradient(90deg, #17a2b8, #00d4ff);
+}
+
+.kpi-card.kpi-revenue::before {
+    background: linear-gradient(90deg, #ffc107, #ff9800);
+}
+
+.kpi-card.kpi-occupancy::before {
+    background: linear-gradient(90deg, #667eea, #764ba2);
+}
+
+.kpi-card.kpi-reservations::before {
+    background: linear-gradient(90deg, #e83e8c, #fd7e14);
+}
+
+.kpi-value {
+    font-size: 2.8rem;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin: 0.75rem 0 0.5rem 0;
+    line-height: 1.1;
+}
+
+.kpi-value.currency,
+.kpi-value.percent {
+    font-family: 'Courier New', monospace;
+    color: #667eea;
+}
+
+.kpi-label {
+    font-size: 0.85rem;
+    color: #666;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin: 0.5rem 0;
+}
+
+.kpi-subtext {
+    font-size: 0.8rem;
+    color: #999;
+    margin-top: 0.5rem;
+}
+
+.kpi-subtext span {
+    display: block;
+    margin: 0.25rem 0;
+}
+
+/* ==================== DASHBOARD SECTIONS ==================== */
+.dashboard-section {
+    background: white;
+    border-radius: 10px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    border: 1px solid #e8eaed;
+    border-left: 5px solid #667eea;
+    transition: all 0.3s ease;
+}
+
+.dashboard-section:hover {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+}
+
+.revenue-section {
+    border-left-color: #ffc107;
+}
+
+.properties-section {
+    border-left-color: #28a745;
+}
+
+.units-section {
+    border-left-color: #17a2b8;
+}
+
+.reservations-section {
+    border-left-color: #e83e8c;
+}
+
+.tasks-section {
+    border-left-color: #dc3545;
+}
+
+.section-title {
+    font-size: 1.4rem;
+    font-weight: 700;
+    margin: 0 0 1.5rem 0;
+    color: #1a1a1a;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
 }
 
 /* Dashboard Update Time */
@@ -319,4 +497,87 @@
 [data-widget="show_revenue_chart"] {
     display: block;
     transition: all 0.3s ease;
+}
+
+/* ==================== DASHBOARD FOOTER ==================== */
+.dashboard-footer {
+    background: white;
+    border-radius: 10px;
+    padding: 1.5rem;
+    margin-top: 3rem;
+    text-align: center;
+    border-top: 2px solid #e8eaed;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.footer-info p {
+    margin: 0.5rem 0;
+    font-size: 0.9rem;
+    color: #666;
+}
+
+/* ==================== RESPONSIVE DESIGN ==================== */
+@media (max-width: 1024px) {
+    .kpi-row {
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 1rem;
+    }
+
+    .dashboard-section {
+        padding: 1.5rem;
+    }
+
+    .section-title {
+        font-size: 1.2rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .onedesk-dashboard-form,
+    .o_dashboard_sheet {
+        padding: 1rem;
+    }
+
+    .dashboard-header {
+        padding: 1.5rem;
+    }
+
+    .header-title h1 {
+        font-size: 1.8rem;
+    }
+
+    .kpi-row {
+        grid-template-columns: 1fr;
+    }
+
+    .kpi-card {
+        padding: 1.5rem;
+    }
+
+    .kpi-value {
+        font-size: 2rem;
+    }
+
+    .dashboard-section {
+        padding: 1.25rem;
+        border-radius: 8px;
+    }
+
+    .section-title {
+        font-size: 1.1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .header-title h1 {
+        font-size: 1.4rem;
+    }
+
+    .kpi-value {
+        font-size: 1.6rem;
+    }
+
+    .kpi-label {
+        font-size: 0.75rem;
+    }
 }

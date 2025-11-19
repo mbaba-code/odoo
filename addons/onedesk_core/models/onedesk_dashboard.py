@@ -37,6 +37,18 @@ class OnedeaskDashboard(models.Model):
     show_occupancy_chart = fields.Boolean(string="Show Occupancy Chart", default=True)
     show_revenue_chart = fields.Boolean(string="Show Revenue Chart", default=True)
 
+    # ==================== PERIOD FILTERING ====================
+    period_type = fields.Selection([
+        ('today', 'Today (Aujourd\'hui)'),
+        ('week', 'This Week (Cette Semaine)'),
+        ('month', 'This Month (Ce Mois)'),
+        ('year', 'This Year (Cette Année)'),
+        ('custom', 'Custom Period (Période Personnalisée)')
+    ], string="Period / Période", default='month')
+
+    date_from = fields.Date(string="Start Date / Date de Début")
+    date_to = fields.Date(string="End Date / Date de Fin")
+
     # Refresh interval in seconds
     refresh_interval = fields.Integer(string="Auto-Refresh Interval (seconds)", default=300)  # 5 minutes
     auto_refresh = fields.Boolean(string="Enable Auto-Refresh", default=True)

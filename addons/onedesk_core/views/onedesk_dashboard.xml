@@ -1,107 +1,164 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <!-- Dashboard Form View -->
+    <!-- Dashboard Form View - Professional SaaS Style -->
     <record id="view_onedesk_dashboard_form" model="ir.ui.view">
-        <field name="name">OneDesk Dashboard</field>
+        <field name="name">OneDesk Dashboard Professional</field>
         <field name="model">onedesk.dashboard</field>
         <field name="priority">1</field>
         <field name="arch" type="xml">
-            <form string="Tableau de bord" create="true" edit="true" delete="false">
-                <sheet>
-                    <h1 class="text-center mb-3">📊 Tableau de Bord OneDesk</h1>
-
-                    <!-- Header Info -->
-                    <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 15px; border-radius: 8px; margin-bottom: 20px; text-align: center;">
-                        <p style="margin: 0; font-size: 14px;">Configuration et suivi en temps réel de votre plateforme de gestion locative</p>
+            <form string="Tableau de Bord" create="true" edit="true" delete="false" class="onedesk-dashboard-form">
+                <sheet class="o_dashboard_sheet">
+                    <!-- ==================== HEADER SECTION ==================== -->
+                    <div class="dashboard-header">
+                        <div class="header-title">
+                            <h1>📊 Tableau de Bord OneDesk</h1>
+                            <p>Vue d'ensemble complète de votre activité locative</p>
+                        </div>
                     </div>
 
-                    <!-- Auto-Refresh Settings -->
-                    <group string="🔄 Paramètres d'Auto-Rafraîchissement" colspan="4">
-                        <field name="auto_refresh" widget="boolean" string="Activer l'Auto-Rafraîchissement"/>
-                        <field name="refresh_interval" string="Intervalle de Rafraîchissement (secondes)"/>
-                    </group>
+                    <!-- ==================== PERIOD FILTER SECTION ==================== -->
+                    <div class="dashboard-filters">
+                        <group string="⏰ Sélectionnez la période d'analyse" colspan="4">
+                            <field name="period_type" widget="radio" colspan="4" nolabel="1"/>
+                            <group attrs="{'invisible': [('period_type', '!=', 'custom')]}" colspan="4">
+                                <field name="date_from" string="De (From)"/>
+                                <field name="date_to" string="À (To)"/>
+                            </group>
+                        </group>
+                    </div>
 
-                    <!-- Widget Visibility Settings -->
-                    <group string="👁️ Visibilité des Widgets - Cochez les widgets à afficher" colspan="4">
+                    <!-- ==================== KPI CARDS SECTION - TOP METRICS ==================== -->
+                    <div class="dashboard-kpis">
+                        <div class="kpi-row">
+                            <div class="kpi-card kpi-properties">
+                                <div class="kpi-value"><field name="total_properties" readonly="1" nolabel="1"/></div>
+                                <div class="kpi-label">Propriétés</div>
+                                <div class="kpi-subtext">
+                                    <span><strong>Actives:</strong> <field name="active_properties" readonly="1" nolabel="1" class="oe_inline"/></span>
+                                </div>
+                            </div>
+
+                            <div class="kpi-card kpi-units">
+                                <div class="kpi-value"><field name="total_units" readonly="1" nolabel="1"/></div>
+                                <div class="kpi-label">Unités</div>
+                                <div class="kpi-subtext">
+                                    <span><strong>Dispo:</strong> <field name="available_units" readonly="1" nolabel="1" class="oe_inline"/></span>
+                                </div>
+                            </div>
+
+                            <div class="kpi-card kpi-revenue">
+                                <div class="kpi-value currency"><field name="revenue_this_month" readonly="1" nolabel="1" widget="monetary"/></div>
+                                <div class="kpi-label">Revenus Mois</div>
+                                <div class="kpi-subtext">Cette période</div>
+                            </div>
+
+                            <div class="kpi-card kpi-occupancy">
+                                <div class="kpi-value percent"><field name="properties_occupancy_rate" readonly="1" nolabel="1"/>%</div>
+                                <div class="kpi-label">Occupation</div>
+                                <div class="kpi-subtext">Taux moyen</div>
+                            </div>
+
+                            <div class="kpi-card kpi-reservations">
+                                <div class="kpi-value"><field name="reservations_confirmed_month" readonly="1" nolabel="1"/></div>
+                                <div class="kpi-label">Réservations</div>
+                                <div class="kpi-subtext">Ce mois</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ==================== MAIN CONTENT SECTIONS ==================== -->
+
+                    <!-- Section 1: Revenue Analytics -->
+                    <div class="dashboard-section revenue-section" data-widget="show_financial">
+                        <h2 class="section-title">💰 Analyse Financière</h2>
+                        <group colspan="4">
+                            <group col="2">
+                                <field name="revenue_today" readonly="1" string="Aujourd'hui"/>
+                                <field name="revenue_this_week" readonly="1" string="Cette Semaine"/>
+                                <field name="outstanding_payments" readonly="1" string="Paiements en Attente" widget="monetary"/>
+                            </group>
+                        </group>
+                    </div>
+
+                    <!-- Section 2: Properties Details -->
+                    <div class="dashboard-section properties-section" data-widget="show_properties_kpi">
+                        <h2 class="section-title">🏠 Détails des Propriétés</h2>
+                        <group colspan="4">
+                            <group col="2">
+                                <field name="active_properties" readonly="1" string="Actives"/>
+                                <field name="inactive_properties" readonly="1" string="Inactives"/>
+                                <field name="properties_occupancy_rate" readonly="1" string="Taux d'Occupation (%)"/>
+                            </group>
+                        </group>
+                    </div>
+
+                    <!-- Section 3: Units Details -->
+                    <div class="dashboard-section units-section" data-widget="show_units_kpi">
+                        <h2 class="section-title">🚪 Détails des Unités</h2>
+                        <group colspan="4">
+                            <group col="2">
+                                <field name="available_units" readonly="1" string="Disponibles"/>
+                                <field name="maintenance_units" readonly="1" string="En Maintenance"/>
+                                <field name="units_occupancy_rate" readonly="1" string="Taux d'Occupation (%)"/>
+                            </group>
+                        </group>
+                    </div>
+
+                    <!-- Section 4: Reservations -->
+                    <div class="dashboard-section reservations-section" data-widget="show_reservations_today">
+                        <h2 class="section-title">📅 Réservations</h2>
+                        <group colspan="4">
+                            <group col="2">
+                                <field name="reservations_today_checkin" readonly="1" string="Check-ins Aujourd'hui"/>
+                                <field name="reservations_today_checkout" readonly="1" string="Check-outs Aujourd'hui"/>
+                                <field name="reservations_pending_payment" readonly="1" string="En Attente de Paiement"/>
+                                <field name="reservations_pending_payment_amount" readonly="1" string="Montant en Attente" widget="monetary"/>
+                            </group>
+                        </group>
+                    </div>
+
+                    <!-- Section 5: Tasks -->
+                    <div class="dashboard-section tasks-section" data-widget="show_tasks_urgent">
+                        <h2 class="section-title">✅ Gestion des Tâches</h2>
+                        <group colspan="4">
+                            <group col="2">
+                                <field name="tasks_overdue" readonly="1" string="🔴 En Retard"/>
+                                <field name="tasks_due_today" readonly="1" string="📌 Aujourd'hui"/>
+                                <field name="tasks_urgent_total" readonly="1" string="⚡ Urgentes"/>
+                                <field name="tasks_in_progress" readonly="1" string="⏱️ En Cours"/>
+                            </group>
+                        </group>
+                    </div>
+
+                    <!-- ==================== SETTINGS SECTION ==================== -->
+                    <separator string="⚙️ Configuration Avancée"/>
+                    <group colspan="4">
                         <group col="2">
-                            <field name="show_properties_kpi" widget="boolean" string="✅ Propriétés" onchange="_onWidgetVisibilityChange"/>
-                            <field name="show_units_kpi" widget="boolean" string="✅ Unités" onchange="_onWidgetVisibilityChange"/>
-                            <field name="show_reservations_today" widget="boolean" string="✅ Réservations" onchange="_onWidgetVisibilityChange"/>
-                            <field name="show_tasks_urgent" widget="boolean" string="✅ Tâches" onchange="_onWidgetVisibilityChange"/>
-                            <field name="show_financial" widget="boolean" string="✅ Financier" onchange="_onWidgetVisibilityChange"/>
-                            <field name="show_occupancy_chart" widget="boolean" string="📊 Occupation" onchange="_onWidgetVisibilityChange"/>
-                            <field name="show_revenue_chart" widget="boolean" string="💰 Revenus" onchange="_onWidgetVisibilityChange"/>
+                            <field name="auto_refresh" widget="boolean" string="Auto-Rafraîchissement"/>
+                            <field name="refresh_interval" attrs="{'readonly': [('auto_refresh', '=', False)]}" string="Intervalle (secondes)"/>
                         </group>
                     </group>
 
-                    <!-- ==================== DASHBOARD METRICS ==================== -->
+                    <!-- Widget Visibility -->
+                    <separator string="👁️ Visibilité des Sections"/>
+                    <group colspan="4">
+                        <group col="4">
+                            <field name="show_properties_kpi" widget="boolean" nolabel="1" string="Propriétés"/>
+                            <field name="show_units_kpi" widget="boolean" nolabel="1" string="Unités"/>
+                            <field name="show_reservations_today" widget="boolean" nolabel="1" string="Réservations"/>
+                            <field name="show_tasks_urgent" widget="boolean" nolabel="1" string="Tâches"/>
+                            <field name="show_financial" widget="boolean" nolabel="1" string="Finances"/>
+                            <field name="show_occupancy_chart" widget="boolean" nolabel="1" string="Occupation"/>
+                            <field name="show_revenue_chart" widget="boolean" nolabel="1" string="Revenus"/>
+                        </group>
+                    </group>
 
-                    <!-- Properties KPI -->
-                    <group string="🏠 Aperçu des Propriétés" colspan="4" data-widget="show_properties_kpi">
-                        <div style="background: #f8f9fa; padding: 12px; border-radius: 6px; border-left: 4px solid #28a745; width: 100%;" colspan="4">
-                            <p style="margin: 0; font-size: 13px;">
-                                <strong>Total:</strong> <field name="total_properties" readonly="1" nolabel="1" class="oe_inline"/> |
-                                <strong>Actives:</strong> <field name="active_properties" readonly="1" nolabel="1" class="oe_inline"/> |
-                                <strong>Inactives:</strong> <field name="inactive_properties" readonly="1" nolabel="1" class="oe_inline"/>
-                            </p>
+                    <!-- Footer -->
+                    <footer class="dashboard-footer">
+                        <div class="footer-info">
+                            <p>Mises à jour automatiques toutes les <field name="refresh_interval" readonly="1" nolabel="1" class="oe_inline"/> secondes</p>
+                            <p>Dernière actualisation: <span class="dashboard-update-time">À l'instant</span></p>
                         </div>
-                        <field name="properties_occupancy_rate" readonly="1" string="Taux d'Occupation (%)"/>
-                        <field name="revenue_this_month" readonly="1" string="Revenus (Ce Mois)" widget="monetary"/>
-                    </group>
-
-                    <!-- Units KPI -->
-                    <group string="🚪 Aperçu des Unités" colspan="4" data-widget="show_units_kpi">
-                        <div style="background: #f8f9fa; padding: 12px; border-radius: 6px; border-left: 4px solid #17a2b8; width: 100%;" colspan="4">
-                            <p style="margin: 0; font-size: 13px;">
-                                <strong>Total:</strong> <field name="total_units" readonly="1" nolabel="1" class="oe_inline"/> |
-                                <strong>Disponibles:</strong> <field name="available_units" readonly="1" nolabel="1" class="oe_inline"/> |
-                                <strong>En Maintenance:</strong> <field name="maintenance_units" readonly="1" nolabel="1" class="oe_inline"/>
-                            </p>
-                        </div>
-                        <field name="units_occupancy_rate" readonly="1" string="Taux d'Occupation (%)"/>
-                    </group>
-
-                    <!-- Reservations Today -->
-                    <group string="📅 Réservations (Aujourd'hui)" colspan="4" data-widget="show_reservations_today">
-                        <field name="reservations_today_checkin" readonly="1" string="Check-ins"/>
-                        <field name="reservations_today_checkout" readonly="1" string="Check-outs"/>
-                        <field name="reservations_pending_payment" readonly="1" string="Paiements en Attente"/>
-                        <field name="reservations_pending_payment_amount" readonly="1" string="Montant en Attente" widget="monetary"/>
-                        <field name="reservations_confirmed_month" readonly="1" string="Confirmées (Ce Mois)"/>
-                    </group>
-
-                    <!-- Urgent Tasks -->
-                    <group string="✅ Aperçu des Tâches" colspan="4" data-widget="show_tasks_urgent">
-                        <field name="tasks_overdue" readonly="1" string="🔴 Tâches en Retard"/>
-                        <field name="tasks_due_today" readonly="1" string="📌 Tâches d'Aujourd'hui"/>
-                        <field name="tasks_urgent_total" readonly="1" string="⚡ Tâches Urgentes"/>
-                        <field name="tasks_in_progress" readonly="1" string="⏱️ En Cours"/>
-                    </group>
-
-                    <!-- Financial Summary -->
-                    <group string="💰 Résumé Financier" colspan="4" data-widget="show_financial">
-                        <field name="revenue_today" readonly="1" string="Revenus d'Aujourd'hui" widget="monetary"/>
-                        <field name="revenue_this_week" readonly="1" string="Revenus (Cette Semaine)" widget="monetary"/>
-                        <field name="outstanding_payments" readonly="1" string="Paiements Exceptionnels" widget="monetary"/>
-                        <field name="occupancy_rate_week" readonly="1" string="Occupation (Cette Semaine) (%)"/>
-                    </group>
-
-                    <!-- Charts Placeholder -->
-                    <group string="📊 Analytiques" colspan="4">
-                        <div style="background: #e7f3ff; padding: 12px; border-radius: 6px; border-left: 4px solid #007bff; width: 100%;" colspan="4">
-                            <p style="margin: 5px 0 0 0; font-size: 13px;"><strong>Graphiques &amp; Analyses Détaillées</strong></p>
-                            <p style="margin: 5px 0 0 0; font-size: 12px; color: #555;">Les graphiques d'occupation et de revenus s'afficheront ici une fois configurés.</p>
-                        </div>
-                    </group>
-
-                    <!-- Last Updated -->
-                    <footer style="text-align: center; margin-top: 20px; padding-top: 15px; border-top: 1px solid #ddd;">
-                        <p style="margin: 5px 0; font-size: 12px; color: #999;">
-                            Métriques actualisées automatiquement toutes les <field name="refresh_interval" readonly="1" nolabel="1" class="oe_inline"/> secondes.
-                        </p>
-                        <p style="margin: 0; font-size: 12px; color: #999;">
-                            Dernière actualisation: <span class="dashboard-update-time">À l'instant</span>
-                        </p>
                     </footer>
                 </sheet>
             </form>
