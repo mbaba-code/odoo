@@ -308,9 +308,20 @@ class OnedeskoSubscription(models.Model):
         """Suspendre l'abonnement"""
         self.state = 'suspended'
 
-        # Désactiver tous les utilisateurs de cette entreprise
+        # Désactiver tous les utilisateurs de cette entreprise ET révoquer leurs groupes OneDesk
         users = self.env['res.users'].search([('company_id', '=', self.company_id.id)])
-        users.write({'active': False})
+
+        # Révoquer les groupes OneDesk pour bloquer l'accès complètement
+        onedesk_groups = self.env['res.groups'].search([
+            ('name', 'like', '%onedesk%')
+        ])
+
+        for user in users:
+            # Désactiver l'user
+            user.write({'active': False})
+            # Révoquer tous les groupes OneDesk
+            user.write({'group_ids': [(3, g.id) for g in onedesk_groups]})
+
         _logger.info(f'⏸️ Suspended subscription and deactivated {len(users)} users for company {self.company_id.name}')
 
         # Audit log pour la suspension
@@ -319,7 +330,7 @@ class OnedeskoSubscription(models.Model):
             'severity': 'warning',
             'subscription_id': self.id,
             'company_id': self.company_id.id,
-            'description': f'Abonnement suspendu: {self.subscription_id} - {len(users)} utilisateurs désactivés',
+            'description': f'Abonnement suspendu: {self.subscription_id} - {len(users)} utilisateurs désactivés et rôles révoqués',
             'result': 'success',
         })
 
@@ -328,14 +339,34 @@ class OnedeskoSubscription(models.Model):
         self.state = 'active'
 
         # Réactiver TOUS les utilisateurs désactivés de cette entreprise (active=False)
-        # Les users ne sont PAS supprimés lors de la suspension, juste désactivés
+        # Et restaurer leurs groupes OneDesk
         users = self.env['res.users'].search([
             ('company_id', '=', self.company_id.id),
             ('active', '=', False)
         ])
-        users.write({'active': True})
-        reactivated_count = len(users)
 
+        # Trouver le client associé pour déterminer quels groupes restaurer
+        client = self.env['onedesk.client'].search([('subscription_id', '=', self.id)], limit=1)
+
+        for user in users:
+            # Réactiver l'user
+            user.write({'active': True})
+
+            # Restaurer les groupes OneDesk selon le login de l'user
+            # Les 3 rôles par défaut créés automatiquement ont des noms spécifiques
+            pm_group = self.env.ref('onedesk_core.group_onedesk_property_manager', raise_if_not_found=False)
+            staff_group = self.env.ref('onedesk_core.group_onedesk_staff', raise_if_not_found=False)
+            viewer_group = self.env.ref('onedesk_core.group_onedesk_viewer', raise_if_not_found=False)
+
+            # Déterminer le groupe basé sur le login
+            if pm_group and 'pm_' in user.login:
+                user.write({'group_ids': [(4, pm_group.id)]})
+            elif staff_group and 'staff_' in user.login:
+                user.write({'group_ids': [(4, staff_group.id)]})
+            elif viewer_group and 'viewer_' in user.login:
+                user.write({'group_ids': [(4, viewer_group.id)]})
+
+        reactivated_count = len(users)
         _logger.info(f'✅ Reactivated subscription and enabled {reactivated_count} users for company {self.company_id.name}')
 
         # Audit log pour la réactivation
@@ -344,7 +375,7 @@ class OnedeskoSubscription(models.Model):
             'severity': 'info',
             'subscription_id': self.id,
             'company_id': self.company_id.id,
-            'description': f'Abonnement réactivé: {self.subscription_id} - {reactivated_count} utilisateurs réactivés',
+            'description': f'Abonnement réactivé: {self.subscription_id} - {reactivated_count} utilisateurs réactivés et rôles restaurés',
             'result': 'success',
         })
 
@@ -409,9 +440,20 @@ class OnedeskoSubscription(models.Model):
         self.cancellation_date = fields.Date.today()
         self.state = 'cancelled'
 
-        # Désactiver tous les utilisateurs de cette entreprise
+        # Désactiver tous les utilisateurs de cette entreprise ET révoquer leurs groupes OneDesk
         users = self.env['res.users'].search([('company_id', '=', self.company_id.id)])
-        users.write({'active': False})
+
+        # Révoquer les groupes OneDesk pour bloquer l'accès complètement
+        onedesk_groups = self.env['res.groups'].search([
+            ('name', 'like', '%onedesk%')
+        ])
+
+        for user in users:
+            # Désactiver l'user
+            user.write({'active': False})
+            # Révoquer tous les groupes OneDesk
+            user.write({'group_ids': [(3, g.id) for g in onedesk_groups]})
+
         _logger.info(f'❌ Cancelled subscription and deactivated {len(users)} users for company {self.company_id.name}')
 
         # Audit log pour l'annulation
@@ -420,7 +462,7 @@ class OnedeskoSubscription(models.Model):
             'severity': 'critical',
             'subscription_id': self.id,
             'company_id': self.company_id.id,
-            'description': f'Abonnement annulé: {self.subscription_id} - {len(users)} utilisateurs désactivés',
+            'description': f'Abonnement annulé: {self.subscription_id} - {len(users)} utilisateurs désactivés et rôles révoqués',
             'result': 'success',
         })
 
