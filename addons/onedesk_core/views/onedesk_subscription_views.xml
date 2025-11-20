@@ -151,7 +151,10 @@
                     <separator string="📊 Utilisation actuelle"/>
                     <group>
                         <group>
+                            <field name="requested_units" readonly="id"/>
                             <field name="current_units_count" readonly="1"/>
+                        </group>
+                        <group>
                             <field name="current_users_count" readonly="1"/>
                         </group>
                     </group>

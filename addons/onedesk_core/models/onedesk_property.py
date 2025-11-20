@@ -1,4 +1,7 @@
 from odoo import models, fields, api
+import logging
+
+_logger = logging.getLogger(__name__)
 
 class OnedeskProperty(models.Model):
     _name = 'onedesk.property'
@@ -66,6 +69,29 @@ class OnedeskProperty(models.Model):
     user_id = fields.Many2one('res.users', string="Responsable",
                              default=lambda self: self.env.user, tracking=True)
     unit_ids = fields.One2many('onedesk.unit', 'property_id', string='Unités')
+
+    # ========== CREATE METHOD WITH LIMIT CHECKING ==========
+    @api.model
+    def create(self, vals):
+        """Créer une propriété avec vérification des limites du plan"""
+        property = super().create(vals)
+
+        # Vérifier les limites du plan d'abonnement
+        company_id = vals.get('company_id') or self.env.company.id
+        subscription = self.env['onedesk.subscription'].search([
+            ('company_id', '=', company_id),
+            ('state', '=', 'active')
+        ], limit=1)
+
+        if subscription:
+            try:
+                # Recompute current usage to get actual counts
+                subscription._compute_current_usage()
+                subscription._check_limits()
+            except Exception as e:
+                _logger.warning(f'Limit check failed for subscription {subscription.id}: {str(e)}')
+
+        return property
 
     # ========== COMPUTED FIELDS ==========
     total_units = fields.Integer(string='Nombre d\'unités',

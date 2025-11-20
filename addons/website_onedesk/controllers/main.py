@@ -429,9 +429,22 @@ class OneDeskWebsite(http.Controller):
                 'plan_id': plan.id,
                 'state': 'draft',
                 'billing_contact_id': partner.id,
+                'requested_units': num_units,
             })
 
             _logger.info(f'✅ Subscription created: {subscription.subscription_id} for {company_name}')
+
+            # Créer un audit log pour la souscription
+            request.env['onedesk.audit.log'].sudo().create({
+                'log_type': 'subscription_created',
+                'severity': 'info',
+                'company_id': company.id,
+                'subscription_id': subscription.id,
+                'description': f'Nouvelle souscription créée: {subscription.subscription_id} pour {company_name}',
+                'actor_name': contact_name,
+                'actor_email': email,
+                'result': 'success',
+            })
 
             # Prépare les données pour les emails
             context_data = {

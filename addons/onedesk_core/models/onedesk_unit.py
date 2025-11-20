@@ -1,6 +1,9 @@
 from odoo import models, fields, api
 from datetime import datetime, timedelta, date
 from dateutil.relativedelta import relativedelta
+import logging
+
+_logger = logging.getLogger(__name__)
 
 class OnedeskUnit(models.Model):
     _name = 'onedesk.unit'
@@ -96,6 +99,29 @@ class OnedeskUnit(models.Model):
         """Hériter company_id de la propriété"""
         for record in self:
             record.company_id = record.property_id.company_id if record.property_id else False
+
+    # ========== CREATE METHOD WITH LIMIT CHECKING ==========
+    @api.model
+    def create(self, vals):
+        """Créer une unité avec vérification des limites du plan"""
+        unit = super().create(vals)
+
+        # Vérifier les limites du plan d'abonnement
+        if unit.company_id:
+            subscription = self.env['onedesk.subscription'].search([
+                ('company_id', '=', unit.company_id.id),
+                ('state', '=', 'active')
+            ], limit=1)
+
+            if subscription:
+                try:
+                    # Recompute current usage to get actual counts
+                    subscription._compute_current_usage()
+                    subscription._check_limits()
+                except Exception as e:
+                    _logger.warning(f'Limit check failed for subscription {subscription.id}: {str(e)}')
+
+        return unit
 
     @api.depends('image_ids', 'image_ids.is_cover', 'image_ids.image')
     def _compute_cover_image(self):

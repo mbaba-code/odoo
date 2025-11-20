@@ -1,5 +1,8 @@
 from odoo import models, fields, api
 from odoo.exceptions import ValidationError
+import logging
+
+_logger = logging.getLogger(__name__)
 
 
 class OnedeskoSubscriptionPlan(models.Model):
@@ -163,6 +166,14 @@ class OnedeskoSubscription(models.Model):
         string="Remise globale (%)",
         default=0.0
     )
+
+    # Requested Units from Form
+    requested_units = fields.Integer(
+        string="Unités demandées",
+        help="Nombre d'unités (propriétés/chambres) demandé lors de la souscription via le formulaire web",
+        default=0
+    )
+
     notes = fields.Text(string="Notes commerciales")
 
     # Auto-renewal
@@ -228,23 +239,85 @@ class OnedeskoSubscription(models.Model):
     def _compute_current_usage(self):
         """Calculer l'utilisation actuelle (unités, utilisateurs)"""
         for record in self:
-            # Initialization simple des compteurs
-            # TODO: Implémenter les relations company_id pour les modèles property, unit, reservation
-            record.current_units_count = 0
-            record.current_users_count = 0
+            # Compter les unités actuelles de cette entreprise
+            units_count = self.env['onedesk.unit'].search_count([
+                ('company_id', '=', record.company_id.id),
+                ('active', '=', True)
+            ])
+
+            # Compter les utilisateurs actifs de cette entreprise
+            users_count = self.env['res.users'].search_count([
+                ('company_id', '=', record.company_id.id),
+                ('active', '=', True)
+            ])
+
+            record.current_units_count = units_count
+            record.current_users_count = users_count
 
     def action_activate(self):
         """Activer l'abonnement"""
         self.state = 'active'
 
+        # Créer le client OneDesk s'il n'existe pas
+        # Cela va déclencher automatiquement la création des 3 rôles (property-manager, staff, viewer)
+        client = self.env['onedesk.client'].search([('company_id', '=', self.company_id.id)], limit=1)
+        if not client:
+            client = self.env['onedesk.client'].create({
+                'company_id': self.company_id.id,
+                'owner_partner_id': self.billing_contact_id.id,
+                'subscription_id': self.id,
+                'state': 'active',
+            })
+            _logger.info(f'✅ Created OneDesk client {client.id} for company {self.company_id.name} with 3 default roles')
+
+        # Audit log pour l'activation
+        self.env['onedesk.audit.log'].create({
+            'log_type': 'subscription_activated',
+            'severity': 'info',
+            'subscription_id': self.id,
+            'company_id': self.company_id.id,
+            'description': f'Abonnement activé: {self.subscription_id}',
+            'result': 'success',
+        })
+
     def action_suspend(self):
         """Suspendre l'abonnement"""
         self.state = 'suspended'
+
+        # Désactiver tous les utilisateurs de cette entreprise
+        users = self.env['res.users'].search([('company_id', '=', self.company_id.id)])
+        users.write({'active': False})
+        _logger.info(f'⏸️ Suspended subscription and deactivated {len(users)} users for company {self.company_id.name}')
+
+        # Audit log pour la suspension
+        self.env['onedesk.audit.log'].create({
+            'log_type': 'subscription_suspended',
+            'severity': 'warning',
+            'subscription_id': self.id,
+            'company_id': self.company_id.id,
+            'description': f'Abonnement suspendu: {self.subscription_id} - {len(users)} utilisateurs désactivés',
+            'result': 'success',
+        })
 
     def action_cancel(self):
         """Annuler l'abonnement"""
         self.cancellation_date = fields.Date.today()
         self.state = 'cancelled'
+
+        # Désactiver tous les utilisateurs de cette entreprise
+        users = self.env['res.users'].search([('company_id', '=', self.company_id.id)])
+        users.write({'active': False})
+        _logger.info(f'❌ Cancelled subscription and deactivated {len(users)} users for company {self.company_id.name}')
+
+        # Audit log pour l'annulation
+        self.env['onedesk.audit.log'].create({
+            'log_type': 'subscription_cancelled',
+            'severity': 'high',
+            'subscription_id': self.id,
+            'company_id': self.company_id.id,
+            'description': f'Abonnement annulé: {self.subscription_id} - {len(users)} utilisateurs désactivés',
+            'result': 'success',
+        })
 
     def calculate_monthly_fee(self):
         """Calculer les frais mensuels basés sur l'utilisation"""
