@@ -377,28 +377,66 @@ class OnedeskoClient(models.Model):
 
     def action_suspend_client(self):
         """Suspendre le client"""
-        # Suspendre l'abonnement associé
+        # Suspendre l'abonnement associé (qui va déjà revoque les groupes)
         if self.subscription_id:
             self.subscription_id.action_suspend()
+        else:
+            # Si pas d'abonnement, on revoque manuellement les groupes
+            users = self.env['res.users'].search([('company_id', '=', self.company_id.id)])
+            onedesk_groups = self.env['res.groups'].search([
+                ('name', 'like', '%onedesk%')
+            ])
+            for user in users:
+                user.write({'active': False})
+                user.write({'group_ids': [(3, g.id) for g in onedesk_groups]})
+            _logger.info(f'⏸️ Suspended client and deactivated {len(users)} users for company {self.company_id.name}')
+
         self.state = 'suspended'
 
     def action_reactivate_client(self):
         """Réactiver un client suspendu"""
-        # Réactiver l'abonnement associé
+        # Réactiver l'abonnement associé (qui va déjà restaurer les groupes)
         if self.subscription_id:
             self.subscription_id.action_reactivate()
+        else:
+            # Si pas d'abonnement, on restaure manuellement les groupes
+            users = self.env['res.users'].search([
+                ('company_id', '=', self.company_id.id),
+                ('active', '=', False)
+            ])
+            pm_group = self.env.ref('onedesk_core.group_onedesk_property_manager', raise_if_not_found=False)
+            staff_group = self.env.ref('onedesk_core.group_onedesk_staff', raise_if_not_found=False)
+            viewer_group = self.env.ref('onedesk_core.group_onedesk_viewer', raise_if_not_found=False)
 
-        # Réactiver tous les utilisateurs de cette entreprise
-        users = self.env['res.users'].search([('company_id', '=', self.company_id.id)])
-        users.write({'active': True})
+            for user in users:
+                user.write({'active': True})
+                # Restaurer les groupes selon le login
+                if pm_group and 'pm_' in user.login:
+                    user.write({'group_ids': [(4, pm_group.id)]})
+                elif staff_group and 'staff_' in user.login:
+                    user.write({'group_ids': [(4, staff_group.id)]})
+                elif viewer_group and 'viewer_' in user.login:
+                    user.write({'group_ids': [(4, viewer_group.id)]})
+            _logger.info(f'✅ Reactivated client and enabled {len(users)} users for company {self.company_id.name}')
 
         self.state = 'active'
 
     def action_cancel_client(self):
         """Annuler le client"""
-        # Annuler l'abonnement associé
+        # Annuler l'abonnement associé (qui va déjà revoque les groupes)
         if self.subscription_id:
             self.subscription_id.action_cancel()
+        else:
+            # Si pas d'abonnement, on revoque manuellement les groupes
+            users = self.env['res.users'].search([('company_id', '=', self.company_id.id)])
+            onedesk_groups = self.env['res.groups'].search([
+                ('name', 'like', '%onedesk%')
+            ])
+            for user in users:
+                user.write({'active': False})
+                user.write({'group_ids': [(3, g.id) for g in onedesk_groups]})
+            _logger.info(f'❌ Cancelled client and deactivated {len(users)} users for company {self.company_id.name}')
+
         self.state = 'cancelled'
 
     def get_subscription_limits(self):
