@@ -231,8 +231,8 @@ class OnedeskoClient(models.Model):
         """Synchroniser les changements d'état avec l'abonnement associé"""
         result = super().write(vals)
 
-        # Synchroniser les changements d'état avec la subscription
-        if 'state' in vals:
+        # Synchroniser les changements d'état avec la subscription (mais éviter la boucle infinie)
+        if 'state' in vals and not self.env.context.get('skip_client_sync'):
             new_state = vals['state']
             for client in self:
                 if client.subscription_id:
@@ -244,7 +244,8 @@ class OnedeskoClient(models.Model):
                         'cancelled': 'cancelled',
                     }
                     subscription_state = state_mapping.get(new_state, new_state)
-                    client.subscription_id.write({'state': subscription_state})
+                    # Écrire avec contexte pour éviter la synchronisation inverse
+                    client.subscription_id.with_context(skip_subscription_sync=True).write({'state': subscription_state})
                     _logger.info(f'✅ Synchronized client state {new_state} → subscription state {subscription_state}')
 
         return result

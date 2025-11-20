@@ -224,8 +224,8 @@ class OnedeskoSubscription(models.Model):
         """Synchroniser les changements d'état avec le client associé"""
         result = super().write(vals)
 
-        # Synchroniser les changements d'état
-        if 'state' in vals:
+        # Synchroniser les changements d'état (mais éviter la boucle infinie)
+        if 'state' in vals and not self.env.context.get('skip_subscription_sync'):
             new_state = vals['state']
             # Chercher le client associé à cette subscription
             clients = self.env['onedesk.client'].search([('subscription_id', '=', self.id)])
@@ -238,7 +238,8 @@ class OnedeskoSubscription(models.Model):
                     'cancelled': 'cancelled',
                 }
                 client_state = state_mapping.get(new_state, new_state)
-                clients.write({'state': client_state})
+                # Écrire avec contexte pour éviter la synchronisation inverse
+                clients.with_context(skip_client_sync=True).write({'state': client_state})
                 _logger.info(f'✅ Synchronized subscription state {new_state} → client state {client_state}')
 
         return result
