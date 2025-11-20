@@ -390,12 +390,20 @@ class OnedeskoSubscription(models.Model):
         client_code = client.client_code
         company_name = company.name
 
+        # Obtenir l'email du contact propriétaire avec sudo() pour éviter les permissions
+        owner_email = f'pm_{client_code}@onedesk.local'
+        if client.owner_partner_id:
+            try:
+                owner_email = client.sudo().owner_partner_id.sudo().email or owner_email
+            except:
+                pass  # Utiliser le fallback si erreur
+
         # Mapping des rôles
         role_mapping = {
             'property-manager': {
                 'name': f'{company_name} - Property Manager',
                 'login': f'pm_{client_code}@onedesk.local'.lower(),
-                'email': client.owner_partner_id.email if client.owner_partner_id else f'pm_{client_code}@onedesk.local',
+                'email': owner_email,
                 'group_ref': 'onedesk_core.group_onedesk_property_manager',
             },
             'staff': {
@@ -419,7 +427,7 @@ class OnedeskoSubscription(models.Model):
         role_config = role_mapping[role]
         group = self.env.ref(role_config['group_ref'])
 
-        user = self.env['res.users'].create({
+        user = self.env['res.users'].sudo().create({
             'name': role_config['name'],
             'login': role_config['login'],
             'email': role_config['email'],
