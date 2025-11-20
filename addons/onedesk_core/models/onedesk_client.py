@@ -356,6 +356,18 @@ class OnedeskoClient(models.Model):
             self.subscription_id.action_suspend()
         self.state = 'suspended'
 
+    def action_reactivate_client(self):
+        """Réactiver un client suspendu"""
+        # Réactiver l'abonnement associé
+        if self.subscription_id:
+            self.subscription_id.action_reactivate()
+
+        # Réactiver tous les utilisateurs de cette entreprise
+        users = self.env['res.users'].search([('company_id', '=', self.company_id.id)])
+        users.write({'active': True})
+
+        self.state = 'active'
+
     def action_cancel_client(self):
         """Annuler le client"""
         # Annuler l'abonnement associé

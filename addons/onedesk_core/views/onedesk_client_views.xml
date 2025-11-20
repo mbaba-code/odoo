@@ -94,8 +94,10 @@
                             invisible="state != 'pending_setup'"/>
                     <button name="action_suspend_client" string="⏸ Suspendre" type="object"
                             invisible="state != 'active'"/>
+                    <button name="action_reactivate_client" string="▶ Réactiver" type="object" class="oe_highlight"
+                            invisible="state != 'suspended'"/>
                     <button name="action_cancel_client" string="❌ Annuler" type="object"
-                            invisible="state in ['cancelled', 'pending_setup']"/>
+                            invisible="state in ['cancelled']"/>
                     <field name="state" widget="statusbar"/>
                 </header>
                 <sheet>
