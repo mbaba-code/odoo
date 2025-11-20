@@ -22,6 +22,7 @@ class OnedeskoAuditLog(models.Model):
         ('subscription_created', 'Abonnement créé'),
         ('subscription_modified', 'Abonnement modifié'),
         ('subscription_activated', 'Abonnement activé'),
+        ('subscription_suspended', 'Abonnement suspendu'),
         ('subscription_cancelled', 'Abonnement annulé'),
         ('user_created', 'Utilisateur créé'),
         ('user_deleted', 'Utilisateur supprimé'),

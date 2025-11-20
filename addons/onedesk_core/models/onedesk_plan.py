@@ -312,7 +312,7 @@ class OnedeskoSubscription(models.Model):
         # Audit log pour l'annulation
         self.env['onedesk.audit.log'].create({
             'log_type': 'subscription_cancelled',
-            'severity': 'high',
+            'severity': 'critical',
             'subscription_id': self.id,
             'company_id': self.company_id.id,
             'description': f'Abonnement annulé: {self.subscription_id} - {len(users)} utilisateurs désactivés',
