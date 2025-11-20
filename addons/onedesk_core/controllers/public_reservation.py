@@ -7,6 +7,7 @@ import json
 from datetime import datetime
 from odoo import http, fields
 from odoo.http import request
+from odoo.exceptions import AccessError
 
 
 class PublicReservationController(http.Controller):
@@ -36,7 +37,7 @@ class PublicReservationController(http.Controller):
             'units': units_data,
         })
 
-    @http.route('/onedesk/public/reservation/create', type='json', auth='public', csrf=False)
+    @http.route('/onedesk/public/reservation/create', type='jsonrpc', auth='public', csrf=False)
     def create_reservation(self, **data):
         """
         Créer une réservation publique
@@ -53,6 +54,16 @@ class PublicReservationController(http.Controller):
         }
         """
         try:
+            # Vérifier si l'utilisateur est connecté
+            if request.env.user._is_public():
+                return {
+                    'status': 'error',
+                    'message': '🔒 Vous devez créer un compte ou vous connecter pour effectuer une réservation.',
+                    'action': 'login_required',
+                    'login_url': '/web/login',
+                    'signup_url': '/web/signup',
+                }
+
             # Valider les données
             self._validate_reservation_data(data)
 
@@ -73,10 +84,23 @@ class PublicReservationController(http.Controller):
                 'redirect_url': f'/onedesk/public/reservation/confirm/{reservation.id}',
             }
 
-        except Exception as e:
+        except AccessError:
+            return {
+                'status': 'error',
+                'message': '🔒 Vous devez créer un compte ou vous connecter pour effectuer une réservation.',
+                'action': 'login_required',
+                'login_url': '/web/login',
+                'signup_url': '/web/signup',
+            }
+        except ValueError as e:
             return {
                 'status': 'error',
                 'message': str(e),
+            }
+        except Exception as e:
+            return {
+                'status': 'error',
+                'message': 'Une erreur est survenue. Veuillez réessayer.',
             }
 
     @http.route('/onedesk/public/reservation/confirm/<int:reservation_id>', type='http', auth='public')
@@ -204,7 +228,7 @@ class PublicReservationController(http.Controller):
             except:
                 pass
 
-    @http.route('/onedesk/public/units/available', type='json', auth='public')
+    @http.route('/onedesk/public/units/available', type='jsonrpc', auth='public')
     def get_available_units(self, **kwargs):
         """API pour récupérer les unités disponibles"""
         Unit = request.env['onedesk.unit'].sudo()

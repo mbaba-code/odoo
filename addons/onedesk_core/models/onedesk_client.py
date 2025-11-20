@@ -161,6 +161,12 @@ class OnedeskoClient(models.Model):
         compute='_compute_usage_stats',
         readonly=True
     )
+    
+    
+    
+    @api.model
+    def _valid_field_parameter(self, field, name):
+        return name == 'unique' or super()._valid_field_parameter(field, name)
 
     @api.model
     def _get_timezones(self):
@@ -477,3 +483,5 @@ class OnedeskoClientInvitation(models.Model):
         if group_ref:
             return self.env.ref(group_ref).id
         return False
+    
+    

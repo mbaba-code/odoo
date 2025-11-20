@@ -220,7 +220,10 @@ class OneDesk_DashboardUsers(models.Model):
         }
 
     # ==================== DATABASE CONSTRAINTS ====================
-    _sql_constraints = [
-        ('unique_user_company', 'unique(user_id, company_id)',
-         'Only one users dashboard per user per company allowed')
+    
+    _constraints_= [
+        models.Constraint(
+            'unique(user_id, company_id)',
+            'Only one users dashboard per user per company allowed'
+        )
     ]

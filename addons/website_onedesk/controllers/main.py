@@ -17,7 +17,7 @@ class OneDeskWebsite(http.Controller):
         """Route de test simple"""
         return "✅ OneDesk Website module est actif!"
 
-    @http.route('/onedesk/booking-test', type='json', auth='public', website=True, methods=['POST'])
+    @http.route('/onedesk/booking-test', type='jsonrpc', auth='public', website=True, methods=['POST'])
     def test_booking(self, **kw):
         """Route de test pour JSON"""
         _logger.info('Test booking route called!')
@@ -106,6 +106,18 @@ class OneDeskWebsite(http.Controller):
 
             _logger.info(f'Data extracted: {data}')
 
+            # Vérifier si l'utilisateur est connecté
+            if request.env.user._is_public():
+                response = {
+                    'status': 'error',
+                    'message': '🔒 Vous devez créer un compte ou vous connecter pour effectuer une réservation.',
+                    'action': 'login_required',
+                    'login_url': '/web/login',
+                    'signup_url': '/web/signup',
+                }
+                _logger.info(f'User is public, returning login required: {response}')
+                return http.Response(json.dumps(response), content_type='application/json')
+
             # Valide les données requises
             required_fields = ['name', 'email', 'unit_id', 'start_date', 'end_date']
             for field in required_fields:
@@ -139,7 +151,7 @@ class OneDeskWebsite(http.Controller):
             _logger.info(f'Booking request: unit={unit_id}, start={start_datetime}, end={end_datetime}')
 
             # Cherche les réservations qui se chevauchent
-            conflicting = request.env['onedesk.reservation'].search([
+            conflicting = request.env['onedesk.reservation'].sudo().search([
                 ('unit_id', '=', unit_id),
                 ('status', '!=', 'cancelled'),
                 ('start_date', '<', end_datetime),
@@ -171,12 +183,12 @@ class OneDeskWebsite(http.Controller):
                 return http.Response(json.dumps(response), content_type='application/json')
 
             # Crée un partner si nécessaire
-            partner = request.env['res.partner'].search([
+            partner = request.env['res.partner'].sudo().search([
                 ('email', '=', data.get('email'))
             ], limit=1)
 
             if not partner:
-                partner = request.env['res.partner'].create({
+                partner = request.env['res.partner'].sudo().create({
                     'name': data.get('name'),
                     'email': data.get('email'),
                     'phone': data.get('phone', ''),
@@ -186,7 +198,7 @@ class OneDeskWebsite(http.Controller):
             # Crée la réservation en brouillon
             _logger.info(f'Creating reservation with start={start_datetime.isoformat()}, end={end_datetime.isoformat()}')
 
-            reservation = request.env['onedesk.reservation'].create({
+            reservation = request.env['onedesk.reservation'].sudo().create({
                 'unit_id': unit_id,
                 'partner_id': partner.id,
                 'start_date': start_date.isoformat(),  # Envoyer juste la date, pas la datetime
@@ -242,7 +254,7 @@ class OneDeskWebsite(http.Controller):
             _logger.error(f'Returning error response: {response}')
             return http.Response(json.dumps(response), content_type='application/json')
 
-    @http.route('/onedesk/unit/<model("onedesk.unit"):unit_id>/availability', type='json', auth='public', website=True, methods=['POST'])
+    @http.route('/onedesk/unit/<model("onedesk.unit"):unit_id>/availability', type='jsonrpc', auth='public', website=True, methods=['POST'])
     def check_availability(self, unit_id, **kw):
         """Vérifie la disponibilité d'une unité pour une période"""
         try:

@@ -30,6 +30,7 @@ class OnedeskIntegrationProvider(models.Model):
     
     active = fields.Boolean(default=True)
     
-    _sql_constraints = [
-        ('code_unique', 'unique(code)', 'Le code doit être unique!')
+    
+    _constraints_ = [
+        models.Constraint('unique(code)', 'Le code doit être unique!')
     ]

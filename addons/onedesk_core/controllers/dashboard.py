@@ -33,7 +33,7 @@ class OnedeskDashboardController(http.Controller):
 
         return date_from, date_to
 
-    @http.route('/onedesk/dashboard/revenue-chart', type='json', auth='user')
+    @http.route('/onedesk/dashboard/revenue-chart', type='jsonrpc', auth='user')
     def revenue_chart(self):
         """Get revenue data for chart"""
         dashboard = request.env['onedesk.dashboard'].search([
@@ -106,7 +106,7 @@ class OnedeskDashboardController(http.Controller):
             'period': dashboard.period_type
         }
 
-    @http.route('/onedesk/dashboard/occupancy-chart', type='json', auth='user')
+    @http.route('/onedesk/dashboard/occupancy-chart', type='jsonrpc', auth='user')
     def occupancy_chart(self):
         """Get occupancy data by property"""
         dashboard = request.env['onedesk.dashboard'].search([
@@ -153,7 +153,7 @@ class OnedeskDashboardController(http.Controller):
             'period': dashboard.period_type
         }
 
-    @http.route('/onedesk/dashboard/reservations-chart', type='json', auth='user')
+    @http.route('/onedesk/dashboard/reservations-chart', type='jsonrpc', auth='user')
     def reservations_chart(self):
         """Get reservations data by status"""
         dashboard = request.env['onedesk.dashboard'].search([
@@ -186,7 +186,7 @@ class OnedeskDashboardController(http.Controller):
             'period': dashboard.period_type
         }
 
-    @http.route('/onedesk/dashboard/properties-ranking', type='json', auth='user')
+    @http.route('/onedesk/dashboard/properties-ranking', type='jsonrpc', auth='user')
     def properties_ranking(self, order_by='revenue'):
         """Get property ranking by performance"""
         try:
@@ -201,7 +201,7 @@ class OnedeskDashboardController(http.Controller):
                 'message': str(e)
             }
 
-    @http.route('/onedesk/dashboard/user-activity', type='json', auth='user')
+    @http.route('/onedesk/dashboard/user-activity', type='jsonrpc', auth='user')
     def user_activity(self):
         """Get user activity and productivity metrics"""
         company_ids = request.env['onedesk.dashboard'].search([
@@ -257,7 +257,7 @@ class OnedeskDashboardController(http.Controller):
             'data': user_stats
         }
 
-    @http.route('/onedesk/dashboard/period-comparison', type='json', auth='user')
+    @http.route('/onedesk/dashboard/period-comparison', type='jsonrpc', auth='user')
     def period_comparison(self, metric='revenue'):
         """Compare current period with previous period"""
         dashboard = request.env['onedesk.dashboard'].search([

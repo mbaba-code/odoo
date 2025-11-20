@@ -17,7 +17,7 @@ class OnedeskoSignupController(http.Controller):
         """Afficher le formulaire d'inscription"""
         return request.render('onedesk_core.signup_form_template', {})
 
-    @http.route('/onedesk/signup/process', type='json', auth='public', csrf=False)
+    @http.route('/onedesk/signup/process', type='jsonrpc', auth='public', csrf=False)
     def signup_process(self, **data):
         """
         Traiter l'inscription du client
@@ -264,7 +264,7 @@ class OnedeskoSignupController(http.Controller):
         """Page de connexion personnalisée pour OneDesk"""
         return request.render('onedesk_core.login_template', {})
 
-    @http.route('/onedesk/invite/accept/<token>', type='json', auth='public', csrf=False)
+    @http.route('/onedesk/invite/accept/<token>', type='jsonrpc', auth='public', csrf=False)
     def accept_invitation(self, token, **data):
         """Accepter une invitation d'utilisateur"""
         try:

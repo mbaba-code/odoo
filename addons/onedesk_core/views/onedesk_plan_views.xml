@@ -161,19 +161,19 @@
                                 <ul style="list-style: none; padding: 0; margin: 0; font-size: 12px; color: #666;">
                                     <li style="padding: 4px 0;">
                                         <t t-if="record.include_channel_manager.raw_value">
-                                            <i class="fa fa-check text-success"></i>
+                                            <i class="fa fa-check text-success" title="Inclus"/>
                                         </t>
                                         <t t-else="">
-                                            <i class="fa fa-times text-danger"></i>
+                                            <i class="fa fa-times text-danger" title="Non inclus"/>
                                         </t>
                                         Gestionnaire multi-canaux
                                     </li>
                                     <li style="padding: 4px 0;">
                                         <t t-if="record.include_accounting.raw_value">
-                                            <i class="fa fa-check text-success"></i>
+                                            <i class="fa fa-check text-success" title="Inclus"/>
                                         </t>
                                         <t t-else="">
-                                            <i class="fa fa-times text-danger"></i>
+                                            <i class="fa fa-times text-danger" title="Non inclus"/>
                                         </t>
                                         Module comptable
                                     </li>

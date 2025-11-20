@@ -192,7 +192,10 @@ class OneDesk_DashboardReservations(models.Model):
         }
 
     # ==================== DATABASE CONSTRAINTS ====================
-    _sql_constraints = [
-        ('unique_user_company', 'unique(user_id, company_id)',
-         'Only one reservations dashboard per user per company allowed')
+    
+    _constraints_ = [
+        models.Constraint(
+            'unique(user_id, company_id)',
+            'Only one reservations dashboard per user per company allowed'
+        )
     ]

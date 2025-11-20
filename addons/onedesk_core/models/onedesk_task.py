@@ -138,6 +138,10 @@ class OnedeskTask(models.Model):
                     # Mise à jour avec sudo() pour contourner les ir.rules
                     task.calendar_event_id.sudo().write(update_vals)
         return res
+    
+    @api.model
+    def _valid_field_parameter(self, field, name):
+        return name == 'tracking' or super()._valid_field_parameter(field, name)
 
 
 # Héritage du modèle réservation pour créer automatiquement les tâches
