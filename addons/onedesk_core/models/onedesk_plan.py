@@ -299,6 +299,25 @@ class OnedeskoSubscription(models.Model):
             'result': 'success',
         })
 
+    def action_reactivate(self):
+        """Réactiver un abonnement suspendu"""
+        self.state = 'active'
+
+        # Réactiver tous les utilisateurs de cette entreprise
+        users = self.env['res.users'].search([('company_id', '=', self.company_id.id)])
+        users.write({'active': True})
+        _logger.info(f'✅ Reactivated subscription and enabled {len(users)} users for company {self.company_id.name}')
+
+        # Audit log pour la réactivation
+        self.env['onedesk.audit.log'].create({
+            'log_type': 'subscription_activated',
+            'severity': 'info',
+            'subscription_id': self.id,
+            'company_id': self.company_id.id,
+            'description': f'Abonnement réactivé: {self.subscription_id} - {len(users)} utilisateurs réactivés',
+            'result': 'success',
+        })
+
     def action_cancel(self):
         """Annuler l'abonnement"""
         self.cancellation_date = fields.Date.today()
