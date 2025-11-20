@@ -432,6 +432,22 @@ class OneDeskWebsite(http.Controller):
                 'requested_units': num_units,
             })
 
+            # Créer aussi le client OneDesk immédiatement
+            client = request.env['onedesk.client'].sudo().search(
+                [('company_id', '=', company.id)], limit=1
+            )
+            if not client:
+                client = request.env['onedesk.client'].sudo().create({
+                    'company_id': company.id,
+                    'owner_partner_id': partner.id,
+                    'subscription_id': subscription.id,
+                    'state': 'pending_setup',
+                })
+                _logger.info(f'✅ Created OneDesk client {client.id} for company {company_name}')
+            else:
+                # Lier la subscription au client existant
+                client.write({'subscription_id': subscription.id})
+
             _logger.info(f'✅ Subscription created: {subscription.subscription_id} for {company_name}')
 
             # Créer un audit log pour la souscription

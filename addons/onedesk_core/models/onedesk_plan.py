@@ -220,6 +220,29 @@ class OnedeskoSubscription(models.Model):
                 vals['subscription_id'] = self.env['ir.sequence'].next_by_code('onedesk.subscription')
         return super().create(vals_list)
 
+    def write(self, vals):
+        """Synchroniser les changements d'état avec le client associé"""
+        result = super().write(vals)
+
+        # Synchroniser les changements d'état
+        if 'state' in vals:
+            new_state = vals['state']
+            # Chercher le client associé à cette subscription
+            clients = self.env['onedesk.client'].search([('subscription_id', '=', self.id)])
+            if clients:
+                # Mapper les états de subscription à client
+                state_mapping = {
+                    'draft': 'pending_setup',
+                    'active': 'active',
+                    'suspended': 'suspended',
+                    'cancelled': 'cancelled',
+                }
+                client_state = state_mapping.get(new_state, new_state)
+                clients.write({'state': client_state})
+                _logger.info(f'✅ Synchronized subscription state {new_state} → client state {client_state}')
+
+        return result
+
     @api.depends('plan_id.billing_model')
     def _compute_next_invoice_date(self):
         """Calculer la prochaine date de facture"""
@@ -303,10 +326,52 @@ class OnedeskoSubscription(models.Model):
         """Réactiver un abonnement suspendu"""
         self.state = 'active'
 
-        # Réactiver tous les utilisateurs de cette entreprise
-        users = self.env['res.users'].search([('company_id', '=', self.company_id.id)])
+        # Réactiver TOUS les utilisateurs désactivés de cette entreprise (active=False)
+        # Et créer les users manquants s'il le faut
+        users = self.env['res.users'].search([
+            ('company_id', '=', self.company_id.id),
+            ('active', '=', False)
+        ])
         users.write({'active': True})
-        _logger.info(f'✅ Reactivated subscription and enabled {len(users)} users for company {self.company_id.name}')
+        reactivated_count = len(users)
+
+        # Vérifier si les 3 rôles par défaut existent et les créer s'ils manquent
+        client = self.env['onedesk.client'].search([('subscription_id', '=', self.id)], limit=1)
+        if client:
+            # Vérifier et créer les utilisateurs par défaut s'ils n'existent pas
+            missing_users = 0
+
+            # Check Property Manager
+            pm_exists = self.env['res.users'].search_count([
+                ('company_id', '=', self.company_id.id),
+                ('login', '=', f'pm_{client.client_code}@onedesk.local'.lower())
+            ])
+            if not pm_exists:
+                self._create_missing_user('property-manager', client)
+                missing_users += 1
+
+            # Check Staff
+            staff_exists = self.env['res.users'].search_count([
+                ('company_id', '=', self.company_id.id),
+                ('login', '=', f'staff_{client.client_code}@onedesk.local'.lower())
+            ])
+            if not staff_exists:
+                self._create_missing_user('staff', client)
+                missing_users += 1
+
+            # Check Viewer
+            viewer_exists = self.env['res.users'].search_count([
+                ('company_id', '=', self.company_id.id),
+                ('login', '=', f'viewer_{client.client_code}@onedesk.local'.lower())
+            ])
+            if not viewer_exists:
+                self._create_missing_user('viewer', client)
+                missing_users += 1
+
+            if missing_users > 0:
+                _logger.info(f'✅ Created {missing_users} missing users for reactivated subscription')
+
+        _logger.info(f'✅ Reactivated subscription and enabled {reactivated_count} users for company {self.company_id.name}')
 
         # Audit log pour la réactivation
         self.env['onedesk.audit.log'].create({
@@ -314,9 +379,57 @@ class OnedeskoSubscription(models.Model):
             'severity': 'info',
             'subscription_id': self.id,
             'company_id': self.company_id.id,
-            'description': f'Abonnement réactivé: {self.subscription_id} - {len(users)} utilisateurs réactivés',
+            'description': f'Abonnement réactivé: {self.subscription_id} - {reactivated_count} utilisateurs réactivés',
             'result': 'success',
         })
+
+    def _create_missing_user(self, role, client):
+        """Créer un utilisateur manquant avec le rôle spécifié"""
+        company = self.company_id
+        client_code = client.client_code
+        company_name = company.name
+
+        # Mapping des rôles
+        role_mapping = {
+            'property-manager': {
+                'name': f'{company_name} - Property Manager',
+                'login': f'pm_{client_code}@onedesk.local'.lower(),
+                'email': client.owner_partner_id.email if client.owner_partner_id else f'pm_{client_code}@onedesk.local',
+                'group_ref': 'onedesk_core.group_onedesk_property_manager',
+            },
+            'staff': {
+                'name': f'{company_name} - Staff Member',
+                'login': f'staff_{client_code}@onedesk.local'.lower(),
+                'email': f'staff_{client_code}@onedesk.local',
+                'group_ref': 'onedesk_core.group_onedesk_staff',
+            },
+            'viewer': {
+                'name': f'{company_name} - Viewer',
+                'login': f'viewer_{client_code}@onedesk.local'.lower(),
+                'email': f'viewer_{client_code}@onedesk.local',
+                'group_ref': 'onedesk_core.group_onedesk_viewer',
+            },
+        }
+
+        if role not in role_mapping:
+            _logger.warning(f'Unknown role: {role}')
+            return
+
+        role_config = role_mapping[role]
+        group = self.env.ref(role_config['group_ref'])
+
+        user = self.env['res.users'].create({
+            'name': role_config['name'],
+            'login': role_config['login'],
+            'email': role_config['email'],
+            'company_id': company.id,
+            'company_ids': [(6, 0, [company.id])],
+            'state': 'new',
+            'group_ids': [(4, group.id)],
+        })
+
+        _logger.info(f'✅ Created missing user {role} for company {company_name}')
+        return user
 
     def action_cancel(self):
         """Annuler l'abonnement"""

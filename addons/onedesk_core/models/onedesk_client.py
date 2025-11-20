@@ -2,6 +2,9 @@ from odoo import models, fields, api
 from odoo.exceptions import ValidationError, UserError
 import secrets
 import string
+import logging
+
+_logger = logging.getLogger(__name__)
 
 
 class OnedeskoClient(models.Model):
@@ -223,6 +226,28 @@ class OnedeskoClient(models.Model):
             self._create_default_users(client)
 
         return clients
+
+    def write(self, vals):
+        """Synchroniser les changements d'état avec l'abonnement associé"""
+        result = super().write(vals)
+
+        # Synchroniser les changements d'état avec la subscription
+        if 'state' in vals:
+            new_state = vals['state']
+            for client in self:
+                if client.subscription_id:
+                    # Mapper les états de client à subscription
+                    state_mapping = {
+                        'pending_setup': 'draft',
+                        'active': 'active',
+                        'suspended': 'suspended',
+                        'cancelled': 'cancelled',
+                    }
+                    subscription_state = state_mapping.get(new_state, new_state)
+                    client.subscription_id.write({'state': subscription_state})
+                    _logger.info(f'✅ Synchronized client state {new_state} → subscription state {subscription_state}')
+
+        return result
 
     def _create_default_users(self, client):
         """Créer les utilisateurs par défaut (Property Manager, Staff, Viewer) pour un client"""
