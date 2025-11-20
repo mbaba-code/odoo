@@ -328,49 +328,13 @@ class OnedeskoSubscription(models.Model):
         self.state = 'active'
 
         # Réactiver TOUS les utilisateurs désactivés de cette entreprise (active=False)
-        # Et créer les users manquants s'il le faut
+        # Les users ne sont PAS supprimés lors de la suspension, juste désactivés
         users = self.env['res.users'].search([
             ('company_id', '=', self.company_id.id),
             ('active', '=', False)
         ])
         users.write({'active': True})
         reactivated_count = len(users)
-
-        # Vérifier si les 3 rôles par défaut existent et les créer s'ils manquent
-        client = self.env['onedesk.client'].search([('subscription_id', '=', self.id)], limit=1)
-        if client:
-            # Vérifier et créer les utilisateurs par défaut s'ils n'existent pas
-            missing_users = 0
-
-            # Check Property Manager
-            pm_exists = self.env['res.users'].search_count([
-                ('company_id', '=', self.company_id.id),
-                ('login', '=', f'pm_{client.client_code}@onedesk.local'.lower())
-            ])
-            if not pm_exists:
-                self._create_missing_user('property-manager', client)
-                missing_users += 1
-
-            # Check Staff
-            staff_exists = self.env['res.users'].search_count([
-                ('company_id', '=', self.company_id.id),
-                ('login', '=', f'staff_{client.client_code}@onedesk.local'.lower())
-            ])
-            if not staff_exists:
-                self._create_missing_user('staff', client)
-                missing_users += 1
-
-            # Check Viewer
-            viewer_exists = self.env['res.users'].search_count([
-                ('company_id', '=', self.company_id.id),
-                ('login', '=', f'viewer_{client.client_code}@onedesk.local'.lower())
-            ])
-            if not viewer_exists:
-                self._create_missing_user('viewer', client)
-                missing_users += 1
-
-            if missing_users > 0:
-                _logger.info(f'✅ Created {missing_users} missing users for reactivated subscription')
 
         _logger.info(f'✅ Reactivated subscription and enabled {reactivated_count} users for company {self.company_id.name}')
 
