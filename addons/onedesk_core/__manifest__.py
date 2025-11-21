@@ -25,9 +25,6 @@
     'views/onedesk_dashboard_properties_views.xml',
     'views/onedesk_dashboard_users_views.xml',
 
-    # Menus ensuite (qui référencent les actions)
-    'views/onedesk_menu_hierarchy.xml',
-
     # Autres vues
     # ⚠️ ORDRE IMPORTANT: seasonal_price AVANT unit car unit en dépend
     'views/onedesk_property_views.xml',
@@ -52,7 +49,8 @@
     'data/integration_providers.xml',
     'data/integration_cron.xml',
 
-    # Menus APRÈS les vues qui créent les actions
+    # Menus APRÈS les vues qui créent les actions (CRITICAL: must be after all view files)
+    'views/onedesk_menu_hierarchy.xml',
     'data/onedesk_menus.xml',
 
     # Multi-tenant data (plans, règles)
