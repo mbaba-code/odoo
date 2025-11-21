@@ -13,28 +13,28 @@
               name="Gestion des clients"
               parent="menu_onedesk_admin_root"
               groups="group_onedesk_master_admin"
-              action="onedesk_core.action_onedesk_client"
+              action="action_onedesk_client"
               sequence="1"/>
 
     <menuitem id="menu_onedesk_admin_subscriptions"
               name="Abonnements"
               parent="menu_onedesk_admin_root"
               groups="group_onedesk_master_admin"
-              action="onedesk_core.action_onedesk_subscription"
+              action="action_onedesk_subscription"
               sequence="2"/>
 
     <menuitem id="menu_onedesk_admin_plans"
               name="Plans de tarification"
               parent="menu_onedesk_admin_root"
               groups="group_onedesk_master_admin"
-              action="onedesk_core.action_onedesk_plan"
+              action="action_onedesk_plan"
               sequence="3"/>
 
     <menuitem id="menu_onedesk_admin_logs"
               name="Journaux d'audit"
               parent="menu_onedesk_admin_root"
               groups="group_onedesk_master_admin"
-              action="onedesk_core.action_onedesk_audit_log"
+              action="action_onedesk_audit_log"
               sequence="4"/>
 
     <menuitem id="menu_onedesk_support_root"
@@ -47,6 +47,6 @@
               name="Journaux système"
               parent="menu_onedesk_support_root"
               groups="group_onedesk_support"
-              action="onedesk_core.action_onedesk_system_log"
+              action="action_onedesk_system_log"
               sequence="1"/>
 </odoo>
