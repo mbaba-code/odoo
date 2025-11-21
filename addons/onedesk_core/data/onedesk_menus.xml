@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ONEDESK ADMIN MENUS - Chargés APRÈS les actions -->
+
+    <!-- Master Admin Menu -->
+    <menuitem id="menu_onedesk_admin_root"
+              name="Admin OneDesk"
+              parent="base.menu_administration"
+              groups="group_onedesk_master_admin"
+              sequence="50"/>
+
+    <menuitem id="menu_onedesk_admin_clients"
+              name="Gestion des clients"
+              parent="menu_onedesk_admin_root"
+              groups="group_onedesk_master_admin"
+              action="onedesk_core.action_onedesk_client"
+              sequence="1"/>
+
+    <menuitem id="menu_onedesk_admin_subscriptions"
+              name="Abonnements"
+              parent="menu_onedesk_admin_root"
+              groups="group_onedesk_master_admin"
+              action="onedesk_core.action_onedesk_subscription"
+              sequence="2"/>
+
+    <menuitem id="menu_onedesk_admin_plans"
+              name="Plans de tarification"
+              parent="menu_onedesk_admin_root"
+              groups="group_onedesk_master_admin"
+              action="onedesk_core.action_onedesk_plan"
+              sequence="3"/>
+
+    <menuitem id="menu_onedesk_admin_logs"
+              name="Journaux d'audit"
+              parent="menu_onedesk_admin_root"
+              groups="group_onedesk_master_admin"
+              action="onedesk_core.action_onedesk_audit_log"
+              sequence="4"/>
+
+    <menuitem id="menu_onedesk_support_root"
+              name="Support OneDesk"
+              parent="base.menu_administration"
+              groups="group_onedesk_support"
+              sequence="51"/>
+
+    <menuitem id="menu_onedesk_support_logs"
+              name="Journaux système"
+              parent="menu_onedesk_support_root"
+              groups="group_onedesk_support"
+              action="onedesk_core.action_onedesk_system_log"
+              sequence="1"/>
+</odoo>

@@ -52,6 +52,9 @@
     'data/integration_providers.xml',
     'data/integration_cron.xml',
 
+    # Menus APRÈS les vues qui créent les actions
+    'data/onedesk_menus.xml',
+
     # Multi-tenant data (plans, règles)
     'data/onedesk_plans.xml',
     'data/onedesk_security.xml',
