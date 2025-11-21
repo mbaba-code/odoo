@@ -12,6 +12,10 @@
         'website',              # NEW - Website module for portal/frontend
     ],
     'data': [
+    # Multi-tenant data FIRST - Groupes et séquences doivent exister AVANT ir.model.access.csv
+    'data/onedesk_sequences.xml',
+    'data/onedesk_groups.xml',
+
     'security/ir.model.access.csv',
 
     # Dashboards FIRST (car le menu y référence des actions)
@@ -48,9 +52,7 @@
     'data/integration_providers.xml',
     'data/integration_cron.xml',
 
-    # Multi-tenant data (séquences, groupes, plans, règles)
-    'data/onedesk_sequences.xml',
-    'data/onedesk_groups.xml',
+    # Multi-tenant data (plans, règles)
     'data/onedesk_plans.xml',
     'data/onedesk_security.xml',
     'data/onedesk_email_templates.xml',
