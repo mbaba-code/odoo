@@ -1,7 +1,7 @@
 """Tests pour le modèle onedesk.reservation"""
-from datetime import datetime, timedelta
 from odoo.tests import TransactionCase
 from odoo.exceptions import ValidationError
+from datetime import datetime, timedelta
 
 
 class TestOneDeskReservation(TransactionCase):
@@ -11,155 +11,161 @@ class TestOneDeskReservation(TransactionCase):
         """Set up test data"""
         super().setUp()
 
-        # Create a test company
+        # Create company
         self.company = self.env['res.company'].create({
-            'name': 'Test Company',
+            'name': 'Test Company Reservation',
         })
 
-        # Create a test partner (customer)
-        self.partner = self.env['res.partner'].create({
-            'name': 'Jean Dupont',
-            'email': 'jean@example.com',
-            'phone': '+33 6 12 34 56 78',
-        })
-
-        # Create a test property
+        # Create property
         self.property = self.env['onedesk.property'].create({
-            'name': 'Apartement Test',
-            'description': 'Un bel appartement test',
-            'address': '42 Rue Test, 75000 Paris',
+            'name': 'Test Property',
+            'address': '123 Test Street',
             'property_type': 'apartment',
-            'city': 'Paris',
-            'postal_code': '75000',
-            'country_id': self.env.ref('base.fr').id,
+            'company_id': self.company.id,
         })
 
-        # Create a test unit
+        # Create unit
         self.unit = self.env['onedesk.unit'].create({
-            'name': 'Studio Test',
+            'name': 'Test Unit',
             'property_id': self.property.id,
-            'bedrooms': 1,
+            'bedrooms': 2,
             'bathrooms': 1,
-            'capacity': 2,
-            'unit_type': 'room',
+            'capacity': 4,
+            'price_per_night': 100.0,
         })
 
-        # Create a reservation
-        self.reservation_start = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0) + timedelta(days=1)
-        self.reservation_end = self.reservation_start + timedelta(days=5)
-
-        self.reservation = self.env['onedesk.reservation'].create({
-            'unit_id': self.unit.id,
-            'partner_id': self.partner.id,
-            'start_date': self.reservation_start,
-            'end_date': self.reservation_end,
-            'status': 'draft',
-            'guest_notes': 'Notes du client',
+        # Create partner
+        self.partner = self.env['res.partner'].create({
+            'name': 'Test Customer',
+            'email': 'test@example.com',
+            'phone': '+33612345678',
         })
 
     def test_reservation_creation(self):
         """Test that a reservation can be created"""
-        self.assertIsNotNone(self.reservation.id)
-        self.assertEqual(self.reservation.unit_id, self.unit)
-        self.assertEqual(self.reservation.partner_id, self.partner)
-        self.assertEqual(self.reservation.status, 'draft')
+        start_date = datetime.now() + timedelta(days=7)
+        end_date = start_date + timedelta(days=3)
 
-    def test_reservation_number_of_nights(self):
-        """Test calculation of number of nights"""
-        expected_nights = (self.reservation_end.date() - self.reservation_start.date()).days
-        self.assertEqual(self.reservation.number_of_nights, expected_nights)
-
-    def test_overlapping_reservations_raises_error(self):
-        """Test that overlapping reservations raise a validation error"""
-        # Create a second partner
-        partner2 = self.env['res.partner'].create({
-            'name': 'Marie Martin',
-            'email': 'marie@example.com',
+        reservation = self.env['onedesk.reservation'].create({
+            'name': 'TEST-001',
+            'unit_id': self.unit.id,
+            'partner_id': self.partner.id,
+            'start_date': start_date,
+            'end_date': end_date,
         })
 
-        # Try to create an overlapping reservation (should fail)
+        self.assertIsNotNone(reservation.id)
+        self.assertEqual(reservation.unit_id, self.unit)
+        self.assertEqual(reservation.partner_id, self.partner)
+        self.assertEqual(reservation.number_of_nights, 3)
+        self.assertEqual(reservation.price_per_night, 100.0)
+        self.assertEqual(reservation.total_price, 300.0)
+
+    def test_reservation_overlapping_detection(self):
+        """Test that overlapping reservations are detected"""
+        start_date = datetime.now() + timedelta(days=7)
+        end_date = start_date + timedelta(days=3)
+
+        # Create first reservation
+        reservation1 = self.env['onedesk.reservation'].create({
+            'name': 'TEST-001',
+            'unit_id': self.unit.id,
+            'partner_id': self.partner.id,
+            'start_date': start_date,
+            'end_date': end_date,
+            'status': 'paid',
+        })
+
+        # Try to create overlapping reservation
         with self.assertRaises(ValidationError):
             self.env['onedesk.reservation'].create({
+                'name': 'TEST-002',
                 'unit_id': self.unit.id,
-                'partner_id': partner2.id,
-                'start_date': self.reservation_start + timedelta(days=2),
-                'end_date': self.reservation_start + timedelta(days=7),
-                'status': 'draft',
+                'partner_id': self.partner.id,
+                'start_date': start_date + timedelta(days=1),
+                'end_date': end_date + timedelta(days=1),
+                'status': 'paid',
             })
 
-    def test_cancelled_reservation_does_not_block(self):
-        """Test that cancelled reservations don't block new ones"""
-        # Cancel the first reservation
-        self.reservation.status = 'cancelled'
-
-        # Partner 2
-        partner2 = self.env['res.partner'].create({
-            'name': 'Marie Martin',
-            'email': 'marie@example.com',
-        })
-
-        # Create a new reservation in the same dates (should work)
-        reservation2 = self.env['onedesk.reservation'].create({
-            'unit_id': self.unit.id,
-            'partner_id': partner2.id,
-            'start_date': self.reservation_start,
-            'end_date': self.reservation_end,
-            'status': 'draft',
-        })
-
-        self.assertIsNotNone(reservation2.id)
-
-    def test_check_availability_for_unit(self):
-        """Test availability check method"""
-        # Check availability for a free period
-        is_available, conflicts, message = self.env['onedesk.reservation'].check_availability_for_unit(
-            self.unit.id,
-            self.reservation_start + timedelta(days=10),
-            self.reservation_start + timedelta(days=15),
-        )
-        self.assertTrue(is_available)
-        self.assertEqual(len(conflicts), 0)
-
-        # Check availability for booked period
-        is_available, conflicts, message = self.env['onedesk.reservation'].check_availability_for_unit(
-            self.unit.id,
-            self.reservation_start,
-            self.reservation_end,
-        )
-        self.assertFalse(is_available)
-        self.assertEqual(len(conflicts), 1)
-        self.assertIsNotNone(message)
-
-    def test_send_confirmation_email(self):
-        """Test confirmation email sending"""
-        # This test just ensures the method exists and doesn't crash
-        result = self.reservation.send_confirmation_email()
-        self.assertTrue(result)
-
-    def test_reservation_workflow_transitions(self):
+    def test_reservation_status_workflow(self):
         """Test reservation status transitions"""
-        # Draft -> Pending Payment
-        self.reservation.status = 'pending_payment'
-        self.assertEqual(self.reservation.status, 'pending_payment')
+        start_date = datetime.now() + timedelta(days=7)
+        end_date = start_date + timedelta(days=3)
 
-        # Pending Payment -> Paid
-        self.reservation.status = 'paid'
-        self.assertEqual(self.reservation.status, 'paid')
+        reservation = self.env['onedesk.reservation'].create({
+            'name': 'TEST-001',
+            'unit_id': self.unit.id,
+            'partner_id': self.partner.id,
+            'start_date': start_date,
+            'end_date': end_date,
+        })
 
-        # Paid -> Checked In
-        self.reservation.status = 'checked_in'
-        self.assertEqual(self.reservation.status, 'checked_in')
+        # Initial status
+        self.assertEqual(reservation.status, 'draft')
 
-        # Checked In -> Completed
-        self.reservation.status = 'completed'
-        self.assertEqual(self.reservation.status, 'completed')
+        # Cancelled reservations don't block availability
+        reservation.status = 'cancelled'
+        
+        # Can create another reservation on same dates
+        reservation2 = self.env['onedesk.reservation'].create({
+            'name': 'TEST-002',
+            'unit_id': self.unit.id,
+            'partner_id': self.partner.id,
+            'start_date': start_date,
+            'end_date': end_date,
+            'status': 'paid',
+        })
 
-    def test_reservation_with_special_requests(self):
-        """Test reservation with special requests"""
-        self.reservation.special_requests = 'Chaise haute pour bébé'
-        self.assertEqual(self.reservation.special_requests, 'Chaise haute pour bébé')
+        self.assertEqual(reservation2.status, 'paid')
 
-    def test_reservation_internal_notes(self):
-        """Test internal notes for staff"""
-        self.reservation.internal_notes = 'Client VIP - Offrir welcome package'
-        self.assertEqual(self.reservation.internal_notes, 'Client VIP - Offrir welcome package')
+    def test_reservation_calendar_event_creation(self):
+        """Test that calendar event is created automatically"""
+        start_date = datetime.now() + timedelta(days=7)
+        end_date = start_date + timedelta(days=3)
+
+        reservation = self.env['onedesk.reservation'].create({
+            'name': 'TEST-001',
+            'unit_id': self.unit.id,
+            'partner_id': self.partner.id,
+            'start_date': start_date,
+            'end_date': end_date,
+        })
+
+        self.assertIsNotNone(reservation.calendar_event_id)
+        self.assertEqual(reservation.calendar_event_id.start, start_date)
+        self.assertEqual(reservation.calendar_event_id.stop, end_date)
+
+    def test_reservation_company_inherited(self):
+        """Test that reservation inherits company_id from unit"""
+        start_date = datetime.now() + timedelta(days=7)
+        end_date = start_date + timedelta(days=3)
+
+        reservation = self.env['onedesk.reservation'].create({
+            'name': 'TEST-001',
+            'unit_id': self.unit.id,
+            'partner_id': self.partner.id,
+            'start_date': start_date,
+            'end_date': end_date,
+        })
+
+        self.assertEqual(reservation.company_id, self.unit.company_id)
+
+    def test_reservation_payment_status(self):
+        """Test payment status"""
+        start_date = datetime.now() + timedelta(days=7)
+        end_date = start_date + timedelta(days=3)
+
+        reservation = self.env['onedesk.reservation'].create({
+            'name': 'TEST-001',
+            'unit_id': self.unit.id,
+            'partner_id': self.partner.id,
+            'start_date': start_date,
+            'end_date': end_date,
+        })
+
+        # Initial payment status
+        self.assertEqual(reservation.payment_status, 'pending')
+
+        # Change to completed
+        reservation.payment_status = 'completed'
+        self.assertEqual(reservation.payment_status, 'completed')

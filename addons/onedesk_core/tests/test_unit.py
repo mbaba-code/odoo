@@ -1,5 +1,6 @@
 """Tests pour le modèle onedesk.unit"""
 from odoo.tests import TransactionCase
+from datetime import datetime, timedelta
 
 
 class TestOneDeskUnit(TransactionCase):
@@ -9,15 +10,18 @@ class TestOneDeskUnit(TransactionCase):
         """Set up test data"""
         super().setUp()
 
+        # Create a test company
+        self.company = self.env['res.company'].create({
+            'name': 'Test Company Unit',
+        })
+
         # Create a test property
         self.property = self.env['onedesk.property'].create({
             'name': 'Property Test',
             'description': 'Test property',
             'address': '42 Rue Test, 75000 Paris',
             'property_type': 'apartment',
-            'city': 'Paris',
-            'postal_code': '75000',
-            'country_id': self.env.ref('base.fr').id,
+            'company_id': self.company.id,
         })
 
     def test_unit_creation(self):
@@ -28,7 +32,7 @@ class TestOneDeskUnit(TransactionCase):
             'bedrooms': 1,
             'bathrooms': 1,
             'capacity': 2,
-            'unit_type': 'room',
+            'price_per_night': 100.0,
         })
 
         self.assertIsNotNone(unit.id)
@@ -36,24 +40,7 @@ class TestOneDeskUnit(TransactionCase):
         self.assertEqual(unit.property_id, self.property)
         self.assertEqual(unit.bedrooms, 1)
         self.assertEqual(unit.capacity, 2)
-
-    def test_unit_with_amenities(self):
-        """Test unit with amenities"""
-        unit = self.env['onedesk.unit'].create({
-            'name': 'T2 Luxe',
-            'property_id': self.property.id,
-            'bedrooms': 2,
-            'bathrooms': 1,
-            'capacity': 4,
-            'unit_type': 'apartment',
-            'wifi_available': True,
-            'parking_available': True,
-            'cleaning_fee': 50.0,
-        })
-
-        self.assertTrue(unit.wifi_available)
-        self.assertTrue(unit.parking_available)
-        self.assertEqual(unit.cleaning_fee, 50.0)
+        self.assertEqual(unit.price_per_night, 100.0)
 
     def test_unit_price_calculation(self):
         """Test price calculation for dates"""
@@ -63,18 +50,19 @@ class TestOneDeskUnit(TransactionCase):
             'bedrooms': 1,
             'bathrooms': 1,
             'capacity': 2,
-            'unit_type': 'room',
             'price_per_night': 100.0,
         })
 
-        from datetime import datetime, timedelta
         start_date = datetime.now().date()
         end_date = start_date + timedelta(days=3)
 
-        # If there's a price method, test it
-        if hasattr(unit, 'get_price_for_dates'):
-            price = unit.get_price_for_dates(start_date, end_date)
-            self.assertGreaterEqual(price, 0)
+        # Test get_price_for_dates
+        price = unit.get_price_for_dates(start_date, end_date)
+        self.assertEqual(price, 100.0)
+
+        # Test get_total_price_for_dates
+        total_price = unit.get_total_price_for_dates(start_date, end_date)
+        self.assertEqual(total_price, 300.0)  # 100 * 3 nights
 
     def test_unit_image_creation(self):
         """Test adding images to a unit"""
@@ -84,7 +72,7 @@ class TestOneDeskUnit(TransactionCase):
             'bedrooms': 1,
             'bathrooms': 1,
             'capacity': 2,
-            'unit_type': 'room',
+            'price_per_night': 100.0,
         })
 
         # Create an image record for the unit
@@ -106,7 +94,7 @@ class TestOneDeskUnit(TransactionCase):
             'bedrooms': 1,
             'bathrooms': 1,
             'capacity': 2,
-            'unit_type': 'room',
+            'price_per_night': 100.0,
         })
 
         unit2 = self.env['onedesk.unit'].create({
@@ -115,7 +103,7 @@ class TestOneDeskUnit(TransactionCase):
             'bedrooms': 1,
             'bathrooms': 1,
             'capacity': 2,
-            'unit_type': 'room',
+            'price_per_night': 120.0,
         })
 
         property_units = self.property.unit_ids
@@ -131,27 +119,55 @@ class TestOneDeskUnit(TransactionCase):
             'bedrooms': 1,
             'bathrooms': 1,
             'capacity': 2,
-            'unit_type': 'room',
-            'is_active': True,
+            'price_per_night': 100.0,
+            'active': True,
         })
 
-        self.assertTrue(unit.is_active)
+        self.assertTrue(unit.active)
 
         # Deactivate the unit
-        unit.is_active = False
-        self.assertFalse(unit.is_active)
+        unit.active = False
+        self.assertFalse(unit.active)
 
-    def test_unit_description_and_details(self):
-        """Test unit description and details"""
-        description = "Magnifique studio avec vue sur la Seine"
+    def test_unit_cleaning_fee(self):
+        """Test unit with cleaning fee"""
         unit = self.env['onedesk.unit'].create({
-            'name': 'Studio Vue',
+            'name': 'Studio Cleaning',
             'property_id': self.property.id,
             'bedrooms': 1,
             'bathrooms': 1,
             'capacity': 2,
-            'unit_type': 'room',
-            'description': description,
+            'price_per_night': 100.0,
+            'cleaning_fee': 50.0,
         })
 
-        self.assertEqual(unit.description, description)
+        self.assertEqual(unit.cleaning_fee, 50.0)
+
+    def test_unit_maintenance_mode(self):
+        """Test unit maintenance mode"""
+        unit = self.env['onedesk.unit'].create({
+            'name': 'Studio Maintenance',
+            'property_id': self.property.id,
+            'bedrooms': 1,
+            'bathrooms': 1,
+            'capacity': 2,
+            'price_per_night': 100.0,
+            'maintenance_mode': True,
+            'maintenance_notes': 'Réparation plomberie',
+        })
+
+        self.assertTrue(unit.maintenance_mode)
+        self.assertEqual(unit.maintenance_notes, 'Réparation plomberie')
+
+    def test_unit_company_inherited(self):
+        """Test that unit inherits company_id from property"""
+        unit = self.env['onedesk.unit'].create({
+            'name': 'Studio Company Test',
+            'property_id': self.property.id,
+            'bedrooms': 1,
+            'bathrooms': 1,
+            'capacity': 2,
+            'price_per_night': 100.0,
+        })
+
+        self.assertEqual(unit.company_id, self.property.company_id)

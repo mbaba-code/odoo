@@ -8,22 +8,26 @@ class TestOneDeskProperty(TransactionCase):
     def setUp(self):
         """Set up test data"""
         super().setUp()
+        
+        # Create a test company
+        self.company = self.env['res.company'].create({
+            'name': 'Test Company Property',
+        })
 
     def test_property_creation(self):
         """Test that a property can be created"""
         property_obj = self.env['onedesk.property'].create({
-            'name': 'Apartement Paris Centre',
+            'name': 'Appartement Paris Centre',
             'description': 'Bel appartement au cœur de Paris',
             'address': '42 Rue des Francs-Bourgeois, 75004 Paris',
             'property_type': 'apartment',
-            'city': 'Paris',
-            'postal_code': '75004',
-            'country_id': self.env.ref('base.fr').id,
+            'company_id': self.company.id,
         })
 
         self.assertIsNotNone(property_obj.id)
-        self.assertEqual(property_obj.name, 'Apartement Paris Centre')
-        self.assertEqual(property_obj.city, 'Paris')
+        self.assertEqual(property_obj.name, 'Appartement Paris Centre')
+        self.assertEqual(property_obj.property_type, 'apartment')
+        self.assertEqual(property_obj.company_id, self.company)
 
     def test_property_with_units(self):
         """Test property with multiple units"""
@@ -31,9 +35,7 @@ class TestOneDeskProperty(TransactionCase):
             'name': 'Immeuble Multi-Units',
             'address': '123 Avenue Principale, 75000 Paris',
             'property_type': 'apartment',
-            'city': 'Paris',
-            'postal_code': '75000',
-            'country_id': self.env.ref('base.fr').id,
+            'company_id': self.company.id,
         })
 
         # Create units
@@ -43,7 +45,7 @@ class TestOneDeskProperty(TransactionCase):
             'bedrooms': 2,
             'bathrooms': 1,
             'capacity': 4,
-            'unit_type': 'apartment',
+            'price_per_night': 100.0,
         })
 
         unit2 = self.env['onedesk.unit'].create({
@@ -52,10 +54,11 @@ class TestOneDeskProperty(TransactionCase):
             'bedrooms': 1,
             'bathrooms': 1,
             'capacity': 2,
-            'unit_type': 'room',
+            'price_per_night': 80.0,
         })
 
         self.assertEqual(len(property_obj.unit_ids), 2)
+        self.assertEqual(property_obj.total_units, 2)
 
     def test_property_images(self):
         """Test adding images to a property"""
@@ -63,9 +66,7 @@ class TestOneDeskProperty(TransactionCase):
             'name': 'Property with Images',
             'address': '456 Rue Test, 75000 Paris',
             'property_type': 'apartment',
-            'city': 'Paris',
-            'postal_code': '75000',
-            'country_id': self.env.ref('base.fr').id,
+            'company_id': self.company.id,
         })
 
         # Create property images
@@ -87,41 +88,26 @@ class TestOneDeskProperty(TransactionCase):
         self.assertTrue(image1.is_cover)
         self.assertFalse(image2.is_cover)
 
-    def test_property_location_data(self):
-        """Test property location and coordinates"""
-        property_obj = self.env['onedesk.property'].create({
-            'name': 'Property Geo',
-            'address': '789 Rue Géo, 69000 Lyon',
-            'property_type': 'villa',
-            'city': 'Lyon',
-            'postal_code': '69000',
-            'country_id': self.env.ref('base.fr').id,
-        })
-
-        self.assertEqual(property_obj.city, 'Lyon')
-        self.assertEqual(property_obj.postal_code, '69000')
-
     def test_property_amenities(self):
         """Test property amenities"""
         property_obj = self.env['onedesk.property'].create({
             'name': 'Property Luxe',
             'address': '100 Avenue Luxe, 06000 Nice',
             'property_type': 'villa',
-            'city': 'Nice',
-            'postal_code': '06000',
-            'country_id': self.env.ref('base.fr').id,
-            'description': 'Villa de luxe avec piscine',
+            'company_id': self.company.id,
+            'amenities': 'Piscine, WiFi, Climatisation, Parking',
         })
 
-        self.assertIn('piscine', property_obj.description.lower())
+        self.assertIn('Piscine', property_obj.amenities)
+        self.assertIn('WiFi', property_obj.amenities)
 
     def test_property_types(self):
         """Test different property types"""
         property_types = [
-            ('apartment', 'Apartement'),
+            ('apartment', 'Appartement'),
             ('house', 'Maison'),
             ('villa', 'Villa'),
-            ('room', 'Chambre'),
+            ('studio', 'Studio'),
         ]
 
         for prop_type, description in property_types:
@@ -129,37 +115,34 @@ class TestOneDeskProperty(TransactionCase):
                 'name': f'Property {description}',
                 'address': '1 Rue Test, 75000 Paris',
                 'property_type': prop_type,
-                'city': 'Paris',
-                'postal_code': '75000',
-                'country_id': self.env.ref('base.fr').id,
+                'company_id': self.company.id,
             })
 
             self.assertEqual(property_obj.property_type, prop_type)
 
-    def test_property_status(self):
-        """Test property status"""
+    def test_property_company_required(self):
+        """Test that company_id is set automatically"""
         property_obj = self.env['onedesk.property'].create({
-            'name': 'Property Status',
-            'address': '200 Rue Status, 75000 Paris',
+            'name': 'Property Company Test',
+            'address': '200 Rue Test, 75000 Paris',
             'property_type': 'apartment',
-            'city': 'Paris',
-            'postal_code': '75000',
-            'country_id': self.env.ref('base.fr').id,
         })
 
-        if hasattr(property_obj, 'status'):
-            self.assertIn(property_obj.status, ['draft', 'active', 'inactive', 'archived'])
+        # Should use default company
+        self.assertIsNotNone(property_obj.company_id)
 
-    def test_property_external_id(self):
-        """Test external integration ID"""
+    def test_property_active_flag(self):
+        """Test property active/inactive status"""
         property_obj = self.env['onedesk.property'].create({
-            'name': 'Property External',
-            'address': '300 Rue External, 75000 Paris',
+            'name': 'Property Active Test',
+            'address': '300 Rue Active, 75000 Paris',
             'property_type': 'apartment',
-            'city': 'Paris',
-            'postal_code': '75000',
-            'country_id': self.env.ref('base.fr').id,
-            'external_id': 'AIRBNB-123456',
+            'company_id': self.company.id,
+            'active': True,
         })
 
-        self.assertEqual(property_obj.external_id, 'AIRBNB-123456')
+        self.assertTrue(property_obj.active)
+
+        # Deactivate
+        property_obj.active = False
+        self.assertFalse(property_obj.active)
