@@ -25,6 +25,9 @@
     'views/onedesk_dashboard_properties_views.xml',
     'views/onedesk_dashboard_users_views.xml',
 
+    # Menu root and initial menus (must load BEFORE views that reference them)
+    'views/onedesk_menu_views.xml',
+
     # Autres vues
     # ⚠️ ORDRE IMPORTANT: seasonal_price AVANT unit car unit en dépend
     'views/onedesk_property_views.xml',

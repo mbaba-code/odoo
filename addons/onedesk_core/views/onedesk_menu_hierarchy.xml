@@ -322,12 +322,6 @@
 
     <!-- HIERARCHICAL MENUS -->
 
-    <!-- Root Menu -->
-    <menuitem id="menu_onedesk_root"
-              name="OneDesk"
-              sequence="10"
-              web_icon="base/static/img/icons/stock_icon.svg"/>
-
     <!-- Dashboard Parent Menu -->
     <menuitem id="menu_onedesk_dashboards"
               name="📊 Tableau de bord"
