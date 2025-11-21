@@ -72,26 +72,27 @@ class OnedeskProperty(models.Model):
 
     # ========== CREATE METHOD WITH LIMIT CHECKING ==========
     @api.model
-    def create(self, vals):
+    def create(self, vals_list):
         """Créer une propriété avec vérification des limites du plan"""
-        property = super().create(vals)
+        properties = super().create(vals_list)
 
-        # Vérifier les limites du plan d'abonnement
-        company_id = vals.get('company_id') or self.env.company.id
-        subscription = self.env['onedesk.subscription'].search([
-            ('company_id', '=', company_id),
-            ('state', '=', 'active')
-        ], limit=1)
+        # Vérifier les limites du plan d'abonnement pour chaque propriété créée
+        for property_rec in properties:
+            company_id = property_rec.company_id.id
+            subscription = self.env['onedesk.subscription'].search([
+                ('company_id', '=', company_id),
+                ('state', '=', 'active')
+            ], limit=1)
 
-        if subscription:
-            try:
-                # Recompute current usage to get actual counts
-                subscription._compute_current_usage()
-                subscription._check_limits()
-            except Exception as e:
-                _logger.warning(f'Limit check failed for subscription {subscription.id}: {str(e)}')
+            if subscription:
+                try:
+                    # Recompute current usage to get actual counts
+                    subscription._compute_current_usage()
+                    subscription._check_limits()
+                except Exception as e:
+                    _logger.warning(f'Limit check failed for subscription {subscription.id}: {str(e)}')
 
-        return property
+        return properties
 
     # ========== COMPUTED FIELDS ==========
     total_units = fields.Integer(string='Nombre d\'unités',

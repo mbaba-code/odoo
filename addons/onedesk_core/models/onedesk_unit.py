@@ -102,26 +102,27 @@ class OnedeskUnit(models.Model):
 
     # ========== CREATE METHOD WITH LIMIT CHECKING ==========
     @api.model
-    def create(self, vals):
+    def create(self, vals_list):
         """Créer une unité avec vérification des limites du plan"""
-        unit = super().create(vals)
+        units = super().create(vals_list)
 
-        # Vérifier les limites du plan d'abonnement
-        if unit.company_id:
-            subscription = self.env['onedesk.subscription'].search([
-                ('company_id', '=', unit.company_id.id),
-                ('state', '=', 'active')
-            ], limit=1)
+        # Vérifier les limites du plan d'abonnement pour chaque unité créée
+        for unit in units:
+            if unit.company_id:
+                subscription = self.env['onedesk.subscription'].search([
+                    ('company_id', '=', unit.company_id.id),
+                    ('state', '=', 'active')
+                ], limit=1)
 
-            if subscription:
-                try:
-                    # Recompute current usage to get actual counts
-                    subscription._compute_current_usage()
-                    subscription._check_limits()
-                except Exception as e:
-                    _logger.warning(f'Limit check failed for subscription {subscription.id}: {str(e)}')
+                if subscription:
+                    try:
+                        # Recompute current usage to get actual counts
+                        subscription._compute_current_usage()
+                        subscription._check_limits()
+                    except Exception as e:
+                        _logger.warning(f'Limit check failed for subscription {subscription.id}: {str(e)}')
 
-        return unit
+        return units
 
     @api.depends('image_ids', 'image_ids.is_cover', 'image_ids.image')
     def _compute_cover_image(self):
