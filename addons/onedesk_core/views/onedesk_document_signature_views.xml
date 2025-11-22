@@ -27,12 +27,12 @@
         <field name="name">onedesk.document.signature.tree</field>
         <field name="model">onedesk.document.signature</field>
         <field name="arch" type="xml">
-            <tree create="true" delete="true" editable="bottom">
+            <list create="true" delete="true" editable="bottom">
                 <field name="signer_name"/>
                 <field name="signer_email"/>
                 <field name="status" readonly="1"/>
                 <field name="signature_date" readonly="1"/>
-            </tree>
+            </list>
         </field>
     </record>
 
