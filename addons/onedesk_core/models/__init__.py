@@ -30,3 +30,6 @@ from . import onedesk_dashboard_users
 
 # ← NOUVEAU : Wizard pour multi-upload
 from . import onedesk_image_wizard
+
+# ← NOUVEAU : Documents et Signatures
+from . import onedesk_document

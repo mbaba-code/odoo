@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ========== DOCUMENT FORM VIEW ========== -->
+    <record id="view_document_form" model="ir.ui.view">
+        <field name="name">onedesk.document.form</field>
+        <field name="model">onedesk.document</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_send_signature" type="object" string="📤 Envoyer pour signature"
+                            class="btn-primary" states="draft"/>
+                    <button name="action_archive" type="object" string="📦 Archiver"
+                            states="signed"/>
+                    <field name="status" widget="statusbar"
+                           statusbar_visible="draft,pending_signature,signed,archived"/>
+                </header>
+
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="document_type"/>
+                            <field name="filename"/>
+                        </group>
+                        <group>
+                            <field name="company_id"/>
+                            <field name="created_by"/>
+                            <field name="date_created"/>
+                        </group>
+                    </group>
+
+                    <!-- Relations -->
+                    <group>
+                        <group string="📍 Attaché à">
+                            <field name="property_id"/>
+                            <field name="unit_id"/>
+                            <field name="reservation_id"/>
+                            <field name="task_id"/>
+                        </group>
+                    </group>
+
+                    <!-- Upload PDF -->
+                    <group string="📄 Document">
+                        <field name="file" widget="binary" filename="filename"/>
+                    </group>
+
+                    <!-- Notes -->
+                    <group string="📝 Notes">
+                        <field name="notes" nolabel="1"/>
+                    </group>
+
+                    <!-- Signataires -->
+                    <separator string="🔐 Signataires"/>
+                    <field name="signaturit_request_id" invisible="1"/>
+                    <field name="signature_ids" nolabel="1">
+                        <tree editable="bottom">
+                            <field name="signer_name"/>
+                            <field name="signer_email"/>
+                            <field name="status" widget="badge"/>
+                            <field name="signature_date"/>
+                            <button name="action_resend" type="object" string="📬 Renvoyer"
+                                   states="pending" icon="fa-envelope"/>
+                        </tree>
+                    </field>
+
+                    <p style="color: #999; font-size: 11px; margin-top: 10px;">
+                        💡 Ajoutez les signataires ci-dessus, puis cliquez "📤 Envoyer pour signature"
+                    </p>
+                </sheet>
+
+                <div class="oe_chatter">
+                    <field name="message_ids" widget="mail_thread"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <!-- ========== DOCUMENT LIST VIEW ========== -->
+    <record id="view_document_list" model="ir.ui.view">
+        <field name="name">onedesk.document.list</field>
+        <field name="model">onedesk.document</field>
+        <field name="arch" type="xml">
+            <list decoration-success="status=='signed'" decoration-warning="status=='pending_signature'">
+                <field name="name"/>
+                <field name="document_type"/>
+                <field name="status" widget="badge"/>
+                <field name="created_by"/>
+                <field name="date_created"/>
+                <field name="company_id"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ========== DOCUMENT SEARCH VIEW ========== -->
+    <record id="view_document_search" model="ir.ui.view">
+        <field name="name">onedesk.document.search</field>
+        <field name="model">onedesk.document</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="document_type"/>
+                <field name="status"/>
+                <field name="property_id"/>
+                <field name="reservation_id"/>
+
+                <separator/>
+                <filter name="filter_draft" string="Brouillon" domain="[('status', '=', 'draft')]"/>
+                <filter name="filter_pending" string="En attente" domain="[('status', '=', 'pending_signature')]"/>
+                <filter name="filter_signed" string="Signés" domain="[('status', '=', 'signed')]"/>
+                <filter name="filter_archived" string="Archivés" domain="[('status', '=', 'archived')]"/>
+            </search>
+        </field>
+    </record>
+
+    <!-- ========== DOCUMENT ACTION ========== -->
+    <record id="action_document" model="ir.actions.act_window">
+        <field name="name">Documents & Signatures</field>
+        <field name="res_model">onedesk.document</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'search_default_filter_draft': 1}</field>
+    </record>
+
+    <!-- ========== MENU ITEM ========== -->
+    <menuitem id="menu_document" name="📄 Documents" parent="onedesk_core.menu_onedesk_root"
+              action="action_document" sequence="50"/>
+
+</odoo>
