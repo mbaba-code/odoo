@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ========== SIGNATURE FORM VIEW ========== -->
+    <record id="view_document_signature_form" model="ir.ui.view">
+        <field name="name">onedesk.document.signature.form</field>
+        <field name="model">onedesk.document.signature</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="signer_name"/>
+                            <field name="signer_email"/>
+                        </group>
+                        <group>
+                            <field name="status" readonly="1"/>
+                            <field name="signature_date" readonly="1"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- ========== SIGNATURE TREE VIEW ========== -->
+    <record id="view_document_signature_tree" model="ir.ui.view">
+        <field name="name">onedesk.document.signature.tree</field>
+        <field name="model">onedesk.document.signature</field>
+        <field name="arch" type="xml">
+            <tree create="true" delete="true" editable="bottom">
+                <field name="signer_name"/>
+                <field name="signer_email"/>
+                <field name="status" readonly="1"/>
+                <field name="signature_date" readonly="1"/>
+            </tree>
+        </field>
+    </record>
+
+</odoo>

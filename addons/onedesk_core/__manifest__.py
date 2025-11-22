@@ -47,6 +47,7 @@
 
     # Document & Signature views
     'views/onedesk_document_views.xml',
+    'views/onedesk_document_signature_views.xml',
     'views/onedesk_signaturit_config.xml',
 
     # Multi-tenant views (admin)
