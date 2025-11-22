@@ -271,6 +271,9 @@ class OneDeskReservation(models.Model):
             # Lier l'événement à la réservation (sudo() pour contourner les ir.rules)
             reservation.sudo().write({'calendar_event_id': event.id})
 
+            # Copie automatiquement les images de l'unité pour le check-in
+            reservation._copy_images_from_unit()
+
             # Envoie un email de confirmation automatiquement
             try:
                 reservation._send_confirmation_email()
@@ -282,6 +285,49 @@ class OneDeskReservation(models.Model):
                 )
 
         return reservations
+
+    def _copy_images_from_unit(self):
+        """Copie automatiquement les images de l'unité vers la réservation (check-in)"""
+        for reservation in self:
+            if not reservation.unit_id:
+                continue
+
+            # Récupère les images de l'unité
+            unit_images = reservation.unit_id.image_ids
+            if not unit_images:
+                # Sinon récupère les images de la propriété
+                unit_images = reservation.unit_id.property_id.image_ids
+
+            # Créer des copies pour chaque image
+            for unit_image in unit_images:
+                # Créer une nouvelle image de réservation basée sur l'image de l'unité
+                self.env['onedesk.reservation.image'].create({
+                    'reservation_id': reservation.id,
+                    'name': unit_image.name or f"Photo {unit_image.sequence}",
+                    'image': unit_image.image,  # Copie binaire de l'image
+                    'image_type': 'check_in',  # Par défaut check-in
+                    'sequence': unit_image.sequence,
+                })
+
+    def action_copy_unit_images(self):
+        """Action manuelle pour copier les images de l'unité (bouton dans la vue)"""
+        self.ensure_one()
+
+        # Supprimer les images existantes
+        self.image_ids.unlink()
+
+        # Copier les images de l'unité
+        self._copy_images_from_unit()
+
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'title': '✅ Images copiées',
+                'message': 'Les photos de l\'unité ont été copiées avec succès pour le check-in',
+                'sticky': False,
+            }
+        }
 
     # Mise à jour automatique de l'événement si la réservation change
     def write(self, vals):

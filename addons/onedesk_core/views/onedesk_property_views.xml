@@ -115,18 +115,21 @@
                                 </kanban>
                             </field>
 
-                            <separator string="Ajouter une nouvelle photo"/>
+                            <separator string="Gérer les photos"/>
+                            <p style="margin-bottom: 10px; font-size: 12px; color: #666;">
+                                💡 <strong>Conseils rapides:</strong>
+                                <br/>• Cochez "📌" pour marquer la photo de couverture (affichée partout)
+                                <br/>• Réorganisez par drag-drop (numéro = ordre d'affichage)
+                                <br/>• Donnez des noms descriptifs (Chambre, Salon, Cuisine, etc.)
+                            </p>
                             <field name="image_ids">
                                 <list string="Photos" editable="bottom">
                                     <field name="sequence" widget="handle"/>
                                     <field name="is_cover" widget="boolean"/>
-                                    <field name="name"/>
-                                    <field name="image" widget="image" optional="hide"/>
+                                    <field name="name" placeholder="Ex: Chambre principale..."/>
+                                    <field name="image" widget="image" required="1"/>
                                 </list>
                             </field>
-                            <p style="margin-top: 10px; font-size: 12px; color: #999;">
-                                💡 <strong>Astuce:</strong> Grille: vue d'ensemble des photos | Table: ajouter/modifier photos, cochez "📌" pour sélectionner la couverture
-                            </p>
                         </page>
                         <page string="🏠 Unités" name="units">
                             <field name="unit_ids" nolabel="1"/>

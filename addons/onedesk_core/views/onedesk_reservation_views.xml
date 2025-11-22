@@ -137,6 +137,14 @@
                     <!-- Section Photos d'inspection -->
                     <notebook>
                         <page string="📸 Galerie complète d'inspection">
+                            <!-- Bouton pour copier les images de l'unité automatiquement -->
+                            <button type="object" name="action_copy_unit_images" string="📋 Copier photos de l'unité"
+                                    class="btn btn-primary" icon="fa-copy"/>
+                            <p style="margin-top: 10px; font-size: 12px; color: #666;">
+                                💡 <strong>Astuce rapide:</strong> Cliquez sur ce bouton pour copier automatiquement toutes les photos de l'unité en tant que photos de check-in. Ainsi, vous gagnez du temps et n'avez pas à les télécharger une par une!
+                            </p>
+
+                            <separator string="📸 Galerie de photos"/>
                             <field name="image_ids" mode="kanban">
                                 <kanban>
                                     <field name="id"/>
@@ -171,18 +179,21 @@
                                 </kanban>
                             </field>
 
-                            <separator string="Ajouter une nouvelle photo"/>
+                            <separator string="Gérer les photos"/>
+                            <p style="margin-bottom: 10px; font-size: 12px; color: #666;">
+                                💡 Vous pouvez:
+                                <br/>• Ajouter nouvelles photos ci-dessous et les modifier rapidement
+                                <br/>• Changer le type (check-in = arrivée, check-out = départ, damage = dégâts)
+                                <br/>• Réorganiser par drag-drop
+                            </p>
                             <field name="image_ids">
                                 <list string="Photos d'inspection" editable="bottom">
                                     <field name="sequence" widget="handle"/>
-                                    <field name="image_type"/>
-                                    <field name="name"/>
-                                    <field name="image" widget="image" optional="hide"/>
+                                    <field name="image_type" widget="selection"/>
+                                    <field name="name" placeholder="Titre ou description..."/>
+                                    <field name="image" widget="image" required="1"/>
                                 </list>
                             </field>
-                            <p style="margin-top: 10px; font-size: 12px; color: #999;">
-                                💡 Documentez l'état de la propriété avec plusieurs photos (check-in, check-out, dégâts détectés). Grille: vue d'ensemble | Table: ajouter/modifier photos
-                            </p>
                         </page>
                         <page string="Événement calendrier">
                             <field name="calendar_event_id" readonly="1"/>
