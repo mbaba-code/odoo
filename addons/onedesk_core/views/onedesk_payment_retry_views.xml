@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Payment Retry List View -->
+    <record id="onedesk_payment_retry_view_list" model="ir.ui.view">
+        <field name="name">Payment Retry - List</field>
+        <field name="model">onedesk.payment.retry</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="reservation_id"/>
+                <field name="payment_status" decoration-danger="payment_status == 'cancelled'" decoration-success="payment_status == 'paid'"/>
+                <field name="created_date"/>
+                <field name="first_reminder_sent"/>
+                <field name="second_reminder_sent"/>
+                <field name="retry_count"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Payment Retry Form View -->
+    <record id="onedesk_payment_retry_view_form" model="ir.ui.view">
+        <field name="name">Payment Retry - Form</field>
+        <field name="model">onedesk.payment.retry</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_send_day1_reminder" type="object" string="📧 Envoyer Rappel J1" states="pending" class="btn-warning"/>
+                    <button name="action_send_day3_reminder" type="object" string="🚨 Envoyer Rappel J3" states="sent_day1" class="btn-danger"/>
+                    <button name="action_auto_cancel" type="object" string="❌ Annuler" states="sent_day3" class="btn-danger"/>
+                    <field name="payment_status" widget="statusbar" statusbar_visible="pending,sent_day1,sent_day3,paid,cancelled"/>
+                </header>
+                <sheet>
+                    <h2><field name="reservation_id"/></h2>
+                    <group col="2">
+                        <field name="company_id" readonly="1"/>
+                        <field name="payment_status" readonly="1"/>
+                        <field name="created_date" readonly="1"/>
+                        <field name="retry_count" readonly="1"/>
+                    </group>
+
+                    <h3>📧 Reminders Sent</h3>
+                    <group col="2">
+                        <field name="first_reminder_sent" readonly="1"/>
+                        <field name="second_reminder_sent" readonly="1"/>
+                        <field name="last_retry_date" readonly="1"/>
+                    </group>
+
+                    <h3>⚙️ Settings</h3>
+                    <group col="2">
+                        <field name="days_until_cancel"/>
+                        <field name="auto_cancel_date" readonly="1"/>
+                    </group>
+
+                    <!-- Chatter -->
+                    <div class="oe_chatter" style="margin-top: 30px; border-top: 2px solid #ddd; padding-top: 20px;">
+                        <field name="message_ids" widget="mail_thread"/>
+                    </div>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Payment Retry Search View -->
+    <record id="onedesk_payment_retry_view_search" model="ir.ui.view">
+        <field name="name">Payment Retry - Search</field>
+        <field name="model">onedesk.payment.retry</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="reservation_id"/>
+                <field name="payment_status"/>
+                <filter name="pending" string="En attente" domain="[('payment_status', '=', 'pending')]"/>
+                <filter name="paid" string="Payées" domain="[('payment_status', '=', 'paid')]"/>
+                <filter name="cancelled" string="Annulées" domain="[('payment_status', '=', 'cancelled')]"/>
+            </search>
+        </field>
+    </record>
+
+    <!-- Payment Retry Action -->
+    <record id="onedesk_payment_retry_action" model="ir.actions.act_window">
+        <field name="name">Payment Reminders</field>
+        <field name="res_model">onedesk.payment.retry</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'default_payment_status': 'pending'}</field>
+        <field name="help">Track and manage payment reminders for reservations</field>
+    </record>
+
+</odoo>

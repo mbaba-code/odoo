@@ -51,6 +51,10 @@
     'views/onedesk_document_recipient_views.xml',
     'views/onedesk_signaturit_config.xml',
 
+    # Payment Retry & Availability Cache views (Phase C1 + C2)
+    'views/onedesk_payment_retry_views.xml',
+    'views/onedesk_availability_cache_views.xml',
+
     # Multi-tenant views (admin)
     'views/onedesk_plan_views.xml',
     'views/onedesk_client_views.xml',
@@ -61,6 +65,9 @@
     'data/integration_providers.xml',
     'data/integration_cron.xml',
     'data/onedesk_signaturit_config.xml',
+
+    # Payment & Cache (Phase C1 + C2)
+    'data/onedesk_payment_retry_cron.xml',
 
     # Menus APRÈS les vues qui créent les actions (CRITICAL: must be after all view files)
     'views/onedesk_menu_hierarchy.xml',

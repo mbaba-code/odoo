@@ -3,6 +3,9 @@ from odoo.exceptions import ValidationError
 from odoo.fields import Command
 from datetime import datetime
 from odoo.tools import format_datetime
+import logging
+
+_logger = logging.getLogger(__name__)
 
 class OneDeskReservation(models.Model):
     _name = 'onedesk.reservation'
@@ -284,6 +287,22 @@ class OneDeskReservation(models.Model):
                     message_type='comment'
                 )
 
+            # ========== CREATE PAYMENT RETRY TRACKER (Odoo 19) ==========
+            # This will automatically track payment reminders (Day 1, Day 3, Auto-cancel Day 7)
+            try:
+                self.env['onedesk.payment.retry'].create({
+                    'reservation_id': reservation.id,
+                })
+                reservation.message_post(
+                    body="💳 Suivi de paiement créé - Rappels automatiques activés",
+                    message_type='comment'
+                )
+            except Exception as e:
+                reservation.message_post(
+                    body=f"⚠️ Erreur création suivi paiement: {str(e)}",
+                    message_type='comment'
+                )
+
         return reservations
 
     def _copy_images_from_unit(self):
@@ -364,6 +383,14 @@ class OneDeskReservation(models.Model):
                         reservation.message_post(body="📧 Email de confirmation envoyé au client", message_type='comment')
                 except Exception as e:
                     reservation.message_post(body=f"⚠️ Erreur email paid: {str(e)}", message_type='comment')
+
+            # ========== INVALIDATE AVAILABILITY CACHE (Odoo 19 C2) ==========
+            # When a reservation changes, invalidate cached availability for that unit
+            if reservation.unit_id:
+                try:
+                    self.env['onedesk.availability.cache'].invalidate_cache_for_unit(reservation.unit_id.id)
+                except Exception as e:
+                    _logger.warning(f"Cache invalidation failed: {str(e)}")
 
         return res
 

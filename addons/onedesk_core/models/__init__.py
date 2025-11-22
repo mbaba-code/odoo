@@ -33,3 +33,9 @@ from . import onedesk_image_wizard
 
 # ← NOUVEAU : Documents et Signatures
 from . import onedesk_document
+
+# ← NOUVEAU : Payment Retry System (Phase C1)
+from . import onedesk_payment_retry
+
+# ← NOUVEAU : Availability Cache (Phase C2)
+from . import onedesk_availability_cache
