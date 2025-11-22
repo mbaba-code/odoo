@@ -20,34 +20,31 @@
                     <notebook>
                         <!-- PAGE 1: INFOS DOCUMENT -->
                         <page string="📄 Document" name="document_info">
-                            <group>
-                                <group>
-                                    <field name="name" class="w-100"/>
-                                    <field name="document_type"/>
-                                    <field name="signing_method" invisible="status != 'draft'"/>
-                                </group>
-                                <group>
-                                    <field name="company_id" groups="base.group_multi_company"/>
-                                    <field name="created_by" readonly="1"/>
-                                </group>
+                            <group col="1">
+                                <field name="name"/>
+                                <field name="document_type"/>
+                                <field name="signing_method" invisible="status != 'draft'"/>
+                                <field name="company_id" groups="base.group_multi_company"/>
+                                <field name="created_by" readonly="1"/>
                             </group>
 
                             <!-- PDF Upload -->
-                            <group string="Fichier PDF">
-                                <field name="file" widget="binary" filename="filename"
-                                       class="w-100" options="{'url': '/web/content'}"/>
+                            <separator string="Fichier PDF"/>
+                            <group col="1">
+                                <field name="file" widget="binary" filename="filename" options="{'url': '/web/content'}"/>
                                 <field name="filename"/>
                             </group>
 
                             <!-- Notes -->
-                            <group string="Notes">
-                                <field name="notes" nolabel="1" class="w-100" placeholder="Observations ou instructions..."/>
+                            <separator string="Notes"/>
+                            <group col="1">
+                                <field name="notes" nolabel="1" placeholder="Observations ou instructions..." class="w-100"/>
                             </group>
                         </page>
 
                         <!-- PAGE 2: CONTEXTE -->
                         <page string="📍 Contexte" name="context">
-                            <group string="Liée à">
+                            <group col="1">
                                 <field name="property_id"/>
                                 <field name="unit_id"/>
                                 <field name="reservation_id"/>
@@ -57,18 +54,19 @@
 
                         <!-- PAGE 3: SIGNATAIRES -->
                         <page string="🔐 Signataires" name="signers">
-                            <group string="Sélectionnez les signataires" class="mb-3">
-                                <field name="recipient_ids" nolabel="1" class="w-100"
+                            <separator string="Sélectionnez les signataires"/>
+                            <group col="1">
+                                <field name="recipient_ids" nolabel="1"
                                        widget="many2many_tags"
                                        context="{'default_company_id': company_id}"/>
                             </group>
 
-                            <div class="alert alert-info" role="alert">
-                                <p><strong>Comment ça marche:</strong></p>
-                                <ul>
+                            <div class="alert alert-info" role="alert" style="margin-top: 20px;">
+                                <p><strong>📋 Workflow:</strong></p>
+                                <ul style="margin-bottom: 0;">
                                     <li>✅ Sélectionnez les signataires ci-dessus</li>
                                     <li>✅ Cliquez "📤 Envoyer pour signature" en haut</li>
-                                    <li>✅ Les signataires reçoivent un email avec le lien de signature</li>
+                                    <li>✅ Les signataires reçoivent un email</li>
                                     <li>✅ Le statut se met à jour automatiquement</li>
                                 </ul>
                             </div>
@@ -77,9 +75,10 @@
                         <!-- PAGE 4: SUIVI SIGNATURES -->
                         <page string="✅ Suivi des signatures" name="signature_tracking"
                               invisible="status == 'draft'">
-                            <field name="signature_ids" nolabel="1" class="w-100"
-                                   readonly="1" widget="one2many" mode="tree"/>
-
+                            <group col="1">
+                                <field name="signature_ids" nolabel="1"
+                                       readonly="1" widget="one2many" mode="tree"/>
+                            </group>
                             <field name="signaturit_request_id" invisible="1"/>
                         </page>
                     </notebook>
