@@ -28,13 +28,15 @@
     # Menu root and initial menus (must load BEFORE views that reference them)
     'views/onedesk_menu_views.xml',
 
+    # Actions and wizards (must load BEFORE views that reference them)
+    'views/onedesk_image_wizard_views.xml',
+
     # Autres vues
     # ⚠️ ORDRE IMPORTANT: seasonal_price AVANT unit car unit en dépend
     'views/onedesk_property_views.xml',
     'views/onedesk_seasonal_price_views.xml',
     'views/onedesk_unit_views.xml',
     'views/onedesk_image_views.xml',
-    'views/onedesk_image_wizard_views.xml',
     'views/onedesk_reservation_views.xml',
     'views/onedesk_task_views.xml',
     'views/onedesk_integration_provider_views.xml',
