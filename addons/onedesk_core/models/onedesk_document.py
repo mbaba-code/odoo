@@ -162,9 +162,9 @@ class OnedeskDocument(models.Model):
                 'name': recipient.name,
             })
 
-        # Envoyer à SignaturIT
+        # Envoyer à SignaturIT avec le format correct (just token, pas Bearer)
         headers = {
-            'Authorization': f'Bearer {api_key}',
+            'Authorization': api_key,  # SignaturIT utilise juste le token, pas Bearer
         }
 
         files = {
@@ -178,6 +178,9 @@ class OnedeskDocument(models.Model):
         }
 
         try:
+            _logger.info(f'📤 Envoi à SignaturIT: {self.name} avec {len(signers)} signataire(s)')
+            _logger.debug(f'Signers: {signers}')
+
             response = requests.post(
                 'https://api.signaturit.com/v3/requests',
                 headers=headers,
@@ -187,13 +190,18 @@ class OnedeskDocument(models.Model):
             )
 
             if response.status_code not in [200, 201]:
-                raise ValueError(f'Erreur SignaturIT: {response.text}')
+                error_msg = f'Erreur SignaturIT (HTTP {response.status_code}): {response.text}'
+                _logger.error(f'❌ {error_msg}')
+                raise ValueError(error_msg)
 
-            return response.json()
+            result = response.json()
+            _logger.info(f'✅ Réponse SignaturIT: {result}')
+            return result
 
-        except Exception as e:
-            _logger.error(f'❌ Erreur API SignaturIT: {str(e)}')
-            raise
+        except requests.exceptions.RequestException as e:
+            error_msg = f'❌ Erreur API SignaturIT: {str(e)}'
+            _logger.error(error_msg)
+            raise ValueError(error_msg)
 
     def _download_signed_pdf(self):
         """Télécharger le PDF signé depuis SignaturIT"""
@@ -205,10 +213,12 @@ class OnedeskDocument(models.Model):
         api_key = self.env['ir.config_parameter'].sudo().get_param('signaturit.api.key')
 
         headers = {
-            'Authorization': f'Bearer {api_key}',
+            'Authorization': api_key,  # SignaturIT utilise juste le token
         }
 
         try:
+            _logger.info(f'📥 Téléchargement PDF signé pour request {self.signaturit_request_id}')
+
             response = requests.get(
                 f'https://api.signaturit.com/v3/requests/{self.signaturit_request_id}/document',
                 headers=headers,
@@ -217,9 +227,10 @@ class OnedeskDocument(models.Model):
 
             if response.status_code == 200:
                 self.file = base64.b64encode(response.content)
-                _logger.info(f'✅ PDF signé téléchargé pour {self.name}')
+                _logger.info(f'✅ PDF signé téléchargé et sauvegardé pour {self.name}')
             else:
-                _logger.warning(f'Impossible de télécharger le PDF signé: {response.text}')
+                error_msg = f'Impossible de télécharger le PDF signé (HTTP {response.status_code}): {response.text}'
+                _logger.warning(f'⚠️ {error_msg}')
 
         except Exception as e:
             _logger.error(f'❌ Erreur téléchargement PDF: {str(e)}')
