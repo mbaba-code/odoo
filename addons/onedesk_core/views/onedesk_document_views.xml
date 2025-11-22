@@ -56,7 +56,7 @@
                                context="{'default_company_id': company_id}"/>
                     </group>
 
-                    <div class="alert alert-info" role="alert" class="mb-4">
+                    <div class="alert alert-info mb-4" role="alert">
                         <p class="mb-1"><strong>📋 Comment ça marche:</strong></p>
                         <ul style="margin-bottom: 0;">
                             <li>✅ Sélectionnez les signataires ci-dessus</li>
