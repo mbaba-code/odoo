@@ -184,19 +184,10 @@
 
                             <separator string="Gérer les photos"/>
                             <p style="margin-bottom: 10px; font-size: 12px; color: #666;">
-                                💡 Vous pouvez:
-                                <br/>• Ajouter nouvelles photos ci-dessous et les modifier rapidement
-                                <br/>• Changer le type (check-in = arrivée, check-out = départ, damage = dégâts)
-                                <br/>• Réorganiser par drag-drop
+                                💡 Utilisez les boutons ci-dessus pour gérer vos photos d'inspection:
+                                <br/>• 📋 Copier photos de l'unité (rapide pour check-in)
+                                <br/>• 📤 Ajouter des photos (pour check-out ou dégâts)
                             </p>
-                            <field name="image_ids">
-                                <list string="Photos d'inspection" editable="bottom">
-                                    <field name="sequence" widget="handle"/>
-                                    <field name="image_type" widget="selection"/>
-                                    <field name="name" placeholder="Titre ou description..."/>
-                                    <field name="image" widget="image" required="1"/>
-                                </list>
-                            </field>
                         </page>
                         <page string="Événement calendrier">
                             <field name="calendar_event_id" readonly="1"/>

@@ -138,19 +138,9 @@
                     </p>
                     <p style="margin-bottom: 10px; font-size: 12px; color: #666;">
                         💡 <strong>Conseils rapides:</strong>
-                        <br/>• Cochez "📌" pour marquer la photo de couverture (affichée dans le kanban)
-                        <br/>• Réorganisez par drag-drop (numéro = ordre d'affichage)
-                        <br/>• Donnez des noms descriptifs (Chambre, Salle de bain, Salon, Cuisine, etc.)
-                        <br/>• 💡 <strong>Conseil:</strong> Ces photos seront automatiquement copiées dans les réservations!
+                        <br/>• Cliquez sur une photo pour voir les détails
+                        <br/>• Ces photos seront automatiquement copiées dans les réservations!
                     </p>
-                    <field name="image_ids">
-                        <list string="Photos" editable="bottom">
-                            <field name="sequence" widget="handle"/>
-                            <field name="is_cover" widget="boolean"/>
-                            <field name="name" placeholder="Ex: Chambre principale..."/>
-                            <field name="image" widget="image" required="1"/>
-                        </list>
-                    </field>
 
                     <!-- SECTION: POLITIQUES -->
                     <separator string="📋 Politiques"/>

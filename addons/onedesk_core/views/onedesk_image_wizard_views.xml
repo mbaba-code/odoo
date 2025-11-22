@@ -9,58 +9,20 @@
         <field name="arch" type="xml">
             <form string="Upload Multiple Photos">
                 <sheet>
-                    <!-- Message complet si ouvert manuellement (sans contexte) -->
-                    <div class="alert alert-info" role="alert" modifiers="{'invisible': [('show_document_selector', '=', False)]}">
-                        <strong>💡 Comment ça marche:</strong>
-                        <br/>1. Sélectionnez le type de document (Propriété, Unité, Réservation)
-                        <br/>2. Choisissez le document cible
-                        <br/>3. Sélectionnez une ou plusieurs photos
-                        <br/>4. Cliquez "Upload" et c'est fini! ⚡
-                    </div>
-
-                    <!-- Message simplifié si ouvert depuis un document -->
-                    <div class="alert alert-success" role="alert" modifiers="{'invisible': [('show_document_selector', '!=', False)]}">
+                    <!-- Message simplifié -->
+                    <div class="alert alert-success" role="alert">
                         <strong>📸 Sélectionnez les photos à ajouter</strong>
                         <br/>Les photos seront ajoutées automatiquement avec la numérotation séquentielle.
                     </div>
 
-                    <!-- Sélecteurs de document (visible si contexte vide) -->
-                    <group modifiers="{'invisible': [('show_document_selector', '=', False)]}">
-                        <group>
-                            <!-- Type de document -->
-                            <field name="document_type" widget="selection" required="1"/>
-
-                            <!-- Propriété -->
-                            <field name="property_id" modifiers="{'invisible': [('document_type', '!=', 'property')], 'required': [('document_type', '=', 'property')]}"/>
-
-                            <!-- Unité -->
-                            <field name="unit_id" modifiers="{'invisible': [('document_type', '!=', 'unit')], 'required': [('document_type', '=', 'unit')]}"/>
-
-                            <!-- Réservation -->
-                            <field name="reservation_id" modifiers="{'invisible': [('document_type', '!=', 'reservation')], 'required': [('document_type', '=', 'reservation')]}"/>
-                        </group>
-
-                        <group>
-                            <!-- Préfixe titre -->
-                            <field name="note_prefix" placeholder="Ex: Chambre (optionnel)"/>
-                        </group>
-                    </group>
-
-                    <!-- Options supplémentaires (hidden fields + type pour réservations) -->
-                    <group modifiers="{'invisible': [('show_document_selector', '=', False)]}">
-                        <!-- Type de photos pour réservations seulement -->
-                        <field name="image_type" modifiers="{'invisible': [('document_type', '!=', 'reservation')]}"/>
-                    </group>
-
-                    <!-- Simplement montrer le préfixe quand depuis un document -->
-                    <group modifiers="{'invisible': [('show_document_selector', '!=', False)]}">
-                        <group>
-                            <field name="note_prefix" placeholder="Ex: Chambre (optionnel)"/>
-                        </group>
-                    </group>
-
                     <!-- Field caché pour le show_document_selector -->
                     <field name="show_document_selector" invisible="1"/>
+                    <field name="document_type" invisible="1"/>
+                    <field name="property_id" invisible="1"/>
+                    <field name="unit_id" invisible="1"/>
+                    <field name="reservation_id" invisible="1"/>
+                    <field name="image_type" invisible="1"/>
+                    <field name="note_prefix" invisible="1"/>
 
                     <!-- Upload images -->
                     <separator string="📸 Sélectionnez les photos"/>
@@ -74,7 +36,6 @@
                     <p style="color: #999; font-size: 11px; margin-top: 10px;">
                         ✅ Formats supportés: JPG, PNG
                         <br/>✅ Taille max par photo: 5 MB
-                        <br/>✅ Les photos seront nommées automatiquement avec le préfixe (si fourni)
                     </p>
                 </sheet>
 
