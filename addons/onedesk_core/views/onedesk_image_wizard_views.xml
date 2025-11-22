@@ -23,16 +23,16 @@
                             <field name="document_type" widget="selection" required="1"/>
 
                             <!-- Propriété -->
-                            <field name="property_id" attrs="{'invisible': [('document_type', '!=', 'property')], 'required': [('document_type', '=', 'property')]}"/>
+                            <field name="property_id" modifiers="{'invisible': [('document_type', '!=', 'property')], 'required': [('document_type', '=', 'property')]}"/>
 
                             <!-- Unité -->
-                            <field name="unit_id" attrs="{'invisible': [('document_type', '!=', 'unit')], 'required': [('document_type', '=', 'unit')]}"/>
+                            <field name="unit_id" modifiers="{'invisible': [('document_type', '!=', 'unit')], 'required': [('document_type', '=', 'unit')]}"/>
 
                             <!-- Réservation -->
-                            <field name="reservation_id" attrs="{'invisible': [('document_type', '!=', 'reservation')], 'required': [('document_type', '=', 'reservation')]}"/>
+                            <field name="reservation_id" modifiers="{'invisible': [('document_type', '!=', 'reservation')], 'required': [('document_type', '=', 'reservation')]}"/>
 
                             <!-- Type de photos (réservation seulement) -->
-                            <field name="image_type" attrs="{'invisible': [('document_type', '!=', 'reservation')]}"/>
+                            <field name="image_type" modifiers="{'invisible': [('document_type', '!=', 'reservation')]}"/>
                         </group>
 
                         <group>
@@ -47,8 +47,7 @@
                         Cliquez ci-dessous pour sélectionner une ou plusieurs photos. Vous pouvez en sélectionner autant que vous voulez!
                     </p>
                     <field name="images" widget="many2many_binary" required="1"
-                           options="{'url': '/web/content/ir.attachment/datas'}"
-                           attrs="{'required': True}">
+                           options="{'url': '/web/content/ir.attachment/datas'}">
                     </field>
 
                     <p style="color: #999; font-size: 11px; margin-top: 10px;">
