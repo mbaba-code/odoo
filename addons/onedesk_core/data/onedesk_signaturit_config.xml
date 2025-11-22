@@ -3,7 +3,7 @@
     <!-- SignaturIT Configuration Parameter -->
     <record id="signaturit_api_key" model="ir.config_parameter">
         <field name="key">signaturit.api.key</field>
-        <field name="value"></field>
+        <field name="value">TkLwhwoYHkIqXLjZdKOBgmNrTLnZuhoyUxSbbSovDzQqDtBBMeeRLwOcOrxVaUCtsYxETlFkECCvdMMpUIKlEC</field>
     </record>
 
     <!-- SignaturIT API Base URL (optional, for future flexibility) -->
