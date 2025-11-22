@@ -403,11 +403,11 @@
         <field name="perm_unlink">False</field>
     </record>
 
-    <!-- Property Manager: all tasks in their company -->
+    <!-- Property Manager: only their company's tasks -->
     <record id="rule_property_manager_task" model="ir.rule">
         <field name="name">Property Manager - Company Tasks</field>
         <field name="model_id" ref="model_onedesk_task"/>
-        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="domain_force">[('reservation_id.unit_id.property_id.company_id', '=', user.company_id.id), ('active', '=', True)]</field>
         <field name="groups" eval="[(4, ref('group_onedesk_property_manager'))]"/>
         <field name="perm_read">True</field>
         <field name="perm_write">True</field>
@@ -415,11 +415,11 @@
         <field name="perm_unlink">False</field>
     </record>
 
-    <!-- Staff: all tasks in their company -->
+    <!-- Staff: only their company's tasks -->
     <record id="rule_staff_task" model="ir.rule">
         <field name="name">Staff - Company Tasks</field>
         <field name="model_id" ref="model_onedesk_task"/>
-        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="domain_force">[('reservation_id.unit_id.property_id.company_id', '=', user.company_id.id), ('active', '=', True)]</field>
         <field name="groups" eval="[(4, ref('group_onedesk_staff'))]"/>
         <field name="perm_read">True</field>
         <field name="perm_write">True</field>
@@ -427,11 +427,11 @@
         <field name="perm_unlink">False</field>
     </record>
 
-    <!-- Viewer: all tasks in their company (read-only) -->
+    <!-- Viewer: only their company's tasks (read-only) -->
     <record id="rule_viewer_task" model="ir.rule">
         <field name="name">Viewer - Company Tasks (Read-Only)</field>
         <field name="model_id" ref="model_onedesk_task"/>
-        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="domain_force">[('reservation_id.unit_id.property_id.company_id', '=', user.company_id.id), ('active', '=', True)]</field>
         <field name="groups" eval="[(4, ref('group_onedesk_viewer'))]"/>
         <field name="perm_read">True</field>
         <field name="perm_write">False</field>
