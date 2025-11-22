@@ -13,7 +13,7 @@
                         <group string="🔐 Configuration SignaturIT">
                             <field name="key" readonly="1"/>
                             <field name="value"
-                                   attrs="{'invisible': [('key', '!=', 'signaturit.api.key')]}"/>
+                                   invisible="key != 'signaturit.api.key'"/>
                         </group>
                     </group>
                 </sheet>
