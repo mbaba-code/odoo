@@ -66,7 +66,8 @@
                     <!-- Suivi des signatures -->
                     <separator string="✅ Suivi des signatures" invisible="status == 'draft'"/>
                     <group invisible="status == 'draft'">
-                        <field name="signature_ids" nolabel="1" class="w-100" readonly="1"/>
+                        <field name="signature_ids" nolabel="1" class="w-100"
+                               readonly="1" widget="one2many" mode="tree"/>
                     </group>
 
                     <div class="alert alert-info" role="alert">
