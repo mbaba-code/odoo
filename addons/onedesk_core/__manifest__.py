@@ -80,6 +80,7 @@
 
             # OneDesk Dashboard CSS & JS
             'onedesk_core/static/src/css/dashboard.css',
+            'onedesk_core/static/src/css/document_form.css',
             'onedesk_core/static/src/js/dashboard_refresh.js',
             'onedesk_core/static/src/js/dashboard_charts.js',
             'onedesk_core/static/src/js/dashboard_customization.js',
