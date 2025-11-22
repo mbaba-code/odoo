@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ========== SIGNATURIT CONFIGURATION ========== -->
+
+    <!-- Settings Form -->
+    <record id="view_signaturit_settings_form" model="ir.ui.view">
+        <field name="name">signaturit.settings.form</field>
+        <field name="model">ir.config_parameter</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <group string="🔐 Configuration SignaturIT">
+                            <field name="key" readonly="1"/>
+                            <field name="value"
+                                   attrs="{'invisible': [('key', '!=', 'signaturit.api.key')]}"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Settings Action -->
+    <record id="action_signaturit_settings" model="ir.actions.act_window">
+        <field name="name">Configuration SignaturIT</field>
+        <field name="res_model">ir.config_parameter</field>
+        <field name="view_mode">form</field>
+        <field name="target">inline</field>
+        <field name="context">{
+            'default_key': 'signaturit.api.key',
+            'search_default_key': 'signaturit.api.key'
+        }</field>
+    </record>
+
+    <!-- Menu Item -->
+    <menuitem id="menu_signaturit_settings"
+              name="⚙️ Configuration SignaturIT"
+              parent="onedesk_core.menu_onedesk_root"
+              action="action_signaturit_settings"
+              groups="onedesk_core.group_onedesk_master_admin"
+              sequence="99"/>
+
+</odoo>

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- SignaturIT Configuration Parameter -->
+    <record id="signaturit_api_key" model="ir.config_parameter">
+        <field name="key">signaturit.api.key</field>
+        <field name="value"></field>
+    </record>
+
+    <!-- SignaturIT API Base URL (optional, for future flexibility) -->
+    <record id="signaturit_api_url" model="ir.config_parameter">
+        <field name="key">signaturit.api.url</field>
+        <field name="value">https://api.signaturit.com/v3</field>
+    </record>
+
+</odoo>

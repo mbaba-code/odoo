@@ -45,6 +45,10 @@
     'views/oauth_templates.xml',
     'views/public_reservation_templates.xml',
 
+    # Document & Signature views
+    'views/onedesk_document_views.xml',
+    'views/onedesk_signaturit_config.xml',
+
     # Multi-tenant views (admin)
     'views/onedesk_plan_views.xml',
     'views/onedesk_client_views.xml',
@@ -54,6 +58,7 @@
     # Données après (quand les models sont chargés)
     'data/integration_providers.xml',
     'data/integration_cron.xml',
+    'data/onedesk_signaturit_config.xml',
 
     # Menus APRÈS les vues qui créent les actions (CRITICAL: must be after all view files)
     'views/onedesk_menu_hierarchy.xml',
