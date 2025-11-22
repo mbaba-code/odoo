@@ -40,10 +40,10 @@ class OnedeskDocument(models.Model):
        help="SignaturIT: service tiers avec advanced features\nOdoo Sign: signature native et rapide")
 
     # ========== RELATIONS ==========
-    property_id = fields.Many2one('onedesk.property', string='Propriété')
-    unit_id = fields.Many2one('onedesk.unit', string='Unité')
-    reservation_id = fields.Many2one('onedesk.reservation', string='Réservation')
-    task_id = fields.Many2one('onedesk.task', string='Tâche')
+    property_id = fields.Many2one('onedesk.property', string='Propriété', index=True)
+    unit_id = fields.Many2one('onedesk.unit', string='Unité', index=True)
+    reservation_id = fields.Many2one('onedesk.reservation', string='Réservation', index=True)  # Critical for filtering
+    task_id = fields.Many2one('onedesk.task', string='Tâche', index=True)
 
     company_id = fields.Many2one('res.company', string='Company', required=True,
                                  default=lambda self: self.env.company)
@@ -65,7 +65,7 @@ class OnedeskDocument(models.Model):
     # Suivi des statuts de signature (One2many)
     signature_ids = fields.One2many('onedesk.document.signature', 'document_id',
                                    string='Suivi des signatures')
-    signaturit_request_id = fields.Char(string='SignaturIT Request ID', readonly=True)
+    signaturit_request_id = fields.Char(string='SignaturIT Request ID', readonly=True, index=True)  # Critical for API tracking
 
     # ========== NOTES ==========
     notes = fields.Text(string='Notes')
@@ -269,6 +269,7 @@ class OnedeskDocumentSignature(models.Model):
     _name = 'onedesk.document.signature'
     _description = 'Signature de document'
     _rec_name = 'signer_name'
+    _inherit = ['mail.thread']  # Enable message_post() for email tracking
 
     # ========== RELATIONS ==========
     document_id = fields.Many2one('onedesk.document', string='Document', required=True, ondelete='cascade')
@@ -299,6 +300,34 @@ class OnedeskDocumentSignature(models.Model):
         """Auto-populate signaturit_request_id depuis document"""
         if self.document_id:
             self.signaturit_request_id = self.document_id.signaturit_request_id
+
+    @api.model
+    def create(self, vals_list):
+        """Create signature and send signature request email"""
+        signatures = super().create(vals_list)
+
+        for signature in signatures:
+            # ========== EMAIL TRIGGER: Signature Request ==========
+            if signature.signer_email:
+                try:
+                    # Get company from document for multi-tenant
+                    company_id = signature.document_id.company_id if signature.document_id else self.env.company
+
+                    # Send simple email notification (fallback if template not available)
+                    mail_values = {
+                        'subject': f"📄 Signature requise: {signature.document_id.name}",
+                        'body_html': f"<p>Bonjour {signature.signer_name},</p><p>Un document vous attend pour signature: <strong>{signature.document_id.name}</strong></p><p>Veuillez accéder au portail de signature pour signer le document.</p>",
+                        'email_to': signature.signer_email,
+                        'email_from': company_id.email or self.env.user.email,
+                        'company_id': company_id.id,
+                    }
+                    mail = self.env['mail.mail'].sudo().create(mail_values)
+                    mail.send()
+                    signature.message_post(body=f"📧 Email de demande de signature envoyé à {signature.signer_email}", message_type='comment')
+                except Exception as e:
+                    signature.message_post(body=f"⚠️ Erreur envoi email signature: {str(e)}", message_type='comment')
+
+        return signatures
 
     def action_resend(self):
         """Renvoyer le lien de signature au signataire"""

@@ -152,4 +152,276 @@
         ]]></field>
     </record>
 
+    <!-- Booking Confirmation Email Template -->
+    <record id="email_template_booking_confirmation" model="mail.template">
+        <field name="name">OneDesk - Confirmation de réservation</field>
+        <field name="email_from">${object.company_id.email or 'reservations@onedesk.io'}</field>
+        <field name="email_to">${object.guest_email}</field>
+        <field name="subject">Votre réservation est confirmée - ${object.property_id.name} 🎉</field>
+        <field name="model_id" ref="model_onedesk_reservation"/>
+        <field name="body_html"><![CDATA[
+<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #f5f5f5; padding: 20px;">
+    <div style="background-color: white; border-radius: 8px; padding: 30px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+
+        <!-- Header -->
+        <div style="text-align: center; margin-bottom: 30px;">
+            <h1 style="color: #1f77d2; margin: 0;">✅ Réservation Confirmée</h1>
+            <p style="color: #666; margin-top: 10px;">Votre séjour est réservé!</p>
+        </div>
+
+        <!-- Booking Details -->
+        <div style="background-color: #f9f9f9; border-left: 4px solid #1f77d2; padding: 20px; margin: 20px 0; border-radius: 5px;">
+            <h3 style="color: #333; margin-top: 0;">📋 Détails de votre réservation</h3>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                <div>
+                    <p style="margin: 0; color: #999; font-size: 12px;">PROPRIÉTÉ</p>
+                    <p style="margin: 5px 0; color: #333; font-weight: bold;">${object.property_id.name}</p>
+                </div>
+                <div>
+                    <p style="margin: 0; color: #999; font-size: 12px;">NUMÉRO DE RÉSERVATION</p>
+                    <p style="margin: 5px 0; color: #333; font-weight: bold;">${object.name}</p>
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                <div>
+                    <p style="margin: 0; color: #999; font-size: 12px;">ARRIVÉE</p>
+                    <p style="margin: 5px 0; color: #333; font-weight: bold;">${object.check_in_date.strftime('%d/%m/%Y')}</p>
+                </div>
+                <div>
+                    <p style="margin: 0; color: #999; font-size: 12px;">DÉPART</p>
+                    <p style="margin: 5px 0; color: #333; font-weight: bold;">${object.check_out_date.strftime('%d/%m/%Y')}</p>
+                </div>
+            </div>
+
+            <div style="border-top: 1px solid #ddd; padding-top: 15px;">
+                <p style="margin: 0; color: #999; font-size: 12px;">MONTANT TOTAL</p>
+                <p style="margin: 5px 0; color: #1f77d2; font-weight: bold; font-size: 18px;">${object.total_price} ${object.currency_id.symbol}</p>
+            </div>
+        </div>
+
+        <!-- Guest Notes -->
+        % if object.guest_notes:
+        <div style="background-color: #f0f8ff; border-radius: 5px; padding: 15px; margin: 20px 0;">
+            <p style="margin: 0; color: #333; font-weight: bold;">📝 Vos notes spéciales:</p>
+            <p style="margin: 10px 0; color: #666;">${object.guest_notes}</p>
+        </div>
+        % endif
+
+        <!-- Check-in Info -->
+        <div style="margin: 30px 0;">
+            <h3 style="color: #333; margin-top: 0;">🔑 Informations d'arrivée</h3>
+            <p style="color: #666; line-height: 1.6;">
+                Vous recevrez un email avec les instructions d'accès 24 heures avant votre arrivée.
+            </p>
+            <ul style="color: #666; line-height: 1.8;">
+                <li>Instructions d'accès et codes</li>
+                <li>Détails du parking</li>
+                <li>Horaires d'arrivée/départ</li>
+                <li>Contact d'urgence</li>
+            </ul>
+        </div>
+
+        <!-- CTA Button -->
+        <div style="text-align: center; margin: 30px 0;">
+            <a href="${env['ir.config_parameter'].sudo().get_param('web.base.url')}/onedesk/booking/${object.id}"
+               style="display: inline-block; background-color: #1f77d2; color: white; padding: 12px 30px; border-radius: 5px; text-decoration: none; font-weight: bold;">
+                Voir mes détails de réservation
+            </a>
+        </div>
+
+        <!-- Support -->
+        <div style="background-color: #f5f5f5; border-radius: 5px; padding: 15px; margin-top: 30px;">
+            <p style="margin: 0; color: #666; font-size: 13px;">
+                Des questions? Contactez notre équipe support:<br/>
+                📧 <a href="mailto:support@onedesk.io" style="color: #1f77d2; text-decoration: none;">support@onedesk.io</a>
+            </p>
+        </div>
+
+        <!-- Footer -->
+        <div style="border-top: 1px solid #eee; padding-top: 20px; margin-top: 30px; color: #999; font-size: 12px; text-align: center;">
+            <p style="margin: 0;">© 2024 OneDesk - Gestion immobilière SaaS</p>
+        </div>
+    </div>
+</div>
+        ]]></field>
+    </record>
+
+    <!-- Task Assignment Email Template -->
+    <record id="email_template_task_assigned" model="mail.template">
+        <field name="name">OneDesk - Tâche assignée</field>
+        <field name="email_from">${object.property_id.company_id.email or 'tasks@onedesk.io'}</field>
+        <field name="email_to">${object.assigned_to_id.email}</field>
+        <field name="subject">📋 Nouvelle tâche: ${object.task_type} - ${object.property_id.name}</field>
+        <field name="model_id" ref="model_onedesk_task"/>
+        <field name="body_html"><![CDATA[
+<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #f5f5f5; padding: 20px;">
+    <div style="background-color: white; border-radius: 8px; padding: 30px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+
+        <!-- Header -->
+        <div style="text-align: center; margin-bottom: 30px;">
+            <h1 style="color: #1f77d2; margin: 0;">📋 Nouvelle Tâche</h1>
+            <p style="color: #666; margin-top: 10px;">Vous avez une nouvelle tâche à accomplir</p>
+        </div>
+
+        <!-- Task Type Badge -->
+        <div style="text-align: center; margin-bottom: 20px;">
+            % if object.task_type == 'check_in':
+                <span style="display: inline-block; background-color: #d4edda; color: #155724; padding: 8px 15px; border-radius: 20px; font-weight: bold;">✅ CHECK-IN</span>
+            % elif object.task_type == 'check_out':
+                <span style="display: inline-block; background-color: #fff3cd; color: #856404; padding: 8px 15px; border-radius: 20px; font-weight: bold;">🚪 CHECK-OUT</span>
+            % elif object.task_type == 'cleaning':
+                <span style="display: inline-block; background-color: #cfe2ff; color: #084298; padding: 8px 15px; border-radius: 20px; font-weight: bold;">🧹 NETTOYAGE</span>
+            % elif object.task_type == 'maintenance':
+                <span style="display: inline-block; background-color: #f8d7da; color: #721c24; padding: 8px 15px; border-radius: 20px; font-weight: bold;">🔧 MAINTENANCE</span>
+            % endif
+        </div>
+
+        <!-- Task Details -->
+        <div style="background-color: #f9f9f9; border-left: 4px solid #1f77d2; padding: 20px; margin: 20px 0; border-radius: 5px;">
+            <h3 style="color: #333; margin-top: 0;">📌 Détails de la tâche</h3>
+
+            <div style="margin-bottom: 15px;">
+                <p style="margin: 0; color: #999; font-size: 12px;">PROPRIÉTÉ</p>
+                <p style="margin: 5px 0; color: #333; font-weight: bold; font-size: 16px;">${object.property_id.name}</p>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                <div>
+                    <p style="margin: 0; color: #999; font-size: 12px;">DATE PRÉVUE</p>
+                    <p style="margin: 5px 0; color: #333; font-weight: bold;">${object.scheduled_date.strftime('%d/%m/%Y %H:%M')}</p>
+                </div>
+                <div>
+                    <p style="margin: 0; color: #999; font-size: 12px;">DURÉE ESTIMÉE</p>
+                    <p style="margin: 5px 0; color: #333; font-weight: bold;">${object.estimated_hours}h</p>
+                </div>
+            </div>
+
+            % if object.description:
+            <div style="border-top: 1px solid #ddd; padding-top: 15px;">
+                <p style="margin: 0; color: #999; font-size: 12px;">DESCRIPTION</p>
+                <p style="margin: 10px 0; color: #333;">${object.description}</p>
+            </div>
+            % endif
+        </div>
+
+        <!-- Priority Badge -->
+        % if object.priority in ('high', '2'):
+        <div style="background-color: #f8d7da; border-left: 4px solid #f5c6cb; padding: 12px; margin: 15px 0; border-radius: 5px;">
+            <p style="margin: 0; color: #721c24; font-weight: bold;">⚠️ Priorité haute - À traiter dès que possible!</p>
+        </div>
+        % endif
+
+        <!-- CTA Button -->
+        <div style="text-align: center; margin: 30px 0;">
+            <a href="${env['ir.config_parameter'].sudo().get_param('web.base.url')}/onedesk/task/${object.id}"
+               style="display: inline-block; background-color: #1f77d2; color: white; padding: 12px 30px; border-radius: 5px; text-decoration: none; font-weight: bold;">
+                Voir et mettre à jour la tâche
+            </a>
+        </div>
+
+        <!-- Checklist -->
+        <div style="background-color: #f0f8ff; border-radius: 5px; padding: 15px; margin-top: 20px;">
+            <p style="margin: 0; color: #084298; font-weight: bold;">📋 À vérifier:</p>
+            <ul style="margin: 10px 0; color: #333; line-height: 1.8; padding-left: 20px;">
+                <li>Confirmez la date/heure avec le client si nécessaire</li>
+                <li>Prenez des photos avant/après</li>
+                <li>Signalez tout problème à l'administration</li>
+            </ul>
+        </div>
+
+        <!-- Footer -->
+        <div style="border-top: 1px solid #eee; padding-top: 20px; margin-top: 30px; color: #999; font-size: 12px; text-align: center;">
+            <p style="margin: 0;">© 2024 OneDesk - Gestion immobilière SaaS</p>
+        </div>
+    </div>
+</div>
+        ]]></field>
+    </record>
+
+    <!-- Signature Request Email Template -->
+    <record id="email_template_signature_request" model="mail.template">
+        <field name="name">OneDesk - Demande de signature</field>
+        <field name="email_from">${object.company_id.email or 'documents@onedesk.io'}</field>
+        <field name="email_to">${object.email}</field>
+        <field name="subject">📄 Signature requise: ${object.document_id.name}</field>
+        <field name="model_id" ref="model_onedesk_document_signature"/>
+        <field name="body_html"><![CDATA[
+<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #f5f5f5; padding: 20px;">
+    <div style="background-color: white; border-radius: 8px; padding: 30px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+
+        <!-- Header -->
+        <div style="text-align: center; margin-bottom: 30px;">
+            <h1 style="color: #1f77d2; margin: 0;">✍️ Signature Requise</h1>
+            <p style="color: #666; margin-top: 10px;">Un document vous attend pour signature</p>
+        </div>
+
+        <!-- Document Info -->
+        <div style="background-color: #f9f9f9; border-left: 4px solid #1f77d2; padding: 20px; margin: 20px 0; border-radius: 5px;">
+            <h3 style="color: #333; margin-top: 0;">📄 Document à signer</h3>
+
+            <div style="margin-bottom: 15px;">
+                <p style="margin: 0; color: #999; font-size: 12px;">TITRE DU DOCUMENT</p>
+                <p style="margin: 5px 0; color: #333; font-weight: bold; font-size: 16px;">${object.document_id.name}</p>
+            </div>
+
+            <div style="margin-bottom: 15px;">
+                <p style="margin: 0; color: #999; font-size: 12px;">TYPE</p>
+                <p style="margin: 5px 0; color: #333;">${object.document_id.document_type or 'Contrat'}</p>
+            </div>
+
+            % if object.document_id.notes:
+            <div style="border-top: 1px solid #ddd; padding-top: 15px;">
+                <p style="margin: 0; color: #999; font-size: 12px;">REMARQUES</p>
+                <p style="margin: 10px 0; color: #666;">${object.document_id.notes}</p>
+            </div>
+            % endif
+        </div>
+
+        <!-- Important Info -->
+        <div style="background-color: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; margin: 20px 0; border-radius: 5px;">
+            <p style="margin: 0; color: #856404; font-weight: bold;">⏰ Important</p>
+            <p style="margin: 10px 0; color: #856404; font-size: 14px;">
+                Veuillez signer ce document dès que possible. Vous avez reçu cet email de la plateforme OneDesk.
+            </p>
+        </div>
+
+        <!-- CTA Button -->
+        <div style="text-align: center; margin: 30px 0;">
+            <a href="${env['ir.config_parameter'].sudo().get_param('web.base.url')}/onedesk/document/${object.document_id.id}/sign"
+               style="display: inline-block; background-color: #28a745; color: white; padding: 14px 35px; border-radius: 5px; text-decoration: none; font-weight: bold; font-size: 16px;">
+                ✍️ Signer le Document
+            </a>
+        </div>
+
+        <!-- What Happens Next -->
+        <div style="background-color: #e7f3ff; border-radius: 5px; padding: 15px; margin-top: 20px;">
+            <p style="margin: 0; color: #0056b3; font-weight: bold;">📝 Prochaines étapes:</p>
+            <ol style="margin: 10px 0; color: #333; line-height: 1.8; padding-left: 20px;">
+                <li>Cliquez sur le bouton "Signer le Document" ci-dessus</li>
+                <li>Suivez les instructions pour signer le document</li>
+                <li>Une confirmation vous sera envoyée une fois signé</li>
+                <li>Le document signé sera disponible pour téléchargement</li>
+            </ol>
+        </div>
+
+        <!-- Questions -->
+        <div style="background-color: #f5f5f5; border-radius: 5px; padding: 15px; margin-top: 20px;">
+            <p style="margin: 0; color: #666; font-size: 13px;">
+                Des questions sur ce document?<br/>
+                📧 <a href="mailto:support@onedesk.io" style="color: #1f77d2; text-decoration: none;">support@onedesk.io</a>
+            </p>
+        </div>
+
+        <!-- Footer -->
+        <div style="border-top: 1px solid #eee; padding-top: 20px; margin-top: 30px; color: #999; font-size: 12px; text-align: center;">
+            <p style="margin: 0;">© 2024 OneDesk - Gestion immobilière SaaS</p>
+            <p style="margin: 5px 0;">Vous avez reçu cet email car vous avez été ajouté comme signataire</p>
+        </div>
+    </div>
+</div>
+        ]]></field>
+    </record>
+
 </odoo>
