@@ -1,6 +1,9 @@
 """Wizard pour upload multiple de photos"""
 from odoo import models, fields, api
 import logging
+import base64
+import io
+from PIL import Image
 
 _logger = logging.getLogger(__name__)
 
@@ -87,6 +90,44 @@ class OneDeskImageUploadWizard(models.TransientModel):
         self.reservation_id = False
         self.image_type = 'check_in'
 
+    def _compress_image(self, image_data_base64, max_width=1920, max_height=1440, quality=85):
+        """Compresser et redimensionner une image pour réduire la taille
+
+        Args:
+            image_data_base64: Image en base64
+            max_width: Largeur max (pixels)
+            max_height: Hauteur max (pixels)
+            quality: Qualité JPEG (0-100)
+
+        Returns:
+            Image compressée en base64
+        """
+        try:
+            # Décoder l'image base64
+            image_data = base64.b64decode(image_data_base64)
+            image = Image.open(io.BytesIO(image_data))
+
+            # Redimensionner si nécessaire
+            image.thumbnail((max_width, max_height), Image.Resampling.LANCZOS)
+
+            # Convertir en RGB si nécessaire (pour JPEG)
+            if image.mode in ('RGBA', 'LA', 'P'):
+                bg = Image.new('RGB', image.size, (255, 255, 255))
+                bg.paste(image, mask=image.split()[-1] if image.mode == 'RGBA' else None)
+                image = bg
+
+            # Compresser et sauvegarder
+            output = io.BytesIO()
+            image.save(output, format='JPEG', quality=quality, optimize=True)
+            output.seek(0)
+
+            # Encoder en base64
+            return base64.b64encode(output.getvalue()).decode('utf-8')
+
+        except Exception as e:
+            _logger.warning(f"Erreur compression image: {str(e)}. Utilisation de l'image originale.")
+            return image_data_base64
+
     def action_upload_images(self):
         """Uploader toutes les photos sélectionnées"""
         self.ensure_one()
@@ -126,8 +167,19 @@ class OneDeskImageUploadWizard(models.TransientModel):
         image_model = self.env[model_name]
         for idx, attachment in enumerate(self.images, 1):
             try:
-                # Lire le contenu binaire de l'image depuis l'attachment
-                image_data = attachment.datas
+                # Lire et compresser l'image
+                _logger.info(f'📸 Traitement photo {idx}...')
+                image_data_original = attachment.datas
+
+                # Compresser l'image pour réduire la taille
+                image_data_compressed = self._compress_image(image_data_original)
+
+                # Calculer la réduction de taille
+                size_original = len(image_data_original) / 1024  # KB
+                size_compressed = len(image_data_compressed) / 1024  # KB
+                reduction = ((size_original - size_compressed) / size_original * 100) if size_original > 0 else 0
+
+                _logger.info(f'  Taille: {size_original:.1f}KB → {size_compressed:.1f}KB ({reduction:.0f}% réduction)')
 
                 # Générer le titre
                 if self.note_prefix:
@@ -139,7 +191,7 @@ class OneDeskImageUploadWizard(models.TransientModel):
                 vals = {
                     id_field: target_id,
                     'name': title,
-                    'image': image_data,
+                    'image': image_data_compressed,
                     'sequence': idx * 10,  # 10, 20, 30, etc.
                 }
 
