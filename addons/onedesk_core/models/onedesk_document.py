@@ -140,10 +140,23 @@ class OnedeskDocument(models.Model):
         import requests
         import json
 
-        # Récupérer la clé API
-        api_key = self.env['ir.config_parameter'].sudo().get_param('signaturit.api.key')
+        # Récupérer l'environnement (sandbox ou production)
+        environment = self.env['ir.config_parameter'].sudo().get_param('signaturit.environment', 'sandbox')
+
+        # Récupérer la clé API selon l'environnement
+        if environment == 'production':
+            api_key = self.env['ir.config_parameter'].sudo().get_param('signaturit.production.api.key')
+            api_url = self.env['ir.config_parameter'].sudo().get_param('signaturit.production.api.url')
+            env_label = '🔴 PRODUCTION'
+        else:
+            api_key = self.env['ir.config_parameter'].sudo().get_param('signaturit.sandbox.api.key')
+            api_url = self.env['ir.config_parameter'].sudo().get_param('signaturit.sandbox.api.url')
+            env_label = '🟡 SANDBOX'
+
         if not api_key:
-            raise ValueError('Clé API SignaturIT non configurée!')
+            raise ValueError(f'Clé API SignaturIT {env_label} non configurée!')
+
+        _logger.info(f'📡 Utilisation de l\'environnement {env_label}')
 
         # Préparer les signataires depuis les DEUX sources
         signers = []
@@ -178,11 +191,12 @@ class OnedeskDocument(models.Model):
         }
 
         try:
-            _logger.info(f'📤 Envoi à SignaturIT: {self.name} avec {len(signers)} signataire(s)')
+            _logger.info(f'📤 Envoi à SignaturIT {env_label}: {self.name} avec {len(signers)} signataire(s)')
             _logger.debug(f'Signers: {signers}')
+            _logger.debug(f'API URL: {api_url}')
 
             response = requests.post(
-                'https://api.signaturit.com/v3/requests',
+                f'{api_url}/requests',
                 headers=headers,
                 files=files,
                 data=data,
@@ -195,11 +209,11 @@ class OnedeskDocument(models.Model):
                 raise ValueError(error_msg)
 
             result = response.json()
-            _logger.info(f'✅ Réponse SignaturIT: {result}')
+            _logger.info(f'✅ Réponse SignaturIT {env_label}: {result}')
             return result
 
         except requests.exceptions.RequestException as e:
-            error_msg = f'❌ Erreur API SignaturIT: {str(e)}'
+            error_msg = f'❌ Erreur API SignaturIT {env_label}: {str(e)}'
             _logger.error(error_msg)
             raise ValueError(error_msg)
 
@@ -210,30 +224,41 @@ class OnedeskDocument(models.Model):
         if not self.signaturit_request_id:
             return
 
-        api_key = self.env['ir.config_parameter'].sudo().get_param('signaturit.api.key')
+        # Récupérer l'environnement (sandbox ou production)
+        environment = self.env['ir.config_parameter'].sudo().get_param('signaturit.environment', 'sandbox')
+
+        # Récupérer la clé API selon l'environnement
+        if environment == 'production':
+            api_key = self.env['ir.config_parameter'].sudo().get_param('signaturit.production.api.key')
+            api_url = self.env['ir.config_parameter'].sudo().get_param('signaturit.production.api.url')
+            env_label = '🔴 PRODUCTION'
+        else:
+            api_key = self.env['ir.config_parameter'].sudo().get_param('signaturit.sandbox.api.key')
+            api_url = self.env['ir.config_parameter'].sudo().get_param('signaturit.sandbox.api.url')
+            env_label = '🟡 SANDBOX'
 
         headers = {
             'Authorization': f'Bearer {api_key}',  # OAuth2 Bearer token
         }
 
         try:
-            _logger.info(f'📥 Téléchargement PDF signé pour request {self.signaturit_request_id}')
+            _logger.info(f'📥 Téléchargement PDF signé {env_label} pour request {self.signaturit_request_id}')
 
             response = requests.get(
-                f'https://api.signaturit.com/v3/requests/{self.signaturit_request_id}/document',
+                f'{api_url}/requests/{self.signaturit_request_id}/document',
                 headers=headers,
                 timeout=30
             )
 
             if response.status_code == 200:
                 self.file = base64.b64encode(response.content)
-                _logger.info(f'✅ PDF signé téléchargé et sauvegardé pour {self.name}')
+                _logger.info(f'✅ PDF signé {env_label} téléchargé et sauvegardé pour {self.name}')
             else:
                 error_msg = f'Impossible de télécharger le PDF signé (HTTP {response.status_code}): {response.text}'
                 _logger.warning(f'⚠️ {error_msg}')
 
         except Exception as e:
-            _logger.error(f'❌ Erreur téléchargement PDF: {str(e)}')
+            _logger.error(f'❌ Erreur téléchargement PDF {env_label}: {str(e)}')
 
     def action_archive(self):
         """Archiver le document"""
