@@ -10,6 +10,7 @@ class OnedeskDocument(models.Model):
     _name = 'onedesk.document'
     _description = 'Documents (Contrats, Factures, Rapports)'
     _rec_name = 'name'
+    _inherit = ['mail.thread', 'mail.activity.mixin']
 
     # ========== CHAMPS PRINCIPAUX ==========
     name = fields.Char(string='Titre du document', required=True)
