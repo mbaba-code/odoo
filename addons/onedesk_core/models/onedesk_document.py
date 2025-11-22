@@ -45,8 +45,13 @@ class OnedeskDocument(models.Model):
     date_created = fields.Datetime(string='Date de création', default=fields.Datetime.now)
 
     # ========== SIGNATURES ==========
+    # Signataires sélectionnés depuis la base (Many2many)
+    recipient_ids = fields.Many2many('onedesk.document.recipient', 'document_recipient_rel',
+                                     'document_id', 'recipient_id',
+                                     string='Signataires')
+    # Suivi des statuts de signature (One2many)
     signature_ids = fields.One2many('onedesk.document.signature', 'document_id',
-                                   string='Signataires')
+                                   string='Suivi des signatures')
     signaturit_request_id = fields.Char(string='SignaturIT Request ID', readonly=True)
 
     # ========== NOTES ==========
@@ -100,12 +105,12 @@ class OnedeskDocument(models.Model):
         if not api_key:
             raise ValueError('Clé API SignaturIT non configurée!')
 
-        # Préparer les signataires
+        # Préparer les signataires depuis recipient_ids
         signers = []
-        for signature in self.signature_ids:
+        for recipient in self.recipient_ids:
             signers.append({
-                'email': signature.signer_email,
-                'name': signature.signer_name,
+                'email': recipient.email,
+                'name': recipient.name,
             })
 
         # Envoyer à SignaturIT
@@ -273,3 +278,39 @@ class OnedeskDocumentWebhookHandlers(models.Model):
             _logger.info(f'📬 Notification: {message}')
         except Exception as e:
             _logger.warning(f'Erreur envoi notification: {str(e)}')
+
+
+# ========== MODÈLE DESTINATAIRES ==========
+class OnedeskDocumentRecipient(models.Model):
+    """Destinataires/Signataires réutilisables"""
+    _name = 'onedesk.document.recipient'
+    _description = 'Signataire (destinataire de documents)'
+    _rec_name = 'name'
+
+    # ========== CHAMPS ==========
+    name = fields.Char(string='Nom', required=True)
+    email = fields.Char(string='Email', required=True)
+    phone = fields.Char(string='Téléphone')
+    company_id = fields.Many2one('res.company', string='Company', required=True,
+                                 default=lambda self: self.env.company)
+
+    # ========== INFOS ADDITIONNELLES ==========
+    partner_id = fields.Many2one('res.partner', string='Contact', help='Lier à un contact optionnel')
+    active = fields.Boolean(default=True)
+
+    @api.model
+    def create(self, vals):
+        """Vérifier que l'email n'existe pas déjà pour cette company"""
+        if vals.get('email'):
+            existing = self.search([
+                ('email', '=', vals['email']),
+                ('company_id', '=', vals.get('company_id', self.env.company.id))
+            ])
+            if existing:
+                raise ValueError(f"Un signataire avec l'email {vals['email']} existe déjà!")
+        return super().create(vals)
+
+    _sql_constraints = [
+        ('unique_email_company', 'unique(email, company_id)',
+         'L\'email doit être unique par company!')
+    ]

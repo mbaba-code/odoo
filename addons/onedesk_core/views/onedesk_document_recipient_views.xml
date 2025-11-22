@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ========== RECIPIENT FORM VIEW ========== -->
+    <record id="view_document_recipient_form" model="ir.ui.view">
+        <field name="name">onedesk.document.recipient.form</field>
+        <field name="model">onedesk.document.recipient</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name" class="w-100"/>
+                            <field name="email" class="w-100"/>
+                            <field name="phone"/>
+                        </group>
+                        <group>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                            <field name="partner_id"/>
+                            <field name="active"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- ========== RECIPIENT TREE VIEW ========== -->
+    <record id="view_document_recipient_tree" model="ir.ui.view">
+        <field name="name">onedesk.document.recipient.tree</field>
+        <field name="model">onedesk.document.recipient</field>
+        <field name="arch" type="xml">
+            <list editable="bottom" create="true">
+                <field name="name"/>
+                <field name="email"/>
+                <field name="phone"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+                <field name="active" widget="boolean"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ========== RECIPIENT SEARCH VIEW ========== -->
+    <record id="view_document_recipient_search" model="ir.ui.view">
+        <field name="name">onedesk.document.recipient.search</field>
+        <field name="model">onedesk.document.recipient</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="email"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+                <separator/>
+                <filter name="filter_active" string="Actif" domain="[('active', '=', True)]"/>
+                <filter name="filter_inactive" string="Inactif" domain="[('active', '=', False)]"/>
+            </search>
+        </field>
+    </record>
+
+    <!-- ========== RECIPIENT ACTION ========== -->
+    <record id="action_document_recipient" model="ir.actions.act_window">
+        <field name="name">Signataires</field>
+        <field name="res_model">onedesk.document.recipient</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'search_default_filter_active': 1}</field>
+    </record>
+
+    <!-- ========== MENU ITEM ========== -->
+    <menuitem id="menu_document_recipient" name="👥 Signataires"
+              parent="onedesk_core.menu_onedesk_root"
+              action="action_document_recipient" sequence="51"/>
+
+</odoo>
