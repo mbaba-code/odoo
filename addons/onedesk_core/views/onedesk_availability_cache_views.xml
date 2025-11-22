@@ -68,7 +68,7 @@
                 <field name="end_date"/>
                 <filter name="valid" string="Valid" domain="[('is_valid', '=', True)]"/>
                 <filter name="invalid" string="Invalid" domain="[('is_valid', '=', False)]"/>
-                <filter name="expired" string="Expired" domain="[('expires_at', '<', context_today())]"/>
+                <filter name="expired" string="Expired" domain="[('expires_at', '&lt;', context_today())]"/>
             </search>
         </field>
     </record>
