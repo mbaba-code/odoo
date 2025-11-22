@@ -118,14 +118,16 @@
                             <!-- Card Header -->
                             <div class="o_kanban_record_headings">
                                 <strong class="o_kanban_record_title">
-                                    <span t-field="record.name"/>
+                                    <t t-esc="record.name.value"/>
                                 </strong>
                             </div>
 
-                            <!-- Document Type Icon -->
+                            <!-- Document Type Badge -->
                             <div class="o_kanban_record_body">
                                 <div class="mb-2">
-                                    <span t-field="record.document_type" widget="badge" class="badge badge-primary"/>
+                                    <span class="badge badge-primary">
+                                        <t t-esc="record.document_type.value"/>
+                                    </span>
                                 </div>
 
                                 <!-- Signers Count -->
@@ -138,20 +140,20 @@
                                 <!-- Created info -->
                                 <div class="mb-2 small text-muted">
                                     <i class="fa fa-user-circle"/>
-                                    <span t-field="record.created_by" class="ms-1"/>
+                                    <t t-esc="record.created_by.value"/>
                                 </div>
 
                                 <!-- Date -->
                                 <div class="small text-muted">
                                     <i class="fa fa-calendar"/>
-                                    <span t-field="record.date_created" class="ms-1"/>
+                                    <t t-esc="record.date_created.value"/>
                                 </div>
                             </div>
 
                             <!-- Footer with Company -->
-                            <div class="o_kanban_record_footer mt-2" groups="base.group_multi_company">
+                            <div class="o_kanban_record_footer mt-2">
                                 <small class="text-muted">
-                                    <span t-field="record.company_id"/>
+                                    <t t-esc="record.company_id.value"/>
                                 </small>
                             </div>
                         </div>
