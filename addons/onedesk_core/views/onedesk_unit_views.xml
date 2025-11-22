@@ -130,6 +130,11 @@
                     </field>
 
                     <separator string="Gérer les photos"/>
+                    <button type="action" name="onedesk_core.action_onedesk_image_upload_wizard"
+                            string="📤 Upload Multiple Photos" class="btn btn-success" icon="fa-upload"/>
+                    <p style="margin-bottom: 10px; margin-top: 10px; font-size: 11px; color: #999;">
+                        💡 Cliquez ce bouton pour ajouter plusieurs photos à la fois!
+                    </p>
                     <p style="margin-bottom: 10px; font-size: 12px; color: #666;">
                         💡 <strong>Conseils rapides:</strong>
                         <br/>• Cochez "📌" pour marquer la photo de couverture (affichée dans le kanban)

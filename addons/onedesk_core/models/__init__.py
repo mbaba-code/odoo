@@ -27,3 +27,6 @@ from . import onedesk_dashboard_sales
 from . import onedesk_dashboard_reservations
 from . import onedesk_dashboard_properties
 from . import onedesk_dashboard_users
+
+# ← NOUVEAU : Wizard pour multi-upload
+from . import onedesk_image_wizard

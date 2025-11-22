@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- WIZARD: Upload Multiple Images -->
+
+    <!-- Form View -->
+    <record id="view_onedesk_image_upload_wizard_form" model="ir.ui.view">
+        <field name="name">onedesk.image.upload.wizard.form</field>
+        <field name="model">onedesk.image.upload.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Upload Multiple Photos">
+                <sheet>
+                    <div class="alert alert-info" role="alert">
+                        <strong>💡 Comment ça marche:</strong>
+                        <br/>1. Sélectionnez le type de document (Propriété, Unité, Réservation)
+                        <br/>2. Choisissez le document cible
+                        <br/>3. Sélectionnez une ou plusieurs photos
+                        <br/>4. Cliquez "Upload" et c'est fini! ⚡
+                    </div>
+
+                    <group>
+                        <group>
+                            <!-- Type de document -->
+                            <field name="document_type" widget="selection" required="1"/>
+
+                            <!-- Propriété -->
+                            <field name="property_id" attrs="{'invisible': [('document_type', '!=', 'property')], 'required': [('document_type', '=', 'property')]}"/>
+
+                            <!-- Unité -->
+                            <field name="unit_id" attrs="{'invisible': [('document_type', '!=', 'unit')], 'required': [('document_type', '=', 'unit')]}"/>
+
+                            <!-- Réservation -->
+                            <field name="reservation_id" attrs="{'invisible': [('document_type', '!=', 'reservation')], 'required': [('document_type', '=', 'reservation')]}"/>
+
+                            <!-- Type de photos (réservation seulement) -->
+                            <field name="image_type" attrs="{'invisible': [('document_type', '!=', 'reservation')]}"/>
+                        </group>
+
+                        <group>
+                            <!-- Préfixe titre -->
+                            <field name="note_prefix" placeholder="Ex: Chambre (optionnel)"/>
+                        </group>
+                    </group>
+
+                    <!-- Upload images -->
+                    <separator string="📸 Sélectionnez les photos"/>
+                    <p style="color: #666; font-size: 12px;">
+                        Cliquez ci-dessous pour sélectionner une ou plusieurs photos. Vous pouvez en sélectionner autant que vous voulez!
+                    </p>
+                    <field name="images" widget="many2many_binary" required="1"
+                           options="{'url': '/web/content/ir.attachment/datas'}"
+                           attrs="{'required': True}">
+                    </field>
+
+                    <p style="color: #999; font-size: 11px; margin-top: 10px;">
+                        ✅ Formats supportés: JPG, PNG
+                        <br/>✅ Taille max par photo: 5 MB
+                        <br/>✅ Les photos seront nommées automatiquement avec le préfixe (si fourni)
+                    </p>
+                </sheet>
+
+                <footer>
+                    <button name="action_upload_images" type="object" string="📤 Upload Photos" class="btn-primary"/>
+                    <button string="❌ Annuler" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <!-- Action pour ouvrir le wizard -->
+    <record id="action_onedesk_image_upload_wizard" model="ir.actions.act_window">
+        <field name="name">Upload Multiple Photos</field>
+        <field name="res_model">onedesk.image.upload.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+</odoo>

@@ -34,6 +34,7 @@
     'views/onedesk_seasonal_price_views.xml',
     'views/onedesk_unit_views.xml',
     'views/onedesk_image_views.xml',
+    'views/onedesk_image_wizard_views.xml',
     'views/onedesk_reservation_views.xml',
     'views/onedesk_task_views.xml',
     'views/onedesk_integration_provider_views.xml',
