@@ -16,72 +16,66 @@
                 </header>
 
                 <sheet>
-                    <!-- Notebook avec pages = responsive automatique -->
-                    <notebook>
-                        <!-- PAGE 1: INFOS DOCUMENT -->
-                        <page string="📄 Document" name="document_info">
-                            <group col="1">
-                                <field name="name"/>
-                                <field name="document_type"/>
-                                <field name="signing_method" invisible="status != 'draft'"/>
-                                <field name="company_id" groups="base.group_multi_company"/>
-                                <field name="created_by" readonly="1"/>
-                            </group>
+                    <!-- Infos principales -->
+                    <h2>📄 Infos du document</h2>
+                    <group col="2">
+                        <field name="name"/>
+                        <field name="document_type"/>
+                        <field name="signing_method" invisible="status != 'draft'"/>
+                        <field name="company_id" groups="base.group_multi_company"/>
+                        <field name="created_by" readonly="1"/>
+                    </group>
 
-                            <!-- PDF Upload -->
-                            <separator string="Fichier PDF"/>
-                            <group col="1">
-                                <field name="file" widget="binary" filename="filename" options="{'url': '/web/content'}"/>
-                                <field name="filename"/>
-                            </group>
+                    <!-- PDF Upload -->
+                    <h2 style="margin-top: 20px;">📁 Fichier PDF</h2>
+                    <group col="2">
+                        <field name="file" widget="binary" filename="filename"/>
+                        <field name="filename"/>
+                    </group>
 
-                            <!-- Notes -->
-                            <separator string="Notes"/>
-                            <group col="1">
-                                <field name="notes" nolabel="1" placeholder="Observations ou instructions..." class="w-100"/>
-                            </group>
-                        </page>
+                    <!-- Notes -->
+                    <h2 style="margin-top: 20px;">📝 Notes</h2>
+                    <group col="1">
+                        <field name="notes" nolabel="1" placeholder="Observations ou instructions..." class="w-100"/>
+                    </group>
 
-                        <!-- PAGE 2: CONTEXTE -->
-                        <page string="📍 Contexte" name="context">
-                            <group col="1">
-                                <field name="property_id"/>
-                                <field name="unit_id"/>
-                                <field name="reservation_id"/>
-                                <field name="task_id"/>
-                            </group>
-                        </page>
+                    <!-- Context -->
+                    <h2 style="margin-top: 20px;">📍 Contexte</h2>
+                    <group col="2">
+                        <field name="property_id"/>
+                        <field name="unit_id"/>
+                        <field name="reservation_id"/>
+                        <field name="task_id"/>
+                    </group>
 
-                        <!-- PAGE 3: SIGNATAIRES -->
-                        <page string="🔐 Signataires" name="signers">
-                            <separator string="Sélectionnez les signataires"/>
-                            <group col="1">
-                                <field name="recipient_ids" nolabel="1"
-                                       widget="many2many_tags"
-                                       context="{'default_company_id': company_id}"/>
-                            </group>
+                    <!-- Signataires -->
+                    <h2 style="margin-top: 20px;">🔐 Signataires</h2>
+                    <group col="1">
+                        <field name="recipient_ids" nolabel="1"
+                               widget="many2many_tags"
+                               context="{'default_company_id': company_id}"/>
+                    </group>
 
-                            <div class="alert alert-info" role="alert" style="margin-top: 20px;">
-                                <p><strong>📋 Workflow:</strong></p>
-                                <ul style="margin-bottom: 0;">
-                                    <li>✅ Sélectionnez les signataires ci-dessus</li>
-                                    <li>✅ Cliquez "📤 Envoyer pour signature" en haut</li>
-                                    <li>✅ Les signataires reçoivent un email</li>
-                                    <li>✅ Le statut se met à jour automatiquement</li>
-                                </ul>
-                            </div>
-                        </page>
+                    <div class="alert alert-info" role="alert" style="margin-top: 20px;">
+                        <p><strong>📋 Comment ça marche:</strong></p>
+                        <ul style="margin-bottom: 0;">
+                            <li>✅ Sélectionnez les signataires ci-dessus</li>
+                            <li>✅ Cliquez "📤 Envoyer pour signature" en haut</li>
+                            <li>✅ Les signataires reçoivent un email</li>
+                            <li>✅ Le statut se met à jour automatiquement</li>
+                        </ul>
+                    </div>
 
-                        <!-- PAGE 4: SUIVI SIGNATURES -->
-                        <page string="✅ Suivi des signatures" name="signature_tracking"
-                              invisible="status == 'draft'">
-                            <group col="1">
-                                <field name="signature_ids" nolabel="1"
-                                       readonly="1" widget="one2many" mode="tree"/>
-                            </group>
-                            <field name="signaturit_request_id" invisible="1"/>
-                        </page>
-                    </notebook>
+                    <!-- Suivi des signatures -->
+                    <div invisible="status == 'draft'">
+                        <h2 style="margin-top: 20px;">✅ Suivi des signatures</h2>
+                        <group col="1">
+                            <field name="signature_ids" nolabel="1"
+                                   readonly="1" widget="one2many" mode="tree"/>
+                        </group>
+                    </div>
+
+                    <field name="signaturit_request_id" invisible="1"/>
                 </sheet>
 
                 <div class="oe_chatter">
