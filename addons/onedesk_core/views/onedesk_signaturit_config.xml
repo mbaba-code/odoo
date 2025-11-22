@@ -26,7 +26,6 @@
         <field name="name">Configuration SignaturIT</field>
         <field name="res_model">ir.config_parameter</field>
         <field name="view_mode">form</field>
-        <field name="target">inline</field>
         <field name="context">{
             'default_key': 'signaturit.api.key',
             'search_default_key': 'signaturit.api.key'
