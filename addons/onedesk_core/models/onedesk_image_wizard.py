@@ -53,30 +53,31 @@ class OneDeskImageUploadWizard(models.TransientModel):
     )
 
     @api.model
-    def create(self, vals):
+    def create(self, vals_list):
         """Auto-populate les champs basé sur le contexte"""
-        # Vérifier le contexte pour l'ID du document
         context = self.env.context
 
-        # Si on vient d'une propriété
-        if context.get('default_property_id'):
-            vals['property_id'] = context['default_property_id']
-            vals['document_type'] = 'property'
-            vals['show_document_selector'] = False
+        # Traiter chaque enregistrement dans vals_list
+        for vals in vals_list:
+            # Si on vient d'une propriété
+            if context.get('default_property_id'):
+                vals['property_id'] = context['default_property_id']
+                vals['document_type'] = 'property'
+                vals['show_document_selector'] = False
 
-        # Si on vient d'une unité
-        elif context.get('default_unit_id'):
-            vals['unit_id'] = context['default_unit_id']
-            vals['document_type'] = 'unit'
-            vals['show_document_selector'] = False
+            # Si on vient d'une unité
+            elif context.get('default_unit_id'):
+                vals['unit_id'] = context['default_unit_id']
+                vals['document_type'] = 'unit'
+                vals['show_document_selector'] = False
 
-        # Si on vient d'une réservation
-        elif context.get('default_reservation_id'):
-            vals['reservation_id'] = context['default_reservation_id']
-            vals['document_type'] = 'reservation'
-            vals['show_document_selector'] = False
+            # Si on vient d'une réservation
+            elif context.get('default_reservation_id'):
+                vals['reservation_id'] = context['default_reservation_id']
+                vals['document_type'] = 'reservation'
+                vals['show_document_selector'] = False
 
-        return super().create(vals)
+        return super().create(vals_list)
 
     @api.onchange('document_type')
     def _onchange_document_type(self):
