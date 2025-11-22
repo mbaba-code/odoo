@@ -162,9 +162,9 @@ class OnedeskDocument(models.Model):
                 'name': recipient.name,
             })
 
-        # Envoyer à SignaturIT avec le format correct (just token, pas Bearer)
+        # Envoyer à SignaturIT avec OAuth2 Bearer format
         headers = {
-            'Authorization': api_key,  # SignaturIT utilise juste le token, pas Bearer
+            'Authorization': f'Bearer {api_key}',  # OAuth2 Bearer token
         }
 
         files = {
@@ -213,7 +213,7 @@ class OnedeskDocument(models.Model):
         api_key = self.env['ir.config_parameter'].sudo().get_param('signaturit.api.key')
 
         headers = {
-            'Authorization': api_key,  # SignaturIT utilise juste le token
+            'Authorization': f'Bearer {api_key}',  # OAuth2 Bearer token
         }
 
         try:
