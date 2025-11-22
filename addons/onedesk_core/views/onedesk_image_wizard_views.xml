@@ -9,7 +9,8 @@
         <field name="arch" type="xml">
             <form string="Upload Multiple Photos">
                 <sheet>
-                    <div class="alert alert-info" role="alert">
+                    <!-- Message complet si ouvert manuellement (sans contexte) -->
+                    <div class="alert alert-info" role="alert" modifiers="{'invisible': [('show_document_selector', '=', False)]}">
                         <strong>💡 Comment ça marche:</strong>
                         <br/>1. Sélectionnez le type de document (Propriété, Unité, Réservation)
                         <br/>2. Choisissez le document cible
@@ -17,7 +18,14 @@
                         <br/>4. Cliquez "Upload" et c'est fini! ⚡
                     </div>
 
-                    <group>
+                    <!-- Message simplifié si ouvert depuis un document -->
+                    <div class="alert alert-success" role="alert" modifiers="{'invisible': [('show_document_selector', '!=', False)]}">
+                        <strong>📸 Sélectionnez les photos à ajouter</strong>
+                        <br/>Les photos seront ajoutées automatiquement avec la numérotation séquentielle.
+                    </div>
+
+                    <!-- Sélecteurs de document (visible si contexte vide) -->
+                    <group modifiers="{'invisible': [('show_document_selector', '=', False)]}">
                         <group>
                             <!-- Type de document -->
                             <field name="document_type" widget="selection" required="1"/>
@@ -30,9 +38,6 @@
 
                             <!-- Réservation -->
                             <field name="reservation_id" modifiers="{'invisible': [('document_type', '!=', 'reservation')], 'required': [('document_type', '=', 'reservation')]}"/>
-
-                            <!-- Type de photos (réservation seulement) -->
-                            <field name="image_type" modifiers="{'invisible': [('document_type', '!=', 'reservation')]}"/>
                         </group>
 
                         <group>
@@ -40,6 +45,22 @@
                             <field name="note_prefix" placeholder="Ex: Chambre (optionnel)"/>
                         </group>
                     </group>
+
+                    <!-- Options supplémentaires (hidden fields + type pour réservations) -->
+                    <group modifiers="{'invisible': [('show_document_selector', '=', False)]}">
+                        <!-- Type de photos pour réservations seulement -->
+                        <field name="image_type" modifiers="{'invisible': [('document_type', '!=', 'reservation')]}"/>
+                    </group>
+
+                    <!-- Simplement montrer le préfixe quand depuis un document -->
+                    <group modifiers="{'invisible': [('show_document_selector', '!=', False)]}">
+                        <group>
+                            <field name="note_prefix" placeholder="Ex: Chambre (optionnel)"/>
+                        </group>
+                    </group>
+
+                    <!-- Field caché pour le show_document_selector -->
+                    <field name="show_document_selector" invisible="1"/>
 
                     <!-- Upload images -->
                     <separator string="📸 Sélectionnez les photos"/>

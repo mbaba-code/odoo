@@ -46,6 +46,38 @@ class OneDeskImageUploadWizard(models.TransientModel):
         placeholder="Optionnel: laisser vide = noms auto"
     )
 
+    # Flag pour savoir si on doit afficher les sélecteurs (non renseignés dans le contexte)
+    show_document_selector = fields.Boolean(
+        default=True,
+        help="Si False, cache les sélecteurs de document (fourni via contexte)"
+    )
+
+    @api.model
+    def create(self, vals):
+        """Auto-populate les champs basé sur le contexte"""
+        # Vérifier le contexte pour l'ID du document
+        context = self.env.context
+
+        # Si on vient d'une propriété
+        if context.get('default_property_id'):
+            vals['property_id'] = context['default_property_id']
+            vals['document_type'] = 'property'
+            vals['show_document_selector'] = False
+
+        # Si on vient d'une unité
+        elif context.get('default_unit_id'):
+            vals['unit_id'] = context['default_unit_id']
+            vals['document_type'] = 'unit'
+            vals['show_document_selector'] = False
+
+        # Si on vient d'une réservation
+        elif context.get('default_reservation_id'):
+            vals['reservation_id'] = context['default_reservation_id']
+            vals['document_type'] = 'reservation'
+            vals['show_document_selector'] = False
+
+        return super().create(vals)
+
     @api.onchange('document_type')
     def _onchange_document_type(self):
         """Réinitialiser les IDs quand le type change"""

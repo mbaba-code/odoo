@@ -140,8 +140,11 @@
                             <!-- Bouton pour copier les images de l'unité automatiquement -->
                             <button type="object" name="action_copy_unit_images" string="📋 Copier photos de l'unité"
                                     class="btn btn-primary" icon="fa-copy"/>
+                            <button type="action" name="onedesk_core.action_onedesk_image_upload_wizard"
+                                    string="📤 Ajouter des photos" class="btn btn-success" icon="fa-upload"
+                                    context="{'default_reservation_id': id}" style="margin-left: 10px;"/>
                             <p style="margin-top: 10px; font-size: 12px; color: #666;">
-                                💡 <strong>Astuce rapide:</strong> Cliquez sur ce bouton pour copier automatiquement toutes les photos de l'unité en tant que photos de check-in. Ainsi, vous gagnez du temps et n'avez pas à les télécharger une par une!
+                                💡 <strong>Astuce rapide:</strong> Cliquez sur ce bouton pour copier automatiquement toutes les photos de l'unité en tant que photos de check-in. Ou utilisez "Ajouter des photos" pour uploader de nouvelles photos de check-in/check-out/dégâts directement.
                             </p>
 
                             <separator string="📸 Galerie de photos"/>
