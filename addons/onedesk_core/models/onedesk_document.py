@@ -52,10 +52,16 @@ class OnedeskDocument(models.Model):
     date_created = fields.Datetime(string='Date de création', default=fields.Datetime.now)
 
     # ========== SIGNATURES ==========
-    # Signataires sélectionnés depuis la base (Many2many)
+    # Signataires depuis les contacts Odoo (Many2many vers res.partner) - PRINCIPALE
+    partner_signer_ids = fields.Many2many('res.partner', 'document_partner_signer_rel',
+                                          'document_id', 'partner_id',
+                                          string='Signataires (Contacts)',
+                                          domain=[('is_company', '=', False)])
+
+    # Signataires sélectionnés depuis la base custom (Many2many) - OPTIONNEL pour signataires non-contacts
     recipient_ids = fields.Many2many('onedesk.document.recipient', 'document_recipient_rel',
                                      'document_id', 'recipient_id',
-                                     string='Signataires')
+                                     string='Autres signataires')
     # Suivi des statuts de signature (One2many)
     signature_ids = fields.One2many('onedesk.document.signature', 'document_id',
                                    string='Suivi des signatures')
@@ -82,9 +88,9 @@ class OnedeskDocument(models.Model):
         """Router vers la bonne méthode de signature"""
         self.ensure_one()
 
-        # Vérifier qu'il y a des signataires
-        if not self.recipient_ids:
-            raise ValueError('Ajoutez au moins un signataire!')
+        # Vérifier qu'il y a des signataires (depuis contacts ou custom)
+        if not self.partner_signer_ids and not self.recipient_ids:
+            raise ValueError('Ajoutez au moins un signataire (contacts ou autres)!')
 
         # Router selon la méthode choisie
         if self.signing_method == 'signaturit':
@@ -105,18 +111,22 @@ class OnedeskDocument(models.Model):
         # Mettre à jour le statut
         self.status = 'pending_signature'
 
+        # Compter les signataires (contacts + autres)
+        total_signers = len(self.partner_signer_ids) + len(self.recipient_ids)
+
         # Log
         _logger.info(f'✅ Document {self.name} envoyé pour signature via SignaturIT (Request ID: {self.signaturit_request_id})')
 
         return {'type': 'ir.actions.client', 'tag': 'display_notification',
                 'params': {'title': '📤 Envoyé pour signature SignaturIT!',
-                          'message': f'{len(self.recipient_ids)} signataire(s) vont recevoir un email avec le lien de signature.'}}
+                          'message': f'{total_signers} signataire(s) vont recevoir un email avec le lien de signature.'}}
 
     def _send_via_odoo_sign(self):
         """Envoyer via signature Odoo native"""
         # TODO: Intégrer avec le module sign d'Odoo
-        # Pour l'instant, afficher un message d'information
-        message = f'Signature Odoo: {len(self.recipient_ids)} signataire(s) ajoutés'
+        # Compter les signataires (contacts + autres)
+        total_signers = len(self.partner_signer_ids) + len(self.recipient_ids)
+        message = f'Signature Odoo: {total_signers} signataire(s) ajoutés'
 
         self.status = 'pending_signature'
         _logger.info(f'✅ Document {self.name} prêt pour signature Odoo')
@@ -135,8 +145,17 @@ class OnedeskDocument(models.Model):
         if not api_key:
             raise ValueError('Clé API SignaturIT non configurée!')
 
-        # Préparer les signataires depuis recipient_ids
+        # Préparer les signataires depuis les DEUX sources
         signers = []
+
+        # Source 1: Signataires depuis les contacts Odoo (res.partner)
+        for partner in self.partner_signer_ids:
+            signers.append({
+                'email': partner.email,
+                'name': partner.name or partner.contact_address,
+            })
+
+        # Source 2: Signataires depuis la base custom (onedesk.document.recipient)
         for recipient in self.recipient_ids:
             signers.append({
                 'email': recipient.email,
