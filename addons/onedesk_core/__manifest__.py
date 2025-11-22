@@ -84,6 +84,7 @@
             'onedesk_core/static/src/js/dashboard_refresh.js',
             'onedesk_core/static/src/js/dashboard_charts.js',
             'onedesk_core/static/src/js/dashboard_customization.js',
+            'onedesk_core/static/src/js/document_form_layout.js',
         ]
     },
     

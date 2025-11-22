@@ -1,57 +1,87 @@
-/* Document Form Responsive Layout */
+/* Document Form - Force Vertical Layout for Chatter */
 
-/* Force form to use full width and proper flex layout */
+/* Override Odoo's default behavior of putting chatter on the side */
 .o_form_document_wrapper {
-    display: flex;
-    flex-direction: column;
-    width: 100%;
+    display: flex !important;
+    flex-direction: column !important;
+    width: 100% !important;
 }
 
+/* Make sure the form sheet background is full width and flex column */
 .o_form_document_wrapper .o_form_sheet_bg {
-    display: flex;
-    flex-direction: column;
+    display: flex !important;
+    flex-direction: column !important;
+    width: 100% !important;
+    max-width: 100% !important;
 }
 
-.o_form_document_wrapper .o_document_sheet {
-    flex: 1;
-    width: 100%;
+/* Ensure sheet content doesn't flex sideways */
+.o_form_document_wrapper .o_form_sheet_bg > div {
+    width: 100% !important;
+    flex: none !important;
+    margin-right: 0 !important;
 }
 
-/* Force chatter to stay at bottom and span full width */
+.o_form_document_wrapper .o_form_sheet_bg .o_document_sheet {
+    width: 100% !important;
+    margin-right: 0 !important;
+}
+
+/* Force chatter to be below sheet, never beside it */
+.o_form_document_wrapper .o_form_sheet_bg .oe_chatter,
+.o_form_document_wrapper .o_chatter_bottom {
+    width: 100% !important;
+    flex-basis: 100% !important;
+    margin-left: 0 !important;
+    margin-top: 30px !important;
+    padding-left: 0 !important;
+    clear: both !important;
+}
+
+/* For newer Odoo versions where chatter might be in a separate container */
 .o_form_document_wrapper .o_chatter_bottom {
     display: block !important;
-    width: 100% !important;
-    clear: both;
-    margin-top: 30px;
-    flex-shrink: 0;
+    margin-top: 30px !important;
 }
 
-/* Ensure chatter content is properly laid out */
-.o_form_document_wrapper .o_chatter_bottom .oe_chatter {
-    width: 100%;
+/* Prevent any flex wrapping that could put chatter on side */
+@media (min-width: 500px) {
+    .o_form_document_wrapper .o_form_sheet_bg {
+        flex-wrap: nowrap !important;
+        justify-content: flex-start !important;
+    }
+
+    .o_form_document_wrapper .o_form_sheet_bg > * {
+        min-width: 0 !important;
+    }
 }
 
-/* On large screens, prevent side-by-side layout */
+/* Very important: override any default side-by-side layout on large screens */
 @media (min-width: 768px) {
     .o_form_document_wrapper {
-        display: flex;
-        flex-direction: column;
+        flex-direction: column !important;
+    }
+
+    .o_form_document_wrapper .o_form_sheet_bg {
+        flex-direction: column !important;
+        width: 100% !important;
+    }
+
+    .o_form_document_wrapper .o_form_sheet_bg .oe_chatter {
+        width: 100% !important;
+        margin-left: 0 !important;
     }
 
     .o_form_document_wrapper .o_chatter_bottom {
-        flex: 0 0 auto;
         width: 100% !important;
-        margin-left: 0 !important;
-        margin-top: 30px;
-        clear: both;
     }
 }
 
-/* Hide any floats that might cause side-by-side layout */
-.o_form_document_wrapper .o_document_sheet {
+/* Ensure no float-based layouts interfere */
+.o_form_document_wrapper .o_form_sheet_bg > * {
     float: none !important;
 }
 
-.o_form_document_wrapper .o_chatter_bottom {
+.o_form_document_wrapper .oe_chatter {
     float: none !important;
 }
