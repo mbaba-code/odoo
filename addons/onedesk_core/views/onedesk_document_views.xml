@@ -15,64 +15,74 @@
                            statusbar_visible="draft,pending_signature,signed,archived"/>
                 </header>
 
-                <sheet class="o_form_sheet_mobile">
-                    <!-- Infos principales -->
-                    <div class="o_notebook">
-                        <group>
-                            <field name="name" class="w-100"/>
-                            <field name="document_type"/>
-                            <field name="status" invisible="1"/>
-                        </group>
+                <sheet>
+                    <!-- Notebook avec pages = responsive automatique -->
+                    <notebook>
+                        <!-- PAGE 1: INFOS DOCUMENT -->
+                        <page string="📄 Document" name="document_info">
+                            <group>
+                                <group>
+                                    <field name="name" class="w-100"/>
+                                    <field name="document_type"/>
+                                    <field name="signing_method" invisible="status != 'draft'"/>
+                                </group>
+                                <group>
+                                    <field name="company_id" groups="base.group_multi_company"/>
+                                    <field name="created_by" readonly="1"/>
+                                </group>
+                            </group>
 
-                        <group>
-                            <field name="company_id" groups="base.group_multi_company"/>
-                            <field name="created_by" readonly="1"/>
-                            <field name="date_created" readonly="1"/>
-                        </group>
-                    </div>
+                            <!-- PDF Upload -->
+                            <group string="Fichier PDF">
+                                <field name="file" widget="binary" filename="filename"
+                                       class="w-100" options="{'url': '/web/content'}"/>
+                                <field name="filename"/>
+                            </group>
 
-                    <!-- Document PDF -->
-                    <separator string="📄 Document PDF"/>
-                    <group>
-                        <field name="file" widget="binary" filename="filename" class="w-100"/>
-                        <field name="filename"/>
-                    </group>
+                            <!-- Notes -->
+                            <group string="Notes">
+                                <field name="notes" nolabel="1" class="w-100" placeholder="Observations ou instructions..."/>
+                            </group>
+                        </page>
 
-                    <!-- Relations contexte -->
-                    <separator string="📍 Contexte"/>
-                    <group col="2">
-                        <field name="property_id"/>
-                        <field name="unit_id"/>
-                        <field name="reservation_id"/>
-                        <field name="task_id"/>
-                    </group>
+                        <!-- PAGE 2: CONTEXTE -->
+                        <page string="📍 Contexte" name="context">
+                            <group string="Liée à">
+                                <field name="property_id"/>
+                                <field name="unit_id"/>
+                                <field name="reservation_id"/>
+                                <field name="task_id"/>
+                            </group>
+                        </page>
 
-                    <!-- Notes -->
-                    <separator string="📝 Notes et observations"/>
-                    <group>
-                        <field name="notes" nolabel="1" class="w-100"/>
-                    </group>
+                        <!-- PAGE 3: SIGNATAIRES -->
+                        <page string="🔐 Signataires" name="signers">
+                            <group string="Sélectionnez les signataires" class="mb-3">
+                                <field name="recipient_ids" nolabel="1" class="w-100"
+                                       widget="many2many_tags"
+                                       context="{'default_company_id': company_id}"/>
+                            </group>
 
-                    <!-- Signataires -->
-                    <separator string="🔐 Signataires"/>
-                    <group>
-                        <field name="recipient_ids" nolabel="1" class="w-100"
-                               widget="many2many" mode="tree"
-                               context="{'default_company_id': company_id}"/>
-                    </group>
+                            <div class="alert alert-info" role="alert">
+                                <p><strong>Comment ça marche:</strong></p>
+                                <ul>
+                                    <li>✅ Sélectionnez les signataires ci-dessus</li>
+                                    <li>✅ Cliquez "📤 Envoyer pour signature" en haut</li>
+                                    <li>✅ Les signataires reçoivent un email avec le lien de signature</li>
+                                    <li>✅ Le statut se met à jour automatiquement</li>
+                                </ul>
+                            </div>
+                        </page>
 
-                    <field name="signaturit_request_id" invisible="1"/>
+                        <!-- PAGE 4: SUIVI SIGNATURES -->
+                        <page string="✅ Suivi des signatures" name="signature_tracking"
+                              invisible="status == 'draft'">
+                            <field name="signature_ids" nolabel="1" class="w-100"
+                                   readonly="1" widget="one2many" mode="tree"/>
 
-                    <!-- Suivi des signatures -->
-                    <separator string="✅ Suivi des signatures" invisible="status == 'draft'"/>
-                    <group invisible="status == 'draft'">
-                        <field name="signature_ids" nolabel="1" class="w-100"
-                               readonly="1" widget="one2many" mode="tree"/>
-                    </group>
-
-                    <div class="alert alert-info" role="alert">
-                        <p>💡 <strong>Pour signer:</strong> Sélectionnez les signataires, puis cliquez "📤 Envoyer pour signature"</p>
-                    </div>
+                            <field name="signaturit_request_id" invisible="1"/>
+                        </page>
+                    </notebook>
                 </sheet>
 
                 <div class="oe_chatter">

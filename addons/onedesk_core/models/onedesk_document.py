@@ -32,6 +32,13 @@ class OnedeskDocument(models.Model):
         ('archived', '📦 Archivé'),
     ], string='Statut', default='draft')
 
+    # ========== MÉTHODE DE SIGNATURE (Hybride) ==========
+    signing_method = fields.Selection([
+        ('signaturit', '🌐 SignaturIT (tiers)'),
+        ('odoo_sign', '✍️ Signature Odoo'),
+    ], string='Méthode de signature', default='signaturit',
+       help="SignaturIT: service tiers avec advanced features\nOdoo Sign: signature native et rapide")
+
     # ========== RELATIONS ==========
     property_id = fields.Many2one('onedesk.property', string='Propriété')
     unit_id = fields.Many2one('onedesk.unit', string='Unité')
@@ -72,13 +79,23 @@ class OnedeskDocument(models.Model):
             self.company_id = self.unit_id.property_id.company_id
 
     def action_send_signature(self):
-        """Envoyer le document pour signature via SignaturIT"""
+        """Router vers la bonne méthode de signature"""
         self.ensure_one()
 
         # Vérifier qu'il y a des signataires
-        if not self.signature_ids:
+        if not self.recipient_ids:
             raise ValueError('Ajoutez au moins un signataire!')
 
+        # Router selon la méthode choisie
+        if self.signing_method == 'signaturit':
+            return self._send_via_signaturit()
+        elif self.signing_method == 'odoo_sign':
+            return self._send_via_odoo_sign()
+        else:
+            raise ValueError(f'Méthode de signature inconnue: {self.signing_method}')
+
+    def _send_via_signaturit(self):
+        """Envoyer via SignaturIT (service tiers)"""
         # Appeler API SignaturIT
         request_data = self._send_to_signaturit()
 
@@ -89,11 +106,24 @@ class OnedeskDocument(models.Model):
         self.status = 'pending_signature'
 
         # Log
-        _logger.info(f'✅ Document {self.name} envoyé pour signature (Request ID: {self.signaturit_request_id})')
+        _logger.info(f'✅ Document {self.name} envoyé pour signature via SignaturIT (Request ID: {self.signaturit_request_id})')
 
         return {'type': 'ir.actions.client', 'tag': 'display_notification',
-                'params': {'title': '📤 Envoyé pour signature!',
-                          'message': f'{len(self.signature_ids)} signataire(s) ont reçu le lien de signature.'}}
+                'params': {'title': '📤 Envoyé pour signature SignaturIT!',
+                          'message': f'{len(self.recipient_ids)} signataire(s) vont recevoir un email avec le lien de signature.'}}
+
+    def _send_via_odoo_sign(self):
+        """Envoyer via signature Odoo native"""
+        # TODO: Intégrer avec le module sign d'Odoo
+        # Pour l'instant, afficher un message d'information
+        message = f'Signature Odoo: {len(self.recipient_ids)} signataire(s) ajoutés'
+
+        self.status = 'pending_signature'
+        _logger.info(f'✅ Document {self.name} prêt pour signature Odoo')
+
+        return {'type': 'ir.actions.client', 'tag': 'display_notification',
+                'params': {'title': '✍️ Document prêt pour signature Odoo',
+                          'message': message}}
 
     def _send_to_signaturit(self):
         """Envoyer le document à SignaturIT via API"""
