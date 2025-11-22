@@ -133,7 +133,7 @@
                                 <!-- Signers Count -->
                                 <div class="mb-2 small">
                                     <i class="fa fa-users"/>
-                                    <t t-set="signer_count" t-value="len(record.partner_signer_ids) + len(record.recipient_ids)"/>
+                                    <t t-set="signer_count" t-value="(record.partner_signer_ids.value || []).length + (record.recipient_ids.value || []).length"/>
                                     <span><t t-esc="signer_count"/> signataire(s)</span>
                                 </div>
 
