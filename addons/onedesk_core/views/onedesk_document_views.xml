@@ -8,9 +8,9 @@
             <form>
                 <header>
                     <button name="action_send_signature" type="object" string="📤 Envoyer pour signature"
-                            class="btn-primary" states="draft"/>
+                            class="btn-primary" invisible="status != 'draft'"/>
                     <button name="action_archive" type="object" string="📦 Archiver"
-                            states="signed"/>
+                            invisible="status != 'signed'"/>
                     <field name="status" widget="statusbar"
                            statusbar_visible="draft,pending_signature,signed,archived"/>
                 </header>
