@@ -8,7 +8,6 @@
         <field name="code">model.run_payment_retry_cron()</field>
         <field name="interval_number">1</field>
         <field name="interval_type">days</field>
-        <field name="number_call">-1</field>
         <field name="active" eval="True"/>
         <field name="nextcall">2025-11-23 02:00:00</field>
         <field name="user_id" ref="base.user_admin"/>
@@ -22,7 +21,6 @@
         <field name="code">model.invalidate_expired_cache()</field>
         <field name="interval_number">1</field>
         <field name="interval_type">days</field>
-        <field name="number_call">-1</field>
         <field name="active" eval="True"/>
         <field name="nextcall">2025-11-23 03:00:00</field>
         <field name="user_id" ref="base.user_admin"/>
@@ -36,7 +34,6 @@
         <field name="code">model.cleanup_invalid_cache()</field>
         <field name="interval_number">1</field>
         <field name="interval_type">hours</field>
-        <field name="number_call">-1</field>
         <field name="active" eval="True"/>
         <field name="nextcall">2025-11-22 23:00:00</field>
         <field name="user_id" ref="base.user_admin"/>
