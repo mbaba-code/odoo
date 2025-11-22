@@ -29,7 +29,7 @@ class OnedeskDocument(models.Model):
         ('pending_signature', '⏳ En attente de signature'),
         ('signed', '✅ Signé'),
         ('archived', '📦 Archivé'),
-    ], string='Statut', default='draft', tracking=True)
+    ], string='Statut', default='draft')
 
     # ========== RELATIONS ==========
     property_id = fields.Many2one('onedesk.property', string='Propriété')
@@ -191,7 +191,7 @@ class OnedeskDocumentSignature(models.Model):
         ('pending', '⏳ En attente'),
         ('signed', '✅ Signé'),
         ('declined', '❌ Refusé'),
-    ], string='Statut', default='pending', tracking=True)
+    ], string='Statut', default='pending')
 
     signature_date = fields.Datetime(string='Date de signature')
 
