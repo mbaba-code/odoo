@@ -22,7 +22,7 @@
                     <field name="unit_id" invisible="1"/>
                     <field name="reservation_id" invisible="1"/>
                     <field name="image_type" invisible="1"/>
-                    <field name="note_prefix" invisible="1"/>
+                    <field name="note_prefix" invisible="1" placeholder="Optionnel: laisser vide = noms auto"/>
 
                     <!-- Upload images -->
                     <separator string="📸 Sélectionnez les photos"/>

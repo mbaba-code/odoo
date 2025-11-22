@@ -45,8 +45,7 @@ class OneDeskImageUploadWizard(models.TransientModel):
     # Note optionnelle pour toutes les photos
     note_prefix = fields.Char(
         string='Préfixe pour les titres',
-        help="Ex: 'Chambre' → Les photos seront nommées 'Chambre 1', 'Chambre 2', etc.",
-        placeholder="Optionnel: laisser vide = noms auto"
+        help="Ex: 'Chambre' → Les photos seront nommées 'Chambre 1', 'Chambre 2', etc."
     )
 
     # Flag pour savoir si on doit afficher les sélecteurs (non renseignés dans le contexte)

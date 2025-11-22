@@ -109,7 +109,7 @@
                                                     <img t-att-src="'data:image/*;base64,' + record.image.raw_value" style="width: 100%; height: 100%; object-fit: cover;" alt="Photo"/>
                                                 </t>
                                                 <t t-else="">
-                                                    <i class="fa fa-image fa-3x" style="color: #ccc;"></i>
+                                                    <i class="fa fa-image fa-3x" style="color: #ccc;" title="Pas de photo"></i>
                                                 </t>
                                                 <!-- Cover Badge -->
                                                 <t t-if="record.is_cover.value">
@@ -200,7 +200,7 @@
                                         <img t-att-src="'/web/image/onedesk.unit.image/' + record.cover_image_id.value + '/image'" style="width: 100%; height: 100%; object-fit: cover;" alt="Unit photo"/>
                                     </t>
                                     <t t-else="">
-                                        <i class="fa fa-home fa-3x" style="color: #ccc;"></i>
+                                        <i class="fa fa-home fa-3x" style="color: #ccc;" title="Pas de photo"></i>
                                     </t>
                                 </div>
 
