@@ -52,14 +52,12 @@
                     <!-- Signataires -->
                     <separator string="🔐 Signataires"/>
                     <field name="signaturit_request_id" invisible="1"/>
-                    <field name="signature_ids" nolabel="1">
-                        <tree editable="bottom">
+                    <field name="signature_ids" nolabel="1" context="{'default_document_id': id}">
+                        <tree editable="bottom" create="true" delete="true">
                             <field name="signer_name"/>
                             <field name="signer_email"/>
-                            <field name="status" widget="badge"/>
-                            <field name="signature_date"/>
-                            <button name="action_resend" type="object" string="📬 Renvoyer"
-                                   states="pending" icon="fa-envelope"/>
+                            <field name="status" readonly="1"/>
+                            <field name="signature_date" readonly="1"/>
                         </tree>
                     </field>
 
