@@ -23,9 +23,9 @@
         <field name="arch" type="xml">
             <form>
                 <header>
-                    <button name="action_send_day1_reminder" type="object" string="📧 Envoyer Rappel J1" states="pending" class="btn-warning"/>
-                    <button name="action_send_day3_reminder" type="object" string="🚨 Envoyer Rappel J3" states="sent_day1" class="btn-danger"/>
-                    <button name="action_auto_cancel" type="object" string="❌ Annuler" states="sent_day3" class="btn-danger"/>
+                    <button name="action_send_day1_reminder" type="object" string="📧 Envoyer Rappel J1" invisible="payment_status != 'pending'" class="btn-warning"/>
+                    <button name="action_send_day3_reminder" type="object" string="🚨 Envoyer Rappel J3" invisible="payment_status != 'sent_day1'" class="btn-danger"/>
+                    <button name="action_auto_cancel" type="object" string="❌ Annuler" invisible="payment_status != 'sent_day3'" class="btn-danger"/>
                     <field name="payment_status" widget="statusbar" statusbar_visible="pending,sent_day1,sent_day3,paid,cancelled"/>
                 </header>
                 <sheet>
