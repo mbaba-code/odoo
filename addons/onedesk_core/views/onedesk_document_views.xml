@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <!-- ========== DOCUMENT FORM VIEW (Send) ========== -->
+    <!-- ========== DOCUMENT FORM VIEW (Send/Signature) ========== -->
     <record id="view_document_form_send" model="ir.ui.view">
         <field name="name">onedesk.document.form.send</field>
         <field name="model">onedesk.document</field>
@@ -42,7 +42,7 @@
                         <field name="filename"/>
                     </group>
 
-                    <!-- Signataires - MOST IMPORTANT -->
+                    <!-- Signataires - MOST IMPORTANT FOR SENDING -->
                     <h3 class="mt-4 mb-2">🔐 Signataires</h3>
 
                     <!-- Source 1: Contacts Odoo -->
@@ -64,11 +64,59 @@
                     <div class="alert alert-danger mb-4" role="alert">
                         <p class="mb-1"><strong>🔴 ATTENTION:</strong></p>
                         <ul style="margin-bottom: 0; color: #ff6b6b;">
-                            <li><strong>⚠️ Vous DEVEZ sélectionner au least un signataire avant d'envoyer!</strong></li>
+                            <li><strong>⚠️ Vous DEVEZ sélectionner au moins un signataire avant d'envoyer!</strong></li>
                         </ul>
                     </div>
 
-                    <!-- Classification & Storage -->
+                    <!-- Suivi des signatures -->
+                    <div invisible="status == 'draft'" class="mt-4">
+                        <h3 class="mb-2">✅ Suivi des signatures</h3>
+                        <group col="1">
+                            <field name="signature_ids" nolabel="1"
+                                   readonly="1" widget="one2many" mode="list"/>
+                        </group>
+                    </div>
+
+                    <!-- Chatter -->
+                    <div class="oe_chatter o_chatter_bottom w-100" style="margin-top: 40px; border-top: 2px solid #ddd; padding-top: 20px;">
+                        <field name="message_ids" widget="mail_thread"/>
+                    </div>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- ========== DOCUMENT FORM VIEW (Stock/Archive) ========== -->
+    <record id="view_document_form_stock" model="ir.ui.view">
+        <field name="name">onedesk.document.form.stock</field>
+        <field name="model">onedesk.document</field>
+        <field name="arch" type="xml">
+            <form class="o_form_document_wrapper">
+                <header>
+                    <button name="action_archive" type="object" string="📦 Archiver"
+                            invisible="status != 'signed'"/>
+                    <field name="status" widget="statusbar"
+                           statusbar_visible="draft,pending_signature,signed,archived"/>
+                </header>
+
+                <sheet class="o_document_sheet">
+                    <!-- Infos principales -->
+                    <h3 class="mb-2">📄 Infos du document</h3>
+                    <group col="2" class="mb-4">
+                        <field name="name"/>
+                        <field name="document_type"/>
+                        <field name="company_id" groups="base.group_multi_company"/>
+                        <field name="created_by" readonly="1"/>
+                    </group>
+
+                    <!-- PDF Upload -->
+                    <h3 class="mt-4 mb-2">📁 Fichier PDF</h3>
+                    <group col="2" class="mb-4">
+                        <field name="file" widget="binary" filename="filename"/>
+                        <field name="filename"/>
+                    </group>
+
+                    <!-- Classification & Storage - MAIN SECTION FOR STOCK -->
                     <h3 class="mt-4 mb-2">📂 Classement &amp; Stockage</h3>
                     <group col="2" class="mb-4">
                         <field name="document_category"/>
@@ -91,120 +139,6 @@
             </form>
         </field>
     </record>
-    <record id="view_document_form" model="ir.ui.view">
-        <field name="name">onedesk.document.form</field>
-        <field name="model">onedesk.document</field>
-        <field name="arch" type="xml">
-            <form class="o_form_document_wrapper">
-                <header>
-                    <button name="action_send_signature" type="object" string="✍️ Envoyer pour signature (Email Odoo)"
-                            class="btn-primary" invisible="status != 'draft'"/>
-                    <button name="action_signaturit_beta" type="object" string="🌐 SignaturIT (En développement)"
-                            class="btn-secondary" invisible="status != 'draft'" readonly="1"
-                            help="Cette fonctionnalité est actuellement en phase de développement. Veuillez utiliser l'option Email Odoo pour l'instant."/>
-                    <button name="action_archive" type="object" string="📦 Archiver"
-                            invisible="status != 'signed'"/>
-                    <field name="status" widget="statusbar"
-                           statusbar_visible="draft,pending_signature,signed,archived"/>
-                </header>
-
-                <sheet class="o_document_sheet">
-                    <!-- Infos principales -->
-                    <h3 class="mb-2">📄 Infos du document</h3>
-                    <group col="2" class="mb-4">
-                        <field name="name"/>
-                        <field name="document_type"/>
-                        <field name="company_id" groups="base.group_multi_company"/>
-                        <field name="created_by" readonly="1"/>
-                    </group>
-
-                    <!-- Stock Selection (optional) -->
-                    <h3 class="mt-4 mb-2">📦 Utiliser du stock</h3>
-                    <group col="1" class="mb-4">
-                        <field name="source_document_id" placeholder="Cherchez un document dans le stock..."/>
-                    </group>
-
-                    <!-- PDF Upload -->
-                    <h3 class="mt-4 mb-2">📁 Fichier PDF</h3>
-                    <div class="alert alert-info">
-                        <p>💡 Vous pouvez soit sélectionner un document du stock ci-dessus, soit en uploader un nouveau ci-dessous.</p>
-                    </div>
-                    <group col="2" class="mb-4">
-                        <field name="file" widget="binary" filename="filename"/>
-                        <field name="filename"/>
-                    </group>
-
-                    <!-- Classification & Storage -->
-                    <h3 class="mt-4 mb-2">📂 Classement &amp; Stockage</h3>
-                    <group col="2" class="mb-4">
-                        <field name="document_category"/>
-                        <field name="document_tags" widget="many2many_tags"/>
-                        <field name="storage_location" placeholder="Ex: Dossier Principal, Archives..."/>
-                        <field name="archive_date" readonly="1"/>
-                    </group>
-
-                    <!-- Notes -->
-                    <h3 class="mt-4 mb-2">📝 Notes</h3>
-                    <group col="1" class="mb-4">
-                        <field name="notes" nolabel="1" placeholder="Observations ou instructions..." class="w-100"/>
-                    </group>
-
-                    <!-- Context -->
-                    <h3 class="mt-4 mb-2">📍 Contexte</h3>
-                    <group col="2" class="mb-4">
-                        <field name="property_id"/>
-                        <field name="unit_id"/>
-                        <field name="reservation_id"/>
-                        <field name="task_id"/>
-                    </group>
-
-                    <!-- Signataires -->
-                    <h3 class="mt-4 mb-2">🔐 Signataires</h3>
-
-                    <!-- Source 1: Contacts Odoo -->
-                    <group col="1" class="mb-3">
-                        <label for="partner_signer_ids" string="👥 Contacts Odoo" class="d-block"/>
-                        <field name="partner_signer_ids" nolabel="1"
-                               widget="many2many_tags"
-                               placeholder="Recherchez et sélectionnez les contacts..."/>
-                    </group>
-
-                    <!-- Source 2: Autres signataires -->
-                    <group col="1" class="mb-3">
-                        <label for="recipient_ids" string="✏️ Autres signataires" class="d-block"/>
-                        <field name="recipient_ids" nolabel="1"
-                               widget="many2many_tags"
-                               placeholder="Ou ajoutez d'autres signataires..."/>
-                    </group>
-
-                    <div class="alert alert-info mb-4" role="alert">
-                        <p class="mb-1"><strong>📋 Comment ça marche:</strong></p>
-                        <ul style="margin-bottom: 0;">
-                            <li><strong style="color: #ff6b6b;">⚠️ Sélectionnez au moins un signataire (contacts ou autres) - OBLIGATOIRE</strong></li>
-                            <li>✅ Cliquez "✍️ Envoyer pour signature (Email Odoo)" en haut</li>
-                            <li>✅ Les signataires reçoivent un email avec la demande</li>
-                            <li>✅ Le statut se met à jour automatiquement quand ils signent</li>
-                        </ul>
-                    </div>
-
-                    <!-- Suivi des signatures -->
-                    <div invisible="status == 'draft'" class="mt-4">
-                        <h3 class="mb-2">✅ Suivi des signatures</h3>
-                        <group col="1">
-                            <field name="signature_ids" nolabel="1"
-                                   readonly="1" widget="one2many" mode="list"/>
-                        </group>
-                    </div>
-
-                    <!-- Chatter/Messages - INSIDE sheet to stay below content -->
-                    <div class="oe_chatter o_chatter_bottom w-100" style="margin-top: 40px; border-top: 2px solid #ddd; padding-top: 20px;">
-                        <field name="message_ids" widget="mail_thread"/>
-                    </div>
-                </sheet>
-            </form>
-        </field>
-    </record>
-
 
     <!-- ========== DOCUMENT KANBAN VIEW ========== -->
     <record id="view_document_kanban" model="ir.ui.view">
@@ -318,7 +252,6 @@
         <field name="view_ids" eval="[(5, 0, 0),
             (0, 0, {'view_mode': 'kanban', 'view_id': ref('view_document_kanban')}),
             (0, 0, {'view_mode': 'list', 'view_id': ref('view_document_list')}),
-            (0, 0, {'view_mode': 'form', 'view_id': ref('view_document_form')}),
         ]"/>
     </record>
 
@@ -343,7 +276,7 @@
         <field name="view_ids" eval="[(5, 0, 0),
             (0, 0, {'view_mode': 'list', 'view_id': ref('view_document_list')}),
             (0, 0, {'view_mode': 'kanban', 'view_id': ref('view_document_kanban')}),
-            (0, 0, {'view_mode': 'form', 'view_id': ref('view_document_form')}),
+            (0, 0, {'view_mode': 'form', 'view_id': ref('view_document_form_stock')}),
         ]"/>
         <field name="domain">[('status', '=', 'archived')]</field>
     </record>
