@@ -226,8 +226,11 @@
     </record>
 
     <!-- ========== MENU ITEM ========== -->
-    <menuitem id="menu_document" name="📄 Documents" parent="onedesk_core.menu_onedesk_root"
-              action="onedesk_core.action_document" sequence="50"/>
+    <menuitem id="menu_document" name="📄 Documents" parent="onedesk_core.menu_onedesk_root" sequence="50"/>
+
+    <!-- ========== DOCUMENTS SUBMENU (Main action) ========== -->
+    <menuitem id="menu_document_list" name="📋 Tous les documents" parent="menu_document"
+              action="onedesk_core.action_document" sequence="1"/>
 
 
     <!-- ========== TAG FORM VIEW ========== -->
