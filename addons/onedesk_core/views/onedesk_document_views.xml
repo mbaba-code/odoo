@@ -7,6 +7,8 @@
         <field name="arch" type="xml">
             <form class="o_form_document_wrapper">
                 <header>
+                    <button name="action_download" type="object" string="⬇️ Voir/Télécharger"
+                            invisible="not file" class="btn-info"/>
                     <button name="action_send_signature" type="object" string="✍️ Envoyer pour signature (Email Odoo)"
                             class="btn-primary" invisible="status != 'draft'"/>
                     <button name="action_signaturit_beta" type="object" string="🌐 SignaturIT (En développement)"
@@ -35,11 +37,15 @@
                     <!-- PDF Upload -->
                     <h3 class="mt-4 mb-2">📁 Fichier PDF</h3>
                     <div class="alert alert-info">
-                        <p>💡 Vous pouvez soit sélectionner un document du stock ci-dessus, soit en uploader un nouveau ci-dessous.</p>
+                        <p>💡 Téléchargez le PDF du document ici. Vous pouvez aussi sélectionner un document du stock ci-dessus.</p>
                     </div>
-                    <group col="2" class="mb-4">
-                        <field name="file" widget="binary" filename="filename"/>
-                        <field name="filename"/>
+                    <group col="1" class="mb-4">
+                        <div class="alert alert-warning">
+                            <strong>💾 Important:</strong> Après avoir téléchargé le PDF, cliquez "Enregistrer" en haut à droite avant d'ajouter les signataires.
+                        </div>
+                        <field name="file" widget="binary" filename="filename" class="w-100"
+                               options="{'no_open': True}" accept="application/pdf"/>
+                        <field name="filename" invisible="1"/>
                     </group>
 
                     <!-- Signataires - MOST IMPORTANT FOR SENDING -->
@@ -93,6 +99,8 @@
         <field name="arch" type="xml">
             <form class="o_form_document_wrapper">
                 <header>
+                    <button name="action_download" type="object" string="⬇️ Télécharger"
+                            invisible="not file" class="btn-info"/>
                     <button name="action_archive" type="object" string="📦 Archiver"
                             invisible="status != 'signed'"/>
                     <field name="status" widget="statusbar"
@@ -114,11 +122,15 @@
                         <field name="created_by" readonly="1"/>
                     </group>
 
-                    <!-- PDF Upload -->
-                    <h3 class="mt-4 mb-2">📁 Fichier PDF</h3>
-                    <group col="2" class="mb-4">
-                        <field name="file" widget="binary" filename="filename"/>
-                        <field name="filename"/>
+                    <!-- PDF Upload & Download - MAIN FOR STORAGE -->
+                    <h3 class="mt-4 mb-2">📁 Fichier PDF à Stocker</h3>
+                    <group col="1" class="mb-4">
+                        <div class="alert alert-warning" style="margin-bottom: 15px;">
+                            <strong>💾 Important:</strong> Téléchargez le fichier PDF ici, puis cliquez "Enregistrer" en haut à droite.
+                        </div>
+                        <field name="file" widget="binary" filename="filename" class="w-100"
+                               options="{'no_open': True}" accept="application/pdf"/>
+                        <field name="filename" invisible="1"/>
                     </group>
 
                     <!-- Classification & Storage - MAIN SECTION FOR STOCK -->

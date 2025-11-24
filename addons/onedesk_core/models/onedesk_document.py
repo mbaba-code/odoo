@@ -133,6 +133,15 @@ class OnedeskDocument(models.Model):
     archive_date = fields.Datetime(string='Date d\'archivage',
                                    help='Date et heure d\'archivage du document')
 
+    @api.onchange('file')
+    def _onchange_file(self):
+        """Auto-populate filename quand le fichier est upload"""
+        if self.file and not self.filename:
+            # Générer un nom de fichier basé sur le nom du document
+            sanitized_name = self.name.replace(' ', '_').replace('/', '_').lower()
+            self.filename = f"{sanitized_name}.pdf"
+            _logger.info(f'📄 Filename auto-rempli: {self.filename}')
+
     @api.onchange('reservation_id')
     def _onchange_reservation_id(self):
         """Auto-populate company et unit depuis reservation"""
@@ -392,6 +401,24 @@ class OnedeskDocument(models.Model):
 
         except Exception as e:
             _logger.error(f'❌ Erreur téléchargement PDF {env_label}: {str(e)}')
+
+    def action_download(self):
+        """Télécharger le fichier PDF du document"""
+        self.ensure_one()
+
+        if not self.file:
+            raise ValueError('❌ Ce document n\'a pas de fichier PDF à télécharger!')
+
+        # Utiliser le filename s'il existe, sinon utiliser le nom du document
+        filename = self.filename or f"{self.name}.pdf"
+
+        _logger.info(f'📥 Téléchargement du fichier {filename} pour {self.name}')
+
+        return {
+            'type': 'ir.actions.act_url',
+            'url': f'/web/content/onedesk.document/{self.id}/file?download=true&filename={filename}',
+            'target': 'new',
+        }
 
     def action_archive(self):
         """Archiver le document"""
