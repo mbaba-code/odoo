@@ -53,7 +53,8 @@ class OnedeskDocument(models.Model):
         ('other', '📄 Autre'),
     ], string='Type de document', required=True, default='other')
 
-    file = fields.Binary(string='Document (PDF)', required=True, attachment=True)
+    file = fields.Binary(string='Document (PDF)', attachment=True,
+                        help='Le PDF du document. Obligatoire avant d\'envoyer pour signature.')
     filename = fields.Char(string='Nom du fichier')
 
     status = fields.Selection([

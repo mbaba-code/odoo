@@ -100,6 +100,11 @@
                 </header>
 
                 <sheet class="o_document_sheet">
+                    <!-- ALERT: Cette vue est pour le STOCKAGE, pas pour envoyer -->
+                    <div class="alert alert-info mb-4">
+                        <p><strong>📦 Mode Stockage</strong> - Utilisez cette vue pour stocker et classifier les documents, pas pour envoyer à la signature.</p>
+                    </div>
+
                     <!-- Infos principales -->
                     <h3 class="mb-2">📄 Infos du document</h3>
                     <group col="2" class="mb-4">
@@ -112,7 +117,7 @@
                     <!-- PDF Upload -->
                     <h3 class="mt-4 mb-2">📁 Fichier PDF</h3>
                     <group col="2" class="mb-4">
-                        <field name="file" widget="binary" filename="filename"/>
+                        <field name="file" widget="binary" filename="filename" attrs="{'required': [('status', '=', 'draft')]}"/>
                         <field name="filename"/>
                     </group>
 
@@ -259,11 +264,11 @@
     <record id="action_document_send" model="ir.actions.act_window">
         <field name="name">✍️ Envoyer un document à la signature</field>
         <field name="res_model">onedesk.document</field>
-        <field name="view_mode">form,list,kanban</field>
+        <field name="view_mode">list,kanban,form</field>
         <field name="view_ids" eval="[(5, 0, 0),
-            (0, 0, {'view_mode': 'form', 'view_id': ref('view_document_form_send')}),
             (0, 0, {'view_mode': 'list', 'view_id': ref('view_document_list')}),
             (0, 0, {'view_mode': 'kanban', 'view_id': ref('view_document_kanban')}),
+            (0, 0, {'view_mode': 'form', 'view_id': ref('view_document_form_send')}),
         ]"/>
         <field name="domain">[('status', '=', 'draft')]</field>
     </record>
