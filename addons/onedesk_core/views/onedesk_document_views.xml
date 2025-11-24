@@ -217,7 +217,7 @@
         <field name="name">Documents &amp; Signatures</field>
         <field name="res_model">onedesk.document</field>
         <field name="view_mode">kanban,list,form</field>
-        <field name="context">{'search_default_filter_draft': 1}</field>
+        <field name="context">{}</field>
     </record>
 
     <!-- ========== MENU ITEM ========== -->
