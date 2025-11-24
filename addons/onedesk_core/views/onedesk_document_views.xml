@@ -24,13 +24,21 @@
                     <group col="2" class="mb-4">
                         <field name="name"/>
                         <field name="document_type"/>
-                        <field name="signing_method" invisible="status != 'draft'"/>
                         <field name="company_id" groups="base.group_multi_company"/>
                         <field name="created_by" readonly="1"/>
                     </group>
 
+                    <!-- Stock Selection (optional) -->
+                    <h3 class="mt-4 mb-2">📦 Utiliser du stock</h3>
+                    <group col="1" class="mb-4">
+                        <field name="source_document_id" placeholder="Cherchez un document dans le stock..."/>
+                    </group>
+
                     <!-- PDF Upload -->
                     <h3 class="mt-4 mb-2">📁 Fichier PDF</h3>
+                    <div class="alert alert-info">
+                        <p>💡 Vous pouvez soit sélectionner un document du stock ci-dessus, soit en uploader un nouveau ci-dessous.</p>
+                    </div>
                     <group col="2" class="mb-4">
                         <field name="file" widget="binary" filename="filename"/>
                         <field name="filename"/>
@@ -212,25 +220,42 @@
         </field>
     </record>
 
-    <!-- ========== DOCUMENT ACTION ========== -->
-    <record id="action_document" model="ir.actions.act_window">
-        <field name="name">Documents &amp; Signatures</field>
+    <!-- ========== DOCUMENT SEND ACTION ========== -->
+    <record id="action_document_send" model="ir.actions.act_window">
+        <field name="name">✍️ Envoyer un document à la signature</field>
         <field name="res_model">onedesk.document</field>
-        <field name="view_mode">kanban,list,form</field>
+        <field name="view_mode">form,kanban,list</field>
         <field name="view_ids" eval="[(5, 0, 0),
+            (0, 0, {'view_mode': 'form', 'view_id': ref('view_document_form')}),
             (0, 0, {'view_mode': 'kanban', 'view_id': ref('view_document_kanban')}),
             (0, 0, {'view_mode': 'list', 'view_id': ref('view_document_list')}),
+        ]"/>
+        <field name="context">{'search_default_filter_draft': 1}</field>
+    </record>
+
+    <!-- ========== DOCUMENT STOCK ACTION ========== -->
+    <record id="action_document_stock" model="ir.actions.act_window">
+        <field name="name">📦 Stock de documents</field>
+        <field name="res_model">onedesk.document</field>
+        <field name="view_mode">list,kanban,form</field>
+        <field name="view_ids" eval="[(5, 0, 0),
+            (0, 0, {'view_mode': 'list', 'view_id': ref('view_document_list')}),
+            (0, 0, {'view_mode': 'kanban', 'view_id': ref('view_document_kanban')}),
             (0, 0, {'view_mode': 'form', 'view_id': ref('view_document_form')}),
         ]"/>
         <field name="context">{}</field>
     </record>
 
-    <!-- ========== MENU ITEM ========== -->
+    <!-- ========== MENU ITEM (Parent) ========== -->
     <menuitem id="menu_document" name="📄 Documents" parent="onedesk_core.menu_onedesk_root" sequence="50"/>
 
-    <!-- ========== DOCUMENTS SUBMENU (Main action) ========== -->
-    <menuitem id="menu_document_list" name="📋 Tous les documents" parent="menu_document"
-              action="onedesk_core.action_document" sequence="1"/>
+    <!-- ========== SUBMENU: Send to Signature ========== -->
+    <menuitem id="menu_document_send" name="✍️ Envoyer pour signature" parent="menu_document"
+              action="onedesk_core.action_document_send" sequence="1"/>
+
+    <!-- ========== SUBMENU: Document Stock ========== -->
+    <menuitem id="menu_document_stock" name="📦 Stock de documents" parent="menu_document"
+              action="onedesk_core.action_document_stock" sequence="2"/>
 
 
     <!-- ========== TAG FORM VIEW ========== -->

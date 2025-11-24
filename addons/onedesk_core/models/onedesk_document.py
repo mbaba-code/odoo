@@ -98,6 +98,11 @@ class OnedeskDocument(models.Model):
                                    string='Suivi des signatures')
     signaturit_request_id = fields.Char(string='SignaturIT Request ID', readonly=True, index=True)  # Critical for API tracking
 
+    # ========== STOCK REFERENCE ==========
+    source_document_id = fields.Many2one('onedesk.document', string='Sélectionner du stock',
+                                        help='Optionnel: Sélectionnez un document du stock pour réutiliser son contenu',
+                                        domain=[('status', '=', 'archived')])  # Voir les documents archivés
+
     # ========== NOTES ==========
     notes = fields.Text(string='Notes')
     active = fields.Boolean(default=True)
