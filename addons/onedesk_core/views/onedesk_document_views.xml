@@ -217,6 +217,11 @@
         <field name="name">Documents &amp; Signatures</field>
         <field name="res_model">onedesk.document</field>
         <field name="view_mode">kanban,list,form</field>
+        <field name="view_ids" eval="[(5, 0, 0),
+            (0, 0, {'view_mode': 'kanban', 'view_id': ref('view_document_kanban')}),
+            (0, 0, {'view_mode': 'list', 'view_id': ref('view_document_list')}),
+            (0, 0, {'view_mode': 'form', 'view_id': ref('view_document_form')}),
+        ]"/>
         <field name="context">{}</field>
     </record>
 
