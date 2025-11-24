@@ -1,4 +1,35 @@
-"""Model pour documents et signatures"""
+"""
+OneDesk Document Management Module
+===================================
+
+Provides professional document management with signature support:
+
+1. **Document Management**
+   - Store PDF documents (contracts, invoices, reports, etc.)
+   - Track document status lifecycle
+   - Multi-tenant isolation via company_id
+   - Activity tracking with Odoo chatter
+
+2. **Signature Methods**
+   - Native Email Signature (Recommended): Simple, reliable, uses Odoo email system
+   - SignaturIT Integration (Beta): Advanced third-party service (requires API key)
+
+3. **Signature Tracking**
+   - Track individual signer status (pending, signed, declined)
+   - Automatic email notifications
+   - Webhook support for SignaturIT events
+   - Email reminders for pending signatures
+
+4. **Security**
+   - Role-based access control (via ir.model.access)
+   - Multi-tenant data isolation
+   - Audit trail via message_post()
+   - Company isolation on all operations
+
+Author: OneDesk Team
+License: LGPL-3
+"""
+
 from odoo import models, fields, api
 import base64
 import logging
@@ -34,10 +65,10 @@ class OnedeskDocument(models.Model):
 
     # ========== MÉTHODE DE SIGNATURE (Hybride) ==========
     signing_method = fields.Selection([
-        ('signaturit', '🌐 SignaturIT (tiers)'),
-        ('odoo_sign', '✍️ Signature Odoo'),
-    ], string='Méthode de signature', default='signaturit',
-       help="SignaturIT: service tiers avec advanced features\nOdoo Sign: signature native et rapide")
+        ('odoo_native', '✍️ Email Signature (Natif)'),
+        ('signaturit', '🌐 SignaturIT (En développement - Beta)'),
+    ], string='Méthode de signature', default='odoo_native',
+       help="Email Signature: envoie par email Odoo, simple et rapide\nSignaturIT: service tiers avancé (en phase bêta)")
 
     # ========== RELATIONS ==========
     property_id = fields.Many2one('onedesk.property', string='Propriété', index=True)
@@ -95,8 +126,8 @@ class OnedeskDocument(models.Model):
         # Router selon la méthode choisie
         if self.signing_method == 'signaturit':
             return self._send_via_signaturit()
-        elif self.signing_method == 'odoo_sign':
-            return self._send_via_odoo_sign()
+        elif self.signing_method == 'odoo_native':
+            return self._send_via_odoo_native()
         else:
             raise ValueError(f'Méthode de signature inconnue: {self.signing_method}')
 
@@ -121,19 +152,72 @@ class OnedeskDocument(models.Model):
                 'params': {'title': '📤 Envoyé pour signature SignaturIT!',
                           'message': f'{total_signers} signataire(s) vont recevoir un email avec le lien de signature.'}}
 
-    def _send_via_odoo_sign(self):
-        """Envoyer via signature Odoo native"""
-        # TODO: Intégrer avec le module sign d'Odoo
-        # Compter les signataires (contacts + autres)
-        total_signers = len(self.partner_signer_ids) + len(self.recipient_ids)
-        message = f'Signature Odoo: {total_signers} signataire(s) ajoutés'
+    def _send_via_odoo_native(self):
+        """
+        Envoyer les demandes de signature via email Odoo natif
+        Simple, fiable et sans dépendances externes
+        """
+        self.ensure_one()
 
-        self.status = 'pending_signature'
-        _logger.info(f'✅ Document {self.name} prêt pour signature Odoo')
+        try:
+            # Collecter tous les signataires (contacts + autres)
+            signers = []
 
-        return {'type': 'ir.actions.client', 'tag': 'display_notification',
-                'params': {'title': '✍️ Document prêt pour signature Odoo',
-                          'message': message}}
+            # Source 1: Signataires depuis les contacts Odoo
+            for partner in self.partner_signer_ids:
+                if partner.email:
+                    signers.append({
+                        'email': partner.email,
+                        'name': partner.name or 'Contact',
+                        'type': 'contact'
+                    })
+
+            # Source 2: Signataires custom
+            for recipient in self.recipient_ids:
+                signers.append({
+                    'email': recipient.email,
+                    'name': recipient.name,
+                    'type': 'recipient'
+                })
+
+            if not signers:
+                raise ValueError('Aucun signataire avec email trouvé!')
+
+            # Créer les enregistrements de signature et envoyer les emails
+            signature_ids = []
+            for signer in signers:
+                # Créer l'enregistrement de signature
+                sig = self.env['onedesk.document.signature'].create({
+                    'document_id': self.id,
+                    'signer_email': signer['email'],
+                    'signer_name': signer['name'],
+                    'status': 'pending',
+                })
+                signature_ids.append(sig.id)
+
+                # Envoyer l'email de demande de signature (auto-déclenché dans create())
+                _logger.info(f'📧 Email de signature envoyé à {signer["email"]} pour {self.name}')
+
+            # Mettre à jour le statut du document
+            self.status = 'pending_signature'
+
+            # Log succès
+            _logger.info(f'✅ Document {self.name} envoyé pour signature (email natif) - {len(signers)} signataire(s)')
+
+            return {
+                'type': 'ir.actions.client',
+                'tag': 'display_notification',
+                'params': {
+                    'title': '✍️ Demandes de signature envoyées!',
+                    'message': f'{len(signers)} signataire(s) ont reçu un email avec le document à signer via Odoo.',
+                    'type': 'success'
+                }
+            }
+
+        except Exception as e:
+            _logger.error(f'❌ Erreur envoi signature Odoo native: {str(e)}')
+            self.message_post(body=f'⚠️ Erreur envoi signature: {str(e)}', message_type='comment')
+            raise
 
     def _send_to_signaturit(self):
         """Envoyer le document à SignaturIT via API"""
@@ -303,45 +387,121 @@ class OnedeskDocumentSignature(models.Model):
 
     @api.model
     def create(self, vals_list):
-        """Create signature and send signature request email"""
+        """Create signature records and send signature request emails"""
         signatures = super().create(vals_list)
 
         for signature in signatures:
             # ========== EMAIL TRIGGER: Signature Request ==========
-            if signature.signer_email:
+            if signature.signer_email and signature.document_id:
                 try:
-                    # Get company from document for multi-tenant
-                    company_id = signature.document_id.company_id if signature.document_id else self.env.company
+                    # Get company from document for multi-tenant support
+                    company = signature.document_id.company_id or self.env.company
 
-                    # Send simple email notification (fallback if template not available)
-                    mail_values = {
-                        'subject': f"📄 Signature requise: {signature.document_id.name}",
-                        'body_html': f"<p>Bonjour {signature.signer_name},</p><p>Un document vous attend pour signature: <strong>{signature.document_id.name}</strong></p><p>Veuillez accéder au portail de signature pour signer le document.</p>",
-                        'email_to': signature.signer_email,
-                        'email_from': company_id.email or self.env.user.email,
-                        'company_id': company_id.id,
-                    }
-                    mail = self.env['mail.mail'].sudo().create(mail_values)
-                    mail.send()
-                    signature.message_post(body=f"📧 Email de demande de signature envoyé à {signature.signer_email}", message_type='comment')
+                    # Try to use the email template for professional formatting
+                    template = self.env.ref('onedesk_core.email_template_signature_request', raise_if_not_found=False)
+
+                    if template:
+                        # Use template if available
+                        _logger.debug(f'Using email template for signature request')
+                        template.send_mail(signature.id, force_send=False)
+                    else:
+                        # Fallback: Send direct email
+                        _logger.debug(f'No template found, sending direct email')
+                        self._send_signature_email_direct(signature, company)
+
+                    # Log activity
+                    signature.message_post(
+                        body=f"📧 Email de demande de signature envoyé à {signature.signer_email}",
+                        message_type='comment'
+                    )
+                    _logger.info(f'✅ Email signature envoyé: {signature.signer_name} ({signature.signer_email})')
+
                 except Exception as e:
-                    signature.message_post(body=f"⚠️ Erreur envoi email signature: {str(e)}", message_type='comment')
+                    # Log error but don't fail
+                    error_msg = str(e)
+                    _logger.error(f'❌ Erreur envoi email signature: {error_msg}')
+                    signature.message_post(
+                        body=f"⚠️ Erreur envoi email signature: {error_msg}",
+                        message_type='comment'
+                    )
 
         return signatures
 
+    def _send_signature_email_direct(self, signature, company):
+        """Envoyer un email direct de demande de signature (fallback)"""
+        doc_type_dict = dict(signature.document_id._fields['document_type'].selection)
+        doc_type_label = doc_type_dict.get(signature.document_id.document_type, signature.document_id.document_type)
+
+        html_body = f"""
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2>📄 Demande de Signature</h2>
+            <p>Bonjour {signature.signer_name},</p>
+
+            <p>Un document vous attend pour signature:</p>
+            <div style="background-color: #f5f5f5; padding: 15px; margin: 20px 0; border-left: 4px solid #1f77d2;">
+                <p><strong>Document:</strong> {signature.document_id.name}</p>
+                <p><strong>Type:</strong> {doc_type_label}</p>
+                <p><strong>Demandé par:</strong> {self.env.user.name}</p>
+            </div>
+
+            <p>Veuillez consulter le document en pièce jointe ou accéder à votre portail Odoo pour signer.</p>
+
+            <p style="color: #666; margin-top: 30px; border-top: 1px solid #ddd; padding-top: 20px;">
+                <small>© {company.name} - Plateforme de gestion immobilière</small>
+            </p>
+        </div>
+        """
+
+        mail_values = {
+            'subject': f"📄 Signature requise: {signature.document_id.name}",
+            'body_html': html_body,
+            'email_to': signature.signer_email,
+            'email_from': company.email or self.env.user.email,
+            'company_id': company.id,
+        }
+
+        mail = self.env['mail.mail'].sudo().create(mail_values)
+        mail.send()
+        _logger.info(f'📧 Email direct de signature envoyé à {signature.signer_email}')
+
     def action_resend(self):
-        """Renvoyer le lien de signature au signataire"""
+        """Renvoyer l'email de demande de signature au signataire"""
         self.ensure_one()
 
+        # Vérifier l'état de la signature
         if self.status == 'signed':
-            raise ValueError('Ce document est déjà signé!')
+            raise ValueError('❌ Ce document est déjà signé, impossible de renvoyer!')
 
-        # TODO: Appeler SignaturIT API pour renvoyer
-        _logger.info(f'📬 Lien renvoyé à {self.signer_email}')
+        if self.status == 'declined':
+            raise ValueError('❌ Le signataire a refusé de signer ce document!')
 
-        return {'type': 'ir.actions.client', 'tag': 'display_notification',
-                'params': {'title': '📬 Lien renvoyé!',
-                          'message': f'Lien de signature renvoyé à {self.signer_email}'}}
+        try:
+            company = self.document_id.company_id or self.env.company
+
+            # Renvoyer l'email de signature
+            self._send_signature_email_direct(self, company)
+
+            # Log l'action
+            self.message_post(
+                body=f'📬 Email de demande de signature renvoyé à {self.signer_email}',
+                message_type='comment'
+            )
+            _logger.info(f'📬 Email signature renvoyé à {self.signer_email}')
+
+            return {
+                'type': 'ir.actions.client',
+                'tag': 'display_notification',
+                'params': {
+                    'title': '📬 Email renvoyé!',
+                    'message': f'Demande de signature renvoyée à {self.signer_email}',
+                    'type': 'success'
+                }
+            }
+
+        except Exception as e:
+            _logger.error(f'❌ Erreur renvoi email: {str(e)}')
+            self.message_post(body=f'⚠️ Erreur renvoi email: {str(e)}', message_type='comment')
+            raise
 
 
 # ========== WEBHOOK HANDLERS ==========
