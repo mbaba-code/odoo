@@ -220,6 +220,18 @@
         </field>
     </record>
 
+    <!-- ========== DOCUMENT ALL ACTION (for parent menu) ========== -->
+    <record id="action_document_all" model="ir.actions.act_window">
+        <field name="name">📄 Tous les documents</field>
+        <field name="res_model">onedesk.document</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="view_ids" eval="[(5, 0, 0),
+            (0, 0, {'view_mode': 'kanban', 'view_id': ref('view_document_kanban')}),
+            (0, 0, {'view_mode': 'list', 'view_id': ref('view_document_list')}),
+            (0, 0, {'view_mode': 'form', 'view_id': ref('view_document_form')}),
+        ]"/>
+    </record>
+
     <!-- ========== DOCUMENT SEND ACTION ========== -->
     <record id="action_document_send" model="ir.actions.act_window">
         <field name="name">✍️ Envoyer un document à la signature</field>
@@ -247,7 +259,8 @@
     </record>
 
     <!-- ========== MENU ITEM (Parent) ========== -->
-    <menuitem id="menu_document" name="📄 Documents" parent="onedesk_core.menu_onedesk_root" sequence="50"/>
+    <menuitem id="menu_document" name="📄 Documents" parent="onedesk_core.menu_onedesk_root"
+              action="onedesk_core.action_document_all" sequence="50"/>
 
     <!-- ========== SUBMENU: Send to Signature ========== -->
     <menuitem id="menu_document_send" name="✍️ Envoyer pour signature" parent="menu_document"
