@@ -230,7 +230,7 @@
             (0, 0, {'view_mode': 'kanban', 'view_id': ref('view_document_kanban')}),
             (0, 0, {'view_mode': 'list', 'view_id': ref('view_document_list')}),
         ]"/>
-        <field name="context">{'search_default_filter_draft': 1}</field>
+        <field name="domain">[('status', '=', 'draft')]</field>
     </record>
 
     <!-- ========== DOCUMENT STOCK ACTION ========== -->
@@ -243,7 +243,7 @@
             (0, 0, {'view_mode': 'kanban', 'view_id': ref('view_document_kanban')}),
             (0, 0, {'view_mode': 'form', 'view_id': ref('view_document_form')}),
         ]"/>
-        <field name="context">{}</field>
+        <field name="domain">[('status', '=', 'archived')]</field>
     </record>
 
     <!-- ========== MENU ITEM (Parent) ========== -->
