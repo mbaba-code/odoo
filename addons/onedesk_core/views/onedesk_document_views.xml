@@ -117,7 +117,7 @@
                     <!-- PDF Upload -->
                     <h3 class="mt-4 mb-2">📁 Fichier PDF</h3>
                     <group col="2" class="mb-4">
-                        <field name="file" widget="binary" filename="filename" attrs="{'required': [('status', '=', 'draft')]}"/>
+                        <field name="file" widget="binary" filename="filename"/>
                         <field name="filename"/>
                     </group>
 
