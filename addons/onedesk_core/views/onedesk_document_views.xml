@@ -222,7 +222,7 @@
 
     <!-- ========== MENU ITEM ========== -->
     <menuitem id="menu_document" name="📄 Documents" parent="onedesk_core.menu_onedesk_root"
-              action="action_document" sequence="50"/>
+              action="onedesk_core.action_document" sequence="50"/>
 
 
     <!-- ========== TAG FORM VIEW ========== -->
@@ -296,6 +296,6 @@
 
     <!-- ========== TAG MENU ========== -->
     <menuitem id="menu_document_tag" name="🏷️ Tags" parent="menu_document"
-              action="action_document_tag" sequence="10"/>
+              action="onedesk_core.action_document_tag" sequence="10"/>
 
 </odoo>
