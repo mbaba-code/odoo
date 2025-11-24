@@ -270,7 +270,7 @@
             (0, 0, {'view_mode': 'kanban', 'view_id': ref('view_document_kanban')}),
             (0, 0, {'view_mode': 'form', 'view_id': ref('view_document_form_send')}),
         ]"/>
-        <field name="domain">[('status', '=', 'draft')]</field>
+        <field name="domain">[('status', 'in', ['draft', 'pending_signature', 'signed'])]</field>
     </record>
 
     <!-- ========== DOCUMENT STOCK ACTION ========== -->
@@ -283,7 +283,7 @@
             (0, 0, {'view_mode': 'kanban', 'view_id': ref('view_document_kanban')}),
             (0, 0, {'view_mode': 'form', 'view_id': ref('view_document_form_stock')}),
         ]"/>
-        <field name="domain">[('status', '=', 'archived')]</field>
+        <field name="domain">[('status', 'in', ['archived'])]</field>
     </record>
 
     <!-- ========== MENU ITEM (Parent) ========== -->
