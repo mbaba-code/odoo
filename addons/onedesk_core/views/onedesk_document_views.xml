@@ -7,8 +7,11 @@
         <field name="arch" type="xml">
             <form class="o_form_document_wrapper">
                 <header>
-                    <button name="action_send_signature" type="object" string="📤 Envoyer pour signature"
+                    <button name="action_send_signature" type="object" string="✍️ Envoyer pour signature (Email Odoo)"
                             class="btn-primary" invisible="status != 'draft'"/>
+                    <button name="action_signaturit_beta" type="object" string="🌐 SignaturIT (En développement)"
+                            class="btn-secondary" invisible="status != 'draft'" readonly="1"
+                            help="Cette fonctionnalité est actuellement en phase de développement. Veuillez utiliser l'option Email Odoo pour l'instant."/>
                     <button name="action_archive" type="object" string="📦 Archiver"
                             invisible="status != 'signed'"/>
                     <field name="status" widget="statusbar"
@@ -31,6 +34,15 @@
                     <group col="2" class="mb-4">
                         <field name="file" widget="binary" filename="filename"/>
                         <field name="filename"/>
+                    </group>
+
+                    <!-- Classification & Storage -->
+                    <h3 class="mt-4 mb-2">📂 Classement &amp; Stockage</h3>
+                    <group col="2" class="mb-4">
+                        <field name="document_category"/>
+                        <field name="document_tags" widget="many2many_tags"/>
+                        <field name="storage_location" placeholder="Ex: Dossier Principal, Archives..."/>
+                        <field name="archive_date" readonly="1"/>
                     </group>
 
                     <!-- Notes -->
@@ -70,10 +82,10 @@
                     <div class="alert alert-info mb-4" role="alert">
                         <p class="mb-1"><strong>📋 Comment ça marche:</strong></p>
                         <ul style="margin-bottom: 0;">
-                            <li>✅ Sélectionnez les signataires ci-dessus</li>
-                            <li>✅ Cliquez "📤 Envoyer pour signature" en haut</li>
-                            <li>✅ Les signataires reçoivent un email</li>
-                            <li>✅ Le statut se met à jour automatiquement</li>
+                            <li><strong style="color: #ff6b6b;">⚠️ Sélectionnez au moins un signataire (contacts ou autres) - OBLIGATOIRE</strong></li>
+                            <li>✅ Cliquez "✍️ Envoyer pour signature (Email Odoo)" en haut</li>
+                            <li>✅ Les signataires reçoivent un email avec la demande</li>
+                            <li>✅ Le statut se met à jour automatiquement quand ils signent</li>
                         </ul>
                     </div>
 
@@ -211,5 +223,79 @@
     <!-- ========== MENU ITEM ========== -->
     <menuitem id="menu_document" name="📄 Documents" parent="onedesk_core.menu_onedesk_root"
               action="action_document" sequence="50"/>
+
+
+    <!-- ========== TAG FORM VIEW ========== -->
+    <record id="view_document_tag_form" model="ir.ui.view">
+        <field name="name">onedesk.document.tag.form</field>
+        <field name="model">onedesk.document.tag</field>
+        <field name="arch" type="xml">
+            <form class="o_form_document_tag_wrapper">
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" placeholder="Nom de l'étiquette..."/>
+                        </h1>
+                    </div>
+
+                    <group col="2">
+                        <field name="color"/>
+                        <field name="company_id" groups="base.group_multi_company"/>
+                        <field name="active"/>
+                    </group>
+
+                    <!-- Documents associés -->
+                    <div class="mt-4">
+                        <h3 class="mb-2">📄 Documents avec cette étiquette</h3>
+                        <group col="1">
+                            <field name="document_ids" nolabel="1" readonly="1"
+                                   widget="many2many" mode="list"/>
+                        </group>
+                    </div>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- ========== TAG LIST VIEW ========== -->
+    <record id="view_document_tag_list" model="ir.ui.view">
+        <field name="name">onedesk.document.tag.list</field>
+        <field name="model">onedesk.document.tag</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="color"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+                <field name="active"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ========== TAG SEARCH VIEW ========== -->
+    <record id="view_document_tag_search" model="ir.ui.view">
+        <field name="name">onedesk.document.tag.search</field>
+        <field name="model">onedesk.document.tag</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+
+                <separator/>
+                <filter name="filter_active" string="Actif" domain="[('active', '=', True)]"/>
+                <filter name="filter_inactive" string="Inactif" domain="[('active', '=', False)]"/>
+            </search>
+        </field>
+    </record>
+
+    <!-- ========== TAG ACTION ========== -->
+    <record id="action_document_tag" model="ir.actions.act_window">
+        <field name="name">Tags/Étiquettes</field>
+        <field name="res_model">onedesk.document.tag</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- ========== TAG MENU ========== -->
+    <menuitem id="menu_document_tag" name="🏷️ Tags" parent="onedesk_core.menu_document"
+              action="action_document_tag" sequence="10"/>
 
 </odoo>

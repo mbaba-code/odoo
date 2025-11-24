@@ -102,6 +102,31 @@ class OnedeskDocument(models.Model):
     notes = fields.Text(string='Notes')
     active = fields.Boolean(default=True)
 
+    # ========== CLASSEMENT & STOCKAGE ==========
+    document_category = fields.Selection([
+        ('contract', '📜 Contrat'),
+        ('invoice', '💰 Facture'),
+        ('inspection', '🔍 Inspection'),
+        ('report', '📋 Rapport'),
+        ('correspondence', '✉️ Correspondance'),
+        ('compliance', '⚖️ Conformité'),
+        ('financial', '💳 Financier'),
+        ('legal', '⚖️ Légal'),
+        ('technical', '⚙️ Technique'),
+        ('other', '📄 Autre'),
+    ], string='Catégorie du document', help='Catégorie pour organiser et classer les documents')
+
+    document_tags = fields.Many2many('onedesk.document.tag', 'document_tag_rel',
+                                     'document_id', 'tag_id',
+                                     string='Tags/Étiquettes',
+                                     help='Étiquettes pour retrouver rapidement les documents')
+
+    storage_location = fields.Char(string='Lieu de stockage',
+                                   help='Localisation physique ou logique du document (ex: Dossier Principal, Archives, Cloud)')
+
+    archive_date = fields.Datetime(string='Date d\'archivage',
+                                   help='Date et heure d\'archivage du document')
+
     @api.onchange('reservation_id')
     def _onchange_reservation_id(self):
         """Auto-populate company et unit depuis reservation"""
@@ -130,6 +155,24 @@ class OnedeskDocument(models.Model):
             return self._send_via_odoo_native()
         else:
             raise ValueError(f'Méthode de signature inconnue: {self.signing_method}')
+
+    def action_signaturit_beta(self):
+        """Action pour le bouton SignaturIT désactivé (Beta)"""
+        self.ensure_one()
+
+        _logger.info(f'🔄 Tentative d\'accès à SignaturIT (Beta) pour {self.name}')
+
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'type': 'warning',
+                'title': '🔄 SignaturIT en développement',
+                'message': 'Cette fonctionnalité est actuellement en phase de développement. '
+                          'Veuillez utiliser l\'option "✍️ Envoyer pour signature (Email Odoo)" pour l\'instant.',
+                'sticky': True,
+            }
+        }
 
     def _send_via_signaturit(self):
         """Envoyer via SignaturIT (service tiers)"""
@@ -346,7 +389,12 @@ class OnedeskDocument(models.Model):
 
     def action_archive(self):
         """Archiver le document"""
-        self.status = 'archived'
+        self.ensure_one()
+        self.write({
+            'status': 'archived',
+            'archive_date': fields.Datetime.now(),
+        })
+        _logger.info(f'📦 Document {self.name} archivé à {self.archive_date}')
 
 
 class OnedeskDocumentSignature(models.Model):
@@ -588,3 +636,35 @@ class OnedeskDocumentRecipient(models.Model):
         ('unique_email_company', 'unique(email, company_id)',
          'L\'email doit être unique par company!')
     ]
+
+
+# ========== MODÈLE TAGS/ÉTIQUETTES ==========
+class OnedeskDocumentTag(models.Model):
+    """Tags/Étiquettes pour organiser et retrouver les documents"""
+    _name = 'onedesk.document.tag'
+    _description = 'Tag/Étiquette pour documents'
+    _rec_name = 'name'
+
+    # ========== CHAMPS ==========
+    name = fields.Char(string='Nom de l\'étiquette', required=True)
+    color = fields.Integer(string='Couleur', default=1, help='Couleur de l\'étiquette (1-12)')
+    company_id = fields.Many2one('res.company', string='Company', required=True,
+                                 default=lambda self: self.env.company)
+    active = fields.Boolean(default=True)
+
+    # ========== RELATIONS ==========
+    document_ids = fields.Many2many('onedesk.document', 'document_tag_rel',
+                                    'tag_id', 'document_id',
+                                    string='Documents')
+
+    _sql_constraints = [
+        ('unique_name_company', 'unique(name, company_id)',
+         'Le nom de l\'étiquette doit être unique par company!')
+    ]
+
+    def name_get(self):
+        """Afficher le tag avec un indicateur de couleur"""
+        result = []
+        for tag in self:
+            result.append((tag.id, f"🏷️ {tag.name}"))
+        return result
