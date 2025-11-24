@@ -370,13 +370,27 @@
         <field name="res_model">onedesk.document</field>
         <field name="view_mode">list,kanban,form</field>
         <field name="domain">[]</field>
-        <field name="context">{'search_default_filter_archived': 0}</field>
         <field name="view_ids" eval="[(5, 0, 0),
             (0, 0, {'view_mode': 'list', 'view_id': ref('view_document_list_stock')}),
             (0, 0, {'view_mode': 'kanban', 'view_id': ref('view_document_kanban_stock')}),
             (0, 0, {'view_mode': 'form', 'view_id': ref('view_document_form_stock')}),
         ]"/>
     </record>
+
+    <!-- ========== DOCUMENT STOCK ACTION (SIMPLE - for testing) ========== -->
+    <!-- Uncomment below and comment out action_document_stock above to test with shared views -->
+    <!--
+    <record id="action_document_stock" model="ir.actions.act_window">
+        <field name="name">📦 Stock de documents (Simple Test)</field>
+        <field name="res_model">onedesk.document</field>
+        <field name="view_mode">list,kanban,form</field>
+        <field name="view_ids" eval="[(5, 0, 0),
+            (0, 0, {'view_mode': 'list', 'view_id': ref('view_document_list')}),
+            (0, 0, {'view_mode': 'kanban', 'view_id': ref('view_document_kanban')}),
+            (0, 0, {'view_mode': 'form', 'view_id': ref('view_document_form_stock')}),
+        ]"/>
+    </record>
+    -->
 
     <!-- ========== MENU ITEM (Parent) ========== -->
     <menuitem id="menu_document" name="📄 Documents" parent="onedesk_core.menu_onedesk_root"
