@@ -295,7 +295,7 @@
     </record>
 
     <!-- ========== TAG MENU ========== -->
-    <menuitem id="menu_document_tag" name="🏷️ Tags" parent="onedesk_core.menu_document"
+    <menuitem id="menu_document_tag" name="🏷️ Tags" parent="menu_document"
               action="action_document_tag" sequence="10"/>
 
 </odoo>
