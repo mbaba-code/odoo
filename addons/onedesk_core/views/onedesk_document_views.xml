@@ -283,7 +283,6 @@
             (0, 0, {'view_mode': 'kanban', 'view_id': ref('view_document_kanban')}),
             (0, 0, {'view_mode': 'form', 'view_id': ref('view_document_form_stock')}),
         ]"/>
-        <field name="domain">[('status', 'in', ['archived'])]</field>
     </record>
 
     <!-- ========== MENU ITEM (Parent) ========== -->
