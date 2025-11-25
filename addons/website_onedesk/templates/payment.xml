@@ -1,0 +1,347 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ========================= -->
+    <!-- PAYMENT TEST PAGE (MODE TEST) -->
+    <!-- ========================= -->
+    <template id="payment_test_page" name="Payment Test Page">
+        <t t-call="website.layout">
+            <div class="container mt-5 mb-5">
+                <div class="row">
+                    <div class="col-lg-6 mx-auto">
+                        <!-- Test Mode Alert -->
+                        <div class="alert alert-warning mb-4">
+                            <h5 class="alert-heading">
+                                <i class="fa fa-flask"></i> MODE TEST
+                            </h5>
+                            <p class="mb-0">Vous êtes en mode TEST. Le paiement sera simulé sans transaction réelle.</p>
+                        </div>
+
+                        <!-- Payment Summary -->
+                        <div class="card border-0 shadow-lg">
+                            <div class="card-header bg-primary text-white">
+                                <h4 class="mb-0">
+                                    <i class="fa fa-credit-card"></i> Simulation de Paiement
+                                </h4>
+                            </div>
+                            <div class="card-body">
+                                <h5 class="mb-3">Résumé de votre souscription</h5>
+
+                                <div class="mb-3">
+                                    <strong>Plan:</strong>
+                                    <span class="float-end" t-esc="plan.name"></span>
+                                </div>
+
+                                <div class="mb-3">
+                                    <strong>Souscription:</strong>
+                                    <span class="float-end" t-esc="subscription.subscription_id"></span>
+                                </div>
+
+                                <hr/>
+
+                                <div class="mb-4">
+                                    <h3 class="text-center mb-0">
+                                        <strong>Montant total:</strong>
+                                        <span class="text-success" t-esc="'{:.2f}€'.format(amount)"></span>
+                                    </h3>
+                                </div>
+
+                                <hr/>
+
+                                <p class="text-muted small mb-4">
+                                    En mode TEST, vous pouvez simuler un paiement réussi ou échoué pour tester le workflow complet.
+                                </p>
+
+                                <!-- Test Actions -->
+                                <div class="d-grid gap-2">
+                                    <button type="button" class="btn btn-success btn-lg" onclick="simulatePayment('success')">
+                                        <i class="fa fa-check-circle"></i> ✅ Valider le Paiement (TEST)
+                                    </button>
+                                    <button type="button" class="btn btn-danger" onclick="simulatePayment('fail')">
+                                        <i class="fa fa-times-circle"></i> ❌ Simuler un Échec (TEST)
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="text-center mt-4">
+                            <a href="/onedesk/subscription" class="btn btn-link">
+                                <i class="fa fa-arrow-left"></i> Retour aux plans
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- JavaScript for Test Payment -->
+            <script>
+                function simulatePayment(action) {
+                    const button = event.target;
+                    button.disabled = true;
+                    button.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Traitement...';
+
+                    const formData = new FormData();
+                    formData.append('subscription_id', <t t-esc="subscription.id"/>);
+                    formData.append('action', action);
+
+                    fetch('/onedesk/payment/test/simulate', {
+                        method: 'POST',
+                        body: formData
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        console.log('Payment simulation response:', data);
+                        if (data.status === 'success') {
+                            window.location.href = data.redirect_url || '/onedesk/payment/success';
+                        } else {
+                            window.location.href = data.redirect_url || '/onedesk/payment/error';
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('Une erreur s\'est produite: ' + error.message);
+                        button.disabled = false;
+                        button.innerHTML = action === 'success' ? '✅ Valider le Paiement (TEST)' : '❌ Simuler un Échec (TEST)';
+                    });
+                }
+            </script>
+        </t>
+    </template>
+
+    <!-- ========================= -->
+    <!-- PAYMENT PAGE (MODE PROD) -->
+    <!-- ========================= -->
+    <template id="payment_page" name="Payment Page">
+        <t t-call="website.layout">
+            <div class="container mt-5 mb-5">
+                <div class="row">
+                    <div class="col-lg-6 mx-auto">
+                        <!-- Production Mode Alert -->
+                        <div class="alert alert-info mb-4">
+                            <h5 class="alert-heading">
+                                <i class="fa fa-lock"></i> Paiement Sécurisé
+                            </h5>
+                            <p class="mb-0">Vous êtes sur la page de paiement sécurisé.</p>
+                        </div>
+
+                        <!-- Payment Summary -->
+                        <div class="card border-0 shadow-lg">
+                            <div class="card-header bg-success text-white">
+                                <h4 class="mb-0">
+                                    <i class="fa fa-credit-card"></i> Paiement
+                                </h4>
+                            </div>
+                            <div class="card-body">
+                                <h5 class="mb-3">Résumé de votre souscription</h5>
+
+                                <div class="mb-3">
+                                    <strong>Plan:</strong>
+                                    <span class="float-end" t-esc="plan.name"></span>
+                                </div>
+
+                                <div class="mb-3">
+                                    <strong>Souscription:</strong>
+                                    <span class="float-end" t-esc="subscription.subscription_id"></span>
+                                </div>
+
+                                <hr/>
+
+                                <div class="mb-4">
+                                    <h3 class="text-center mb-0">
+                                        <strong>Montant à payer:</strong>
+                                        <span class="text-success" t-esc="'{:.2f}€'.format(amount)"></span>
+                                    </h3>
+                                </div>
+
+                                <hr/>
+
+                                <!-- TODO: Intégrer ici le payment provider Odoo (Stripe, PayPal, etc.) -->
+                                <div class="alert alert-warning">
+                                    <p class="mb-0">
+                                        <i class="fa fa-exclamation-triangle"></i>
+                                        <strong>À faire:</strong> Intégrer le payment provider (Stripe, PayPal, etc.)
+                                    </p>
+                                </div>
+
+                                <div class="d-grid">
+                                    <button type="button" class="btn btn-primary btn-lg" disabled="disabled">
+                                        <i class="fa fa-credit-card"></i> Payer maintenant
+                                    </button>
+                                </div>
+
+                                <p class="text-muted small text-center mt-3">
+                                    <i class="fa fa-lock"></i> Paiement sécurisé par SSL
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="text-center mt-4">
+                            <a href="/onedesk/subscription" class="btn btn-link">
+                                <i class="fa fa-arrow-left"></i> Retour aux plans
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <!-- ========================= -->
+    <!-- PAYMENT SUCCESS PAGE -->
+    <!-- ========================= -->
+    <template id="payment_success" name="Payment Success">
+        <t t-call="website.layout">
+            <div class="container mt-5 mb-5">
+                <div class="row">
+                    <div class="col-lg-6 mx-auto text-center">
+                        <div class="card border-0 shadow-lg">
+                            <div class="card-body p-5">
+                                <div class="mb-4">
+                                    <i class="fa fa-check-circle text-success" style="font-size: 80px;"></i>
+                                </div>
+
+                                <h1 class="text-success mb-3">Paiement Réussi !</h1>
+
+                                <p class="lead mb-4">
+                                    Votre paiement a été validé avec succès.
+                                </p>
+
+                                <div class="alert alert-success">
+                                    <p class="mb-0">
+                                        <i class="fa fa-envelope"></i>
+                                        Un email de confirmation vous a été envoyé avec vos identifiants de connexion.
+                                    </p>
+                                </div>
+
+                                <hr/>
+
+                                <h5 class="mb-3">Prochaines étapes</h5>
+                                <ol class="text-start">
+                                    <li>Vérifiez votre boîte email</li>
+                                    <li>Connectez-vous avec vos identifiants</li>
+                                    <li>Configurez votre première propriété</li>
+                                </ol>
+
+                                <div class="d-grid gap-2 mt-4">
+                                    <a href="/web/login" class="btn btn-primary btn-lg">
+                                        <i class="fa fa-sign-in"></i> Se connecter maintenant
+                                    </a>
+                                    <a href="/" class="btn btn-outline-secondary">
+                                        <i class="fa fa-home"></i> Retour à l'accueil
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <!-- ========================= -->
+    <!-- PAYMENT ERROR PAGE -->
+    <!-- ========================= -->
+    <template id="payment_error" name="Payment Error">
+        <t t-call="website.layout">
+            <div class="container mt-5 mb-5">
+                <div class="row">
+                    <div class="col-lg-6 mx-auto text-center">
+                        <div class="card border-0 shadow-lg">
+                            <div class="card-body p-5">
+                                <div class="mb-4">
+                                    <i class="fa fa-times-circle text-danger" style="font-size: 80px;"></i>
+                                </div>
+
+                                <h1 class="text-danger mb-3">Erreur de Paiement</h1>
+
+                                <p class="lead mb-4">
+                                    Le paiement n'a pas pu être effectué.
+                                </p>
+
+                                <div class="alert alert-danger">
+                                    <p class="mb-0">
+                                        <i class="fa fa-exclamation-triangle"></i>
+                                        Votre compte n'a pas été activé. Veuillez réessayer le paiement.
+                                    </p>
+                                </div>
+
+                                <hr/>
+
+                                <h5 class="mb-3">Que faire ?</h5>
+                                <ul class="text-start">
+                                    <li>Vérifiez vos informations de paiement</li>
+                                    <li>Assurez-vous d'avoir les fonds suffisants</li>
+                                    <li>Contactez notre support si le problème persiste</li>
+                                </ul>
+
+                                <div class="d-grid gap-2 mt-4">
+                                    <a href="/onedesk/subscription" class="btn btn-primary btn-lg">
+                                        <i class="fa fa-refresh"></i> Réessayer
+                                    </a>
+                                    <a href="mailto:support@onedesk.com" class="btn btn-outline-secondary">
+                                        <i class="fa fa-envelope"></i> Contacter le support
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <!-- ========================= -->
+    <!-- PAYMENT PENDING PAGE -->
+    <!-- ========================= -->
+    <template id="payment_pending" name="Payment Pending">
+        <t t-call="website.layout">
+            <div class="container mt-5 mb-5">
+                <div class="row">
+                    <div class="col-lg-6 mx-auto text-center">
+                        <div class="card border-0 shadow-lg">
+                            <div class="card-body p-5">
+                                <div class="mb-4">
+                                    <i class="fa fa-clock-o text-warning" style="font-size: 80px;"></i>
+                                </div>
+
+                                <h1 class="text-warning mb-3">Paiement en Attente</h1>
+
+                                <p class="lead mb-4">
+                                    Votre paiement est en cours de traitement.
+                                </p>
+
+                                <div class="alert alert-warning">
+                                    <p class="mb-0">
+                                        <i class="fa fa-info-circle"></i>
+                                        Nous vous enverrons un email dès que le paiement sera validé.
+                                    </p>
+                                </div>
+
+                                <hr/>
+
+                                <h5 class="mb-3">Que se passe-t-il maintenant ?</h5>
+                                <p class="text-muted">
+                                    Votre paiement est en cours de validation auprès de votre banque.
+                                    Cela peut prendre quelques minutes à quelques heures.
+                                </p>
+
+                                <p class="text-muted">
+                                    Vous recevrez un email de confirmation dès que le paiement sera validé
+                                    et votre compte sera automatiquement activé.
+                                </p>
+
+                                <div class="d-grid gap-2 mt-4">
+                                    <a href="/" class="btn btn-primary btn-lg">
+                                        <i class="fa fa-home"></i> Retour à l'accueil
+                                    </a>
+                                    <a href="mailto:support@onedesk.com" class="btn btn-outline-secondary">
+                                        <i class="fa fa-envelope"></i> Contacter le support
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+</odoo>

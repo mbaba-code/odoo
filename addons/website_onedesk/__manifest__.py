@@ -12,6 +12,7 @@
     'data': [
         'templates/pages.xml',
         'templates/subscription.xml',
+        'templates/payment.xml',
     ],
     'external_dependencies': {
         'python': [],
