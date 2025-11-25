@@ -384,27 +384,35 @@ class OneDeskWebsite(http.Controller):
         return mode.lower()
 
     def _calculate_plan_total(self, plan, num_units):
-        """Calcule le montant total à payer pour un plan
+        """
+        Calcule le montant mensuel à payer pour un plan
+
+        IMPORTANT: Facturation MENSUELLE uniquement (pas par unité)
+        Le montant correspond au prix mensuel du plan configuré
 
         Args:
             plan: Le plan d'abonnement
-            num_units: Nombre d'unités demandées
+            num_units: Nombre d'unités (IGNORÉ - juste pour information)
 
         Returns:
-            float: Montant total
+            float: Prix mensuel du plan
         """
-        total = 0.0
+        # CORRECTION: Retourner uniquement le prix mensuel configuré
+        # PAS de multiplication par nombre d'unités
 
-        # Frais de setup (une seule fois)
-        total += plan.setup_fee
-
-        # Si facturation par unité
         if plan.billing_model == 'per_unit':
-            total += plan.price_per_unit * num_units
+            # Prix mensuel par unité (configuration du plan)
+            monthly_price = plan.price_per_unit
+        elif plan.billing_model == 'commission':
+            # Pour commission, pas de paiement initial fixe
+            # La commission sera calculée sur les réservations
+            monthly_price = 0.0
+        else:
+            monthly_price = 0.0
 
-        # Note: La commission sera calculée au moment des réservations
+        _logger.info(f'💰 Prix mensuel calculé: {monthly_price}€ (num_units={num_units} ignoré)')
 
-        return total
+        return monthly_price
 
     @http.route('/onedesk/subscription/create', type='http', auth='public', website=True, methods=['POST'], csrf=False)
     def create_subscription(self, **kw):
@@ -572,7 +580,7 @@ class OneDeskWebsite(http.Controller):
                 # 💳 PLAN PAYANT: Générer lien de paiement
                 total_amount = self._calculate_plan_total(plan, num_units)
 
-                _logger.info(f'💰 Montant à payer: {total_amount}€')
+                _logger.info(f'💰 Montant mensuel à payer: {total_amount}€')
 
                 # Construire l'URL de paiement
                 base_url = request.env['ir.config_parameter'].sudo().get_param('web.base.url')
@@ -580,12 +588,23 @@ class OneDeskWebsite(http.Controller):
                 if payment_mode == 'test':
                     # Mode TEST: Redirection vers page de simulation
                     payment_url = f"{base_url}/onedesk/payment/test/{subscription.id}?amount={total_amount}"
-                    _logger.info(f'🧪 Mode TEST: Paiement simulé - {payment_url}')
+                    _logger.info('=' * 80)
+                    _logger.info('🧪 MODE TEST ACTIVÉ - SIMULATION DE PAIEMENT')
+                    _logger.info(f'🧪 URL de paiement TEST: {payment_url}')
+                    _logger.info(f'🧪 Montant: {total_amount}€')
+                    _logger.info(f'🧪 Souscription ID: {subscription.id}')
+                    _logger.info('🧪 Le paiement sera SIMULÉ (pas de transaction réelle)')
+                    _logger.info('=' * 80)
                 else:
                     # Mode PROD: Générer un vrai lien de paiement via module payment
-                    # TODO: Intégrer avec Odoo Payment Providers (Stripe, PayPal, etc.)
                     payment_url = f"{base_url}/onedesk/payment/{subscription.id}?amount={total_amount}"
-                    _logger.info(f'💳 Mode PROD: Paiement réel - {payment_url}')
+                    _logger.info('=' * 80)
+                    _logger.info('💳 MODE PRODUCTION - PAIEMENT RÉEL')
+                    _logger.info(f'💳 URL de paiement PROD: {payment_url}')
+                    _logger.info(f'💳 Montant: {total_amount}€')
+                    _logger.info(f'💳 Souscription ID: {subscription.id}')
+                    _logger.info('💳 Le paiement sera RÉEL (transaction bancaire)')
+                    _logger.info('=' * 80)
 
                 # Stocker le montant et l'URL dans la souscription
                 subscription.sudo().write({
@@ -605,14 +624,21 @@ class OneDeskWebsite(http.Controller):
                 except Exception as e:
                     _logger.warning(f'⚠️ Error sending admin email: {e}')
 
+                # Message différent selon le mode
+                if payment_mode == 'test':
+                    message = f'🧪 MODE TEST - Souscription créée\n\nVous allez être redirigé vers la page de SIMULATION de paiement.\n\nMontant mensuel: {total_amount}€\n\n⚠️ Aucune transaction réelle ne sera effectuée.'
+                else:
+                    message = f'💳 Souscription créée - Paiement requis\n\nVous allez être redirigé vers la page de paiement sécurisé.\n\nMontant mensuel: {total_amount}€'
+
                 response = {
                     'status': 'success',
-                    'message': f'💳 Souscription créée - Paiement requis\n\nVous allez être redirigé vers la page de paiement.\n\nMontant: {total_amount}€',
+                    'message': message,
                     'subscription_id': subscription.id,
                     'is_free': False,
                     'requires_payment': True,
                     'payment_url': payment_url,
                     'amount': total_amount,
+                    'payment_mode': payment_mode,  # NOUVEAU: Indiquer le mode
                 }
 
             _logger.info(f'Returning response: {response}')
