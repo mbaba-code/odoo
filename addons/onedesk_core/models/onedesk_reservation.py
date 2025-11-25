@@ -3,6 +3,7 @@ from odoo.exceptions import ValidationError
 from odoo.fields import Command
 from datetime import datetime
 from odoo.tools import format_datetime
+from markupsafe import escape
 import logging
 
 _logger = logging.getLogger(__name__)
@@ -535,25 +536,34 @@ class OneDeskReservation(models.Model):
     def _send_payment_link_email(self):
         """
         Envoie le lien de paiement par email au client
+
+        SECURITY: Tous les contenus HTML sont échappés pour prévenir XSS
         """
         self.ensure_one()
 
         # Vérifie que le client a un email
         if not self.partner_id.email:
-            raise ValueError(f"Le client {self.partner_id.name} n'a pas d'adresse email")
+            raise ValueError(f"Le client {escape(self.partner_id.name)} n'a pas d'adresse email")
+
+        # SECURITY: Échapper tous les contenus pour prévenir XSS
+        partner_name = escape(self.partner_id.name)
+        unit_name = escape(self.unit_id.name)
+        reservation_name = escape(self.name)
+        company_name = escape(self.env.company.name)
+        payment_link = escape(self.payment_link)
 
         # Prépare le contenu de l'email
-        subject = f"Lien de paiement - Réservation {self.name}"
+        subject = f"Lien de paiement - Réservation {reservation_name}"
 
-        # Corps de l'email en HTML (simplifié pour MVP)
+        # Corps de l'email en HTML (SÉCURISÉ avec échappement)
         body_html = f"""
         <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-            <h2>Bonjour {self.partner_id.name},</h2>
+            <h2>Bonjour {partner_name},</h2>
 
             <p>Nous vous remercions de votre réservation! Veuillez finaliser votre paiement en cliquant sur le lien ci-dessous:</p>
 
             <div style="margin: 20px 0;">
-                <a href="{self.payment_link}" style="background-color: #007bff; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block; font-weight: bold;">
+                <a href="{payment_link}" style="background-color: #007bff; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block; font-weight: bold;">
                     💳 Payer maintenant
                 </a>
             </div>
@@ -562,7 +572,7 @@ class OneDeskReservation(models.Model):
             <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
                 <tr style="background-color: #f9f9f9;">
                     <td style="padding: 10px; border: 1px solid #ddd;"><strong>Unité:</strong></td>
-                    <td style="padding: 10px; border: 1px solid #ddd;">{self.unit_id.name}</td>
+                    <td style="padding: 10px; border: 1px solid #ddd;">{unit_name}</td>
                 </tr>
                 <tr>
                     <td style="padding: 10px; border: 1px solid #ddd;"><strong>Arrivée:</strong></td>
@@ -588,7 +598,7 @@ class OneDeskReservation(models.Model):
 
             <p style="color: #666;">
                 Cordialement,<br/>
-                <strong>{self.env.company.name}</strong>
+                <strong>{company_name}</strong>
             </p>
         </div>
         """
