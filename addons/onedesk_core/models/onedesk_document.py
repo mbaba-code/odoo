@@ -31,6 +31,7 @@ License: LGPL-3
 """
 
 from odoo import models, fields, api
+from markupsafe import escape
 import base64
 import logging
 
@@ -509,32 +510,43 @@ class OnedeskDocumentSignature(models.Model):
         return signatures
 
     def _send_signature_email_direct(self, signature, company):
-        """Envoyer un email direct de demande de signature (fallback)"""
+        """
+        Envoyer un email direct de demande de signature (fallback)
+
+        SECURITY: Tous les contenus HTML sont échappés pour prévenir XSS
+        """
         doc_type_dict = dict(signature.document_id._fields['document_type'].selection)
         doc_type_label = doc_type_dict.get(signature.document_id.document_type, signature.document_id.document_type)
+
+        # SECURITY: Échapper tous les contenus pour prévenir XSS
+        signer_name = escape(signature.signer_name)
+        document_name = escape(signature.document_id.name)
+        doc_type_escaped = escape(doc_type_label)
+        requester_name = escape(self.env.user.name)
+        company_name = escape(company.name)
 
         html_body = f"""
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
             <h2>📄 Demande de Signature</h2>
-            <p>Bonjour {signature.signer_name},</p>
+            <p>Bonjour {signer_name},</p>
 
             <p>Un document vous attend pour signature:</p>
             <div style="background-color: #f5f5f5; padding: 15px; margin: 20px 0; border-left: 4px solid #1f77d2;">
-                <p><strong>Document:</strong> {signature.document_id.name}</p>
-                <p><strong>Type:</strong> {doc_type_label}</p>
-                <p><strong>Demandé par:</strong> {self.env.user.name}</p>
+                <p><strong>Document:</strong> {document_name}</p>
+                <p><strong>Type:</strong> {doc_type_escaped}</p>
+                <p><strong>Demandé par:</strong> {requester_name}</p>
             </div>
 
             <p>Veuillez consulter le document en pièce jointe ou accéder à votre portail Odoo pour signer.</p>
 
             <p style="color: #666; margin-top: 30px; border-top: 1px solid #ddd; padding-top: 20px;">
-                <small>© {company.name} - Plateforme de gestion immobilière</small>
+                <small>© {company_name} - Plateforme de gestion immobilière</small>
             </p>
         </div>
         """
 
         mail_values = {
-            'subject': f"📄 Signature requise: {signature.document_id.name}",
+            'subject': f"📄 Signature requise: {document_name}",
             'body_html': html_body,
             'email_to': signature.signer_email,
             'email_from': company.email or self.env.user.email,

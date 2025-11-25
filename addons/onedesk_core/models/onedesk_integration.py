@@ -14,7 +14,11 @@ try:
     CRYPTO_AVAILABLE = True
 except ImportError:
     CRYPTO_AVAILABLE = False
-    _logger.warning("⚠️ cryptography non installé - tokens en clair")
+    _logger.critical(
+        "❌ CRITICAL SECURITY ERROR: Le module 'cryptography' n'est pas installé!\n"
+        "Les tokens OAuth seront stockés en CLAIR dans la base de données.\n"
+        "Installation requise: pip install cryptography"
+    )
 
 
 class OnedeskIntegration(models.Model):
@@ -102,24 +106,43 @@ class OnedeskIntegration(models.Model):
         return key.encode() if key else None
 
     def _encrypt_token(self, token):
-        """Chiffre un token"""
+        """
+        Chiffre un token OAuth avec validation stricte
+
+        SECURITY: Le chiffrement est OBLIGATOIRE pour protéger les tokens OAuth.
+        Si cryptography n'est pas installé, on refuse de stocker le token.
+        """
         if not token:
             return False
-        
+
+        # SECURITY: Refuser de stocker des tokens en clair
         if not CRYPTO_AVAILABLE:
-            return token
-        
+            _logger.error(
+                "❌ REFUS: Impossible de chiffrer le token - module cryptography manquant!\n"
+                "Installation: pip install cryptography"
+            )
+            raise UserError(
+                "Module de chiffrement 'cryptography' manquant!\n\n"
+                "Pour des raisons de sécurité, les tokens OAuth ne peuvent pas être stockés sans chiffrement.\n\n"
+                "Installation requise:\n"
+                "pip install cryptography"
+            )
+
         try:
             key = self._get_encryption_key()
             if not key:
-                return token
-            
+                raise UserError(
+                    "Clé de chiffrement non configurée!\n\n"
+                    "Ajoutez dans votre fichier odoo.conf:\n"
+                    "onedesk_encryption_key = <générez une clé avec: python -c 'from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())'>"
+                )
+
             f = Fernet(key)
             encrypted = f.encrypt(token.encode())
             return base64.b64encode(encrypted).decode()
         except Exception as e:
-            _logger.error(f"Erreur chiffrement: {e}")
-            return token
+            _logger.error(f"❌ Erreur chiffrement: {e}")
+            raise UserError(f"Erreur lors du chiffrement du token: {str(e)}")
 
     def _decrypt_token(self, encrypted_token):
         """Déchiffre un token"""
