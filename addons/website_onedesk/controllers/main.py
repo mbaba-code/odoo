@@ -757,60 +757,132 @@ class OneDeskWebsite(http.Controller):
 
         amount = float(kw.get('amount', subscription.payment_amount or 0))
 
-        # TODO: Intégrer avec Odoo payment providers
-        # Pour l'instant, afficher une page simple
-        return request.render('website_onedesk.payment_page', {
+        # IMPORTANT: Intégration avec Odoo Payment System
+        # 1. Chercher les payment providers disponibles (Stripe, PayPal, etc.)
+        payment_providers = request.env['payment.provider'].sudo().search([
+            ('state', '!=', 'disabled'),
+            ('company_id', 'in', [subscription.company_id.id, False]),
+        ])
+
+        if not payment_providers:
+            _logger.warning('⚠️ No payment providers configured for PROD mode')
+            return request.render('website_onedesk.payment_error', {
+                'error_message': 'Aucun moyen de paiement configuré. Veuillez contacter le support.',
+                'page_title': 'Erreur de paiement',
+            })
+
+        # 2. Récupérer les méthodes de paiement disponibles
+        payment_methods = request.env['payment.method'].sudo().search([
+            ('active', '=', True),
+        ])
+
+        # 3. Récupérer la devise
+        currency = subscription.company_id.currency_id or request.env.company.currency_id
+
+        # 4. Construire le contexte de paiement pour le template
+        partner = subscription.billing_contact_id or request.env.user.partner_id
+
+        _logger.info('=' * 80)
+        _logger.info('💳 MODE PRODUCTION - PAIEMENT RÉEL')
+        _logger.info(f'💳 Subscription: {subscription.subscription_id}')
+        _logger.info(f'💳 Amount: {amount}€')
+        _logger.info(f'💳 Payment providers available: {len(payment_providers)}')
+        _logger.info(f'💳 Payment methods available: {len(payment_methods)}')
+        _logger.info('💳 Le paiement sera RÉEL (transaction bancaire)')
+        _logger.info('=' * 80)
+
+        return request.render('website_onedesk.payment_page_prod', {
             'subscription': subscription,
             'plan': subscription.plan_id,
             'amount': amount,
+            'currency': currency,
+            'partner_id': partner.id,
+            'providers_sudo': payment_providers,
+            'payment_methods_sudo': payment_methods,
+            'tokens_sudo': request.env['payment.token'].sudo().search([
+                ('partner_id', '=', partner.id),
+            ]),
+            'transaction_route': '/payment/transaction',
+            'landing_route': f'/onedesk/payment/callback?subscription_id={subscription_id}',
+            'reference_prefix': f'ONEDESK-{subscription.subscription_id}',
             'page_title': 'Paiement',
         })
 
-    @http.route('/onedesk/payment/callback', type='http', auth='public', methods=['POST'], csrf=False)
+    @http.route('/onedesk/payment/callback', type='http', auth='public', methods=['GET', 'POST'], csrf=False, website=True)
     def payment_callback(self, **kw):
         """
-        Callback appelé par le payment provider après paiement
+        Callback appelé par Odoo payment system après paiement
+
+        Cette route est appelée après que le payment provider (Stripe, PayPal, etc.)
+        ait traité le paiement. Odoo redirige ici après /payment/status.
 
         Valide le paiement et active la souscription
         """
         try:
             subscription_id = int(kw.get('subscription_id'))
-            payment_status = kw.get('status')  # success, failed, pending
-
             subscription = request.env['onedesk.subscription'].sudo().browse(subscription_id)
 
             if not subscription.exists():
                 _logger.error(f'Subscription {subscription_id} not found in payment callback')
-                return http.Response('Error: Subscription not found', status=404)
+                return request.redirect('/onedesk/payment/error?error=subscription_not_found')
 
-            _logger.info(f'💳 Payment callback received for subscription {subscription.subscription_id}: status={payment_status}')
+            _logger.info(f'💳 Payment callback received for subscription {subscription.subscription_id}')
 
-            if payment_status == 'success':
-                # Activer la souscription
+            # Chercher la dernière transaction de paiement pour cette souscription
+            # La référence commence par 'ONEDESK-{subscription_id}'
+            tx = request.env['payment.transaction'].sudo().search([
+                ('reference', 'like', f'ONEDESK-{subscription.subscription_id}%'),
+            ], order='id desc', limit=1)
+
+            if not tx:
+                _logger.error(f'No payment transaction found for subscription {subscription.subscription_id}')
+                return request.redirect('/onedesk/payment/error?error=transaction_not_found')
+
+            _logger.info(f'💳 Transaction found: {tx.reference}, state: {tx.state}')
+
+            # Vérifier l'état de la transaction
+            if tx.state == 'done':
+                # Paiement réussi - Activer la souscription
+                _logger.info(f'✅ Payment successful for {subscription.subscription_id}')
                 self._activate_subscription_after_payment(subscription)
-
                 return request.redirect('/onedesk/payment/success')
 
-            elif payment_status == 'failed':
+            elif tx.state == 'authorized':
+                # Paiement autorisé mais pas encore capturé
+                _logger.info(f'⏳ Payment authorized for {subscription.subscription_id}')
+                # Pour l'instant, on active aussi (peut être modifié selon besoin)
+                self._activate_subscription_after_payment(subscription)
+                return request.redirect('/onedesk/payment/success')
+
+            elif tx.state in ['pending', 'draft']:
+                # Paiement en attente
+                _logger.info(f'⏳ Payment pending for {subscription.subscription_id}')
+                return request.redirect('/onedesk/payment/pending')
+
+            elif tx.state in ['cancel', 'error']:
+                # Paiement échoué
+                _logger.warning(f'❌ Payment failed for {subscription.subscription_id}: {tx.state_message}')
+
                 # Log l'échec
                 request.env['onedesk.audit.log'].sudo().create({
                     'log_type': 'payment_failed',
                     'severity': 'warning',
                     'company_id': subscription.company_id.id,
                     'subscription_id': subscription.id,
-                    'description': f'Échec de paiement pour {subscription.subscription_id}',
+                    'description': f'Échec de paiement pour {subscription.subscription_id}: {tx.state_message}',
                     'result': 'failed',
                 })
 
-                return request.redirect('/onedesk/payment/error')
+                return request.redirect(f'/onedesk/payment/error?error={tx.state_message or "payment_failed"}')
 
             else:
-                # Paiement en attente
+                # État inconnu
+                _logger.warning(f'⚠️ Unknown payment state for {subscription.subscription_id}: {tx.state}')
                 return request.redirect('/onedesk/payment/pending')
 
         except Exception as e:
             _logger.exception('Error in payment callback')
-            return http.Response(f'Error: {str(e)}', status=500)
+            return request.redirect(f'/onedesk/payment/error?error={str(e)}')
 
     def _activate_subscription_after_payment(self, subscription):
         """

@@ -120,7 +120,7 @@
     <!-- ========================= -->
     <!-- PAYMENT PAGE (MODE PROD) -->
     <!-- ========================= -->
-    <template id="payment_page" name="Payment Page">
+    <template id="payment_page" name="Payment Page (Legacy)">
         <t t-call="website.layout">
             <div class="container mt-5 mb-5">
                 <div class="row">
@@ -186,6 +186,108 @@
                             <a href="/onedesk/subscription" class="btn btn-link">
                                 <i class="fa fa-arrow-left"></i> Retour aux plans
                             </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <!-- ========================= -->
+    <!-- PAYMENT PAGE PROD - WITH ODOO PAYMENT FORM -->
+    <!-- ========================= -->
+    <template id="payment_page_prod" name="Payment Page Production">
+        <t t-call="website.layout">
+            <div class="container mt-5 mb-5">
+                <div class="row">
+                    <div class="col-lg-8 mx-auto">
+                        <!-- Production Mode Alert -->
+                        <div class="alert alert-success mb-4" style="border: 2px solid #28a745;">
+                            <h4 class="alert-heading text-center mb-2">
+                                <i class="fa fa-lock"></i> 💳 PAIEMENT SÉCURISÉ
+                            </h4>
+                            <p class="text-center mb-0">
+                                <small>Transaction bancaire sécurisée par SSL</small>
+                            </p>
+                        </div>
+
+                        <div class="row">
+                            <!-- Left Column: Payment Summary -->
+                            <div class="col-md-5">
+                                <div class="card border-0 shadow-sm mb-4">
+                                    <div class="card-header bg-success text-white">
+                                        <h5 class="mb-0">
+                                            <i class="fa fa-file-text"></i> Résumé
+                                        </h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="mb-3">
+                                            <strong>Plan:</strong>
+                                            <div class="text-muted" t-esc="plan.name"></div>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <strong>Souscription:</strong>
+                                            <div class="text-muted" t-esc="subscription.subscription_id"></div>
+                                        </div>
+
+                                        <hr/>
+
+                                        <div class="mb-0">
+                                            <h4 class="text-center mb-0">
+                                                <strong>Prix mensuel:</strong>
+                                            </h4>
+                                            <h2 class="text-center text-success mb-1" t-esc="'{:.2f}€'.format(amount)"></h2>
+                                            <p class="text-center text-muted small mb-0">Facturation mensuelle</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="card border-0 bg-light">
+                                    <div class="card-body">
+                                        <h6 class="mb-2">
+                                            <i class="fa fa-shield"></i> Paiement sécurisé
+                                        </h6>
+                                        <p class="small text-muted mb-0">
+                                            Toutes les transactions sont sécurisées et cryptées.
+                                            Vos informations bancaires sont protégées.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Right Column: Payment Form -->
+                            <div class="col-md-7">
+                                <div class="card border-0 shadow-lg">
+                                    <div class="card-header bg-primary text-white">
+                                        <h5 class="mb-0">
+                                            <i class="fa fa-credit-card"></i> Choisir un moyen de paiement
+                                        </h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <!-- Odoo Payment Form -->
+                                        <t t-call="payment.form">
+                                            <t t-set="mode" t-value="'payment'"/>
+                                            <t t-set="reference_prefix" t-value="reference_prefix"/>
+                                            <t t-set="amount" t-value="amount"/>
+                                            <t t-set="currency" t-value="currency"/>
+                                            <t t-set="partner_id" t-value="partner_id"/>
+                                            <t t-set="providers_sudo" t-value="providers_sudo"/>
+                                            <t t-set="payment_methods_sudo" t-value="payment_methods_sudo"/>
+                                            <t t-set="tokens_sudo" t-value="tokens_sudo"/>
+                                            <t t-set="transaction_route" t-value="transaction_route"/>
+                                            <t t-set="landing_route" t-value="landing_route"/>
+                                            <t t-set="submit_button_label" t-value="'Payer maintenant'"/>
+                                        </t>
+                                    </div>
+                                </div>
+
+                                <div class="text-center mt-4">
+                                    <a href="/onedesk/subscription" class="btn btn-link">
+                                        <i class="fa fa-arrow-left"></i> Retour aux plans
+                                    </a>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
