@@ -205,7 +205,7 @@
         <field name="name">Subscription Confirmation - Client</field>
         <field name="model_id" ref="onedesk_core.model_onedesk_subscription"/>
         <field name="subject">Bienvenue sur OneDesk - Votre souscription a été enregistrée</field>
-        <field name="email_from">${(object.company_id.email or user.email or 'noreply@example.com')|safe}</field>
+        <field name="email_from">{{ (object.company_id.email or user.email or 'noreply@example.com') }}</field>
         <field name="auto_delete">True</field>
         <field name="body_html"><![CDATA[
             <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
@@ -286,7 +286,7 @@
         <field name="name">Subscription Notification - Admin</field>
         <field name="model_id" ref="onedesk_core.model_onedesk_subscription"/>
         <field name="subject">🔔 Nouvelle souscription OneDesk - Action requise</field>
-        <field name="email_from">${(object.company_id.email or user.email or 'noreply@example.com')|safe}</field>
+        <field name="email_from">{{ (object.company_id.email or user.email or 'noreply@example.com') }}</field>
         <field name="auto_delete">True</field>
         <field name="body_html"><![CDATA[
             <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
