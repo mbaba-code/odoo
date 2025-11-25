@@ -147,6 +147,7 @@ class OnedeskoSubscription(models.Model):
     # Status
     state = fields.Selection([
         ('draft', 'Brouillon'),
+        ('pending_payment', '💳 En attente de paiement'),
         ('active', 'Actif'),
         ('suspended', 'Suspendu'),
         ('cancelled', 'Annulé'),
@@ -198,6 +199,17 @@ class OnedeskoSubscription(models.Model):
 
     # Activity
     last_invoice_date = fields.Date(string="Dernière facture")
+
+    # Payment (NEW - for subscription payment flow)
+    payment_amount = fields.Float(
+        string="Montant du paiement",
+        help="Montant total à payer pour activer la souscription",
+        default=0.0
+    )
+    payment_url = fields.Char(
+        string="Lien de paiement",
+        help="URL de paiement générée pour la souscription"
+    )
     next_invoice_date = fields.Date(string="Prochaine facture", compute='_compute_next_invoice_date')
 
     # Usage

@@ -52,6 +52,7 @@ class OnedeskoClient(models.Model):
     # Status
     state = fields.Selection([
         ('pending_setup', 'En attente de configuration'),
+        ('pending_payment', '💳 En attente de paiement'),
         ('active', 'Actif'),
         ('suspended', 'Suspendu'),
         ('cancelled', 'Annulé'),

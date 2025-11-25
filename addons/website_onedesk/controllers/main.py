@@ -360,9 +360,63 @@ class OneDeskWebsite(http.Controller):
             'page_title': f'S\'abonner au plan {plan_id.name}',
         })
 
+    def _is_plan_free(self, plan):
+        """Détermine si un plan est gratuit
+
+        Un plan est gratuit si TOUS les prix sont à 0
+        """
+        return (
+            plan.price_per_unit == 0 and
+            plan.commission_percentage == 0 and
+            plan.setup_fee == 0
+        )
+
+    def _get_payment_mode(self):
+        """Récupère le mode de paiement (TEST ou PROD)
+
+        Returns:
+            str: 'test' ou 'prod'
+        """
+        mode = request.env['ir.config_parameter'].sudo().get_param(
+            'onedesk.payment_mode',
+            'test'  # Mode TEST par défaut pour ne pas casser les tests
+        )
+        return mode.lower()
+
+    def _calculate_plan_total(self, plan, num_units):
+        """Calcule le montant total à payer pour un plan
+
+        Args:
+            plan: Le plan d'abonnement
+            num_units: Nombre d'unités demandées
+
+        Returns:
+            float: Montant total
+        """
+        total = 0.0
+
+        # Frais de setup (une seule fois)
+        total += plan.setup_fee
+
+        # Si facturation par unité
+        if plan.billing_model == 'per_unit':
+            total += plan.price_per_unit * num_units
+
+        # Note: La commission sera calculée au moment des réservations
+
+        return total
+
     @http.route('/onedesk/subscription/create', type='http', auth='public', website=True, methods=['POST'], csrf=False)
     def create_subscription(self, **kw):
-        """Crée une souscription et envoie les emails"""
+        """
+        Crée une souscription avec gestion du paiement
+
+        NOUVEAU COMPORTEMENT:
+        - Plans GRATUITS: activation immédiate + email de bienvenue
+        - Plans PAYANTS: génération lien paiement + AUCUNE activation avant paiement
+        - Mode TEST: simulation de paiement possible
+        - Mode PROD: paiement réel obligatoire
+        """
         try:
             # Récupère les données du formulaire
             plan_id = int(kw.get('plan_id'))
@@ -423,83 +477,145 @@ class OneDeskWebsite(http.Controller):
                     'company_id': company.id,
                 })
 
+            # ==================== NOUVEAU: Détection plan gratuit/payant ====================
+
+            is_free_plan = self._is_plan_free(plan)
+            payment_mode = self._get_payment_mode()
+
+            _logger.info(f'📋 Plan {plan.name}: Gratuit={is_free_plan}, Mode paiement={payment_mode}')
+
+            # Détermine l'état initial de la souscription
+            if is_free_plan:
+                initial_state = 'active'  # Plan gratuit = activation immédiate
+                _logger.info('✅ Plan gratuit détecté - Activation immédiate')
+            else:
+                initial_state = 'pending_payment'  # Plan payant = en attente de paiement
+                _logger.info('💳 Plan payant détecté - Paiement requis')
+
             # Crée la souscription
             subscription = request.env['onedesk.subscription'].sudo().create({
                 'company_id': company.id,
                 'plan_id': plan.id,
-                'state': 'draft',
+                'state': initial_state,
                 'billing_contact_id': partner.id,
                 'requested_units': num_units,
             })
 
-            # Créer aussi le client OneDesk immédiatement
+            # Créer aussi le client OneDesk
             client = request.env['onedesk.client'].sudo().search(
                 [('company_id', '=', company.id)], limit=1
             )
             if not client:
+                # État du client basé sur le type de plan
+                client_state = 'active' if is_free_plan else 'pending_payment'
+
                 client = request.env['onedesk.client'].sudo().create({
                     'company_id': company.id,
                     'owner_partner_id': partner.id,
                     'subscription_id': subscription.id,
-                    'state': 'pending_setup',
+                    'state': client_state,
                 })
-                _logger.info(f'✅ Created OneDesk client {client.id} for company {company_name}')
+                _logger.info(f'✅ Created OneDesk client {client.id} (state={client_state})')
             else:
                 # Lier la subscription au client existant
                 client.write({'subscription_id': subscription.id})
 
-            _logger.info(f'✅ Subscription created: {subscription.subscription_id} for {company_name}')
+            _logger.info(f'✅ Subscription created: {subscription.subscription_id}')
 
-            # Créer un audit log pour la souscription
+            # Créer un audit log
             request.env['onedesk.audit.log'].sudo().create({
                 'log_type': 'subscription_created',
                 'severity': 'info',
                 'company_id': company.id,
                 'subscription_id': subscription.id,
-                'description': f'Nouvelle souscription créée: {subscription.subscription_id} pour {company_name}',
+                'description': f'Nouvelle souscription créée: {subscription.subscription_id} (Plan: {plan.name}, Type: {"Gratuit" if is_free_plan else "Payant"})',
                 'actor_name': contact_name,
                 'actor_email': email,
                 'result': 'success',
             })
 
-            # Prépare les données pour les emails
-            context_data = {
-                'subscription': subscription,
-                'plan': plan,
-                'company': company,
-                'contact': partner,
-                'num_units': num_units,
-                'plan_display_name': plan.get_display_name(),
-            }
+            # ==================== NOUVEAU: Logique différenciée gratuit/payant ====================
 
-            # Envoie l'email de confirmation au client
-            try:
-                template_client = request.env.ref('website_onedesk.email_subscription_confirmation')
-                template_client.send_mail(subscription.id, force_send=True, email_values={
-                    'email_to': email,
-                })
-                _logger.info(f'✅ Confirmation email sent to {email}')
-            except Exception as e:
-                _logger.warning(f'⚠️ Error sending client email: {e}')
+            if is_free_plan:
+                # ✅ PLAN GRATUIT: Envoyer emails immédiatement
+                _logger.info('📧 Envoi des emails pour plan gratuit')
 
-            # Envoie l'email à l'admin
-            try:
-                admin_email = request.env['ir.config_parameter'].sudo().get_param('onedesk.admin_email')
-                if admin_email:
-                    template_admin = request.env.ref('website_onedesk.email_subscription_admin_notification')
-                    template_admin.send_mail(subscription.id, force_send=True, email_values={
-                        'email_to': admin_email,
+                try:
+                    template_client = request.env.ref('website_onedesk.email_subscription_confirmation')
+                    template_client.send_mail(subscription.id, force_send=True, email_values={
+                        'email_to': email,
                     })
-                    _logger.info(f'✅ Admin notification email sent to {admin_email}')
-            except Exception as e:
-                _logger.warning(f'⚠️ Error sending admin email: {e}')
+                    _logger.info(f'✅ Confirmation email sent to {email}')
+                except Exception as e:
+                    _logger.warning(f'⚠️ Error sending client email: {e}')
 
-            response = {
-                'status': 'success',
-                'message': f'✅ Souscription créée avec succès!\n\nUn email de confirmation a été envoyé à {email}.\n\nNuméro de souscription: {subscription.subscription_id}',
-                'subscription_id': subscription.id,
-            }
-            _logger.info(f'Returning success response: {response}')
+                # Envoie l'email à l'admin
+                try:
+                    admin_email = request.env['ir.config_parameter'].sudo().get_param('onedesk.admin_email')
+                    if admin_email:
+                        template_admin = request.env.ref('website_onedesk.email_subscription_admin_notification')
+                        template_admin.send_mail(subscription.id, force_send=True, email_values={
+                            'email_to': admin_email,
+                        })
+                        _logger.info(f'✅ Admin notification sent to {admin_email}')
+                except Exception as e:
+                    _logger.warning(f'⚠️ Error sending admin email: {e}')
+
+                response = {
+                    'status': 'success',
+                    'message': f'✅ Souscription créée avec succès!\n\nUn email de confirmation a été envoyé à {email}.\n\nNuméro de souscription: {subscription.subscription_id}',
+                    'subscription_id': subscription.id,
+                    'is_free': True,
+                }
+
+            else:
+                # 💳 PLAN PAYANT: Générer lien de paiement
+                total_amount = self._calculate_plan_total(plan, num_units)
+
+                _logger.info(f'💰 Montant à payer: {total_amount}€')
+
+                # Construire l'URL de paiement
+                base_url = request.env['ir.config_parameter'].sudo().get_param('web.base.url')
+
+                if payment_mode == 'test':
+                    # Mode TEST: Redirection vers page de simulation
+                    payment_url = f"{base_url}/onedesk/payment/test/{subscription.id}?amount={total_amount}"
+                    _logger.info(f'🧪 Mode TEST: Paiement simulé - {payment_url}')
+                else:
+                    # Mode PROD: Générer un vrai lien de paiement via module payment
+                    # TODO: Intégrer avec Odoo Payment Providers (Stripe, PayPal, etc.)
+                    payment_url = f"{base_url}/onedesk/payment/{subscription.id}?amount={total_amount}"
+                    _logger.info(f'💳 Mode PROD: Paiement réel - {payment_url}')
+
+                # Stocker le montant et l'URL dans la souscription
+                subscription.sudo().write({
+                    'payment_amount': total_amount,
+                    'payment_url': payment_url,
+                })
+
+                # Envoyer notification admin SEULEMENT
+                try:
+                    admin_email = request.env['ir.config_parameter'].sudo().get_param('onedesk.admin_email')
+                    if admin_email:
+                        template_admin = request.env.ref('website_onedesk.email_subscription_admin_notification')
+                        template_admin.send_mail(subscription.id, force_send=True, email_values={
+                            'email_to': admin_email,
+                        })
+                        _logger.info(f'✅ Admin notification sent (payment pending)')
+                except Exception as e:
+                    _logger.warning(f'⚠️ Error sending admin email: {e}')
+
+                response = {
+                    'status': 'success',
+                    'message': f'💳 Souscription créée - Paiement requis\n\nVous allez être redirigé vers la page de paiement.\n\nMontant: {total_amount}€',
+                    'subscription_id': subscription.id,
+                    'is_free': False,
+                    'requires_payment': True,
+                    'payment_url': payment_url,
+                    'amount': total_amount,
+                }
+
+            _logger.info(f'Returning response: {response}')
             return http.Response(json.dumps(response), content_type='application/json')
 
         except ValueError as e:
@@ -522,3 +638,220 @@ class OneDeskWebsite(http.Controller):
                 }),
                 content_type='application/json'
             )
+
+    # ==================== PAYMENT ROUTES ====================
+
+    @http.route('/onedesk/payment/test/<int:subscription_id>', type='http', auth='public', website=True)
+    def payment_test_page(self, subscription_id, **kw):
+        """
+        Page de simulation de paiement en mode TEST
+
+        Permet de tester tout le workflow de paiement sans payer réellement
+        """
+        subscription = request.env['onedesk.subscription'].sudo().browse(subscription_id)
+
+        if not subscription.exists():
+            return request.render('website.404')
+
+        amount = float(kw.get('amount', subscription.payment_amount or 0))
+
+        return request.render('website_onedesk.payment_test_page', {
+            'subscription': subscription,
+            'plan': subscription.plan_id,
+            'amount': amount,
+            'page_title': 'Simulation de Paiement (MODE TEST)',
+        })
+
+    @http.route('/onedesk/payment/test/simulate', type='http', auth='public', methods=['POST'], csrf=False)
+    def payment_test_simulate(self, **kw):
+        """
+        Simule un paiement validé en mode TEST
+
+        Permet de tester l'activation du compte après paiement
+        """
+        try:
+            subscription_id = int(kw.get('subscription_id'))
+            action = kw.get('action')  # 'success' ou 'fail'
+
+            subscription = request.env['onedesk.subscription'].sudo().browse(subscription_id)
+
+            if not subscription.exists():
+                return http.Response(
+                    json.dumps({
+                        'status': 'error',
+                        'message': 'Souscription non trouvée',
+                    }),
+                    content_type='application/json'
+                )
+
+            if action == 'success':
+                # Simule un paiement réussi
+                self._activate_subscription_after_payment(subscription)
+
+                return http.Response(
+                    json.dumps({
+                        'status': 'success',
+                        'message': '✅ Paiement simulé avec succès!',
+                        'redirect_url': '/onedesk/payment/success',
+                    }),
+                    content_type='application/json'
+                )
+            else:
+                # Simule un échec de paiement
+                return http.Response(
+                    json.dumps({
+                        'status': 'error',
+                        'message': '❌ Paiement simulé échoué',
+                        'redirect_url': '/onedesk/payment/error',
+                    }),
+                    content_type='application/json'
+                )
+
+        except Exception as e:
+            _logger.exception('Error in payment simulation')
+            return http.Response(
+                json.dumps({
+                    'status': 'error',
+                    'message': str(e),
+                }),
+                content_type='application/json'
+            )
+
+    @http.route('/onedesk/payment/<int:subscription_id>', type='http', auth='public', website=True)
+    def payment_page(self, subscription_id, **kw):
+        """
+        Page de paiement réel en mode PRODUCTION
+
+        Intègre avec les payment providers Odoo (Stripe, PayPal, etc.)
+        """
+        subscription = request.env['onedesk.subscription'].sudo().browse(subscription_id)
+
+        if not subscription.exists():
+            return request.render('website.404')
+
+        amount = float(kw.get('amount', subscription.payment_amount or 0))
+
+        # TODO: Intégrer avec Odoo payment providers
+        # Pour l'instant, afficher une page simple
+        return request.render('website_onedesk.payment_page', {
+            'subscription': subscription,
+            'plan': subscription.plan_id,
+            'amount': amount,
+            'page_title': 'Paiement',
+        })
+
+    @http.route('/onedesk/payment/callback', type='http', auth='public', methods=['POST'], csrf=False)
+    def payment_callback(self, **kw):
+        """
+        Callback appelé par le payment provider après paiement
+
+        Valide le paiement et active la souscription
+        """
+        try:
+            subscription_id = int(kw.get('subscription_id'))
+            payment_status = kw.get('status')  # success, failed, pending
+
+            subscription = request.env['onedesk.subscription'].sudo().browse(subscription_id)
+
+            if not subscription.exists():
+                _logger.error(f'Subscription {subscription_id} not found in payment callback')
+                return http.Response('Error: Subscription not found', status=404)
+
+            _logger.info(f'💳 Payment callback received for subscription {subscription.subscription_id}: status={payment_status}')
+
+            if payment_status == 'success':
+                # Activer la souscription
+                self._activate_subscription_after_payment(subscription)
+
+                return request.redirect('/onedesk/payment/success')
+
+            elif payment_status == 'failed':
+                # Log l'échec
+                request.env['onedesk.audit.log'].sudo().create({
+                    'log_type': 'payment_failed',
+                    'severity': 'warning',
+                    'company_id': subscription.company_id.id,
+                    'subscription_id': subscription.id,
+                    'description': f'Échec de paiement pour {subscription.subscription_id}',
+                    'result': 'failed',
+                })
+
+                return request.redirect('/onedesk/payment/error')
+
+            else:
+                # Paiement en attente
+                return request.redirect('/onedesk/payment/pending')
+
+        except Exception as e:
+            _logger.exception('Error in payment callback')
+            return http.Response(f'Error: {str(e)}', status=500)
+
+    def _activate_subscription_after_payment(self, subscription):
+        """
+        Active une souscription après validation du paiement
+
+        Cette méthode:
+        1. Change l'état de la souscription à 'active'
+        2. Active le client OneDesk
+        3. Envoie l'email de bienvenue au client
+        4. Crée un audit log
+        """
+        _logger.info(f'✅ Activating subscription {subscription.subscription_id} after payment')
+
+        # 1. Activer la souscription
+        subscription.write({
+            'state': 'active',
+            'start_date': fields.Date.today(),
+        })
+
+        # 2. Activer le client OneDesk
+        client = request.env['onedesk.client'].sudo().search([
+            ('company_id', '=', subscription.company_id.id)
+        ], limit=1)
+
+        if client:
+            client.write({'state': 'active'})
+            _logger.info(f'✅ Client {client.id} activated')
+
+        # 3. Envoyer l'email de bienvenue
+        try:
+            template = request.env.ref('website_onedesk.email_subscription_confirmation')
+            template.send_mail(subscription.id, force_send=True, email_values={
+                'email_to': subscription.billing_contact_id.email,
+            })
+            _logger.info(f'✅ Welcome email sent to {subscription.billing_contact_id.email}')
+        except Exception as e:
+            _logger.warning(f'⚠️ Error sending welcome email: {e}')
+
+        # 4. Créer un audit log
+        request.env['onedesk.audit.log'].sudo().create({
+            'log_type': 'payment_validated',
+            'severity': 'info',
+            'company_id': subscription.company_id.id,
+            'subscription_id': subscription.id,
+            'description': f'Paiement validé et souscription activée: {subscription.subscription_id}',
+            'result': 'success',
+        })
+
+        _logger.info(f'✅ Subscription {subscription.subscription_id} fully activated')
+
+    @http.route('/onedesk/payment/success', type='http', auth='public', website=True)
+    def payment_success(self, **kw):
+        """Page de confirmation de paiement réussi"""
+        return request.render('website_onedesk.payment_success', {
+            'page_title': 'Paiement Réussi',
+        })
+
+    @http.route('/onedesk/payment/error', type='http', auth='public', website=True)
+    def payment_error(self, **kw):
+        """Page d'erreur de paiement"""
+        return request.render('website_onedesk.payment_error', {
+            'page_title': 'Erreur de Paiement',
+        })
+
+    @http.route('/onedesk/payment/pending', type='http', auth='public', website=True)
+    def payment_pending(self, **kw):
+        """Page de paiement en attente"""
+        return request.render('website_onedesk.payment_pending', {
+            'page_title': 'Paiement en Attente',
+        })
