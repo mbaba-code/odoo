@@ -201,7 +201,7 @@
     <!-- ========================= -->
 
     <!-- Email de confirmation au client -->
-    <record id="email_subscription_confirmation" model="mail.template">
+    <record id="email_subscription_confirmation" model="mail.template" forcecreate="True">
         <field name="name">Subscription Confirmation - Client</field>
         <field name="model_id" ref="onedesk_core.model_onedesk_subscription"/>
         <field name="subject">Bienvenue sur OneDesk - Votre souscription a été enregistrée</field>
@@ -282,7 +282,7 @@
     </record>
 
     <!-- Email de notification à l&apos;admin -->
-    <record id="email_subscription_admin_notification" model="mail.template">
+    <record id="email_subscription_admin_notification" model="mail.template" forcecreate="True">
         <field name="name">Subscription Notification - Admin</field>
         <field name="model_id" ref="onedesk_core.model_onedesk_subscription"/>
         <field name="subject">🔔 Nouvelle souscription OneDesk - Action requise</field>

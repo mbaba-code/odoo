@@ -32,6 +32,8 @@ class OnedeskoAuditLog(models.Model):
         ('system_config', 'Configuration système'),
         ('security_event', 'Événement de sécurité'),
         ('payment_processed', 'Paiement traité'),
+        ('payment_validated', 'Paiement validé'),
+        ('payment_failed', 'Paiement échoué'),
         ('invoice_generated', 'Facture générée'),
         ('backup_completed', 'Sauvegarde complétée'),
         ('backup_restored', 'Sauvegarde restaurée'),
