@@ -159,7 +159,15 @@
 
                         if (response.status === &apos;success&apos;) {
                             alert(response.message);
-                            window.location.href = &apos;/onedesk/subscription&apos;;
+
+                            // ✅ CORRECTION: Rediriger vers page de paiement si requis
+                            if (response.requires_payment &amp;&amp; response.payment_url) {
+                                console.log(&apos;💳 Redirecting to payment:&apos;, response.payment_url);
+                                window.location.href = response.payment_url;
+                            } else {
+                                // Plan gratuit - rediriger vers liste des plans
+                                window.location.href = &apos;/onedesk/subscription&apos;;
+                            }
                         } else {
                             alert(&apos;❌ &apos; + (response.message || &apos;Une erreur est survenue&apos;));
                         }
@@ -229,7 +237,9 @@
                         </tr>
                         <tr>
                             <td style="padding: 10px; border: 1px solid #ddd;"><strong>Date de début</strong></td>
-                            <td style="padding: 10px; border: 1px solid #ddd;">${object.start_date.strftime('%d/%m/%Y')}</td>
+                            <td style="padding: 10px; border: 1px solid #ddd;">
+                                ${object.start_date.strftime('%d/%m/%Y') if object.start_date else 'Sera définie après validation du paiement'}
+                            </td>
                         </tr>
                     </table>
 
@@ -317,7 +327,9 @@
                         </tr>
                         <tr>
                             <td style="padding: 10px; border: 1px solid #ddd;"><strong>Date souscription</strong></td>
-                            <td style="padding: 10px; border: 1px solid #ddd;">${object.start_date.strftime(&apos;%d/%m/%Y à %H:%M&apos;)}</td>
+                            <td style="padding: 10px; border: 1px solid #ddd;">
+                                ${object.start_date.strftime(&apos;%d/%m/%Y à %H:%M&apos;) if object.start_date else object.create_date.strftime(&apos;%d/%m/%Y à %H:%M&apos;)}
+                            </td>
                         </tr>
                     </table>
 
