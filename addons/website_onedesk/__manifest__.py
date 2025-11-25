@@ -20,6 +20,7 @@
     'assets': {
         'web.assets_frontend': [
             'website_onedesk/static/css/website_onedesk.css',
+            'website_onedesk/static/css/payment.css',
         ],
     },
     'installable': True,
