@@ -299,20 +299,7 @@
             (0, 0, {'view_mode': 'kanban', 'view_id': ref('view_document_kanban_store')}),
             (0, 0, {'view_mode': 'form', 'view_id': ref('view_document_form_store')}),
         ]"/>
-        <field name="domain">[('document_category', '!=', False)]</field>
-    </record>
-
-    <!-- ========== ACTION: Stockage (Read-only view) ========== -->
-    <record id="action_document_storage" model="ir.actions.act_window">
-        <field name="name">📦 Stockage</field>
-        <field name="res_model">onedesk.document</field>
-        <field name="view_mode">list,kanban,form</field>
-        <field name="view_ids" eval="[(5, 0, 0),
-            (0, 0, {'view_mode': 'list', 'view_id': ref('view_document_list_store')}),
-            (0, 0, {'view_mode': 'kanban', 'view_id': ref('view_document_kanban_store')}),
-            (0, 0, {'view_mode': 'form', 'view_id': ref('view_document_form_store')}),
-        ]"/>
-        <field name="domain">[('document_category', '!=', False)]</field>
+        <field name="domain">[('document_category', 'in', ['contract', 'invoice', 'inspection', 'report', 'correspondence', 'compliance', 'financial', 'legal', 'technical', 'other'])]</field>
     </record>
 
     <!-- ========== MENU: Parent ========== -->
@@ -326,10 +313,6 @@
     <!-- ========== MENU: Stocker Document ========== -->
     <menuitem id="menu_document_store" name="📦 Stocker Document" parent="menu_document"
               action="onedesk_core.action_document_store" sequence="2"/>
-
-    <!-- ========== MENU: Stockage ========== -->
-    <menuitem id="menu_document_storage" name="📦 Stockage" parent="menu_document"
-              action="onedesk_core.action_document_storage" sequence="3"/>
 
     <!-- ========== TAG FORM VIEW ========== -->
     <record id="view_document_tag_form" model="ir.ui.view">
