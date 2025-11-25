@@ -200,8 +200,8 @@
     <!-- EMAIL TEMPLATES -->
     <!-- ========================= -->
 
-    <!-- Mail template are declared in a NOUPDATE block so users can freely customize/delete them -->
-    <data noupdate="1">
+    <!-- Mail templates - noupdate removed temporarily to force update of existing templates -->
+    <data>
         <!-- Email de confirmation au client -->
         <record id="email_subscription_confirmation" model="mail.template">
             <field name="name">Subscription Confirmation - Client</field>
