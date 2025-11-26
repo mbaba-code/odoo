@@ -1,15 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
+    <data>
     <!-- EMAIL TEMPLATES FOR ONEDESK -->
 
     <!-- Welcome Email Template -->
     <record id="email_template_welcome" model="mail.template">
         <field name="name">OneDesk - Email de bienvenue</field>
-        <field name="email_from">${object.company_id.email or 'noreply@onedesk.io'}</field>
-        <field name="email_to">${object.email}</field>
+        <field name="email_from" eval="(object.company_id.email or 'noreply@onedesk.io')"/>
+        <field name="email_to" eval="object.email"/>
         <field name="subject">Bienvenue sur OneDesk! 🎉</field>
         <field name="model_id" ref="base.model_res_users"/>
-        <field name="body_html"><![CDATA[
+        <field name="body_html" type="html">
 <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #f5f5f5; padding: 20px;">
     <div style="background-color: white; border-radius: 8px; padding: 30px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
 
@@ -21,7 +22,7 @@
 
         <!-- Main Content -->
         <div style="margin-bottom: 30px;">
-            <p style="color: #333; font-size: 16px;">Bonjour <strong>${object.name}</strong>,</p>
+            <p style="color: #333; font-size: 16px;">Bonjour <strong><t t-out="object.name or ''">Utilisateur</t></strong>,</p>
 
             <p style="color: #666; line-height: 1.6;">
                 Bienvenue sur <strong>OneDesk</strong>! Nous sommes ravis de vous avoir comme client.
@@ -31,13 +32,14 @@
             <!-- Login Info -->
             <div style="background-color: #f9f9f9; border-left: 4px solid #1f77d2; padding: 15px; margin: 20px 0;">
                 <p style="margin: 0; color: #333;"><strong>Informations de connexion:</strong></p>
-                <p style="margin: 5px 0; color: #666;">Email: <code style="background-color: #f0f0f0; padding: 2px 6px;">${object.email}</code></p>
+                <p style="margin: 5px 0; color: #666;">Email: <code style="background-color: #f0f0f0; padding: 2px 6px;"><t t-out="object.email or ''">user@example.com</t></code></p>
                 <p style="margin: 5px 0; color: #666;">Vous avez défini votre mot de passe lors de l'inscription</p>
             </div>
 
             <!-- CTA Button -->
             <div style="text-align: center; margin: 30px 0;">
-                <a href="${env['ir.config_parameter'].sudo().get_param('web.base.url')}/web/login?login=${object.login}"
+                <t t-set="login_url" t-value="'%s/web/login?login=%s' % (env['ir.config_parameter'].sudo().get_param('web.base.url'), object.login)"/>
+                <a t-att-href="login_url"
                    style="display: inline-block; background-color: #1f77d2; color: white; padding: 12px 30px; border-radius: 5px; text-decoration: none; font-weight: bold;">
                     Se connecter à mon compte
                 </a>
@@ -56,7 +58,7 @@
             <div style="background-color: #f0f8ff; border-radius: 5px; padding: 15px; margin-top: 30px;">
                 <p style="margin: 0; color: #1f77d2; font-weight: bold;">Besoin d'aide?</p>
                 <p style="margin: 5px 0; color: #666;">
-                    Consultez notre <a href="${env['ir.config_parameter'].sudo().get_param('web.base.url')}/help" style="color: #1f77d2; text-decoration: none;">centre d'aide</a>
+                    Consultez notre <a t-att-href="'%s/help' % env['ir.config_parameter'].sudo().get_param('web.base.url')" style="color: #1f77d2; text-decoration: none;">centre d'aide</a>
                     ou contactez notre équipe support à <a href="mailto:support@onedesk.io" style="color: #1f77d2; text-decoration: none;">support@onedesk.io</a>
                 </p>
             </div>
@@ -69,39 +71,39 @@
         </div>
     </div>
 </div>
-        ]]></field>
+        </field>
     </record>
 
     <!-- Invoice Email Template -->
     <record id="email_template_invoice" model="mail.template">
         <field name="name">OneDesk - Facture</field>
-        <field name="email_from">${object.company_id.email or 'billing@onedesk.io'}</field>
-        <field name="email_to">${object.partner_id.email}</field>
-        <field name="subject">Facture OneDesk - ${object.name}</field>
+        <field name="email_from" eval="(object.company_id.email or 'billing@onedesk.io')"/>
+        <field name="email_to" eval="object.partner_id.email"/>
+        <field name="subject">Facture OneDesk - <t t-out="object.name or ''">INV-001</t></field>
         <field name="model_id" ref="account.model_account_move"/>
-        <field name="body_html"><![CDATA[
+        <field name="body_html" type="html">
 <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
     <p>Bonjour,</p>
     <p>Veuillez trouver ci-joint votre facture OneDesk.</p>
     <p>
-        <strong>Numéro:</strong> ${object.name}<br/>
-        <strong>Montant:</strong> ${object.amount_total} ${object.currency_id.symbol}<br/>
-        <strong>Date:</strong> ${object.invoice_date}
+        <strong>Numéro:</strong> <t t-out="object.name or ''">INV-001</t><br/>
+        <strong>Montant:</strong> <t t-out="object.amount_total or 0">0.00</t> <t t-out="object.currency_id.symbol or '€'">€</t><br/>
+        <strong>Date:</strong> <t t-out="object.invoice_date or ''">01/01/2024</t>
     </p>
     <p>Merci pour votre confiance!</p>
     <p>Équipe OneDesk</p>
 </div>
-        ]]></field>
+        </field>
     </record>
 
     <!-- Invitation Email Template -->
     <record id="email_template_invitation" model="mail.template">
         <field name="name">OneDesk - Invitation utilisateur</field>
-        <field name="email_from">${object.client_id.company_id.email or 'noreply@onedesk.io'}</field>
-        <field name="email_to">${object.email}</field>
-        <field name="subject">Invitation OneDesk - Rejoignez ${object.client_id.company_id.name}</field>
+        <field name="email_from" eval="(object.client_id.company_id.email or 'noreply@onedesk.io')"/>
+        <field name="email_to" eval="object.email"/>
+        <field name="subject">Invitation OneDesk - Rejoignez <t t-out="object.client_id.company_id.name or ''">Entreprise</t></field>
         <field name="model_id" ref="model_onedesk_client_invitation"/>
-        <field name="body_html"><![CDATA[
+        <field name="body_html" type="html">
 <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #f5f5f5; padding: 20px;">
     <div style="background-color: white; border-radius: 8px; padding: 30px;">
         <h2 style="color: #1f77d2;">Vous avez été invité!</h2>
@@ -109,20 +111,21 @@
         <p>Bonjour,</p>
 
         <p>
-            Vous avez été invité à rejoindre <strong>${object.client_id.company_id.name}</strong>
-            sur OneDesk en tant que <strong>${dict(object._fields['role'].selection).get(object.role)}</strong>.
+            Vous avez été invité à rejoindre <strong><t t-out="object.client_id.company_id.name or ''">Entreprise</t></strong>
+            sur OneDesk en tant que <strong><t t-out="dict(object._fields['role'].selection).get(object.role) or ''">Utilisateur</t></strong>.
         </p>
 
         <div style="background-color: #f9f9f9; border-left: 4px solid #1f77d2; padding: 15px; margin: 20px 0;">
             <p style="margin: 0;"><strong>Accepter l'invitation:</strong></p>
             <p style="margin-top: 10px;">
-                <a href="${env['ir.config_parameter'].sudo().get_param('web.base.url')}/onedesk/invite/accept/${object.invitation_token}"
+                <t t-set="invite_url" t-value="'%s/onedesk/invite/accept/%s' % (env['ir.config_parameter'].sudo().get_param('web.base.url'), object.invitation_token)"/>
+                <a t-att-href="invite_url"
                    style="display: inline-block; background-color: #1f77d2; color: white; padding: 10px 20px; border-radius: 5px; text-decoration: none; font-weight: bold;">
                     Accepter l'invitation
                 </a>
             </p>
             <p style="color: #999; font-size: 12px; margin-top: 10px;">
-                Ce lien expire le ${object.expires_date.strftime('%d/%m/%Y à %H:%M')}
+                Ce lien expire le <t t-out="object.expires_date.strftime('%d/%m/%Y à %H:%M') if object.expires_date else ''">31/12/2024 à 23:59</t>
             </p>
         </div>
 
@@ -131,35 +134,35 @@
         </p>
     </div>
 </div>
-        ]]></field>
+        </field>
     </record>
 
     <!-- Subscription Expiration Warning -->
     <record id="email_template_subscription_expiring" model="mail.template">
         <field name="name">OneDesk - Abonnement expire bientôt</field>
         <field name="email_from">billing@onedesk.io</field>
-        <field name="email_to">${object.company_id.onedesk_notification_email or object.company_id.partner_id.email}</field>
+        <field name="email_to" eval="(object.company_id.onedesk_notification_email or object.company_id.partner_id.email)"/>
         <field name="subject">Votre abonnement OneDesk expire bientôt</field>
         <field name="model_id" ref="model_onedesk_subscription"/>
-        <field name="body_html"><![CDATA[
+        <field name="body_html" type="html">
 <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
     <p>Bonjour,</p>
-    <p>Votre abonnement OneDesk expire le <strong>${object.end_date.strftime('%d/%m/%Y')}</strong>.</p>
+    <p>Votre abonnement OneDesk expire le <strong><t t-out="object.end_date.strftime('%d/%m/%Y') if object.end_date else ''">31/12/2024</t></strong>.</p>
     <p>Pour continuer à utiliser OneDesk sans interruption, veuillez renouveler votre abonnement.</p>
-    <p><a href="${env['ir.config_parameter'].sudo().get_param('web.base.url')}/onedesk/portal/account" style="color: #1f77d2;">Gérer mon abonnement</a></p>
+    <p><a t-att-href="'%s/onedesk/portal/account' % env['ir.config_parameter'].sudo().get_param('web.base.url')" style="color: #1f77d2;">Gérer mon abonnement</a></p>
     <p>Merci!</p>
 </div>
-        ]]></field>
+        </field>
     </record>
 
     <!-- Booking Confirmation Email Template -->
     <record id="email_template_booking_confirmation" model="mail.template">
         <field name="name">OneDesk - Confirmation de réservation</field>
-        <field name="email_from">${object.company_id.email or 'reservations@onedesk.io'}</field>
-        <field name="email_to">${object.guest_email}</field>
-        <field name="subject">Votre réservation est confirmée - ${object.property_id.name} 🎉</field>
+        <field name="email_from" eval="(object.company_id.email or 'reservations@onedesk.io')"/>
+        <field name="email_to" eval="object.guest_email"/>
+        <field name="subject">Votre réservation est confirmée - <t t-out="object.property_id.name or ''">Propriété</t> 🎉</field>
         <field name="model_id" ref="model_onedesk_reservation"/>
-        <field name="body_html"><![CDATA[
+        <field name="body_html" type="html">
 <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #f5f5f5; padding: 20px;">
     <div style="background-color: white; border-radius: 8px; padding: 30px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
 
@@ -176,38 +179,38 @@
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
                 <div>
                     <p style="margin: 0; color: #999; font-size: 12px;">PROPRIÉTÉ</p>
-                    <p style="margin: 5px 0; color: #333; font-weight: bold;">${object.property_id.name}</p>
+                    <p style="margin: 5px 0; color: #333; font-weight: bold;"><t t-out="object.property_id.name or ''">Propriété</t></p>
                 </div>
                 <div>
                     <p style="margin: 0; color: #999; font-size: 12px;">NUMÉRO DE RÉSERVATION</p>
-                    <p style="margin: 5px 0; color: #333; font-weight: bold;">${object.name}</p>
+                    <p style="margin: 5px 0; color: #333; font-weight: bold;"><t t-out="object.name or ''">RES-001</t></p>
                 </div>
             </div>
 
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
                 <div>
                     <p style="margin: 0; color: #999; font-size: 12px;">ARRIVÉE</p>
-                    <p style="margin: 5px 0; color: #333; font-weight: bold;">${object.check_in_date.strftime('%d/%m/%Y')}</p>
+                    <p style="margin: 5px 0; color: #333; font-weight: bold;"><t t-out="object.check_in_date.strftime('%d/%m/%Y') if object.check_in_date else ''">01/01/2024</t></p>
                 </div>
                 <div>
                     <p style="margin: 0; color: #999; font-size: 12px;">DÉPART</p>
-                    <p style="margin: 5px 0; color: #333; font-weight: bold;">${object.check_out_date.strftime('%d/%m/%Y')}</p>
+                    <p style="margin: 5px 0; color: #333; font-weight: bold;"><t t-out="object.check_out_date.strftime('%d/%m/%Y') if object.check_out_date else ''">07/01/2024</t></p>
                 </div>
             </div>
 
             <div style="border-top: 1px solid #ddd; padding-top: 15px;">
                 <p style="margin: 0; color: #999; font-size: 12px;">MONTANT TOTAL</p>
-                <p style="margin: 5px 0; color: #1f77d2; font-weight: bold; font-size: 18px;">${object.total_price} ${object.currency_id.symbol}</p>
+                <p style="margin: 5px 0; color: #1f77d2; font-weight: bold; font-size: 18px;"><t t-out="object.total_price or 0">0.00</t> <t t-out="object.currency_id.symbol or '€'">€</t></p>
             </div>
         </div>
 
         <!-- Guest Notes -->
-        % if object.guest_notes:
+        <t t-if="object.guest_notes">
         <div style="background-color: #f0f8ff; border-radius: 5px; padding: 15px; margin: 20px 0;">
             <p style="margin: 0; color: #333; font-weight: bold;">📝 Vos notes spéciales:</p>
-            <p style="margin: 10px 0; color: #666;">${object.guest_notes}</p>
+            <p style="margin: 10px 0; color: #666;"><t t-out="object.guest_notes or ''">Notes</t></p>
         </div>
-        % endif
+        </t>
 
         <!-- Check-in Info -->
         <div style="margin: 30px 0;">
@@ -225,7 +228,8 @@
 
         <!-- CTA Button -->
         <div style="text-align: center; margin: 30px 0;">
-            <a href="${env['ir.config_parameter'].sudo().get_param('web.base.url')}/onedesk/booking/${object.id}"
+            <t t-set="booking_url" t-value="'%s/onedesk/booking/%s' % (env['ir.config_parameter'].sudo().get_param('web.base.url'), object.id)"/>
+            <a t-att-href="booking_url"
                style="display: inline-block; background-color: #1f77d2; color: white; padding: 12px 30px; border-radius: 5px; text-decoration: none; font-weight: bold;">
                 Voir mes détails de réservation
             </a>
@@ -245,17 +249,17 @@
         </div>
     </div>
 </div>
-        ]]></field>
+        </field>
     </record>
 
     <!-- Task Assignment Email Template -->
     <record id="email_template_task_assigned" model="mail.template">
         <field name="name">OneDesk - Tâche assignée</field>
-        <field name="email_from">${object.property_id.company_id.email or 'tasks@onedesk.io'}</field>
-        <field name="email_to">${object.assigned_to_id.email}</field>
-        <field name="subject">📋 Nouvelle tâche: ${object.task_type} - ${object.property_id.name}</field>
+        <field name="email_from" eval="(object.property_id.company_id.email or 'tasks@onedesk.io')"/>
+        <field name="email_to" eval="object.assigned_to_id.email"/>
+        <field name="subject">📋 Nouvelle tâche: <t t-out="object.task_type or ''">Tâche</t> - <t t-out="object.property_id.name or ''">Propriété</t></field>
         <field name="model_id" ref="model_onedesk_task"/>
-        <field name="body_html"><![CDATA[
+        <field name="body_html" type="html">
 <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #f5f5f5; padding: 20px;">
     <div style="background-color: white; border-radius: 8px; padding: 30px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
 
@@ -267,15 +271,18 @@
 
         <!-- Task Type Badge -->
         <div style="text-align: center; margin-bottom: 20px;">
-            % if object.task_type == 'check_in':
+            <t t-if="object.task_type == 'check_in'">
                 <span style="display: inline-block; background-color: #d4edda; color: #155724; padding: 8px 15px; border-radius: 20px; font-weight: bold;">✅ CHECK-IN</span>
-            % elif object.task_type == 'check_out':
+            </t>
+            <t t-elif="object.task_type == 'check_out'">
                 <span style="display: inline-block; background-color: #fff3cd; color: #856404; padding: 8px 15px; border-radius: 20px; font-weight: bold;">🚪 CHECK-OUT</span>
-            % elif object.task_type == 'cleaning':
+            </t>
+            <t t-elif="object.task_type == 'cleaning'">
                 <span style="display: inline-block; background-color: #cfe2ff; color: #084298; padding: 8px 15px; border-radius: 20px; font-weight: bold;">🧹 NETTOYAGE</span>
-            % elif object.task_type == 'maintenance':
+            </t>
+            <t t-elif="object.task_type == 'maintenance'">
                 <span style="display: inline-block; background-color: #f8d7da; color: #721c24; padding: 8px 15px; border-radius: 20px; font-weight: bold;">🔧 MAINTENANCE</span>
-            % endif
+            </t>
         </div>
 
         <!-- Task Details -->
@@ -284,38 +291,39 @@
 
             <div style="margin-bottom: 15px;">
                 <p style="margin: 0; color: #999; font-size: 12px;">PROPRIÉTÉ</p>
-                <p style="margin: 5px 0; color: #333; font-weight: bold; font-size: 16px;">${object.property_id.name}</p>
+                <p style="margin: 5px 0; color: #333; font-weight: bold; font-size: 16px;"><t t-out="object.property_id.name or ''">Propriété</t></p>
             </div>
 
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
                 <div>
                     <p style="margin: 0; color: #999; font-size: 12px;">DATE PRÉVUE</p>
-                    <p style="margin: 5px 0; color: #333; font-weight: bold;">${object.scheduled_date.strftime('%d/%m/%Y %H:%M')}</p>
+                    <p style="margin: 5px 0; color: #333; font-weight: bold;"><t t-out="object.scheduled_date.strftime('%d/%m/%Y %H:%M') if object.scheduled_date else ''">01/01/2024 10:00</t></p>
                 </div>
                 <div>
                     <p style="margin: 0; color: #999; font-size: 12px;">DURÉE ESTIMÉE</p>
-                    <p style="margin: 5px 0; color: #333; font-weight: bold;">${object.estimated_hours}h</p>
+                    <p style="margin: 5px 0; color: #333; font-weight: bold;"><t t-out="object.estimated_hours or 0">0</t>h</p>
                 </div>
             </div>
 
-            % if object.description:
+            <t t-if="object.description">
             <div style="border-top: 1px solid #ddd; padding-top: 15px;">
                 <p style="margin: 0; color: #999; font-size: 12px;">DESCRIPTION</p>
-                <p style="margin: 10px 0; color: #333;">${object.description}</p>
+                <p style="margin: 10px 0; color: #333;"><t t-out="object.description or ''">Description</t></p>
             </div>
-            % endif
+            </t>
         </div>
 
         <!-- Priority Badge -->
-        % if object.priority in ('high', '2'):
+        <t t-if="object.priority in ('high', '2')">
         <div style="background-color: #f8d7da; border-left: 4px solid #f5c6cb; padding: 12px; margin: 15px 0; border-radius: 5px;">
             <p style="margin: 0; color: #721c24; font-weight: bold;">⚠️ Priorité haute - À traiter dès que possible!</p>
         </div>
-        % endif
+        </t>
 
         <!-- CTA Button -->
         <div style="text-align: center; margin: 30px 0;">
-            <a href="${env['ir.config_parameter'].sudo().get_param('web.base.url')}/onedesk/task/${object.id}"
+            <t t-set="task_url" t-value="'%s/onedesk/task/%s' % (env['ir.config_parameter'].sudo().get_param('web.base.url'), object.id)"/>
+            <a t-att-href="task_url"
                style="display: inline-block; background-color: #1f77d2; color: white; padding: 12px 30px; border-radius: 5px; text-decoration: none; font-weight: bold;">
                 Voir et mettre à jour la tâche
             </a>
@@ -337,17 +345,17 @@
         </div>
     </div>
 </div>
-        ]]></field>
+        </field>
     </record>
 
     <!-- Signature Request Email Template -->
     <record id="email_template_signature_request" model="mail.template">
         <field name="name">OneDesk - Demande de signature</field>
-        <field name="email_from">${object.company_id.email or 'documents@onedesk.io'}</field>
-        <field name="email_to">${object.email}</field>
-        <field name="subject">📄 Signature requise: ${object.document_id.name}</field>
+        <field name="email_from" eval="(object.company_id.email or 'documents@onedesk.io')"/>
+        <field name="email_to" eval="object.email"/>
+        <field name="subject">📄 Signature requise: <t t-out="object.document_id.name or ''">Document</t></field>
         <field name="model_id" ref="model_onedesk_document_signature"/>
-        <field name="body_html"><![CDATA[
+        <field name="body_html" type="html">
 <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #f5f5f5; padding: 20px;">
     <div style="background-color: white; border-radius: 8px; padding: 30px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
 
@@ -363,20 +371,20 @@
 
             <div style="margin-bottom: 15px;">
                 <p style="margin: 0; color: #999; font-size: 12px;">TITRE DU DOCUMENT</p>
-                <p style="margin: 5px 0; color: #333; font-weight: bold; font-size: 16px;">${object.document_id.name}</p>
+                <p style="margin: 5px 0; color: #333; font-weight: bold; font-size: 16px;"><t t-out="object.document_id.name or ''">Document</t></p>
             </div>
 
             <div style="margin-bottom: 15px;">
                 <p style="margin: 0; color: #999; font-size: 12px;">TYPE</p>
-                <p style="margin: 5px 0; color: #333;">${object.document_id.document_type or 'Contrat'}</p>
+                <p style="margin: 5px 0; color: #333;"><t t-out="object.document_id.document_type or ''">Contrat</t></p>
             </div>
 
-            % if object.document_id.notes:
+            <t t-if="object.document_id.notes">
             <div style="border-top: 1px solid #ddd; padding-top: 15px;">
                 <p style="margin: 0; color: #999; font-size: 12px;">REMARQUES</p>
-                <p style="margin: 10px 0; color: #666;">${object.document_id.notes}</p>
+                <p style="margin: 10px 0; color: #666;"><t t-out="object.document_id.notes or ''">Remarques</t></p>
             </div>
-            % endif
+            </t>
         </div>
 
         <!-- Important Info -->
@@ -389,7 +397,8 @@
 
         <!-- CTA Button -->
         <div style="text-align: center; margin: 30px 0;">
-            <a href="${env['ir.config_parameter'].sudo().get_param('web.base.url')}/onedesk/document/${object.document_id.id}/sign"
+            <t t-set="sign_url" t-value="'%s/onedesk/document/%s/sign' % (env['ir.config_parameter'].sudo().get_param('web.base.url'), object.document_id.id)"/>
+            <a t-att-href="sign_url"
                style="display: inline-block; background-color: #28a745; color: white; padding: 14px 35px; border-radius: 5px; text-decoration: none; font-weight: bold; font-size: 16px;">
                 ✍️ Signer le Document
             </a>
@@ -421,7 +430,7 @@
         </div>
     </div>
 </div>
-        ]]></field>
+        </field>
     </record>
-
+    </data>
 </odoo>
