@@ -158,7 +158,7 @@
         <field name="name">OneDesk - Confirmation de réservation</field>
         <field name="email_from">{{ (object.company_id.email or 'reservations@onedesk.io') }}</field>
         <field name="email_to">{{ (object.partner_id.email or '') }}</field>
-        <field name="subject">Votre réservation est confirmée - {{ object.property_id.name or 'Propriété' }} 🎉</field>
+        <field name="subject">Votre réservation est confirmée - {{ object.unit_id.property_id.name or 'Propriété' }} 🎉</field>
         <field name="model_id" ref="model_onedesk_reservation"/>
         <field name="body_html" type="html">
 <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #f5f5f5; padding: 20px;">
@@ -176,8 +176,8 @@
 
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
                 <div>
-                    <p style="margin: 0; color: #999; font-size: 12px;">PROPRIÉTÉ</p>
-                    <p style="margin: 5px 0; color: #333; font-weight: bold;"><t t-out="object.property_id.name or ''">Propriété</t></p>
+                    <p style="margin: 0; color: #999; font-size: 12px;">UNITÉ</p>
+                    <p style="margin: 5px 0; color: #333; font-weight: bold;"><t t-out="object.unit_id.name or ''">Unité</t></p>
                 </div>
                 <div>
                     <p style="margin: 0; color: #999; font-size: 12px;">NUMÉRO DE RÉSERVATION</p>
@@ -188,17 +188,17 @@
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
                 <div>
                     <p style="margin: 0; color: #999; font-size: 12px;">ARRIVÉE</p>
-                    <p style="margin: 5px 0; color: #333; font-weight: bold;"><t t-out="object.check_in_date.strftime('%d/%m/%Y') if object.check_in_date else ''">01/01/2024</t></p>
+                    <p style="margin: 5px 0; color: #333; font-weight: bold;"><t t-out="object.start_date.strftime('%d/%m/%Y') if object.start_date else ''">01/01/2024</t></p>
                 </div>
                 <div>
                     <p style="margin: 0; color: #999; font-size: 12px;">DÉPART</p>
-                    <p style="margin: 5px 0; color: #333; font-weight: bold;"><t t-out="object.check_out_date.strftime('%d/%m/%Y') if object.check_out_date else ''">07/01/2024</t></p>
+                    <p style="margin: 5px 0; color: #333; font-weight: bold;"><t t-out="object.end_date.strftime('%d/%m/%Y') if object.end_date else ''">07/01/2024</t></p>
                 </div>
             </div>
 
             <div style="border-top: 1px solid #ddd; padding-top: 15px;">
                 <p style="margin: 0; color: #999; font-size: 12px;">MONTANT TOTAL</p>
-                <p style="margin: 5px 0; color: #1f77d2; font-weight: bold; font-size: 18px;"><t t-out="format_amount(object.total_price, object.currency_id) if object.total_price else ''">0.00 €</t></p>
+                <p style="margin: 5px 0; color: #1f77d2; font-weight: bold; font-size: 18px;"><t t-out="format_amount(object.total_price, object.company_id.currency_id) if object.total_price else ''">0.00 €</t></p>
             </div>
         </div>
 
