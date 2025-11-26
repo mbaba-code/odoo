@@ -557,6 +557,32 @@ class OneDeskWebsite(http.Controller):
                 except Exception as e:
                     _logger.warning(f'⚠️ Error sending client email: {e}')
 
+                # NOUVEAU: Créer utilisateur et envoyer email d'activation pour plan gratuit
+                try:
+                    # Vérifier si l'utilisateur existe déjà
+                    user = request.env['res.users'].sudo().search([('login', '=', email)], limit=1)
+
+                    if not user:
+                        # Créer l'utilisateur
+                        user = request.env['res.users'].sudo().create({
+                            'name': contact_name,
+                            'login': email,
+                            'email': email,
+                            'company_id': company.id,
+                            'company_ids': [(4, company.id)],
+                        })
+                        _logger.info(f'✅ Utilisateur créé: {user.login} (ID: {user.id})')
+
+                    # Préparer le signup (génère le token d'activation)
+                    user.partner_id.signup_prepare()
+
+                    # Envoyer l'email d'activation
+                    template_welcome = request.env.ref('onedesk_core.email_template_welcome')
+                    template_welcome.sudo().send_mail(user.id, force_send=True)
+                    _logger.info(f'✅ Email d\'activation envoyé à {email}')
+                except Exception as e:
+                    _logger.warning(f'⚠️ Erreur envoi email activation: {e}', exc_info=True)
+
                 # Envoie l'email à l'admin
                 try:
                     admin_email = request.env['ir.config_parameter'].sudo().get_param('onedesk.admin_email')
@@ -911,15 +937,42 @@ class OneDeskWebsite(http.Controller):
             client.write({'state': 'active'})
             _logger.info(f'✅ Client {client.id} activated')
 
-        # 3. Envoyer l'email de bienvenue
+        # 3. Envoyer l'email de confirmation de souscription
         try:
             template = request.env.ref('website_onedesk.email_subscription_confirmation')
             template.send_mail(subscription.id, force_send=True, email_values={
                 'email_to': subscription.billing_contact_id.email,
             })
-            _logger.info(f'✅ Welcome email sent to {subscription.billing_contact_id.email}')
+            _logger.info(f'✅ Confirmation email sent to {subscription.billing_contact_id.email}')
         except Exception as e:
-            _logger.warning(f'⚠️ Error sending welcome email: {e}')
+            _logger.warning(f'⚠️ Error sending confirmation email: {e}')
+
+        # 3.5. NOUVEAU: Créer utilisateur et envoyer email d'activation après paiement
+        try:
+            contact_email = subscription.billing_contact_id.email
+            # Vérifier si l'utilisateur existe déjà
+            user = request.env['res.users'].sudo().search([('login', '=', contact_email)], limit=1)
+
+            if not user:
+                # Créer l'utilisateur
+                user = request.env['res.users'].sudo().create({
+                    'name': subscription.billing_contact_id.name,
+                    'login': contact_email,
+                    'email': contact_email,
+                    'company_id': subscription.company_id.id,
+                    'company_ids': [(4, subscription.company_id.id)],
+                })
+                _logger.info(f'✅ Utilisateur créé après paiement: {user.login} (ID: {user.id})')
+
+            # Préparer le signup (génère le token d'activation)
+            user.partner_id.signup_prepare()
+
+            # Envoyer l'email d'activation
+            template_welcome = request.env.ref('onedesk_core.email_template_welcome')
+            template_welcome.sudo().send_mail(user.id, force_send=True)
+            _logger.info(f'✅ Email d\'activation envoyé à {contact_email}')
+        except Exception as e:
+            _logger.warning(f'⚠️ Erreur envoi email activation après paiement: {e}', exc_info=True)
 
         # 4. Créer un audit log
         request.env['onedesk.audit.log'].sudo().create({
