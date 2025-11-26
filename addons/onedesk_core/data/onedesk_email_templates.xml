@@ -252,9 +252,9 @@
     <!-- Task Assignment Email Template -->
     <record id="email_template_task_assigned" model="mail.template">
         <field name="name">OneDesk - Tâche assignée</field>
-        <field name="email_from">{{ (object.property_id.company_id.email or 'tasks@onedesk.io') }}</field>
-        <field name="email_to">{{ (object.assigned_to_id.email or '') }}</field>
-        <field name="subject">📋 Nouvelle tâche: {{ object.task_type or 'Tâche' }} - {{ object.property_id.name or 'Propriété' }}</field>
+        <field name="email_from">{{ (object.unit_id.company_id.email or 'tasks@onedesk.io') }}</field>
+        <field name="email_to">{{ (object.assigned_to.email or '') }}</field>
+        <field name="subject">📋 Nouvelle tâche: {{ object.task_type or 'Tâche' }} - {{ object.unit_id.name or 'Unité' }}</field>
         <field name="model_id" ref="model_onedesk_task"/>
         <field name="body_html" type="html">
 <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #f5f5f5; padding: 20px;">
@@ -287,14 +287,14 @@
             <h3 style="color: #333; margin-top: 0;">📌 Détails de la tâche</h3>
 
             <div style="margin-bottom: 15px;">
-                <p style="margin: 0; color: #999; font-size: 12px;">PROPRIÉTÉ</p>
-                <p style="margin: 5px 0; color: #333; font-weight: bold; font-size: 16px;"><t t-out="object.property_id.name or ''">Propriété</t></p>
+                <p style="margin: 0; color: #999; font-size: 12px;">UNITÉ</p>
+                <p style="margin: 5px 0; color: #333; font-weight: bold; font-size: 16px;"><t t-out="object.unit_id.name or ''">Unité</t></p>
             </div>
 
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
                 <div>
                     <p style="margin: 0; color: #999; font-size: 12px;">DATE PRÉVUE</p>
-                    <p style="margin: 5px 0; color: #333; font-weight: bold;"><t t-out="object.scheduled_date.strftime('%d/%m/%Y %H:%M') if object.scheduled_date else ''">01/01/2024 10:00</t></p>
+                    <p style="margin: 5px 0; color: #333; font-weight: bold;"><t t-out="object.date_start.strftime('%d/%m/%Y %H:%M') if object.date_start else ''">01/01/2024 10:00</t></p>
                 </div>
                 <div>
                     <p style="margin: 0; color: #999; font-size: 12px;">DURÉE ESTIMÉE</p>
@@ -347,8 +347,8 @@
     <!-- Signature Request Email Template -->
     <record id="email_template_signature_request" model="mail.template">
         <field name="name">OneDesk - Demande de signature</field>
-        <field name="email_from">{{ (object.company_id.email or 'documents@onedesk.io') }}</field>
-        <field name="email_to">{{ (object.email or '') }}</field>
+        <field name="email_from">{{ (object.document_id.company_id.email or 'documents@onedesk.io') }}</field>
+        <field name="email_to">{{ (object.signer_email or '') }}</field>
         <field name="subject">📄 Signature requise: {{ object.document_id.name or 'Document' }}</field>
         <field name="model_id" ref="model_onedesk_document_signature"/>
         <field name="body_html" type="html">
