@@ -7,7 +7,7 @@
     <record id="email_template_welcome" model="mail.template">
         <field name="name">OneDesk - Email de bienvenue</field>
         <field name="email_from">{{ (object.company_id.email or 'noreply@onedesk.io') }}</field>
-        <field name="email_to">{{ object.email }}</field>
+        <field name="email_to">{{ (object.email or '') }}</field>
         <field name="subject">Bienvenue sur OneDesk! 🎉</field>
         <field name="model_id" ref="base.model_res_users"/>
         <field name="body_html" type="html">
@@ -77,7 +77,7 @@
     <record id="email_template_invoice" model="mail.template">
         <field name="name">OneDesk - Facture</field>
         <field name="email_from">{{ (object.company_id.email or 'billing@onedesk.io') }}</field>
-        <field name="email_to">{{ object.partner_id.email }}</field>
+        <field name="email_to">{{ (object.partner_id.email or '') }}</field>
         <field name="subject">Facture OneDesk - {{ object.name or 'n/a' }}</field>
         <field name="model_id" ref="account.model_account_move"/>
         <field name="body_html" type="html">
@@ -99,7 +99,7 @@
     <record id="email_template_invitation" model="mail.template">
         <field name="name">OneDesk - Invitation utilisateur</field>
         <field name="email_from">{{ (object.client_id.company_id.email or 'noreply@onedesk.io') }}</field>
-        <field name="email_to">{{ object.email }}</field>
+        <field name="email_to">{{ (object.email or '') }}</field>
         <field name="subject">Invitation OneDesk - Rejoignez {{ object.client_id.company_id.name or 'notre équipe' }}</field>
         <field name="model_id" ref="model_onedesk_client_invitation"/>
         <field name="body_html" type="html">
@@ -157,7 +157,7 @@
     <record id="email_template_booking_confirmation" model="mail.template">
         <field name="name">OneDesk - Confirmation de réservation</field>
         <field name="email_from">{{ (object.company_id.email or 'reservations@onedesk.io') }}</field>
-        <field name="email_to">{{ object.guest_email }}</field>
+        <field name="email_to">{{ (object.partner_id.email or '') }}</field>
         <field name="subject">Votre réservation est confirmée - {{ object.property_id.name or 'Propriété' }} 🎉</field>
         <field name="model_id" ref="model_onedesk_reservation"/>
         <field name="body_html" type="html">
@@ -253,7 +253,7 @@
     <record id="email_template_task_assigned" model="mail.template">
         <field name="name">OneDesk - Tâche assignée</field>
         <field name="email_from">{{ (object.property_id.company_id.email or 'tasks@onedesk.io') }}</field>
-        <field name="email_to">{{ object.assigned_to_id.email }}</field>
+        <field name="email_to">{{ (object.assigned_to_id.email or '') }}</field>
         <field name="subject">📋 Nouvelle tâche: {{ object.task_type or 'Tâche' }} - {{ object.property_id.name or 'Propriété' }}</field>
         <field name="model_id" ref="model_onedesk_task"/>
         <field name="body_html" type="html">
@@ -348,7 +348,7 @@
     <record id="email_template_signature_request" model="mail.template">
         <field name="name">OneDesk - Demande de signature</field>
         <field name="email_from">{{ (object.company_id.email or 'documents@onedesk.io') }}</field>
-        <field name="email_to">{{ object.email }}</field>
+        <field name="email_to">{{ (object.email or '') }}</field>
         <field name="subject">📄 Signature requise: {{ object.document_id.name or 'Document' }}</field>
         <field name="model_id" ref="model_onedesk_document_signature"/>
         <field name="body_html" type="html">
