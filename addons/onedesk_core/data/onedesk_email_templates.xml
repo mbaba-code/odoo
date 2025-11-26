@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <data>
     <!-- EMAIL TEMPLATES FOR ONEDESK -->
 
     <!-- Welcome Email Template -->
@@ -432,5 +431,5 @@
 </div>
         </field>
     </record>
-    </data>
+
 </odoo>
