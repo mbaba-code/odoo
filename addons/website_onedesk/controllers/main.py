@@ -4,6 +4,8 @@ from odoo.exceptions import ValidationError
 from datetime import datetime, timedelta
 import json
 import logging
+import time
+import psycopg2
 
 _logger = logging.getLogger(__name__)
 
@@ -509,7 +511,7 @@ class OneDeskWebsite(http.Controller):
                 'requested_units': num_units,
             })
 
-            # Créer aussi le client OneDesk
+            # Créer aussi le client OneDesk (avec retry pour gérer les erreurs de concurrence)
             client = request.env['onedesk.client'].sudo().search(
                 [('company_id', '=', company.id)], limit=1
             )
@@ -517,13 +519,25 @@ class OneDeskWebsite(http.Controller):
                 # État du client basé sur le type de plan
                 client_state = 'active' if is_free_plan else 'pending_payment'
 
-                client = request.env['onedesk.client'].sudo().create({
-                    'company_id': company.id,
-                    'owner_partner_id': partner.id,
-                    'subscription_id': subscription.id,
-                    'state': client_state,
-                })
-                _logger.info(f'✅ Created OneDesk client {client.id} (state={client_state})')
+                # Retry jusqu'à 3 fois en cas d'erreur de concurrence PostgreSQL
+                for attempt in range(3):
+                    try:
+                        client = request.env['onedesk.client'].sudo().create({
+                            'company_id': company.id,
+                            'owner_partner_id': partner.id,
+                            'subscription_id': subscription.id,
+                            'state': client_state,
+                        })
+                        _logger.info(f'✅ Created OneDesk client {client.id} (state={client_state})')
+                        break  # Succès - sortir de la boucle
+                    except psycopg2.errors.SerializationFailure as e:
+                        if attempt < 2:  # Pas la dernière tentative
+                            _logger.warning(f'⚠️ Erreur de concurrence (tentative {attempt + 1}/3), retry dans 0.1s...')
+                            request.env.cr.rollback()  # Rollback de la transaction
+                            time.sleep(0.1)  # Attendre un peu avant de réessayer
+                        else:  # Dernière tentative échouée
+                            _logger.error(f'❌ Échec création client après 3 tentatives: {e}')
+                            raise  # Re-lever l'exception
             else:
                 # Lier la subscription au client existant
                 client.write({'subscription_id': subscription.id})
