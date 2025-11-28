@@ -484,11 +484,12 @@ class OnedeskDocumentSignature(models.Model):
 
                     if template:
                         # Use template if available
-                        _logger.debug(f'Using email template for signature request')
-                        template.send_mail(signature.id, force_send=True)
+                        _logger.info(f'📧 Envoi email signature via template pour {signature.signer_email}')
+                        mail_id = template.send_mail(signature.id, force_send=True)
+                        _logger.info(f'✅ Email envoyé (mail_id={mail_id}) à {signature.signer_email}')
                     else:
                         # Fallback: Send direct email
-                        _logger.debug(f'No template found, sending direct email')
+                        _logger.warning(f'⚠️ Template email_template_signature_request non trouvé! Utilisation fallback.')
                         self._send_signature_email_direct(signature, company)
 
                     # Log activity
@@ -496,12 +497,11 @@ class OnedeskDocumentSignature(models.Model):
                         body=f"📧 Email de demande de signature envoyé à {signature.signer_email}",
                         message_type='comment'
                     )
-                    _logger.info(f'✅ Email signature envoyé: {signature.signer_name} ({signature.signer_email})')
 
                 except Exception as e:
                     # Log error but don't fail
                     error_msg = str(e)
-                    _logger.error(f'❌ Erreur envoi email signature: {error_msg}')
+                    _logger.error(f'❌ Erreur envoi email signature: {error_msg}', exc_info=True)
                     signature.message_post(
                         body=f"⚠️ Erreur envoi email signature: {error_msg}",
                         message_type='comment'
