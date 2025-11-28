@@ -466,48 +466,76 @@ class OnedeskDocumentSignature(models.Model):
         """Auto-populate signaturit_request_id depuis document"""
         if self.document_id:
             self.signaturit_request_id = self.document_id.signaturit_request_id
-
-    @api.model
+            
+            
+    @api.model        
     def create(self, vals_list):
         """Create signature records and send signature request emails"""
         signatures = super().create(vals_list)
 
         for signature in signatures:
-            # ========== EMAIL TRIGGER: Signature Request ==========
             if signature.signer_email and signature.document_id:
                 try:
-                    # Get company from document for multi-tenant support
                     company = signature.document_id.company_id or self.env.company
 
-                    # Try to use the email template for professional formatting
-                    template = self.env.ref('onedesk_core.email_template_signature_request', raise_if_not_found=False)
+                    # Cherche le template (sans lever d’erreur)
+                    template = self.env.ref(
+                        'onedesk_core.email_template_signature_request',
+                        raise_if_not_found=False
+                    )
 
                     if template:
-                        # Use template if available
-                        _logger.info(f'📧 Envoi email signature via template pour {signature.signer_email}')
-                        mail_id = template.send_mail(signature.id, force_send=True)
-                        _logger.info(f'✅ Email envoyé (mail_id={mail_id}) à {signature.signer_email}')
+                        _logger.info(f"📧 Envoi email signature via template (rendu manuel) pour {signature.signer_email}")
+
+                        # ============ Rendu manuel (ÉVITE send_mail) ============
+                        subject = template._render_field(
+                            'subject', signature.ids, compute_lang=True
+                        )[signature.id]
+
+                        body_html = template._render_field(
+                            'body_html', signature.ids, compute_lang=True
+                        )[signature.id]
+
+                        email_from = template.email_from or company.email or 'noreply@localhost'
+
+                        mail_values = {
+                            'subject': subject,
+                            'body_html': body_html,
+                            'email_to': signature.signer_email,
+                            'email_from': email_from,
+                        }
+
+                        mail = self.env['mail.mail'].sudo().create(mail_values)
+                        mail.sudo().send()
+
+                        _logger.info(
+                            f"✅ Email envoyé (mail_id={mail.id}) à {signature.signer_email}"
+                        )
+
                     else:
-                        # Fallback: Send direct email
-                        _logger.warning(f'⚠️ Template email_template_signature_request non trouvé! Utilisation fallback.')
+                    # ========= Fallback si pas de template =========
+                        _logger.warning(
+                            "⚠️ Template email_template_signature_request introuvable ! Envoi fallback direct."
+                        )
                         self._send_signature_email_direct(signature, company)
 
-                    # Log activity
+                # Log Odoo
                     signature.message_post(
                         body=f"📧 Email de demande de signature envoyé à {signature.signer_email}",
                         message_type='comment'
                     )
 
                 except Exception as e:
-                    # Log error but don't fail
                     error_msg = str(e)
-                    _logger.error(f'❌ Erreur envoi email signature: {error_msg}', exc_info=True)
+                    _logger.error(f"❌ Erreur envoi email signature: {error_msg}", exc_info=True)
                     signature.message_post(
                         body=f"⚠️ Erreur envoi email signature: {error_msg}",
                         message_type='comment'
-                    )
+                    )   
 
         return signatures
+
+     
 
     def _send_signature_email_direct(self, signature, company):
         """
