@@ -347,6 +347,7 @@
     <!-- Signature Request Email Template -->
     <record id="email_template_signature_request" model="mail.template">
         <field name="name">OneDesk - Demande de signature</field>
+        <field name="email_from">kokouignace.baba@prefecto-etranger-aide.com</field>
         <field name="email_to">{{ (object.signer_email or '') }}</field>
         <field name="subject">📄 Signature requise: {{ object.document_id.name or 'Document' }}</field>
         <field name="model_id" ref="model_onedesk_document_signature"/>
