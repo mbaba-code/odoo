@@ -7,12 +7,6 @@
         <field name="arch" type="xml">
             <form class="o_form_document_wrapper">
                 <header>
-                    <button name="action_download" type="object" string="⬇️ Voir/Télécharger"
-                            invisible="not file" class="btn-info"/>
-                    <button name="action_send_signature" type="object" string="✍️ Envoyer pour signature"
-                            class="btn-primary" invisible="status != 'draft'"/>
-                    <button name="action_signaturit_beta" type="object" string="🌐 SignaturIT (Beta)"
-                            class="btn-secondary" invisible="status != 'draft'" readonly="1"/>
                     <field name="status" widget="statusbar"
                            statusbar_visible="draft,pending_signature,signed,archived"/>
                 </header>
@@ -61,6 +55,24 @@
                             <field name="recipient_ids" nolabel="1"
                                    widget="many2many_tags"
                                    placeholder="Ajoutez d'autres signataires..."/>
+                        </div>
+                    </div>
+
+                    <!-- Row 4.5: Action Buttons -->
+                    <div class="row mb-4" invisible="status != 'draft'">
+                        <div class="col-md-12">
+                            <div class="d-flex gap-2">
+                                <button name="action_send_signature" type="object"
+                                        string="✍️ Envoyer pour signature"
+                                        class="btn btn-primary btn-lg"/>
+                                <button name="action_signaturit_beta" type="object"
+                                        string="🌐 SignaturIT (Beta)"
+                                        class="btn btn-secondary btn-lg" readonly="1"/>
+                                <button name="action_download" type="object"
+                                        string="⬇️ Voir/Télécharger PDF"
+                                        invisible="not file"
+                                        class="btn btn-info btn-lg"/>
+                            </div>
                         </div>
                     </div>
 
