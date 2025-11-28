@@ -485,7 +485,7 @@ class OnedeskDocumentSignature(models.Model):
                     if template:
                         # Use template if available
                         _logger.debug(f'Using email template for signature request')
-                        template.send_mail(signature.id, force_send=False)
+                        template.send_mail(signature.id, force_send=True)
                     else:
                         # Fallback: Send direct email
                         _logger.debug(f'No template found, sending direct email')
