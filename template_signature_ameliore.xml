@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+    <!--
+    Template amélioré pour les demandes de signature
+    Version plus robuste avec gestion d'erreurs
+    -->
+    <record id="email_template_signature_request_v2" model="mail.template">
+        <field name="name">OneDesk - Demande de signature (V2 Améliorée)</field>
+        <field name="email_from">kokouignace.baba@prefecto-etranger-aide.com</field>
+        <field name="email_to">{{ object.signer_email or '' }}</field>
+        <field name="subject">📄 Signature requise: {{ object.document_id.name or 'Document' }}</field>
+        <field name="model_id" ref="onedesk_core.model_onedesk_document_signature"/>
+        <field name="body_html" type="html">
+<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #f5f5f5; padding: 20px;">
+    <div style="background-color: white; border-radius: 8px; padding: 30px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+
+        <!-- Header -->
+        <div style="text-align: center; margin-bottom: 30px;">
+            <h1 style="color: #1f77d2; margin: 0;">✍️ Signature Requise</h1>
+            <p style="color: #666; margin-top: 10px;">Un document vous attend pour signature</p>
+        </div>
+
+        <!-- Document Info -->
+        <div style="background-color: #f9f9f9; border-left: 4px solid #1f77d2; padding: 20px; margin: 20px 0; border-radius: 5px;">
+            <h3 style="color: #333; margin-top: 0;">📄 Document à signer</h3>
+
+            <div style="margin-bottom: 15px;">
+                <p style="margin: 0; color: #999; font-size: 12px;">TITRE DU DOCUMENT</p>
+                <p style="margin: 5px 0; color: #333; font-weight: bold; font-size: 16px;">
+                    <t t-out="object.document_id.name or 'Document'">Document</t>
+                </p>
+            </div>
+
+            <t t-if="object.document_id.document_type">
+            <div style="margin-bottom: 15px;">
+                <p style="margin: 0; color: #999; font-size: 12px;">TYPE</p>
+                <p style="margin: 5px 0; color: #333;">
+                    <t t-out="object.document_id.document_type or 'Contrat'">Contrat</t>
+                </p>
+            </div>
+            </t>
+
+            <t t-if="object.document_id.notes">
+            <div style="border-top: 1px solid #ddd; padding-top: 15px;">
+                <p style="margin: 0; color: #999; font-size: 12px;">REMARQUES</p>
+                <p style="margin: 10px 0; color: #666;">
+                    <t t-out="object.document_id.notes or ''">Remarques</t>
+                </p>
+            </div>
+            </t>
+        </div>
+
+        <!-- Important Info -->
+        <div style="background-color: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; margin: 20px 0; border-radius: 5px;">
+            <p style="margin: 0; color: #856404; font-weight: bold;">⏰ Important</p>
+            <p style="margin: 10px 0; color: #856404; font-size: 14px;">
+                Veuillez signer ce document dès que possible.
+            </p>
+        </div>
+
+        <!-- CTA Button - Version simplifiée sans lien dynamique -->
+        <div style="text-align: center; margin: 30px 0;">
+            <!-- Si web.base.url est disponible, on génère le lien -->
+            <t t-set="base_url" t-value="env['ir.config_parameter'].sudo().get_param('web.base.url', 'http://localhost:8069')"/>
+            <t t-set="doc_id" t-value="object.document_id.id if object.document_id else 0"/>
+
+            <a t-attf-href="{{base_url}}/onedesk/document/{{doc_id}}/sign"
+               style="display: inline-block; background-color: #28a745; color: white; padding: 14px 35px; border-radius: 5px; text-decoration: none; font-weight: bold; font-size: 16px;">
+                ✍️ Signer le Document
+            </a>
+
+            <!-- Lien alternatif en texte brut au cas où -->
+            <p style="margin-top: 15px; font-size: 12px; color: #999;">
+                Si le bouton ne fonctionne pas, copiez ce lien:<br/>
+                <code style="background-color: #f5f5f5; padding: 5px 10px; display: inline-block; margin-top: 5px; border-radius: 3px; font-size: 11px;">
+                    <t t-out="base_url + '/onedesk/document/' + str(doc_id) + '/sign'">lien</t>
+                </code>
+            </p>
+        </div>
+
+        <!-- What Happens Next -->
+        <div style="background-color: #e7f3ff; border-radius: 5px; padding: 15px; margin-top: 20px;">
+            <p style="margin: 0; color: #0056b3; font-weight: bold;">📝 Prochaines étapes:</p>
+            <ol style="margin: 10px 0; color: #333; line-height: 1.8; padding-left: 20px;">
+                <li>Cliquez sur le bouton "Signer le Document" ci-dessus</li>
+                <li>Suivez les instructions pour signer le document</li>
+                <li>Une confirmation vous sera envoyée une fois signé</li>
+            </ol>
+        </div>
+
+        <!-- Questions -->
+        <div style="background-color: #f5f5f5; border-radius: 5px; padding: 15px; margin-top: 20px;">
+            <p style="margin: 0; color: #666; font-size: 13px;">
+                Des questions sur ce document?<br/>
+                📧 <a href="mailto:support@onedesk.io" style="color: #1f77d2; text-decoration: none;">support@onedesk.io</a>
+            </p>
+        </div>
+
+        <!-- Footer -->
+        <div style="border-top: 1px solid #eee; padding-top: 20px; margin-top: 30px; color: #999; font-size: 12px; text-align: center;">
+            <p style="margin: 0;">© 2024 OneDesk - Gestion immobilière SaaS</p>
+            <p style="margin: 5px 0;">Vous avez reçu cet email car vous avez été ajouté comme signataire</p>
+        </div>
+    </div>
+</div>
+        </field>
+    </record>
+
+    </data>
+</odoo>
