@@ -34,6 +34,7 @@ from odoo import models, fields, api
 from markupsafe import escape
 import base64
 import logging
+import uuid
 
 _logger = logging.getLogger(__name__)
 
@@ -460,6 +461,16 @@ class OnedeskDocumentSignature(models.Model):
     # ========== AUDIT ==========
     created_date = fields.Datetime(string='Date création', default=fields.Datetime.now)
     expiration_date = fields.Datetime(string='Expires le')
+
+    # ========== SÉCURITÉ - Accès Public ==========
+    access_token = fields.Char(
+        string='Token d\'accès',
+        default=lambda self: str(uuid.uuid4()),
+        required=True,
+        readonly=True,
+        copy=False,
+        help="Token unique pour permettre l'accès public sécurisé au document à signer"
+    )
 
     @api.onchange('document_id')
     def _onchange_document_id(self):

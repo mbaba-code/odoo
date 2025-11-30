@@ -48,6 +48,7 @@
     # Document & Signature views
     'views/onedesk_document_views.xml',
     'views/onedesk_document_signature_views.xml',
+    'views/public_signature_templates.xml',  # NEW - Public signature pages
     'views/onedesk_document_recipient_views.xml',
     'views/onedesk_signaturit_config.xml',
 

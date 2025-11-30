@@ -1,0 +1,277 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ========================================
+         PAGE PUBLIQUE DE SIGNATURE DE DOCUMENT
+         Permet aux signataires (internes et externes)
+         de signer un document via un lien sécurisé
+         ======================================== -->
+
+    <!-- Page principale de signature -->
+    <template id="public_signature_page" name="Public Document Signature Page">
+        <t t-call="website.layout">
+            <div class="container mt-5 mb-5">
+                <div class="row justify-content-center">
+                    <div class="col-lg-8 col-xl-7">
+
+                        <!-- En-tête -->
+                        <div class="text-center mb-5">
+                            <h1 class="display-5 mb-3">
+                                <i class="fa fa-file-signature text-primary me-2"></i>
+                                Signature de Document
+                            </h1>
+                            <p class="lead text-muted">Veuillez consulter et signer le document ci-dessous</p>
+                        </div>
+
+                        <!-- Carte du document -->
+                        <div class="card shadow-sm mb-4">
+                            <div class="card-header bg-primary text-white">
+                                <h5 class="mb-0">
+                                    <i class="fa fa-file-alt me-2"></i>
+                                    Informations du Document
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row mb-3">
+                                    <div class="col-md-4 text-muted">
+                                        <strong>Titre :</strong>
+                                    </div>
+                                    <div class="col-md-8">
+                                        <span class="fw-bold" t-esc="document.name"/>
+                                    </div>
+                                </div>
+
+                                <div class="row mb-3" t-if="document.document_type">
+                                    <div class="col-md-4 text-muted">
+                                        <strong>Type :</strong>
+                                    </div>
+                                    <div class="col-md-8">
+                                        <span t-esc="document.document_type"/>
+                                    </div>
+                                </div>
+
+                                <div class="row mb-3" t-if="document.notes">
+                                    <div class="col-md-4 text-muted">
+                                        <strong>Remarques :</strong>
+                                    </div>
+                                    <div class="col-md-8">
+                                        <p class="mb-0" t-esc="document.notes"/>
+                                    </div>
+                                </div>
+
+                                <div class="row" t-if="document.file_data">
+                                    <div class="col-12">
+                                        <hr class="my-3"/>
+                                        <a t-attf-href="/web/content/onedesk.document/#{document.id}/file_data/#{document.name}.pdf?download=true"
+                                           class="btn btn-outline-primary btn-sm w-100"
+                                           target="_blank">
+                                            <i class="fa fa-download me-2"></i>
+                                            Télécharger le document PDF
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Carte du signataire -->
+                        <div class="card shadow-sm mb-4">
+                            <div class="card-header bg-info text-white">
+                                <h5 class="mb-0">
+                                    <i class="fa fa-user me-2"></i>
+                                    Signataire
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row mb-2">
+                                    <div class="col-md-4 text-muted">
+                                        <strong>Nom :</strong>
+                                    </div>
+                                    <div class="col-md-8">
+                                        <span t-esc="signature.signer_name"/>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-4 text-muted">
+                                        <strong>Email :</strong>
+                                    </div>
+                                    <div class="col-md-8">
+                                        <span t-esc="signature.signer_email"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Statut de la signature -->
+                        <t t-if="signature.status == 'signed'">
+                            <div class="alert alert-success" role="alert">
+                                <h5 class="alert-heading">
+                                    <i class="fa fa-check-circle me-2"></i>
+                                    Document déjà signé
+                                </h5>
+                                <p class="mb-0">
+                                    Ce document a été signé le <strong t-esc="signature.signature_date"/>.
+                                    Merci!
+                                </p>
+                            </div>
+                        </t>
+
+                        <t t-elif="signature.status == 'declined'">
+                            <div class="alert alert-warning" role="alert">
+                                <h5 class="alert-heading">
+                                    <i class="fa fa-times-circle me-2"></i>
+                                    Signature refusée
+                                </h5>
+                                <p class="mb-0">
+                                    Vous avez refusé de signer ce document.
+                                </p>
+                            </div>
+                        </t>
+
+                        <t t-else="">
+                            <!-- Actions de signature (uniquement si en attente) -->
+                            <div class="card shadow-sm border-0">
+                                <div class="card-body p-4">
+                                    <h5 class="mb-4 text-center">Actions</h5>
+
+                                    <form method="post" t-attf-action="/onedesk/document/#{document.id}/sign/action">
+                                        <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                                        <input type="hidden" name="signature_id" t-att-value="signature.id"/>
+                                        <input type="hidden" name="access_token" t-att-value="signature.access_token"/>
+
+                                        <div class="d-grid gap-3">
+                                            <!-- Bouton Signer -->
+                                            <button type="submit"
+                                                    name="action"
+                                                    value="sign"
+                                                    class="btn btn-success btn-lg">
+                                                <i class="fa fa-pen-fancy me-2"></i>
+                                                ✍️ Signer ce document
+                                            </button>
+
+                                            <!-- Bouton Refuser -->
+                                            <button type="submit"
+                                                    name="action"
+                                                    value="decline"
+                                                    class="btn btn-outline-danger"
+                                                    onclick="return confirm('Êtes-vous sûr de vouloir refuser de signer ce document ?');">
+                                                <i class="fa fa-times me-2"></i>
+                                                Refuser de signer
+                                            </button>
+                                        </div>
+                                    </form>
+
+                                    <!-- Information importante -->
+                                    <div class="mt-4 p-3 bg-light rounded">
+                                        <p class="mb-0 text-muted small">
+                                            <i class="fa fa-info-circle me-1"></i>
+                                            <strong>Note :</strong> En cliquant sur "Signer ce document", vous acceptez
+                                            les termes et conditions du document présenté ci-dessus.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </t>
+
+                        <!-- Footer informatif -->
+                        <div class="text-center mt-4">
+                            <p class="text-muted small mb-0">
+                                <i class="fa fa-shield-alt me-1"></i>
+                                Cette page est sécurisée. Votre signature est protégée par un token d'accès unique.
+                            </p>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <!-- Page de confirmation après signature -->
+    <template id="public_signature_success" name="Signature Success Page">
+        <t t-call="website.layout">
+            <div class="container mt-5 mb-5">
+                <div class="row justify-content-center">
+                    <div class="col-lg-6 text-center">
+                        <div class="card shadow-sm border-0">
+                            <div class="card-body p-5">
+                                <div class="mb-4">
+                                    <i class="fa fa-check-circle text-success" style="font-size: 72px;"></i>
+                                </div>
+                                <h2 class="mb-3">Document Signé avec Succès!</h2>
+                                <p class="text-muted mb-4">
+                                    Merci d'avoir signé le document "<strong t-esc="document.name"/>".
+                                    Un email de confirmation vous a été envoyé.
+                                </p>
+                                <a href="/" class="btn btn-primary">
+                                    <i class="fa fa-home me-2"></i>
+                                    Retour à l'accueil
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <!-- Page de confirmation après refus -->
+    <template id="public_signature_declined" name="Signature Declined Page">
+        <t t-call="website.layout">
+            <div class="container mt-5 mb-5">
+                <div class="row justify-content-center">
+                    <div class="col-lg-6 text-center">
+                        <div class="card shadow-sm border-0">
+                            <div class="card-body p-5">
+                                <div class="mb-4">
+                                    <i class="fa fa-times-circle text-warning" style="font-size: 72px;"></i>
+                                </div>
+                                <h2 class="mb-3">Signature Refusée</h2>
+                                <p class="text-muted mb-4">
+                                    Vous avez refusé de signer le document "<strong t-esc="document.name"/>".
+                                    L'émetteur du document en sera informé.
+                                </p>
+                                <a href="/" class="btn btn-secondary">
+                                    <i class="fa fa-home me-2"></i>
+                                    Retour à l'accueil
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <!-- Page d'erreur (token invalide ou signature non trouvée) -->
+    <template id="public_signature_error" name="Signature Error Page">
+        <t t-call="website.layout">
+            <div class="container mt-5 mb-5">
+                <div class="row justify-content-center">
+                    <div class="col-lg-6 text-center">
+                        <div class="card shadow-sm border-0">
+                            <div class="card-body p-5">
+                                <div class="mb-4">
+                                    <i class="fa fa-exclamation-triangle text-danger" style="font-size: 72px;"></i>
+                                </div>
+                                <h2 class="mb-3">Accès Refusé</h2>
+                                <p class="text-muted mb-4">
+                                    <t t-if="error_message">
+                                        <t t-esc="error_message"/>
+                                    </t>
+                                    <t t-else="">
+                                        Le lien de signature est invalide ou a expiré.
+                                        Veuillez contacter l'émetteur du document pour obtenir un nouveau lien.
+                                    </t>
+                                </p>
+                                <a href="/" class="btn btn-secondary">
+                                    <i class="fa fa-home me-2"></i>
+                                    Retour à l'accueil
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+
+</odoo>
