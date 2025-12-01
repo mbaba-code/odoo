@@ -58,10 +58,10 @@
                                     </div>
                                 </div>
 
-                                <div class="row" t-if="document.file_data">
+                                <div class="row" t-if="document.file">
                                     <div class="col-12">
                                         <hr class="my-3"/>
-                                        <a t-attf-href="/web/content/onedesk.document/#{document.id}/file_data/#{document.name}.pdf?download=true"
+                                        <a t-attf-href="/web/content/onedesk.document/#{document.id}/file/#{document.name}.pdf?download=true"
                                            class="btn btn-outline-primary btn-sm w-100"
                                            target="_blank">
                                             <i class="fa fa-download me-2"></i>
