@@ -165,7 +165,7 @@ class DocumentSignatureController(http.Controller):
                     email_template = request.env.ref(
                         'onedesk_core.email_template_signature_confirmation',
                         raise_if_not_found=False
-                    )
+                    ).sudo()
 
                     if email_template:
                         # Rendre et envoyer l'email

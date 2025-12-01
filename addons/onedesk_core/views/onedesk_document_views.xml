@@ -311,7 +311,7 @@
             (0, 0, {'view_mode': 'kanban', 'view_id': ref('view_document_kanban_store')}),
             (0, 0, {'view_mode': 'form', 'view_id': ref('view_document_form_store')}),
         ]"/>
-        <field name="domain">[('document_category', 'in', ['contract', 'invoice', 'inspection', 'report', 'correspondence', 'compliance', 'financial', 'legal', 'technical', 'other'])]</field>
+        <field name="context">{'default_document_category': 'other'}</field>
     </record>
 
     <!-- ========== MENU: Parent ========== -->
