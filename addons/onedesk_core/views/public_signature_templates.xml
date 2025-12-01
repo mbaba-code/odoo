@@ -2,190 +2,391 @@
 <odoo>
     <!-- ========================================
          PAGE PUBLIQUE DE SIGNATURE DE DOCUMENT
-         Permet aux signataires (internes et externes)
-         de signer un document via un lien sécurisé
+         Version complète avec visualiseur PDF et signature électronique
          ======================================== -->
 
-    <!-- Page principale de signature -->
+    <!-- Page principale de signature avec PDF viewer et signature -->
     <template id="public_signature_page" name="Public Document Signature Page">
         <t t-call="website.layout">
+            <!-- CSS personnalisé -->
+            <style>
+                .pdf-viewer-container {
+                    width: 100%;
+                    height: 600px;
+                    border: 2px solid #dee2e6;
+                    border-radius: 8px;
+                    background: #f8f9fa;
+                    overflow: hidden;
+                    position: relative;
+                }
+                .pdf-canvas {
+                    max-width: 100%;
+                    height: auto;
+                    display: block;
+                    margin: 0 auto;
+                }
+                .signature-canvas {
+                    border: 2px dashed #6c757d;
+                    border-radius: 8px;
+                    background: white;
+                    cursor: crosshair;
+                    touch-action: none;
+                }
+                .signature-pad-container {
+                    background: #f8f9fa;
+                    padding: 20px;
+                    border-radius: 8px;
+                    margin: 20px 0;
+                }
+                .pdf-controls {
+                    position: absolute;
+                    bottom: 10px;
+                    left: 50%;
+                    transform: translateX(-50%);
+                    background: rgba(0,0,0,0.7);
+                    padding: 10px 20px;
+                    border-radius: 25px;
+                    z-index: 10;
+                }
+                .pdf-controls button {
+                    background: transparent;
+                    border: none;
+                    color: white;
+                    padding: 5px 15px;
+                    cursor: pointer;
+                    font-size: 16px;
+                }
+                .pdf-controls button:hover {
+                    background: rgba(255,255,255,0.2);
+                    border-radius: 4px;
+                }
+                .pdf-controls span {
+                    color: white;
+                    margin: 0 10px;
+                }
+            </style>
+
             <div class="container mt-5 mb-5">
                 <div class="row justify-content-center">
-                    <div class="col-lg-8 col-xl-7">
+                    <div class="col-lg-10 col-xl-9">
 
                         <!-- En-tête -->
-                        <div class="text-center mb-5">
-                            <h1 class="display-5 mb-3">
+                        <div class="text-center mb-4">
+                            <h1 class="display-6 mb-2">
                                 <i class="fa fa-file-signature text-primary me-2"></i>
-                                Signature de Document
+                                Signature Électronique
                             </h1>
-                            <p class="lead text-muted">Veuillez consulter et signer le document ci-dessous</p>
+                            <p class="text-muted">Consultez le document et apposez votre signature</p>
                         </div>
 
-                        <!-- Carte du document -->
-                        <div class="card shadow-sm mb-4">
-                            <div class="card-header bg-primary text-white">
-                                <h5 class="mb-0">
-                                    <i class="fa fa-file-alt me-2"></i>
-                                    Informations du Document
-                                </h5>
-                            </div>
-                            <div class="card-body">
-                                <div class="row mb-3">
-                                    <div class="col-md-4 text-muted">
-                                        <strong>Titre :</strong>
-                                    </div>
-                                    <div class="col-md-8">
-                                        <span class="fw-bold" t-esc="document.name"/>
-                                    </div>
-                                </div>
-
-                                <div class="row mb-3" t-if="document.document_type">
-                                    <div class="col-md-4 text-muted">
-                                        <strong>Type :</strong>
-                                    </div>
-                                    <div class="col-md-8">
-                                        <span t-esc="document.document_type"/>
-                                    </div>
-                                </div>
-
-                                <div class="row mb-3" t-if="document.notes">
-                                    <div class="col-md-4 text-muted">
-                                        <strong>Remarques :</strong>
-                                    </div>
-                                    <div class="col-md-8">
-                                        <p class="mb-0" t-esc="document.notes"/>
-                                    </div>
-                                </div>
-
-                                <div class="row" t-if="document.file">
-                                    <div class="col-12">
-                                        <hr class="my-3"/>
-                                        <a t-attf-href="/web/content/onedesk.document/#{document.id}/file/#{document.name}.pdf?download=true"
-                                           class="btn btn-outline-primary btn-sm w-100"
-                                           target="_blank">
-                                            <i class="fa fa-download me-2"></i>
-                                            Télécharger le document PDF
-                                        </a>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Carte du signataire -->
-                        <div class="card shadow-sm mb-4">
-                            <div class="card-header bg-info text-white">
-                                <h5 class="mb-0">
-                                    <i class="fa fa-user me-2"></i>
-                                    Signataire
-                                </h5>
-                            </div>
-                            <div class="card-body">
-                                <div class="row mb-2">
-                                    <div class="col-md-4 text-muted">
-                                        <strong>Nom :</strong>
-                                    </div>
-                                    <div class="col-md-8">
-                                        <span t-esc="signature.signer_name"/>
-                                    </div>
-                                </div>
-                                <div class="row">
-                                    <div class="col-md-4 text-muted">
-                                        <strong>Email :</strong>
-                                    </div>
-                                    <div class="col-md-8">
-                                        <span t-esc="signature.signer_email"/>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Statut de la signature -->
+                        <!-- Vérifier le statut -->
                         <t t-if="signature.status == 'signed'">
-                            <div class="alert alert-success" role="alert">
-                                <h5 class="alert-heading">
-                                    <i class="fa fa-check-circle me-2"></i>
-                                    Document déjà signé
-                                </h5>
-                                <p class="mb-0">
-                                    Ce document a été signé le <strong t-esc="signature.signature_date"/>.
-                                    Merci!
-                                </p>
+                            <div class="alert alert-success text-center" role="alert">
+                                <h4><i class="fa fa-check-circle me-2"></i> Document déjà signé</h4>
+                                <p class="mb-0">Ce document a été signé le <strong t-esc="signature.signature_date"/>.</p>
                             </div>
                         </t>
 
                         <t t-elif="signature.status == 'declined'">
-                            <div class="alert alert-warning" role="alert">
-                                <h5 class="alert-heading">
-                                    <i class="fa fa-times-circle me-2"></i>
-                                    Signature refusée
-                                </h5>
-                                <p class="mb-0">
-                                    Vous avez refusé de signer ce document.
-                                </p>
+                            <div class="alert alert-warning text-center" role="alert">
+                                <h4><i class="fa fa-times-circle me-2"></i> Signature refusée</h4>
+                                <p class="mb-0">Vous avez refusé de signer ce document.</p>
                             </div>
                         </t>
 
                         <t t-else="">
-                            <!-- Actions de signature (uniquement si en attente) -->
-                            <div class="card shadow-sm border-0">
-                                <div class="card-body p-4">
-                                    <h5 class="mb-4 text-center">Actions</h5>
+                            <!-- Document en attente de signature -->
 
-                                    <form method="post" t-attf-action="/onedesk/document/#{document.id}/sign/action">
+                            <!-- Infos document -->
+                            <div class="card shadow-sm mb-4">
+                                <div class="card-header bg-primary text-white">
+                                    <h5 class="mb-0"><i class="fa fa-file-alt me-2"></i>Document à signer</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <p class="mb-2"><strong>Titre:</strong> <span t-esc="document.name"/></p>
+                                            <p class="mb-2" t-if="document.document_type"><strong>Type:</strong> <span t-esc="document.document_type"/></p>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <p class="mb-2"><strong>Signataire:</strong> <span t-esc="signature.signer_name"/></p>
+                                            <p class="mb-2"><strong>Email:</strong> <span t-esc="signature.signer_email"/></p>
+                                        </div>
+                                    </div>
+                                    <p class="mb-0 mt-2" t-if="document.notes"><strong>Remarques:</strong> <span t-esc="document.notes"/></p>
+                                </div>
+                            </div>
+
+                            <!-- Visualiseur PDF -->
+                            <div class="card shadow-sm mb-4" t-if="document.file">
+                                <div class="card-header bg-secondary text-white">
+                                    <h5 class="mb-0"><i class="fa fa-eye me-2"></i>Aperçu du document</h5>
+                                </div>
+                                <div class="card-body p-2">
+                                    <div class="pdf-viewer-container" id="pdf-viewer">
+                                        <canvas id="pdf-canvas" class="pdf-canvas"></canvas>
+                                        <div class="pdf-controls">
+                                            <button onclick="prevPage()" id="prev-btn"><i class="fa fa-chevron-left"></i></button>
+                                            <span>Page <span id="page-num">1</span> / <span id="page-count">1</span></span>
+                                            <button onclick="nextPage()" id="next-btn"><i class="fa fa-chevron-right"></i></button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Zone de signature -->
+                            <div class="card shadow-sm mb-4">
+                                <div class="card-header bg-success text-white">
+                                    <h5 class="mb-0"><i class="fa fa-pen-fancy me-2"></i>Votre signature</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="signature-pad-container">
+                                        <p class="text-center mb-3">Dessinez votre signature dans le cadre ci-dessous:</p>
+                                        <canvas id="signature-canvas" class="signature-canvas" width="600" height="200"></canvas>
+                                        <div class="text-center mt-3">
+                                            <button type="button" class="btn btn-outline-secondary btn-sm" onclick="clearSignature()">
+                                                <i class="fa fa-eraser me-1"></i> Effacer
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <!-- Formulaire de soumission -->
+                                    <form method="post" id="signature-form" t-attf-action="/onedesk/document/#{document.id}/sign/action">
                                         <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
                                         <input type="hidden" name="signature_id" t-att-value="signature.id"/>
                                         <input type="hidden" name="access_token" t-att-value="signature.access_token"/>
+                                        <input type="hidden" name="signature_data" id="signature-data"/>
+                                        <input type="hidden" name="action" value="sign"/>
 
-                                        <div class="d-grid gap-3">
-                                            <!-- Bouton Signer -->
-                                            <button type="submit"
-                                                    name="action"
-                                                    value="sign"
-                                                    class="btn btn-success btn-lg">
-                                                <i class="fa fa-pen-fancy me-2"></i>
-                                                ✍️ Signer ce document
+                                        <div class="d-grid gap-2 mt-4">
+                                            <button type="button" class="btn btn-success btn-lg" onclick="submitSignature()">
+                                                <i class="fa fa-check-circle me-2"></i>
+                                                ✍️ Valider et Signer le Document
                                             </button>
-
-                                            <!-- Bouton Refuser -->
-                                            <button type="submit"
-                                                    name="action"
-                                                    value="decline"
-                                                    class="btn btn-outline-danger"
-                                                    onclick="return confirm('Êtes-vous sûr de vouloir refuser de signer ce document ?');">
+                                            <button type="button" class="btn btn-outline-danger" onclick="declineDocument()">
                                                 <i class="fa fa-times me-2"></i>
                                                 Refuser de signer
                                             </button>
                                         </div>
                                     </form>
 
-                                    <!-- Information importante -->
-                                    <div class="mt-4 p-3 bg-light rounded">
-                                        <p class="mb-0 text-muted small">
+                                    <div class="alert alert-info mt-3 mb-0">
+                                        <small>
                                             <i class="fa fa-info-circle me-1"></i>
-                                            <strong>Note :</strong> En cliquant sur "Signer ce document", vous acceptez
-                                            les termes et conditions du document présenté ci-dessus.
-                                        </p>
+                                            En signant, vous acceptez les termes et conditions du document présenté.
+                                        </small>
                                     </div>
                                 </div>
                             </div>
+
                         </t>
 
-                        <!-- Footer informatif -->
+                        <!-- Footer -->
                         <div class="text-center mt-4">
                             <p class="text-muted small mb-0">
                                 <i class="fa fa-shield-alt me-1"></i>
-                                Cette page est sécurisée. Votre signature est protégée par un token d'accès unique.
+                                Connexion sécurisée | Signature protégée par token unique
                             </p>
                         </div>
 
                     </div>
                 </div>
             </div>
+
+            <!-- JavaScript pour PDF.js et signature -->
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+            <script>
+                // Configuration PDF.js
+                pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+                // Variables globales
+                let pdfDoc = null;
+                let pageNum = 1;
+                let pageRendering = false;
+                let pageNumPending = null;
+                const canvas = document.getElementById('pdf-canvas');
+                const ctx = canvas ? canvas.getContext('2d') : null;
+
+                // Charger le PDF
+                const pdfUrl = '/web/content/onedesk.document/<t t-esc="document.id"/>/file/<t t-esc="document.name"/>.pdf';
+
+                if (canvas &amp;&amp; ctx) {
+                    pdfjsLib.getDocument(pdfUrl).promise.then(function(pdfDoc_) {
+                        pdfDoc = pdfDoc_;
+                        document.getElementById('page-count').textContent = pdfDoc.numPages;
+                        renderPage(pageNum);
+                    }).catch(function(error) {
+                        console.error('Erreur chargement PDF:', error);
+                        document.getElementById('pdf-viewer').innerHTML =
+                            '&lt;div class="alert alert-warning m-3"&gt;Impossible de charger le PDF. &lt;a href="' + pdfUrl + '" target="_blank"&gt;Télécharger&lt;/a&gt;&lt;/div&gt;';
+                    });
+                }
+
+                function renderPage(num) {
+                    if (!pdfDoc) return;
+                    pageRendering = true;
+                    pdfDoc.getPage(num).then(function(page) {
+                        const viewport = page.getViewport({scale: 1.5});
+                        canvas.height = viewport.height;
+                        canvas.width = viewport.width;
+
+                        const renderContext = {
+                            canvasContext: ctx,
+                            viewport: viewport
+                        };
+                        const renderTask = page.render(renderContext);
+
+                        renderTask.promise.then(function() {
+                            pageRendering = false;
+                            if (pageNumPending !== null) {
+                                renderPage(pageNumPending);
+                                pageNumPending = null;
+                            }
+                        });
+                    });
+                    document.getElementById('page-num').textContent = num;
+                }
+
+                function queueRenderPage(num) {
+                    if (pageRendering) {
+                        pageNumPending = num;
+                    } else {
+                        renderPage(num);
+                    }
+                }
+
+                function prevPage() {
+                    if (pageNum &lt;= 1) return;
+                    pageNum--;
+                    queueRenderPage(pageNum);
+                }
+
+                function nextPage() {
+                    if (pdfDoc &amp;&amp; pageNum &gt;= pdfDoc.numPages) return;
+                    pageNum++;
+                    queueRenderPage(pageNum);
+                }
+
+                // Canvas de signature
+                const signatureCanvas = document.getElementById('signature-canvas');
+                const signatureCtx = signatureCanvas ? signatureCanvas.getContext('2d') : null;
+                let isDrawing = false;
+
+                if (signatureCanvas &amp;&amp; signatureCtx) {
+                    signatureCtx.lineWidth = 2;
+                    signatureCtx.lineCap = 'round';
+                    signatureCtx.strokeStyle = '#000';
+
+                    function getMousePos(e) {
+                        const rect = signatureCanvas.getBoundingClientRect();
+                        const scaleX = signatureCanvas.width / rect.width;
+                        const scaleY = signatureCanvas.height / rect.height;
+                        return {
+                            x: (e.clientX - rect.left) * scaleX,
+                            y: (e.clientY - rect.top) * scaleY
+                        };
+                    }
+
+                    function getTouchPos(e) {
+                        const rect = signatureCanvas.getBoundingClientRect();
+                        const scaleX = signatureCanvas.width / rect.width;
+                        const scaleY = signatureCanvas.height / rect.height;
+                        return {
+                            x: (e.touches[0].clientX - rect.left) * scaleX,
+                            y: (e.touches[0].clientY - rect.top) * scaleY
+                        };
+                    }
+
+                    // Souris
+                    signatureCanvas.addEventListener('mousedown', function(e) {
+                        isDrawing = true;
+                        const pos = getMousePos(e);
+                        signatureCtx.beginPath();
+                        signatureCtx.moveTo(pos.x, pos.y);
+                    });
+
+                    signatureCanvas.addEventListener('mousemove', function(e) {
+                        if (!isDrawing) return;
+                        const pos = getMousePos(e);
+                        signatureCtx.lineTo(pos.x, pos.y);
+                        signatureCtx.stroke();
+                    });
+
+                    signatureCanvas.addEventListener('mouseup', function() {
+                        isDrawing = false;
+                    });
+
+                    signatureCanvas.addEventListener('mouseleave', function() {
+                        isDrawing = false;
+                    });
+
+                    // Touch
+                    signatureCanvas.addEventListener('touchstart', function(e) {
+                        e.preventDefault();
+                        isDrawing = true;
+                        const pos = getTouchPos(e);
+                        signatureCtx.beginPath();
+                        signatureCtx.moveTo(pos.x, pos.y);
+                    });
+
+                    signatureCanvas.addEventListener('touchmove', function(e) {
+                        e.preventDefault();
+                        if (!isDrawing) return;
+                        const pos = getTouchPos(e);
+                        signatureCtx.lineTo(pos.x, pos.y);
+                        signatureCtx.stroke();
+                    });
+
+                    signatureCanvas.addEventListener('touchend', function(e) {
+                        e.preventDefault();
+                        isDrawing = false;
+                    });
+                }
+
+                function clearSignature() {
+                    if (signatureCtx) {
+                        signatureCtx.clearRect(0, 0, signatureCanvas.width, signatureCanvas.height);
+                    }
+                }
+
+                function submitSignature() {
+                    // Vérifier que la signature n'est pas vide
+                    const imageData = signatureCtx.getImageData(0, 0, signatureCanvas.width, signatureCanvas.height);
+                    const pixels = imageData.data;
+                    let isEmpty = true;
+
+                    for (let i = 0; i &lt; pixels.length; i += 4) {
+                        if (pixels[i+3] !== 0) {
+                            isEmpty = false;
+                            break;
+                        }
+                    }
+
+                    if (isEmpty) {
+                        alert('Veuillez dessiner votre signature avant de valider.');
+                        return;
+                    }
+
+                    // Capturer la signature en base64
+                    const signatureData = signatureCanvas.toDataURL('image/png');
+                    document.getElementById('signature-data').value = signatureData;
+
+                    // Soumettre le formulaire
+                    document.getElementById('signature-form').submit();
+                }
+
+                function declineDocument() {
+                    if (confirm('Êtes-vous sûr de vouloir refuser de signer ce document ?')) {
+                        const form = document.getElementById('signature-form');
+                        form.querySelector('[name="action"]').value = 'decline';
+                        form.submit();
+                    }
+                }
+            </script>
         </t>
     </template>
 
-    <!-- Page de confirmation après signature -->
+    <!-- Pages de confirmation (inchangées) -->
     <template id="public_signature_success" name="Signature Success Page">
         <t t-call="website.layout">
             <div class="container mt-5 mb-5">
@@ -199,7 +400,7 @@
                                 <h2 class="mb-3">Document Signé avec Succès!</h2>
                                 <p class="text-muted mb-4">
                                     Merci d'avoir signé le document "<strong t-esc="document.name"/>".
-                                    Un email de confirmation vous a été envoyé.
+                                    Un email de confirmation vous a été envoyé avec le document signé.
                                 </p>
                                 <a href="/" class="btn btn-primary">
                                     <i class="fa fa-home me-2"></i>
@@ -213,7 +414,6 @@
         </t>
     </template>
 
-    <!-- Page de confirmation après refus -->
     <template id="public_signature_declined" name="Signature Declined Page">
         <t t-call="website.layout">
             <div class="container mt-5 mb-5">
@@ -241,7 +441,6 @@
         </t>
     </template>
 
-    <!-- Page d'erreur (token invalide ou signature non trouvée) -->
     <template id="public_signature_error" name="Signature Error Page">
         <t t-call="website.layout">
             <div class="container mt-5 mb-5">
