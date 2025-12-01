@@ -35,6 +35,8 @@ from markupsafe import escape
 import base64
 import logging
 import uuid
+import io
+from datetime import datetime
 
 _logger = logging.getLogger(__name__)
 
@@ -486,6 +488,96 @@ class OnedeskDocumentSignature(models.Model):
         string='Nom fichier signature',
         default='signature.png'
     )
+
+    def generate_signed_pdf(self):
+        """
+        Génère un PDF avec la signature incrustée sur le document original
+
+        Returns:
+            bytes: Le PDF signé en base64
+        """
+        self.ensure_one()
+
+        if not self.document_id.file or not self.signature_image:
+            _logger.warning(f"Impossible de générer PDF signé: document ou signature manquant")
+            return None
+
+        try:
+            from pypdf import PdfReader, PdfWriter
+            from reportlab.pdfgen import canvas
+            from reportlab.lib.pagesizes import letter
+            from PIL import Image
+
+            # Décoder le PDF original
+            original_pdf_data = base64.b64decode(self.document_id.file)
+            original_pdf = PdfReader(io.BytesIO(original_pdf_data))
+
+            # Décoder l'image de signature
+            signature_img_data = base64.b64decode(self.signature_image)
+            signature_img = Image.open(io.BytesIO(signature_img_data))
+
+            # Créer un PDF overlay avec la signature
+            packet = io.BytesIO()
+            can = canvas.Canvas(packet, pagesize=letter)
+
+            # Obtenir la dernière page
+            last_page_num = len(original_pdf.pages) - 1
+            last_page = original_pdf.pages[last_page_num]
+            page_width = float(last_page.mediabox.width)
+            page_height = float(last_page.mediabox.height)
+
+            # Sauvegarder temporairement l'image de signature
+            temp_sig = io.BytesIO()
+            signature_img.save(temp_sig, format='PNG')
+            temp_sig.seek(0)
+
+            # Position de la signature (en bas à droite)
+            sig_width = 150
+            sig_height = 50
+            sig_x = page_width - sig_width - 50
+            sig_y = 50
+
+            # Dessiner la signature sur le canvas
+            can.drawImage(temp_sig, sig_x, sig_y, width=sig_width, height=sig_height, mask='auto')
+
+            # Ajouter texte "Signé électroniquement"
+            can.setFont("Helvetica", 8)
+            can.drawString(sig_x, sig_y - 12, f"Signé par: {self.signer_name}")
+            can.drawString(sig_x, sig_y - 24, f"Date: {self.signature_date.strftime('%d/%m/%Y %H:%M') if self.signature_date else 'N/A'}")
+
+            can.save()
+
+            # Merger le canvas avec le PDF original
+            packet.seek(0)
+            overlay = PdfReader(packet)
+
+            # Créer le PDF final
+            output = PdfWriter()
+
+            # Copier toutes les pages
+            for page_num in range(len(original_pdf.pages)):
+                page = original_pdf.pages[page_num]
+
+                # Ajouter la signature uniquement sur la dernière page
+                if page_num == last_page_num:
+                    page.merge_page(overlay.pages[0])
+
+                output.add_page(page)
+
+            # Écrire le PDF final
+            final_pdf = io.BytesIO()
+            output.write(final_pdf)
+            final_pdf.seek(0)
+
+            # Encoder en base64
+            signed_pdf_b64 = base64.b64encode(final_pdf.read())
+
+            _logger.info(f"✅ PDF signé généré avec succès pour {self.signer_name}")
+            return signed_pdf_b64
+
+        except Exception as e:
+            _logger.error(f"❌ Erreur génération PDF signé: {e}", exc_info=True)
+            return None
 
     @api.onchange('document_id')
     def _onchange_document_id(self):

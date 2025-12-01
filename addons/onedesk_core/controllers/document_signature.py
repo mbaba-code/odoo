@@ -197,6 +197,16 @@ class DocumentSignatureController(http.Controller):
                     })
 
                     _logger.info(f"✅ Signature électronique capturée pour {signature.signer_email}")
+
+                    # Générer le PDF signé avec la signature incrustée
+                    signed_pdf = signature.generate_signed_pdf()
+                    if signed_pdf:
+                        # Stocker le PDF signé dans le document
+                        document.write({
+                            'signed_file': signed_pdf,
+                            'signed_filename': f'{document.name}_signed.pdf'
+                        })
+                        _logger.info(f"📄 PDF signé généré et stocké pour document {document.name}")
                 else:
                     # Pas de signature fournie, juste marquer comme signé
                     signature.write({
@@ -253,9 +263,22 @@ class DocumentSignatureController(http.Controller):
 
                         mail = request.env['mail.mail'].sudo().create(mail_values)
 
-                        # Attacher le PDF du document à l'email
+                        # Attacher le PDF SIGNÉ (avec signature incrustée) à l'email
                         attachments_created = []
-                        if document.file:
+                        if document.signed_file:
+                            # Utiliser le PDF signé généré
+                            pdf_attachment = request.env['ir.attachment'].sudo().create({
+                                'name': document.signed_filename or f'{document.name}_signed.pdf',
+                                'type': 'binary',
+                                'datas': document.signed_file,
+                                'res_model': 'mail.mail',
+                                'res_id': mail.id,
+                                'mimetype': 'application/pdf',
+                            })
+                            attachments_created.append(f"PDF Signé ({pdf_attachment.id})")
+                            _logger.info(f"📎 PDF SIGNÉ (avec signature incrustée) attaché à l'email (ID: {pdf_attachment.id})")
+                        elif document.file:
+                            # Fallback sur PDF original si pas de PDF signé
                             pdf_attachment = request.env['ir.attachment'].sudo().create({
                                 'name': document.filename or f'{document.name}.pdf',
                                 'type': 'binary',
@@ -264,21 +287,8 @@ class DocumentSignatureController(http.Controller):
                                 'res_id': mail.id,
                                 'mimetype': 'application/pdf',
                             })
-                            attachments_created.append(f"PDF ({pdf_attachment.id})")
-                            _logger.info(f"📎 PDF du document attaché à l'email (ID: {pdf_attachment.id})")
-
-                        # Attacher également l'image de signature si disponible
-                        if signature.signature_image:
-                            sig_attachment = request.env['ir.attachment'].sudo().create({
-                                'name': signature.signature_image_filename or f'signature_{signature.signer_name}.png',
-                                'type': 'binary',
-                                'datas': signature.signature_image,
-                                'res_model': 'mail.mail',
-                                'res_id': mail.id,
-                                'mimetype': 'image/png',
-                            })
-                            attachments_created.append(f"Signature ({sig_attachment.id})")
-                            _logger.info(f"📎 Image de signature attachée à l'email (ID: {sig_attachment.id})")
+                            attachments_created.append(f"PDF Original ({pdf_attachment.id})")
+                            _logger.info(f"📎 PDF original attaché à l'email (ID: {pdf_attachment.id})")
 
                         mail.sudo().send()
                         _logger.info(f"📧 Email de confirmation envoyé à {signature.signer_email} avec {len(attachments_created)} pièces jointes: {', '.join(attachments_created)}")

@@ -130,6 +130,19 @@
                         </div>
                     </div>
 
+                    <!-- Row 2.5: PDF Signé (si disponible) -->
+                    <div class="row mb-4" invisible="not signed_file">
+                        <div class="col-md-12">
+                            <strong>✅ Document Signé (avec signatures incrustées)</strong>
+                            <div class="alert alert-success mb-2">
+                                📄 Ce document contient toutes les signatures électroniques incrustées sur le PDF
+                            </div>
+                            <field name="signed_file" widget="binary" filename="signed_filename" class="w-100"
+                                   options="{'no_open': True}"/>
+                            <field name="signed_filename" invisible="1"/>
+                        </div>
+                    </div>
+
                     <!-- Row 3: Classification -->
                     <div class="row mb-4">
                         <div class="col-md-6">
