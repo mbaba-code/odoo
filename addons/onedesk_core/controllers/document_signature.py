@@ -3,7 +3,7 @@ Controller pour la signature publique de documents
 Permet aux signataires (internes et externes) de signer des documents
 via un lien sécurisé avec token d'accès
 """
-from odoo import http
+from odoo import http, fields
 from odoo.http import request
 from odoo.exceptions import AccessError
 import logging
@@ -119,7 +119,7 @@ class DocumentSignatureController(http.Controller):
                 # Signer le document
                 signature.write({
                     'status': 'signed',
-                    'signature_date': request.env['ir.fields'].datetime.now()
+                    'signature_date': fields.Datetime.now()
                 })
 
                 # Log l'action
