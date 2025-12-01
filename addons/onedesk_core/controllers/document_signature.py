@@ -7,12 +7,67 @@ from odoo import http, fields
 from odoo.http import request
 from odoo.exceptions import AccessError
 import logging
+import base64
 
 _logger = logging.getLogger(__name__)
 
 
 class DocumentSignatureController(http.Controller):
     """Contrôleur pour la signature publique de documents"""
+
+    @http.route('/onedesk/document/<int:document_id>/pdf', type='http', auth='public', methods=['GET'])
+    def document_pdf(self, document_id, access_token=None, **kwargs):
+        """
+        Servir le PDF du document en mode public avec vérification du token
+
+        Args:
+            document_id (int): ID du document
+            access_token (str): Token d'accès pour sécuriser l'accès
+
+        Returns:
+            PDF file response ou erreur 404
+        """
+        try:
+            # Vérifier que le token est fourni
+            if not access_token:
+                _logger.warning(f"Tentative d'accès au PDF {document_id} sans token")
+                return request.not_found()
+
+            # Rechercher une signature valide avec ce token pour ce document
+            Signature = request.env['onedesk.document.signature'].sudo()
+            signature = Signature.search([
+                ('document_id', '=', document_id),
+                ('access_token', '=', access_token)
+            ], limit=1)
+
+            if not signature:
+                _logger.warning(f"Token invalide pour accès PDF document {document_id}")
+                return request.not_found()
+
+            # Récupérer le document
+            document = signature.document_id
+
+            if not document or not document.file:
+                _logger.warning(f"Document {document_id} ou fichier PDF non trouvé")
+                return request.not_found()
+
+            # Décoder le PDF et le retourner
+            pdf_data = base64.b64decode(document.file)
+            filename = document.filename or f'document_{document_id}.pdf'
+
+            # Retourner le PDF
+            headers = [
+                ('Content-Type', 'application/pdf'),
+                ('Content-Disposition', f'inline; filename="{filename}"'),
+                ('Content-Length', len(pdf_data))
+            ]
+
+            _logger.info(f"PDF servi avec succès pour document {document_id} (token valide)")
+            return request.make_response(pdf_data, headers=headers)
+
+        except Exception as e:
+            _logger.error(f"Erreur lors du service du PDF {document_id}: {e}", exc_info=True)
+            return request.not_found()
 
     @http.route('/onedesk/document/<int:document_id>/sign', type='http', auth='public', website=True)
     def document_sign(self, document_id, access_token=None, **kwargs):
@@ -156,8 +211,17 @@ class DocumentSignatureController(http.Controller):
                 # Vérifier si tous les signataires ont signé
                 all_signatures = Signature.search([('document_id', '=', document_id)])
                 if all(s.status == 'signed' for s in all_signatures):
-                    document.write({'status': 'signed'})
-                    _logger.info(f"📄 Document {document.name} entièrement signé!")
+                    # Marquer le document comme signé et lui attribuer une catégorie
+                    # pour qu'il soit visible dans "Stock Document"
+                    document_update = {'status': 'signed'}
+
+                    # Si le document n'a pas de catégorie, lui en attribuer une par défaut
+                    if not document.document_category:
+                        document_update['document_category'] = 'other'
+                        _logger.info(f"📦 Document {document.name} classé dans 'Autre' après signature complète")
+
+                    document.write(document_update)
+                    _logger.info(f"📄 Document {document.name} entièrement signé et stocké!")
 
                 # ========== ENVOI EMAIL DE CONFIRMATION ==========
                 try:
@@ -183,8 +247,21 @@ class DocumentSignatureController(http.Controller):
                         }
 
                         mail = request.env['mail.mail'].sudo().create(mail_values)
+
+                        # Attacher le PDF du document à l'email
+                        if document.file:
+                            attachment = request.env['ir.attachment'].sudo().create({
+                                'name': document.filename or f'{document.name}.pdf',
+                                'type': 'binary',
+                                'datas': document.file,
+                                'res_model': 'mail.mail',
+                                'res_id': mail.id,
+                                'mimetype': 'application/pdf',
+                            })
+                            _logger.info(f"📎 PDF attaché à l'email (attachment ID: {attachment.id})")
+
                         mail.sudo().send()
-                        _logger.info(f"📧 Email de confirmation envoyé à {signature.signer_email}")
+                        _logger.info(f"📧 Email de confirmation envoyé à {signature.signer_email} avec PDF attaché")
                     else:
                         _logger.warning("⚠️ Template email de confirmation non trouvé")
 
