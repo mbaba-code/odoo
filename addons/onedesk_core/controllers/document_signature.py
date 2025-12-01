@@ -116,15 +116,38 @@ class DocumentSignatureController(http.Controller):
 
             # Traiter l'action
             if action == 'sign':
-                # Signer le document
-                signature.write({
-                    'status': 'signed',
-                    'signature_date': fields.Datetime.now()
-                })
+                # Capturer la signature électronique (image base64)
+                signature_data = kwargs.get('signature_data', '')
+
+                if signature_data:
+                    # Extraire les données base64 (enlever le préfixe data:image/png;base64,)
+                    if ',' in signature_data:
+                        signature_data = signature_data.split(',')[1]
+
+                    # Décoder base64 et stocker
+                    import base64
+                    signature_image_binary = base64.b64decode(signature_data)
+
+                    # Signer le document avec l'image de signature
+                    signature.write({
+                        'status': 'signed',
+                        'signature_date': fields.Datetime.now(),
+                        'signature_image': signature_image_binary,
+                        'signature_image_filename': f'signature_{signature.signer_name}.png'
+                    })
+
+                    _logger.info(f"✅ Signature électronique capturée pour {signature.signer_email}")
+                else:
+                    # Pas de signature fournie, juste marquer comme signé
+                    signature.write({
+                        'status': 'signed',
+                        'signature_date': fields.Datetime.now()
+                    })
+                    _logger.warning(f"⚠️ Signature sans image pour {signature.signer_email}")
 
                 # Log l'action
                 signature.message_post(
-                    body=f"✅ Document signé par {signature.signer_name} ({signature.signer_email})",
+                    body=f"✅ Document signé par {signature.signer_name} ({signature.signer_email}) le {fields.Datetime.now()}",
                     message_type='comment'
                 )
 
@@ -135,6 +158,39 @@ class DocumentSignatureController(http.Controller):
                 if all(s.status == 'signed' for s in all_signatures):
                     document.write({'status': 'signed'})
                     _logger.info(f"📄 Document {document.name} entièrement signé!")
+
+                # ========== ENVOI EMAIL DE CONFIRMATION ==========
+                try:
+                    # Chercher le template d'email de confirmation
+                    email_template = request.env.ref(
+                        'onedesk_core.email_template_signature_confirmation',
+                        raise_if_not_found=False
+                    )
+
+                    if email_template:
+                        # Rendre et envoyer l'email
+                        subject = email_template._render_field('subject', signature.ids, compute_lang=True)[signature.id]
+                        body_html = email_template._render_field('body_html', signature.ids, compute_lang=True)[signature.id]
+                        email_from = email_template.email_from or 'noreply@onedesk.io'
+
+                        mail_values = {
+                            'subject': subject,
+                            'body_html': body_html,
+                            'email_to': signature.signer_email,
+                            'email_from': email_from,
+                            'model': 'onedesk.document.signature',
+                            'res_id': signature.id,
+                        }
+
+                        mail = request.env['mail.mail'].sudo().create(mail_values)
+                        mail.sudo().send()
+                        _logger.info(f"📧 Email de confirmation envoyé à {signature.signer_email}")
+                    else:
+                        _logger.warning("⚠️ Template email de confirmation non trouvé")
+
+                except Exception as e:
+                    _logger.error(f"❌ Erreur envoi email confirmation: {e}", exc_info=True)
+                    # On ne bloque pas le processus si l'email échoue
 
                 # Afficher la page de succès
                 return request.render('onedesk_core.public_signature_success', {

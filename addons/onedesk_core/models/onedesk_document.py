@@ -59,6 +59,10 @@ class OnedeskDocument(models.Model):
                         help='Le PDF du document. Obligatoire avant d\'envoyer pour signature.')
     filename = fields.Char(string='Nom du fichier')
 
+    signed_file = fields.Binary(string='Document Signé (PDF)', attachment=True,
+                               help='Le PDF du document avec toutes les signatures apposées')
+    signed_filename = fields.Char(string='Nom fichier signé')
+
     status = fields.Selection([
         ('draft', '✏️ Brouillon'),
         ('pending_signature', '⏳ En attente de signature'),
@@ -470,6 +474,17 @@ class OnedeskDocumentSignature(models.Model):
         readonly=True,
         copy=False,
         help="Token unique pour permettre l'accès public sécurisé au document à signer"
+    )
+
+    # ========== SIGNATURE ÉLECTRONIQUE ==========
+    signature_image = fields.Binary(
+        string='Image de signature',
+        attachment=True,
+        help="Image de la signature manuscrite du signataire"
+    )
+    signature_image_filename = fields.Char(
+        string='Nom fichier signature',
+        default='signature.png'
     )
 
     @api.onchange('document_id')
