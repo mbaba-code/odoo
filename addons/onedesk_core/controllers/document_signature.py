@@ -16,13 +16,14 @@ class DocumentSignatureController(http.Controller):
     """Contrôleur pour la signature publique de documents"""
 
     @http.route('/onedesk/document/<int:document_id>/pdf', type='http', auth='public', methods=['GET'])
-    def document_pdf(self, document_id, access_token=None, **kwargs):
+    def document_pdf(self, document_id, access_token=None, download=None, **kwargs):
         """
         Servir le PDF du document en mode public avec vérification du token
 
         Args:
             document_id (int): ID du document
             access_token (str): Token d'accès pour sécuriser l'accès
+            download (str): Si présent, force le téléchargement au lieu de la visualisation
 
         Returns:
             PDF file response ou erreur 404
@@ -55,14 +56,18 @@ class DocumentSignatureController(http.Controller):
             pdf_data = base64.b64decode(document.file)
             filename = document.filename or f'document_{document_id}.pdf'
 
+            # Déterminer si on force le téléchargement ou la visualisation inline
+            disposition = 'attachment' if download else 'inline'
+
             # Retourner le PDF
             headers = [
                 ('Content-Type', 'application/pdf'),
-                ('Content-Disposition', f'inline; filename="{filename}"'),
+                ('Content-Disposition', f'{disposition}; filename="{filename}"'),
                 ('Content-Length', len(pdf_data))
             ]
 
-            _logger.info(f"PDF servi avec succès pour document {document_id} (token valide)")
+            action = "téléchargé" if download else "visualisé"
+            _logger.info(f"PDF {action} avec succès pour document {document_id} (token valide)")
             return request.make_response(pdf_data, headers=headers)
 
         except Exception as e:
@@ -249,8 +254,9 @@ class DocumentSignatureController(http.Controller):
                         mail = request.env['mail.mail'].sudo().create(mail_values)
 
                         # Attacher le PDF du document à l'email
+                        attachments_created = []
                         if document.file:
-                            attachment = request.env['ir.attachment'].sudo().create({
+                            pdf_attachment = request.env['ir.attachment'].sudo().create({
                                 'name': document.filename or f'{document.name}.pdf',
                                 'type': 'binary',
                                 'datas': document.file,
@@ -258,10 +264,24 @@ class DocumentSignatureController(http.Controller):
                                 'res_id': mail.id,
                                 'mimetype': 'application/pdf',
                             })
-                            _logger.info(f"📎 PDF attaché à l'email (attachment ID: {attachment.id})")
+                            attachments_created.append(f"PDF ({pdf_attachment.id})")
+                            _logger.info(f"📎 PDF du document attaché à l'email (ID: {pdf_attachment.id})")
+
+                        # Attacher également l'image de signature si disponible
+                        if signature.signature_image:
+                            sig_attachment = request.env['ir.attachment'].sudo().create({
+                                'name': signature.signature_image_filename or f'signature_{signature.signer_name}.png',
+                                'type': 'binary',
+                                'datas': signature.signature_image,
+                                'res_model': 'mail.mail',
+                                'res_id': mail.id,
+                                'mimetype': 'image/png',
+                            })
+                            attachments_created.append(f"Signature ({sig_attachment.id})")
+                            _logger.info(f"📎 Image de signature attachée à l'email (ID: {sig_attachment.id})")
 
                         mail.sudo().send()
-                        _logger.info(f"📧 Email de confirmation envoyé à {signature.signer_email} avec PDF attaché")
+                        _logger.info(f"📧 Email de confirmation envoyé à {signature.signer_email} avec {len(attachments_created)} pièces jointes: {', '.join(attachments_created)}")
                     else:
                         _logger.warning("⚠️ Template email de confirmation non trouvé")
 

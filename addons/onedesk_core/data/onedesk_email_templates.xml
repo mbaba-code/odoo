@@ -475,13 +475,28 @@
             </div>
         </div>
 
+        <!-- Télécharger le document -->
+        <div style="background-color: #d4edda; border-left: 4px solid #28a745; padding: 20px; margin: 20px 0; border-radius: 5px;">
+            <h3 style="color: #155724; margin-top: 0;">📎 Document joint</h3>
+            <p style="margin: 10px 0; color: #155724;">
+                Le document PDF que vous avez signé est joint à cet email. Vous pouvez également le télécharger via le lien ci-dessous :
+            </p>
+            <div style="text-align: center; margin-top: 15px;">
+                <a t-attf-href="{{ env['ir.config_parameter'].sudo().get_param('web.base.url') }}/onedesk/document/{{ object.document_id.id }}/pdf?access_token={{ object.access_token }}&amp;download=1"
+                   style="display: inline-block; background-color: #28a745; color: white; padding: 10px 25px; border-radius: 5px; text-decoration: none; font-weight: bold;">
+                    📥 Télécharger le document PDF
+                </a>
+            </div>
+        </div>
+
         <!-- Informations importantes -->
         <div style="background-color: #e7f3ff; border-radius: 5px; padding: 15px; margin: 20px 0;">
             <p style="margin: 0; color: #0056b3; font-weight: bold;">📌 À savoir:</p>
             <ul style="margin: 10px 0; color: #333; line-height: 1.8; padding-left: 20px;">
                 <li>Votre signature a été enregistrée de manière sécurisée</li>
-                <li>Le document signé sera accessible depuis votre portail OneDesk</li>
+                <li>Le document PDF est joint à cet email et téléchargeable via le lien ci-dessus</li>
                 <li>Tous les signataires recevront une copie une fois le document entièrement signé</li>
+                <li>Conservez ce document pour vos archives</li>
             </ul>
         </div>
 
