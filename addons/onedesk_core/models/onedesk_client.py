@@ -539,13 +539,14 @@ class OnedeskoClientInvitation(models.Model):
             'company_ids': [(4, self.client_id.company_id.id)],
         })
 
-        # Assigner le groupe après création
+        # Assigner le groupe après création (via la relation inverse sur le groupe)
         group_id = self._get_group_id()
         if group_id:
-            user.write({
-                'groups_id': [(4, group_id)],
+            group = self.env['res.groups'].sudo().browse(group_id)
+            group.write({
+                'users': [(4, user.id)],
             })
-            _logger.info(f'✅ Groupe property_manager assigné à l\'utilisateur {user.login}')
+            _logger.info(f'✅ Groupe {group.name} assigné à l\'utilisateur {user.login}')
 
         if password:
             user.password = password
