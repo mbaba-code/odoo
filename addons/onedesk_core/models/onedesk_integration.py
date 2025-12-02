@@ -82,6 +82,27 @@ class OnedeskIntegration(models.Model):
     
     active = fields.Boolean(default=True)
 
+    @api.onchange('ical_url')
+    def _onchange_ical_url(self):
+        """Nettoyer l'URL iCal - enlever tout texte avant https://"""
+        if self.ical_url:
+            # Enlever tout texte avant https:// ou http://
+            url = self.ical_url.strip()
+            # Trouver la position de https:// ou http://
+            https_pos = url.find('https://')
+            http_pos = url.find('http://')
+
+            if https_pos > 0:
+                # Enlever tout avant https://
+                url = url[https_pos:]
+            elif http_pos > 0:
+                # Enlever tout avant http://
+                url = url[http_pos:]
+
+            if url != self.ical_url:
+                _logger.info(f"🧹 iCal URL nettoyée: '{self.ical_url}' → '{url}'")
+                self.ical_url = url
+
     @api.depends('last_sync_date', 'sync_frequency')
     def _compute_next_sync(self):
         for record in self:
@@ -386,9 +407,27 @@ class OnedeskIntegration(models.Model):
                 "Installez-le avec : pip install icalendar"
             )
         
-        _logger.info(f"📥 Import iCal depuis {self.ical_url}")
-        
-        response = requests.get(self.ical_url, timeout=30)
+        # Nettoyer l'URL si nécessaire (au cas où du texte préfixe serait sauvegardé)
+        ical_url = self.ical_url.strip() if self.ical_url else ""
+
+        # Enlever tout texte avant https:// ou http://
+        https_pos = ical_url.find('https://')
+        http_pos = ical_url.find('http://')
+
+        if https_pos > 0:
+            ical_url = ical_url[https_pos:]
+        elif http_pos > 0:
+            ical_url = ical_url[http_pos:]
+
+        if not ical_url.startswith(('http://', 'https://')):
+            raise ValueError(
+                f"❌ URL iCal invalide: {self.ical_url}\n"
+                f"L'URL doit commencer par http:// ou https://"
+            )
+
+        _logger.info(f"📥 Import iCal depuis {ical_url}")
+
+        response = requests.get(ical_url, timeout=30)
         response.raise_for_status()
         
         cal = Calendar.from_ical(response.content)

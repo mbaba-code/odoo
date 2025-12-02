@@ -101,7 +101,11 @@
                             
                             <group invisible="connection_method != 'ical'">
                                 <group>
-                                    <field name="ical_url" placeholder="https://airbnb.com/calendar/ical/xxxxx" widget="url"/>
+                                    <label for="ical_url" string="🔗 Lien iCal"/>
+                                    <div class="alert alert-info mb-2">
+                                        Collez l'URL iCal de votre calendrier. L'URL doit commencer par http:// ou https://
+                                    </div>
+                                    <field name="ical_url" placeholder="https://www.airbnb.com/calendar/ical/1234567890.ics?s=xxxxx" widget="url" class="w-100"/>
                                 </group>
                             </group>
                             
