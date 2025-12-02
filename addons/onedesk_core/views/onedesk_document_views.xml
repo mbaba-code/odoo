@@ -24,6 +24,18 @@
                         </div>
                     </div>
 
+                    <!-- Row 1.5: Signature Mode -->
+                    <div class="row mb-4">
+                        <div class="col-md-12">
+                            <strong>🖊️ Mode de Signature</strong>
+                            <div class="alert alert-info mb-2" style="margin-bottom: 10px; font-size: 13px;">
+                                <div><strong>👤 Une personne - Plusieurs signatures:</strong> 1 seul email, la personne clique plusieurs fois sur le PDF</div>
+                                <div><strong>👥 Plusieurs personnes:</strong> Chaque personne reçoit 1 email et signe 1 fois</div>
+                            </div>
+                            <field name="signature_mode" required="1" class="w-100"/>
+                        </div>
+                    </div>
+
                     <!-- Row 2: PDF File -->
                     <div class="row mb-4">
                         <div class="col-md-12">

@@ -265,14 +265,14 @@ class DocumentSignatureController(http.Controller):
 
                         except json.JSONDecodeError as e:
                             _logger.error(f"❌ Erreur parsing JSON signatures multiples: {e}")
-                            return request.render('onedesk_core.public_signature_form', {
+                            return request.render('onedesk_core.public_signature_page', {
                                 'document': document,
                                 'signature': signature,
                                 'error_message': "Erreur lors de l'enregistrement des signatures."
                             })
                     else:
                         _logger.error("❌ Aucune signature reçue en mode single_signer_multiple")
-                        return request.render('onedesk_core.public_signature_form', {
+                        return request.render('onedesk_core.public_signature_page', {
                             'document': document,
                             'signature': signature,
                             'error_message': "Veuillez ajouter au moins une signature."
@@ -290,7 +290,7 @@ class DocumentSignatureController(http.Controller):
                         # Vérifier que la signature n'est pas vide (minimum 100 chars base64)
                         if len(signature_data) < 100:
                             _logger.error(f"❌ Signature trop courte ({len(signature_data)} chars), probablement vide ou corrompue")
-                            return request.render('onedesk_core.public_signature_form', {
+                            return request.render('onedesk_core.public_signature_page', {
                                 'document': document,
                                 'signature': signature,
                                 'error_message': "La signature semble vide ou invalide. Veuillez dessiner votre signature."
