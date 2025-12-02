@@ -537,7 +537,7 @@ class OnedeskoClientInvitation(models.Model):
             'login': self.email,
             'company_id': self.client_id.company_id.id,
             'company_ids': [(4, self.client_id.company_id.id)],
-            'groups_id': [(4, self._get_group_id())],
+            'groups_ids': [(6, 0, [self._get_group_id()])],  # Correct: groups_ids (avec 's')
         })
 
         if password:
