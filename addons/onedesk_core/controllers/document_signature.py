@@ -207,6 +207,8 @@ class DocumentSignatureController(http.Controller):
                             'signed_filename': f'{document.name}_signed.pdf'
                         })
                         _logger.info(f"📄 PDF signé généré et stocké pour document {document.name}")
+                    else:
+                        _logger.error(f"❌ ERREUR: generate_signed_pdf() a retourné None pour {signature.signer_name}. Vérifier les logs ci-dessus pour la cause.")
                 else:
                     # Pas de signature fournie, juste marquer comme signé
                     signature.write({

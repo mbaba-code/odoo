@@ -515,13 +515,20 @@ class OnedeskDocumentSignature(models.Model):
         """
         self.ensure_one()
 
+        _logger.info(f"🔵 Début génération PDF signé pour {self.signer_name}")
+        _logger.info(f"   - document_id: {self.document_id}")
+        _logger.info(f"   - document_id.file existe: {bool(self.document_id.file)}")
+        _logger.info(f"   - signature_image existe: {bool(self.signature_image)}")
+        _logger.info(f"   - Position: page={self.signature_page}, x={self.signature_x}, y={self.signature_y}")
+
         if not self.document_id.file or not self.signature_image:
-            _logger.warning(f"Impossible de générer PDF signé: document ou signature manquant")
+            _logger.error(f"❌ Impossible de générer PDF signé: document={bool(self.document_id.file)}, signature={bool(self.signature_image)}")
             return None
 
         try:
             from pypdf import PdfReader, PdfWriter
             from reportlab.pdfgen import canvas
+            from reportlab.lib.utils import ImageReader
             from PIL import Image
 
             # Décoder le PDF original
@@ -585,14 +592,24 @@ class OnedeskDocumentSignature(models.Model):
                 sig_y = 50
                 _logger.info(f"Position signature par défaut: ({sig_x}, {sig_y}) page {target_page_num}")
 
-            # Dessiner la signature sur le canvas
-            can.drawImage(temp_sig, sig_x, sig_y, width=sig_width, height=sig_height,
-                         mask='auto', preserveAspectRatio=True)
+            # Dessiner la signature sur le canvas en utilisant ImageReader
+            img_reader = ImageReader(temp_sig)
+            can.drawImage(img_reader, sig_x, sig_y, width=sig_width, height=sig_height,
+                         mask='auto')
 
             # Ajouter texte "Signé électroniquement"
             can.setFont("Helvetica", 8)
-            can.drawString(sig_x, sig_y - 12, f"Signé par: {self.signer_name}")
-            can.drawString(sig_x, sig_y - 24, f"Date: {self.signature_date.strftime('%d/%m/%Y %H:%M') if self.signature_date else 'N/A'}")
+            try:
+                # Essayer d'écrire le texte avec le nom (peut contenir des accents)
+                can.drawString(sig_x, sig_y - 12, f"Signé par: {self.signer_name}")
+                can.drawString(sig_x, sig_y - 24, f"Date: {self.signature_date.strftime('%d/%m/%Y %H:%M') if self.signature_date else 'N/A'}")
+            except Exception as e:
+                # Fallback sans accents si problème d'encoding
+                _logger.warning(f"Erreur ajout texte signature (probablement encoding): {e}")
+                # Essayer avec une version ASCII simplifiée
+                signer_ascii = self.signer_name.encode('ascii', 'ignore').decode('ascii')
+                can.drawString(sig_x, sig_y - 12, f"Signe par: {signer_ascii}")
+                can.drawString(sig_x, sig_y - 24, f"Date: {self.signature_date.strftime('%d/%m/%Y %H:%M') if self.signature_date else 'N/A'}")
 
             can.save()
 
@@ -619,9 +636,13 @@ class OnedeskDocumentSignature(models.Model):
             final_pdf.seek(0)
 
             # Encoder en base64
-            signed_pdf_b64 = base64.b64encode(final_pdf.read())
+            pdf_bytes = final_pdf.read()
+            signed_pdf_b64 = base64.b64encode(pdf_bytes)
 
             _logger.info(f"✅ PDF signé généré avec succès pour {self.signer_name}")
+            _logger.info(f"   - Taille PDF: {len(pdf_bytes)} bytes")
+            _logger.info(f"   - Nombre de pages: {len(output.pages)}")
+            _logger.info(f"   - Signature placée sur page {target_page_num}")
             return signed_pdf_b64
 
         except Exception as e:
