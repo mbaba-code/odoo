@@ -419,20 +419,25 @@ class OnedeskDocument(models.Model):
             _logger.error(f'❌ Erreur téléchargement PDF {env_label}: {str(e)}')
 
     def action_download(self):
-        """Télécharger le fichier PDF du document"""
+        """Télécharger le fichier PDF du document (priorité au PDF signé si disponible)"""
         self.ensure_one()
 
-        if not self.file:
+        # Priorité 1: Si le document a été signé, télécharger le PDF signé
+        if self.signed_file:
+            filename = self.signed_filename or f"{self.name}_signed.pdf"
+            field_name = 'signed_file'
+            _logger.info(f'📥 Téléchargement du PDF SIGNÉ {filename} pour {self.name}')
+        # Priorité 2: Sinon, télécharger le PDF original
+        elif self.file:
+            filename = self.filename or f"{self.name}.pdf"
+            field_name = 'file'
+            _logger.info(f'📥 Téléchargement du PDF ORIGINAL {filename} pour {self.name}')
+        else:
             raise ValueError('❌ Ce document n\'a pas de fichier PDF à télécharger!')
-
-        # Utiliser le filename s'il existe, sinon utiliser le nom du document
-        filename = self.filename or f"{self.name}.pdf"
-
-        _logger.info(f'📥 Téléchargement du fichier {filename} pour {self.name}')
 
         return {
             'type': 'ir.actions.act_url',
-            'url': f'/web/content/onedesk.document/{self.id}/file?download=true&filename={filename}',
+            'url': f'/web/content/onedesk.document/{self.id}/{field_name}?download=true&filename={filename}',
             'target': 'new',
         }
 

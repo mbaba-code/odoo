@@ -482,9 +482,9 @@
                 Le document PDF que vous avez signé est joint à cet email. Vous pouvez également le télécharger via le lien ci-dessous :
             </p>
             <div style="text-align: center; margin-top: 15px;">
-                <a t-attf-href="{{ env['ir.config_parameter'].sudo().get_param('web.base.url') }}/onedesk/document/{{ object.document_id.id }}/pdf?access_token={{ object.access_token }}&amp;download=1"
+                <a t-attf-href="{{ env['ir.config_parameter'].sudo().get_param('web.base.url') }}/onedesk/document/{{ object.document_id.id }}/signed_pdf?access_token={{ object.access_token }}&amp;download=1"
                    style="display: inline-block; background-color: #28a745; color: white; padding: 10px 25px; border-radius: 5px; text-decoration: none; font-weight: bold;">
-                    📥 Télécharger le document PDF
+                    📥 Télécharger le document signé
                 </a>
             </div>
         </div>

@@ -82,7 +82,7 @@
                                         class="btn btn-secondary btn-lg" readonly="1"/>
                                 <button name="action_download" type="object"
                                         string="⬇️ Voir/Télécharger PDF"
-                                        invisible="not file"
+                                        invisible="not file and not signed_file"
                                         class="btn btn-info btn-lg"/>
                             </div>
                         </div>
@@ -113,7 +113,7 @@
             <form class="o_form_document_wrapper">
                 <header>
                     <button name="action_download" type="object" string="⬇️ Télécharger"
-                            invisible="not file" class="btn-info"/>
+                            invisible="not file and not signed_file" class="btn-info"/>
                     <field name="status" widget="statusbar"
                            statusbar_visible="draft,pending_signature,signed,archived"/>
                 </header>
