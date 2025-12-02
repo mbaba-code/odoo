@@ -79,6 +79,14 @@ class OnedeskDocument(models.Model):
     ], string='Méthode de signature', default='odoo_native',
        help="Email Signature: envoie par email Odoo, simple et rapide\nSignaturIT: service tiers avancé (en phase bêta)")
 
+    # ========== MODE DE SIGNATURE (Simple/Multiple) ==========
+    signature_mode = fields.Selection([
+        ('single_signer_multiple', '👤 Une personne - Plusieurs signatures'),
+        ('multiple_signers', '👥 Plusieurs personnes - Une signature chacun'),
+    ], string='Mode de signature', default='single_signer_multiple',
+       help="Une personne - Plusieurs signatures: 1 email, la personne peut cliquer plusieurs fois sur le PDF\n"
+            "Plusieurs personnes: Chaque personne reçoit 1 email et signe 1 fois")
+
     # ========== RELATIONS ==========
     property_id = fields.Many2one('onedesk.property', string='Propriété', index=True)
     unit_id = fields.Many2one('onedesk.unit', string='Unité', index=True)
@@ -496,48 +504,80 @@ class OnedeskDocument(models.Model):
 
                     for sig in page_signatures:
                         try:
-                            # Décoder l'image de signature
-                            signature_img_data = base64.b64decode(sig.signature_image)
-                            signature_img = Image.open(io.BytesIO(signature_img_data))
+                            # Vérifier si mode signatures multiples (JSON)
+                            signatures_to_add = []
 
-                            if signature_img.mode not in ('RGB', 'RGBA'):
-                                signature_img = signature_img.convert('RGBA')
-
-                            # Sauvegarder temporairement l'image
-                            temp_sig = io.BytesIO()
-                            signature_img.save(temp_sig, format='PNG')
-                            temp_sig.seek(0)
-
-                            # Dimensions et position de la signature
-                            sig_width = 150
-                            sig_height = 50
-
-                            if sig.signature_x > 0 and sig.signature_y > 0:
-                                sig_x = sig.signature_x
-                                sig_y = sig.signature_y
+                            if sig.multiple_signatures:
+                                # Mode: Une personne, plusieurs signatures
+                                import json
+                                try:
+                                    multi_sigs = json.loads(sig.multiple_signatures)
+                                    for ms in multi_sigs:
+                                        if ms.get('page') == page_num:
+                                            signatures_to_add.append({
+                                                'image_base64': ms.get('image'),
+                                                'x': ms.get('x', 0),
+                                                'y': ms.get('y', 0),
+                                                'name': sig.signer_name,
+                                                'date': sig.signature_date
+                                            })
+                                except json.JSONDecodeError as e:
+                                    _logger.error(f"❌ Erreur parsing multiple_signatures JSON: {e}")
+                                    continue
                             else:
-                                # Position par défaut
-                                sig_x = page_width - sig_width - 50
-                                sig_y = 50
+                                # Mode: Une signature simple
+                                if sig.signature_image:
+                                    signatures_to_add.append({
+                                        'image_base64': sig.signature_image,
+                                        'x': sig.signature_x if sig.signature_x > 0 else page_width - 200,
+                                        'y': sig.signature_y if sig.signature_y > 0 else 50,
+                                        'name': sig.signer_name,
+                                        'date': sig.signature_date
+                                    })
 
-                            # Dessiner la signature
-                            img_reader = ImageReader(temp_sig)
-                            can.drawImage(img_reader, sig_x, sig_y, width=sig_width, height=sig_height, mask='auto')
+                            # Dessiner toutes les signatures pour cette signature record
+                            for sig_data in signatures_to_add:
+                                try:
+                                    # Décoder l'image de signature
+                                    signature_img_data = base64.b64decode(sig_data['image_base64'])
+                                    signature_img = Image.open(io.BytesIO(signature_img_data))
 
-                            # Ajouter texte
-                            can.setFont("Helvetica", 8)
-                            try:
-                                can.drawString(sig_x, sig_y - 12, f"Signé par: {sig.signer_name}")
-                                can.drawString(sig_x, sig_y - 24, f"Date: {sig.signature_date.strftime('%d/%m/%Y %H:%M') if sig.signature_date else 'N/A'}")
-                            except:
-                                signer_ascii = sig.signer_name.encode('ascii', 'ignore').decode('ascii')
-                                can.drawString(sig_x, sig_y - 12, f"Signe par: {signer_ascii}")
-                                can.drawString(sig_x, sig_y - 24, f"Date: {sig.signature_date.strftime('%d/%m/%Y %H:%M') if sig.signature_date else 'N/A'}")
+                                    if signature_img.mode not in ('RGB', 'RGBA'):
+                                        signature_img = signature_img.convert('RGBA')
 
-                            _logger.info(f"  ✓ Signature de {sig.signer_name} ajoutée à page {page_num}")
+                                    # Sauvegarder temporairement l'image
+                                    temp_sig = io.BytesIO()
+                                    signature_img.save(temp_sig, format='PNG')
+                                    temp_sig.seek(0)
+
+                                    # Dimensions et position
+                                    sig_width = 150
+                                    sig_height = 50
+                                    sig_x = sig_data['x']
+                                    sig_y = sig_data['y']
+
+                                    # Dessiner la signature
+                                    img_reader = ImageReader(temp_sig)
+                                    can.drawImage(img_reader, sig_x, sig_y, width=sig_width, height=sig_height, mask='auto')
+
+                                    # Ajouter texte
+                                    can.setFont("Helvetica", 8)
+                                    try:
+                                        can.drawString(sig_x, sig_y - 12, f"Signé par: {sig_data['name']}")
+                                        can.drawString(sig_x, sig_y - 24, f"Date: {sig_data['date'].strftime('%d/%m/%Y %H:%M') if sig_data['date'] else 'N/A'}")
+                                    except:
+                                        signer_ascii = sig_data['name'].encode('ascii', 'ignore').decode('ascii')
+                                        can.drawString(sig_x, sig_y - 12, f"Signe par: {signer_ascii}")
+                                        can.drawString(sig_x, sig_y - 24, f"Date: {sig_data['date'].strftime('%d/%m/%Y %H:%M') if sig_data['date'] else 'N/A'}")
+
+                                    _logger.info(f"  ✓ Signature de {sig_data['name']} ajoutée à page {page_num} ({sig_x}, {sig_y})")
+
+                                except Exception as e:
+                                    _logger.error(f"❌ Erreur ajout signature individuelle: {e}")
+                                    continue
 
                         except Exception as e:
-                            _logger.error(f"❌ Erreur ajout signature {sig.signer_name}: {e}")
+                            _logger.error(f"❌ Erreur traitement signature {sig.signer_name}: {e}")
                             continue
 
                     can.save()
@@ -635,6 +675,12 @@ class OnedeskDocumentSignature(models.Model):
         string='Position Y',
         default=0,
         help="Position verticale de la signature (0 = auto, en bas à droite)"
+    )
+
+    # ========== SIGNATURES MULTIPLES (Mode single_signer_multiple) ==========
+    multiple_signatures = fields.Text(
+        string='Positions signatures multiples (JSON)',
+        help="Stocke plusieurs positions de signature au format JSON: [{page, x, y, image_base64}, ...]"
     )
 
     def generate_signed_pdf(self):

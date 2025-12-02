@@ -235,70 +235,113 @@ class DocumentSignatureController(http.Controller):
 
             # Traiter l'action
             if action == 'sign':
-                # Capturer la signature électronique (image base64)
-                signature_data = kwargs.get('signature_data', '')
+                # Vérifier le mode de signature
+                signature_mode = document.signature_mode or 'single_signer_multiple'
 
-                if signature_data:
-                    # Extraire les données base64 (enlever le préfixe data:image/png;base64,)
-                    if ',' in signature_data:
-                        signature_data = signature_data.split(',')[1]
+                # Mode: Une personne, plusieurs signatures (JSON)
+                if signature_mode == 'single_signer_multiple':
+                    multiple_signatures_json = kwargs.get('multiple_signatures_json', '')
 
-                    # Vérifier que la signature n'est pas vide (minimum 100 chars base64)
-                    if len(signature_data) < 100:
-                        _logger.error(f"❌ Signature trop courte ({len(signature_data)} chars), probablement vide ou corrompue")
+                    if multiple_signatures_json:
+                        import json
+                        try:
+                            # Parser le JSON des signatures multiples
+                            multi_sigs = json.loads(multiple_signatures_json)
+                            _logger.info(f"📸 {len(multi_sigs)} signatures multiples capturées")
+
+                            # Nettoyer les données base64 (enlever préfixe data:image/png;base64,)
+                            for sig in multi_sigs:
+                                if 'image' in sig and ',' in sig['image']:
+                                    sig['image'] = sig['image'].split(',')[1]
+
+                            # Stocker en JSON
+                            signature.write({
+                                'status': 'signed',
+                                'signature_date': fields.Datetime.now(),
+                                'multiple_signatures': json.dumps(multi_sigs)
+                            })
+
+                            _logger.info(f"✅ {len(multi_sigs)} signatures électroniques capturées pour {signature.signer_email}")
+
+                        except json.JSONDecodeError as e:
+                            _logger.error(f"❌ Erreur parsing JSON signatures multiples: {e}")
+                            return request.render('onedesk_core.public_signature_form', {
+                                'document': document,
+                                'signature': signature,
+                                'error_message': "Erreur lors de l'enregistrement des signatures."
+                            })
+                    else:
+                        _logger.error("❌ Aucune signature reçue en mode single_signer_multiple")
                         return request.render('onedesk_core.public_signature_form', {
                             'document': document,
                             'signature': signature,
-                            'error_message': "La signature semble vide ou invalide. Veuillez dessiner votre signature."
+                            'error_message': "Veuillez ajouter au moins une signature."
                         })
 
-                    # Stocker la signature base64 DIRECTEMENT (Odoo Binary attend du base64, pas des bytes)
-                    # PAS besoin de décoder/réencoder, le champ Binary le gère automatiquement
-                    _logger.info(f"📸 Signature capturée: {len(signature_data)} caractères base64")
-
-                    # Capturer la position de la signature choisie par le signataire
-                    try:
-                        sig_page = int(kwargs.get('signature_page', -1))
-                        sig_x = float(kwargs.get('signature_x', 0))
-                        sig_y = float(kwargs.get('signature_y', 0))
-                        _logger.info(f"📍 Position signature: page={sig_page}, x={sig_x}, y={sig_y}")
-                    except (ValueError, TypeError) as e:
-                        _logger.warning(f"⚠️ Erreur parsing position signature: {e}, utilisation des valeurs par défaut")
-                        sig_page = -1
-                        sig_x = 0
-                        sig_y = 0
-
-                    # Signer le document avec l'image de signature ET la position
-                    signature.write({
-                        'status': 'signed',
-                        'signature_date': fields.Datetime.now(),
-                        'signature_image': signature_data,  # String base64, pas bytes!
-                        'signature_image_filename': f'signature_{signature.signer_name}.png',
-                        'signature_page': sig_page,
-                        'signature_x': sig_x,
-                        'signature_y': sig_y
-                    })
-
-                    _logger.info(f"✅ Signature électronique capturée pour {signature.signer_email}")
-
-                    # Générer le PDF signé avec TOUTES les signatures (y compris la nouvelle)
-                    signed_pdf = document.generate_signed_pdf_with_all_signatures()
-                    if signed_pdf:
-                        # Stocker le PDF signé dans le document
-                        document.write({
-                            'signed_file': signed_pdf,
-                            'signed_filename': f'{document.name}_signed.pdf'
-                        })
-                        _logger.info(f"📄 PDF signé généré avec toutes les signatures pour {document.name}")
-                    else:
-                        _logger.error(f"❌ ERREUR: generate_signed_pdf_with_all_signatures() a retourné None. Vérifier les logs ci-dessus pour la cause.")
+                # Mode: Plusieurs personnes, une signature chacun
                 else:
-                    # Pas de signature fournie, juste marquer comme signé
-                    signature.write({
-                        'status': 'signed',
-                        'signature_date': fields.Datetime.now()
+                    signature_data = kwargs.get('signature_data', '')
+
+                    if signature_data:
+                        # Extraire les données base64 (enlever le préfixe data:image/png;base64,)
+                        if ',' in signature_data:
+                            signature_data = signature_data.split(',')[1]
+
+                        # Vérifier que la signature n'est pas vide (minimum 100 chars base64)
+                        if len(signature_data) < 100:
+                            _logger.error(f"❌ Signature trop courte ({len(signature_data)} chars), probablement vide ou corrompue")
+                            return request.render('onedesk_core.public_signature_form', {
+                                'document': document,
+                                'signature': signature,
+                                'error_message': "La signature semble vide ou invalide. Veuillez dessiner votre signature."
+                            })
+
+                        # Stocker la signature base64 DIRECTEMENT (Odoo Binary attend du base64, pas des bytes)
+                        _logger.info(f"📸 Signature capturée: {len(signature_data)} caractères base64")
+
+                        # Capturer la position de la signature choisie par le signataire
+                        try:
+                            sig_page = int(kwargs.get('signature_page', -1))
+                            sig_x = float(kwargs.get('signature_x', 0))
+                            sig_y = float(kwargs.get('signature_y', 0))
+                            _logger.info(f"📍 Position signature: page={sig_page}, x={sig_x}, y={sig_y}")
+                        except (ValueError, TypeError) as e:
+                            _logger.warning(f"⚠️ Erreur parsing position signature: {e}, utilisation des valeurs par défaut")
+                            sig_page = -1
+                            sig_x = 0
+                            sig_y = 0
+
+                        # Signer le document avec l'image de signature ET la position
+                        signature.write({
+                            'status': 'signed',
+                            'signature_date': fields.Datetime.now(),
+                            'signature_image': signature_data,  # String base64, pas bytes!
+                            'signature_image_filename': f'signature_{signature.signer_name}.png',
+                            'signature_page': sig_page,
+                            'signature_x': sig_x,
+                            'signature_y': sig_y
+                        })
+
+                        _logger.info(f"✅ Signature électronique capturée pour {signature.signer_email}")
+                    else:
+                        # Pas de signature fournie en mode multiple_signers
+                        signature.write({
+                            'status': 'signed',
+                            'signature_date': fields.Datetime.now()
+                        })
+                        _logger.warning(f"⚠️ Signature sans image pour {signature.signer_email}")
+
+                # Générer le PDF signé avec TOUTES les signatures (y compris la/les nouvelle(s))
+                signed_pdf = document.generate_signed_pdf_with_all_signatures()
+                if signed_pdf:
+                    # Stocker le PDF signé dans le document
+                    document.write({
+                        'signed_file': signed_pdf,
+                        'signed_filename': f'{document.name}_signed.pdf'
                     })
-                    _logger.warning(f"⚠️ Signature sans image pour {signature.signer_email}")
+                    _logger.info(f"📄 PDF signé généré avec toutes les signatures pour {document.name}")
+                else:
+                    _logger.error(f"❌ ERREUR: generate_signed_pdf_with_all_signatures() a retourné None. Vérifier les logs ci-dessus pour la cause.")
 
                 # Log l'action
                 signature.message_post(
