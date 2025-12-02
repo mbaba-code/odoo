@@ -139,8 +139,6 @@
                                     <div class="pdf-viewer-container" id="pdf-viewer">
                                         <div class="pdf-canvas-wrapper">
                                             <canvas id="pdf-canvas" class="pdf-canvas"></canvas>
-                                            <!-- Zones de signature seront ajoutées ici dynamiquement -->
-                                            <div id="signature-zones-overlay"></div>
                                         </div>
                                         <div class="pdf-controls">
                                             <button onclick="prevPage()" id="prev-btn"><i class="fa fa-chevron-left"></i></button>
@@ -386,6 +384,7 @@
                 // Clic direct sur le PDF pour placer la signature
                 if (canvas) {
                     canvas.addEventListener('click', function(e) {
+                        console.log('🖱️ Clic détecté sur le canvas PDF');
                         const rect = canvas.getBoundingClientRect();
                         const x = e.clientX - rect.left;
                         const y = e.clientY - rect.top;
@@ -398,12 +397,15 @@
                             y: (canvas.height - y) / scale
                         };
 
-                        console.log('Zone cliquée:', currentZone);
+                        console.log('📍 Zone cliquée:', currentZone);
                         openSignatureModal();
                     });
 
                     // Changer le curseur pour indiquer que c'est cliquable
                     canvas.style.cursor = 'crosshair';
+                    console.log('✅ Event listener ajouté au canvas PDF');
+                } else {
+                    console.error('❌ Canvas PDF introuvable!');
                 }
 
                 // Ouvrir modal de signature
