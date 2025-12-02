@@ -885,14 +885,20 @@ class OneDeskWebsite(http.Controller):
                 # Paiement réussi - Activer la souscription
                 _logger.info(f'✅ Payment successful for {subscription.subscription_id}')
                 self._activate_subscription_after_payment(subscription)
-                return request.redirect('/onedesk/payment/success')
+
+                # Rediriger vers la page d'activation du compte (invitation)
+                redirect_url = self._get_post_payment_redirect_url(subscription)
+                return request.redirect(redirect_url)
 
             elif tx.state == 'authorized':
                 # Paiement autorisé mais pas encore capturé
                 _logger.info(f'⏳ Payment authorized for {subscription.subscription_id}')
                 # Pour l'instant, on active aussi (peut être modifié selon besoin)
                 self._activate_subscription_after_payment(subscription)
-                return request.redirect('/onedesk/payment/success')
+
+                # Rediriger vers la page d'activation du compte (invitation)
+                redirect_url = self._get_post_payment_redirect_url(subscription)
+                return request.redirect(redirect_url)
 
             elif tx.state in ['pending', 'draft']:
                 # Paiement en attente
@@ -961,32 +967,29 @@ class OneDeskWebsite(http.Controller):
         except Exception as e:
             _logger.warning(f'⚠️ Error sending confirmation email: {e}')
 
-        # 3.5. NOUVEAU: Créer utilisateur et envoyer email d'activation après paiement
+        # 3.5. NOUVEAU: Créer invitation après paiement (les emails seront envoyés après acceptation)
         try:
             contact_email = subscription.billing_contact_id.email
+
             # Vérifier si l'utilisateur existe déjà
-            user = request.env['res.users'].sudo().search([('login', '=', contact_email)], limit=1)
+            existing_user = request.env['res.users'].sudo().search([('login', '=', contact_email)], limit=1)
 
-            if not user:
-                # Créer l'utilisateur
-                user = request.env['res.users'].sudo().create({
-                    'name': subscription.billing_contact_id.name,
-                    'login': contact_email,
+            if existing_user:
+                _logger.info(f'ℹ️ Utilisateur existe déjà: {contact_email}, pas d\'invitation créée')
+            else:
+                # Créer une invitation pour que l'utilisateur définisse son mot de passe
+                invitation = request.env['onedesk.client.invitation'].sudo().create({
+                    'client_id': client.id,
                     'email': contact_email,
-                    'company_id': subscription.company_id.id,
-                    'company_ids': [(4, subscription.company_id.id)],
+                    'role': 'owner',  # Propriétaire = property_manager group
+                    'state': 'pending',
+                    'expires_date': fields.Datetime.now() + timedelta(days=7),
                 })
-                _logger.info(f'✅ Utilisateur créé après paiement: {user.login} (ID: {user.id})')
+                _logger.info(f'✅ Invitation créée pour {contact_email} (token: {invitation.invitation_token})')
 
-            # Préparer le signup (génère le token d'activation)
-            user.partner_id.signup_prepare()
-
-            # Envoyer l'email d'activation
-            template_welcome = request.env.ref('onedesk_core.email_template_welcome')
-            template_welcome.sudo().send_mail(user.id, force_send=True)
-            _logger.info(f'✅ Email d\'activation envoyé à {contact_email}')
+                # Note: L'invitation sera récupérée via l'email dans payment_callback
         except Exception as e:
-            _logger.warning(f'⚠️ Erreur envoi email activation après paiement: {e}', exc_info=True)
+            _logger.warning(f'⚠️ Erreur création invitation après paiement: {e}', exc_info=True)
 
         # 4. Créer un audit log
         request.env['onedesk.audit.log'].sudo().create({
@@ -999,6 +1002,28 @@ class OneDeskWebsite(http.Controller):
         })
 
         _logger.info(f'✅ Subscription {subscription.subscription_id} fully activated')
+
+    def _get_post_payment_redirect_url(self, subscription):
+        """
+        Obtenir l'URL de redirection après paiement réussi
+
+        - Si une invitation existe pour cet email → Redirige vers la page d'acceptation
+        - Sinon (utilisateur existe déjà) → Redirige vers la page de succès
+        """
+        contact_email = subscription.billing_contact_id.email
+
+        # Chercher une invitation en attente pour cet email
+        invitation = request.env['onedesk.client.invitation'].sudo().search([
+            ('email', '=', contact_email),
+            ('state', '=', 'pending'),
+        ], limit=1, order='id desc')
+
+        if invitation:
+            _logger.info(f'🔗 Redirection vers page d\'invitation: /onedesk/invite/accept/{invitation.invitation_token}')
+            return f'/onedesk/invite/accept/{invitation.invitation_token}'
+        else:
+            _logger.info(f'🔗 Pas d\'invitation trouvée, redirection vers page de succès')
+            return '/onedesk/payment/success'
 
     @http.route('/onedesk/payment/success', type='http', auth='public', website=True)
     def payment_success(self, **kw):

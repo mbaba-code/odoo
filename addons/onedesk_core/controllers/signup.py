@@ -2,11 +2,14 @@ import json
 import secrets
 import string
 import re
+import logging
 from datetime import datetime, timedelta
 from odoo import http, fields
 from odoo.http import request
 from odoo.tools import email_normalize
 from markupsafe import escape
+
+_logger = logging.getLogger(__name__)
 
 
 class OnedeskoSignupController(http.Controller):
@@ -334,9 +337,41 @@ class OnedeskoSignupController(http.Controller):
         """Page de connexion personnalisée pour OneDesk"""
         return request.render('onedesk_core.login_template', {})
 
-    @http.route('/onedesk/invite/accept/<token>', type='jsonrpc', auth='public', csrf=False)
-    def accept_invitation(self, token, **data):
-        """Accepter une invitation d'utilisateur"""
+    @http.route('/onedesk/invite/accept/<token>', type='http', auth='public', website=True)
+    def accept_invitation_page(self, token, **kwargs):
+        """Page HTML pour accepter l'invitation et définir le mot de passe"""
+        Invitation = request.env['onedesk.client.invitation'].sudo()
+
+        # Trouver l'invitation
+        invitation = Invitation.search([('invitation_token', '=', token)], limit=1)
+
+        if not invitation:
+            return request.render('onedesk_core.invitation_error_template', {
+                'error_message': 'Invitation non trouvée ou expirée',
+            })
+
+        # Vérifier l'expiration
+        if fields.Datetime.now() > invitation.expires_date:
+            invitation.state = 'expired'
+            return request.render('onedesk_core.invitation_error_template', {
+                'error_message': 'Cette invitation a expiré',
+            })
+
+        # Vérifier l'état
+        if invitation.state != 'pending':
+            return request.render('onedesk_core.invitation_error_template', {
+                'error_message': 'Cette invitation n\'est plus valide',
+            })
+
+        # Afficher la page d'acceptation
+        return request.render('onedesk_core.invitation_accept_template', {
+            'invitation': invitation,
+            'token': token,
+        })
+
+    @http.route('/onedesk/invite/accept/submit', type='json', auth='public', csrf=False)
+    def accept_invitation(self, token, name=None, password=None, **data):
+        """Accepter une invitation d'utilisateur et activer le compte"""
         try:
             Invitation = request.env['onedesk.client.invitation'].sudo()
 
@@ -350,15 +385,16 @@ class OnedeskoSignupController(http.Controller):
                 }
 
             # Accepter et créer l'utilisateur
-            user = invitation.action_accept_invitation(password=data.get('password'))
+            user = invitation.action_accept_invitation(name=name, password=password)
 
             return {
                 'status': 'success',
-                'message': 'Invitation acceptée! Vous pouvez maintenant vous connecter.',
+                'message': 'Compte activé avec succès! Redirection vers la page de connexion...',
                 'user_id': user.id,
             }
 
         except Exception as e:
+            _logger.error(f'Erreur acceptation invitation: {e}', exc_info=True)
             return {
                 'status': 'error',
                 'message': str(e),

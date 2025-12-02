@@ -518,8 +518,8 @@ class OnedeskoClientInvitation(models.Model):
         # À implémenter avec le système d'email
         self.sent_date = fields.Datetime.now()
 
-    def action_accept_invitation(self, password=None):
-        """Accepter l'invitation et créer un utilisateur"""
+    def action_accept_invitation(self, name=None, password=None):
+        """Accepter l'invitation, créer un utilisateur et envoyer les emails"""
         self.ensure_one()
 
         if self.state != 'pending':
@@ -532,7 +532,7 @@ class OnedeskoClientInvitation(models.Model):
 
         # Créer l'utilisateur
         user = self.env['res.users'].create({
-            'name': self.email.split('@')[0],
+            'name': name or self.email.split('@')[0],
             'email': self.email,
             'login': self.email,
             'company_id': self.client_id.company_id.id,
@@ -545,6 +545,33 @@ class OnedeskoClientInvitation(models.Model):
 
         self.state = 'accepted'
         self.accepted_date = fields.Datetime.now()
+
+        # Envoyer l'email de bienvenue
+        try:
+            welcome_template = self.env.ref('onedesk_core.email_template_welcome')
+            if welcome_template:
+                welcome_template.sudo().send_mail(user.id, force_send=True)
+                _logger.info(f'✅ Email de bienvenue envoyé à {self.email}')
+        except Exception as e:
+            _logger.warning(f'⚠️ Erreur envoi email de bienvenue: {e}')
+
+        # Envoyer l'email de confirmation de souscription
+        try:
+            # Récupérer la souscription du client
+            subscription = self.env['onedesk.subscription'].sudo().search([
+                ('company_id', '=', self.client_id.company_id.id),
+                ('state', '=', 'active'),
+            ], limit=1, order='id desc')
+
+            if subscription:
+                subscription_template = self.env.ref('website_onedesk.email_subscription_confirmation')
+                if subscription_template:
+                    subscription_template.sudo().send_mail(subscription.id, force_send=True, email_values={
+                        'email_to': self.email,
+                    })
+                    _logger.info(f'✅ Email de confirmation de souscription envoyé à {self.email}')
+        except Exception as e:
+            _logger.warning(f'⚠️ Erreur envoi email de souscription: {e}')
 
         return user
 
