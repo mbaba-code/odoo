@@ -460,11 +460,15 @@ class OnedeskDocument(models.Model):
             _logger.error(f"❌ Impossible de générer PDF signé: pas de fichier original")
             return None
 
-        # Récupérer toutes les signatures qui ont été validées (avec image)
+        # Récupérer toutes les signatures qui ont été validées
+        # En mode single_signer_multiple: multiple_signatures (JSON) est rempli
+        # En mode multiple_signers: signature_image est rempli
         signatures = self.env['onedesk.document.signature'].search([
             ('document_id', '=', self.id),
             ('status', '=', 'signed'),
-            ('signature_image', '!=', False)
+            '|',  # OR
+            ('signature_image', '!=', False),
+            ('multiple_signatures', '!=', False)
         ])
 
         if not signatures:
