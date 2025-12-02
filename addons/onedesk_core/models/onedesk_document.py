@@ -82,10 +82,10 @@ class OnedeskDocument(models.Model):
     # ========== MODE DE SIGNATURE (Simple/Multiple) ==========
     signature_mode = fields.Selection([
         ('single_signer_multiple', '👤 Une personne - Plusieurs signatures'),
-        ('multiple_signers', '👥 Plusieurs personnes - Une signature chacun'),
+        ('multiple_signers', '👥 Plusieurs personnes - Plusieurs signatures chacun'),
     ], string='Mode de signature', default='single_signer_multiple',
        help="Une personne - Plusieurs signatures: 1 email, la personne peut cliquer plusieurs fois sur le PDF\n"
-            "Plusieurs personnes: Chaque personne reçoit 1 email et signe 1 fois")
+            "Plusieurs personnes - Plusieurs signatures: Chaque personne reçoit 1 email et peut cliquer plusieurs fois. Email envoyé quand TOUS ont signé.")
 
     # ========== RELATIONS ==========
     property_id = fields.Many2one('onedesk.property', string='Propriété', index=True)

@@ -340,7 +340,11 @@ class DocumentSignatureController(http.Controller):
                         'signed_file': signed_pdf,
                         'signed_filename': f'{document.name}_signed.pdf'
                     })
-                    _logger.info(f"📄 PDF signé généré avec toutes les signatures pour {document.name}")
+                    # Rafraîchir pour s'assurer que signed_file est visible
+                    document.invalidate_cache(['signed_file', 'signed_filename'])
+                    _logger.info(f"📄 PDF signé généré et stocké pour {document.name}")
+                    _logger.info(f"   - signed_file existe: {bool(document.signed_file)}")
+                    _logger.info(f"   - signed_filename: {document.signed_filename}")
                 else:
                     _logger.error(f"❌ ERREUR: generate_signed_pdf_with_all_signatures() a retourné None. Vérifier les logs ci-dessus pour la cause.")
 
@@ -354,7 +358,9 @@ class DocumentSignatureController(http.Controller):
 
                 # Vérifier si tous les signataires ont signé
                 all_signatures = Signature.search([('document_id', '=', document_id)])
-                if all(s.status == 'signed' for s in all_signatures):
+                all_signed = all(s.status == 'signed' for s in all_signatures)
+
+                if all_signed:
                     # Marquer le document comme signé et lui attribuer une catégorie
                     # pour qu'il soit visible dans "Stock Document"
                     document_update = {'status': 'signed'}
@@ -367,66 +373,71 @@ class DocumentSignatureController(http.Controller):
                     document.write(document_update)
                     _logger.info(f"📄 Document {document.name} entièrement signé et stocké!")
 
-                # ========== ENVOI EMAIL DE CONFIRMATION ==========
-                try:
-                    # Chercher le template d'email de confirmation
-                    email_template = request.env.ref(
-                        'onedesk_core.email_template_signature_confirmation',
-                        raise_if_not_found=False
-                    ).sudo()
+                    # ========== ENVOI EMAIL DE CONFIRMATION (Seulement si TOUS ont signé) ==========
+                    _logger.info(f"📧 Tous les signataires ont signé! Envoi des emails de confirmation...")
+                    try:
+                        # Chercher le template d'email de confirmation
+                        email_template = request.env.ref(
+                            'onedesk_core.email_template_signature_confirmation',
+                            raise_if_not_found=False
+                        ).sudo()
 
-                    if email_template:
-                        # Rendre et envoyer l'email
-                        subject = email_template._render_field('subject', signature.ids, compute_lang=True)[signature.id]
-                        body_html = email_template._render_field('body_html', signature.ids, compute_lang=True)[signature.id]
-                        email_from = email_template.email_from or 'noreply@onedesk.io'
+                        if email_template:
+                            # Envoyer un email à CHAQUE signataire
+                            for sig in all_signatures:
+                                # Rendre et envoyer l'email
+                                subject = email_template._render_field('subject', sig.ids, compute_lang=True)[sig.id]
+                                body_html = email_template._render_field('body_html', sig.ids, compute_lang=True)[sig.id]
+                                email_from = email_template.email_from or 'noreply@onedesk.io'
 
-                        mail_values = {
-                            'subject': subject,
-                            'body_html': body_html,
-                            'email_to': signature.signer_email,
-                            'email_from': email_from,
-                            'model': 'onedesk.document.signature',
-                            'res_id': signature.id,
-                        }
+                                mail_values = {
+                                    'subject': subject,
+                                    'body_html': body_html,
+                                    'email_to': sig.signer_email,
+                                    'email_from': email_from,
+                                    'model': 'onedesk.document.signature',
+                                    'res_id': sig.id,
+                                }
 
-                        mail = request.env['mail.mail'].sudo().create(mail_values)
+                                mail = request.env['mail.mail'].sudo().create(mail_values)
 
-                        # Attacher le PDF SIGNÉ (avec signature incrustée) à l'email
-                        attachments_created = []
-                        if document.signed_file:
-                            # Utiliser le PDF signé généré
-                            pdf_attachment = request.env['ir.attachment'].sudo().create({
-                                'name': document.signed_filename or f'{document.name}_signed.pdf',
-                                'type': 'binary',
-                                'datas': document.signed_file,
-                                'res_model': 'mail.mail',
-                                'res_id': mail.id,
-                                'mimetype': 'application/pdf',
-                            })
-                            attachments_created.append(f"PDF Signé ({pdf_attachment.id})")
-                            _logger.info(f"📎 PDF SIGNÉ (avec signature incrustée) attaché à l'email (ID: {pdf_attachment.id})")
-                        elif document.file:
-                            # Fallback sur PDF original si pas de PDF signé
-                            pdf_attachment = request.env['ir.attachment'].sudo().create({
-                                'name': document.filename or f'{document.name}.pdf',
-                                'type': 'binary',
-                                'datas': document.file,
-                                'res_model': 'mail.mail',
-                                'res_id': mail.id,
-                                'mimetype': 'application/pdf',
-                            })
-                            attachments_created.append(f"PDF Original ({pdf_attachment.id})")
-                            _logger.info(f"📎 PDF original attaché à l'email (ID: {pdf_attachment.id})")
+                                # Attacher le PDF SIGNÉ COMPLET (avec TOUTES les signatures) à l'email
+                                attachments_created = []
+                                if document.signed_file:
+                                    # Utiliser le PDF signé généré avec TOUTES les signatures
+                                    pdf_attachment = request.env['ir.attachment'].sudo().create({
+                                        'name': document.signed_filename or f'{document.name}_signed.pdf',
+                                        'type': 'binary',
+                                        'datas': document.signed_file,
+                                        'res_model': 'mail.mail',
+                                        'res_id': mail.id,
+                                        'mimetype': 'application/pdf',
+                                    })
+                                    attachments_created.append(f"PDF Signé ({pdf_attachment.id})")
+                                    _logger.info(f"📎 PDF SIGNÉ COMPLET attaché à l'email pour {sig.signer_email} (ID: {pdf_attachment.id})")
+                                elif document.file:
+                                    # Fallback sur PDF original si pas de PDF signé
+                                    pdf_attachment = request.env['ir.attachment'].sudo().create({
+                                        'name': document.filename or f'{document.name}.pdf',
+                                        'type': 'binary',
+                                        'datas': document.file,
+                                        'res_model': 'mail.mail',
+                                        'res_id': mail.id,
+                                        'mimetype': 'application/pdf',
+                                    })
+                                    attachments_created.append(f"PDF Original ({pdf_attachment.id})")
+                                    _logger.warning(f"⚠️ PDF original attaché à l'email pour {sig.signer_email} (ID: {pdf_attachment.id})")
 
-                        mail.sudo().send()
-                        _logger.info(f"📧 Email de confirmation envoyé à {signature.signer_email} avec {len(attachments_created)} pièces jointes: {', '.join(attachments_created)}")
-                    else:
-                        _logger.warning("⚠️ Template email de confirmation non trouvé")
+                                mail.sudo().send()
+                                _logger.info(f"📧 Email envoyé à {sig.signer_email} avec {len(attachments_created)} pièces jointes: {', '.join(attachments_created)}")
+                        else:
+                            _logger.warning("⚠️ Template email de confirmation non trouvé")
 
-                except Exception as e:
-                    _logger.error(f"❌ Erreur envoi email confirmation: {e}", exc_info=True)
-                    # On ne bloque pas le processus si l'email échoue
+                    except Exception as e:
+                        _logger.error(f"❌ Erreur envoi emails confirmation: {e}", exc_info=True)
+                        # On ne bloque pas le processus si l'email échoue
+                else:
+                    _logger.info(f"⏳ Document {document.name} partiellement signé ({sum(1 for s in all_signatures if s.status == 'signed')}/{len(all_signatures)}). Pas d'email envoyé.")
 
                 # Afficher la page de succès
                 return request.render('onedesk_core.public_signature_success', {
