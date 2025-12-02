@@ -559,9 +559,10 @@ class OneDeskWebsite(http.Controller):
             # ==================== NOUVEAU: Logique différenciée gratuit/payant ====================
 
             if is_free_plan:
-                # ✅ PLAN GRATUIT: Envoyer emails immédiatement
-                _logger.info('📧 Envoi des emails pour plan gratuit')
+                # ✅ PLAN GRATUIT: Créer invitation et activer
+                _logger.info('🆓 Plan gratuit - Création invitation et activation')
 
+                # Envoyer email de confirmation de souscription
                 try:
                     template_client = request.env.ref('website_onedesk.email_subscription_confirmation')
                     template_client.send_mail(subscription.id, force_send=True, email_values={
@@ -571,33 +572,28 @@ class OneDeskWebsite(http.Controller):
                 except Exception as e:
                     _logger.warning(f'⚠️ Error sending client email: {e}')
 
-                # NOUVEAU: Créer utilisateur et envoyer email d'activation pour plan gratuit
+                # Créer une invitation (au lieu de signup_prepare)
+                invitation = None
                 try:
                     # Vérifier si l'utilisateur existe déjà
-                    user = request.env['res.users'].sudo().search([('login', '=', email)], limit=1)
+                    existing_user = request.env['res.users'].sudo().search([('login', '=', email)], limit=1)
 
-                    if not user:
-                        # Créer l'utilisateur
-                        user = request.env['res.users'].sudo().create({
-                            'name': contact_name,
-                            'login': email,
+                    if existing_user:
+                        _logger.info(f'ℹ️ Utilisateur existe déjà: {email}')
+                    else:
+                        # Créer l'invitation pour activation du compte
+                        invitation = request.env['onedesk.client.invitation'].sudo().create({
+                            'client_id': client.id,
                             'email': email,
-                            'company_id': company.id,
-                            'company_ids': [(4, company.id)],
+                            'role': 'owner',  # Propriétaire = property_manager group
+                            'state': 'pending',
+                            'expires_date': fields.Datetime.now() + timedelta(days=7),
                         })
-                        _logger.info(f'✅ Utilisateur créé: {user.login} (ID: {user.id})')
-
-                    # Préparer le signup (génère le token d'activation)
-                    user.partner_id.signup_prepare()
-
-                    # Envoyer l'email d'activation
-                    template_welcome = request.env.ref('onedesk_core.email_template_welcome')
-                    template_welcome.sudo().send_mail(user.id, force_send=True)
-                    _logger.info(f'✅ Email d\'activation envoyé à {email}')
+                        _logger.info(f'✅ Invitation créée: token={invitation.invitation_token}')
                 except Exception as e:
-                    _logger.warning(f'⚠️ Erreur envoi email activation: {e}', exc_info=True)
+                    _logger.warning(f'⚠️ Erreur création invitation: {e}', exc_info=True)
 
-                # Envoie l'email à l'admin
+                # Envoyer email à l'admin
                 try:
                     admin_email = request.env['ir.config_parameter'].sudo().get_param('onedesk.admin_email')
                     if admin_email:
@@ -606,15 +602,32 @@ class OneDeskWebsite(http.Controller):
                             'email_to': admin_email,
                         })
                         _logger.info(f'✅ Admin notification sent to {admin_email}')
+                    else:
+                        _logger.warning('⚠️ Aucun email admin configuré (onedesk.admin_email)')
                 except Exception as e:
                     _logger.warning(f'⚠️ Error sending admin email: {e}')
 
-                response = {
-                    'status': 'success',
-                    'message': f'✅ Souscription créée avec succès!\n\nUn email de confirmation a été envoyé à {email}.\n\nNuméro de souscription: {subscription.subscription_id}',
-                    'subscription_id': subscription.id,
-                    'is_free': True,
-                }
+                # Construire la réponse avec URL d'invitation
+                if invitation:
+                    base_url = request.env['ir.config_parameter'].sudo().get_param('web.base.url')
+                    invitation_url = f"{base_url}/onedesk/invite/accept/{invitation.invitation_token}"
+                    response = {
+                        'status': 'success',
+                        'message': f'✅ Souscription créée avec succès!\n\nNuméro: {subscription.subscription_id}',
+                        'subscription_id': subscription.id,
+                        'is_free': True,
+                        'redirect_url': invitation_url,
+                    }
+                else:
+                    # Utilisateur existe déjà, pas de redirection
+                    response = {
+                        'status': 'success',
+                        'message': f'✅ Souscription créée!\n\nVous pouvez vous connecter avec votre compte existant.',
+                        'subscription_id': subscription.id,
+                        'is_free': True,
+                        'redirect_url': '/web/login',
+                    }
+
 
             else:
                 # 💳 PLAN PAYANT: Générer lien de paiement
@@ -1002,6 +1015,20 @@ class OneDeskWebsite(http.Controller):
                 # Note: L'invitation sera récupérée via l'email dans payment_callback
         except Exception as e:
             _logger.error(f'❌ Erreur création invitation après paiement: {e}', exc_info=True)
+
+        # 3.6. Envoyer email de notification à l'admin
+        try:
+            admin_email = request.env['ir.config_parameter'].sudo().get_param('onedesk.admin_email')
+            if admin_email:
+                template_admin = request.env.ref('website_onedesk.email_subscription_admin_notification')
+                template_admin.sudo().send_mail(subscription.id, force_send=True, email_values={
+                    'email_to': admin_email,
+                })
+                _logger.info(f'✅ Email de notification admin envoyé à {admin_email}')
+            else:
+                _logger.warning('⚠️ Aucun email admin configuré (onedesk.admin_email)')
+        except Exception as e:
+            _logger.warning(f'⚠️ Erreur envoi email admin: {e}')
 
         # 4. Créer un audit log
         request.env['onedesk.audit.log'].sudo().create({
