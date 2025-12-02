@@ -482,27 +482,65 @@
     <!-- Pages de confirmation (inchangées) -->
     <template id="public_signature_success" name="Signature Success Page">
         <t t-call="website.layout">
+            <!-- CSS pour le viewer PDF -->
+            <style>
+                .signed-pdf-viewer {
+                    width: 100%;
+                    height: 600px;
+                    border: 2px solid #28a745;
+                    border-radius: 8px;
+                    margin-bottom: 20px;
+                }
+            </style>
+
             <div class="container mt-5 mb-5">
                 <div class="row justify-content-center">
-                    <div class="col-lg-6 text-center">
-                        <div class="card shadow-sm border-0">
-                            <div class="card-body p-5">
-                                <div class="mb-4">
-                                    <i class="fa fa-check-circle text-success" style="font-size: 72px;"></i>
-                                </div>
-                                <h2 class="mb-3">Document Signé avec Succès!</h2>
-                                <p class="text-muted mb-4">
-                                    Merci d'avoir signé le document "<strong t-esc="document.name"/>".
-                                    Un email de confirmation vous a été envoyé avec le document signé.
+                    <div class="col-lg-10">
+                        <!-- En-tête succès -->
+                        <div class="text-center mb-4">
+                            <div class="mb-4">
+                                <i class="fa fa-check-circle text-success" style="font-size: 72px;"></i>
+                            </div>
+                            <h2 class="mb-3">Document Signé avec Succès!</h2>
+                            <p class="text-muted mb-4">
+                                Merci d'avoir signé le document "<strong t-esc="document.name"/>".
+                                Un email de confirmation vous a été envoyé avec le document signé.
+                            </p>
+                        </div>
+
+                        <!-- Aperçu du PDF signé -->
+                        <div class="card shadow-sm mb-4" t-if="document.signed_file">
+                            <div class="card-header bg-success text-white">
+                                <h5 class="mb-0"><i class="fa fa-file-pdf me-2"></i>Aperçu du Document Signé</h5>
+                            </div>
+                            <div class="card-body p-0">
+                                <iframe
+                                    t-attf-src="/onedesk/document/#{document.id}/signed_pdf?access_token=#{signature.access_token}"
+                                    class="signed-pdf-viewer"
+                                    frameborder="0">
+                                </iframe>
+                            </div>
+                        </div>
+
+                        <!-- Boutons d'action -->
+                        <div class="text-center">
+                            <div class="d-grid gap-2 d-md-block mb-3" t-if="document.signed_file">
+                                <a t-attf-href="/onedesk/document/#{document.id}/signed_pdf?access_token=#{signature.access_token}&amp;download=true"
+                                   class="btn btn-success btn-lg me-md-2">
+                                    <i class="fa fa-download me-2"></i>
+                                    Télécharger le Document Signé
+                                </a>
+                                <a href="/" class="btn btn-outline-primary btn-lg">
+                                    <i class="fa fa-home me-2"></i>
+                                    Retour à l'accueil
+                                </a>
+                            </div>
+                            <div t-else="">
+                                <p class="text-warning mb-3">
+                                    <i class="fa fa-exclamation-triangle me-2"></i>
+                                    Le PDF signé est en cours de génération...
                                 </p>
-                                <div class="d-grid gap-2 mb-3" t-if="document.signed_file">
-                                    <a t-attf-href="/web/content/onedesk.document/#{document.id}/signed_file/#{document.signed_filename}?download=true"
-                                       class="btn btn-success btn-lg">
-                                        <i class="fa fa-download me-2"></i>
-                                        Télécharger le Document Signé
-                                    </a>
-                                </div>
-                                <a href="/" class="btn btn-primary">
+                                <a href="/" class="btn btn-primary btn-lg">
                                     <i class="fa fa-home me-2"></i>
                                     Retour à l'accueil
                                 </a>

@@ -74,6 +74,65 @@ class DocumentSignatureController(http.Controller):
             _logger.error(f"Erreur lors du service du PDF {document_id}: {e}", exc_info=True)
             return request.not_found()
 
+    @http.route('/onedesk/document/<int:document_id>/signed_pdf', type='http', auth='public', methods=['GET'])
+    def signed_document_pdf(self, document_id, access_token=None, download=None, **kwargs):
+        """
+        Servir le PDF SIGNÉ du document en mode public avec vérification du token
+
+        Args:
+            document_id (int): ID du document
+            access_token (str): Token d'accès pour sécuriser l'accès
+            download (str): Si présent, force le téléchargement au lieu de la visualisation
+
+        Returns:
+            PDF signed file response ou erreur 404
+        """
+        try:
+            # Vérifier que le token est fourni
+            if not access_token:
+                _logger.warning(f"Tentative d'accès au PDF signé {document_id} sans token")
+                return request.not_found()
+
+            # Rechercher une signature valide avec ce token pour ce document
+            Signature = request.env['onedesk.document.signature'].sudo()
+            signature = Signature.search([
+                ('document_id', '=', document_id),
+                ('access_token', '=', access_token)
+            ], limit=1)
+
+            if not signature:
+                _logger.warning(f"Token invalide pour accès PDF signé document {document_id}")
+                return request.not_found()
+
+            # Récupérer le document
+            document = signature.document_id
+
+            if not document or not document.signed_file:
+                _logger.warning(f"Document {document_id} ou fichier PDF signé non trouvé")
+                return request.not_found()
+
+            # Décoder le PDF signé et le retourner
+            pdf_data = base64.b64decode(document.signed_file)
+            filename = document.signed_filename or f'document_{document_id}_signed.pdf'
+
+            # Déterminer si on force le téléchargement ou la visualisation inline
+            disposition = 'attachment' if download else 'inline'
+
+            # Retourner le PDF signé
+            headers = [
+                ('Content-Type', 'application/pdf'),
+                ('Content-Disposition', f'{disposition}; filename="{filename}"'),
+                ('Content-Length', len(pdf_data))
+            ]
+
+            action = "téléchargé" if download else "visualisé"
+            _logger.info(f"PDF signé {action} avec succès pour document {document_id} (token valide)")
+            return request.make_response(pdf_data, headers=headers)
+
+        except Exception as e:
+            _logger.error(f"Erreur lors du service du PDF signé {document_id}: {e}", exc_info=True)
+            return request.not_found()
+
     @http.route('/onedesk/document/<int:document_id>/sign', type='http', auth='public', website=True)
     def document_sign(self, document_id, access_token=None, **kwargs):
         """
