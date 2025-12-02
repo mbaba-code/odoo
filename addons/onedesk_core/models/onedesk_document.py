@@ -437,6 +437,137 @@ class OnedeskDocument(models.Model):
         })
         _logger.info(f'📦 Document {self.name} archivé à {self.archive_date}')
 
+    def generate_signed_pdf_with_all_signatures(self):
+        """
+        Génère un PDF avec TOUTES les signatures incrustées sur le document original
+
+        Returns:
+            bytes: Le PDF signé en base64 avec toutes les signatures
+        """
+        self.ensure_one()
+
+        _logger.info(f"🔵 Génération PDF avec toutes les signatures pour {self.name}")
+
+        if not self.file:
+            _logger.error(f"❌ Impossible de générer PDF signé: pas de fichier original")
+            return None
+
+        # Récupérer toutes les signatures qui ont été validées (avec image)
+        signatures = self.env['onedesk.document.signature'].search([
+            ('document_id', '=', self.id),
+            ('status', '=', 'signed'),
+            ('signature_image', '!=', False)
+        ])
+
+        if not signatures:
+            _logger.warning(f"⚠️ Aucune signature trouvée pour {self.name}, retour du PDF original")
+            return self.file
+
+        _logger.info(f"📝 {len(signatures)} signature(s) à intégrer")
+
+        try:
+            from pypdf import PdfReader, PdfWriter
+            from reportlab.pdfgen import canvas
+            from reportlab.lib.utils import ImageReader
+            from PIL import Image
+
+            # Décoder le PDF original
+            original_pdf_data = base64.b64decode(self.file)
+            original_pdf = PdfReader(io.BytesIO(original_pdf_data))
+
+            # Créer un writer pour le PDF final
+            output = PdfWriter()
+
+            # Traiter chaque page
+            for page_num in range(len(original_pdf.pages)):
+                page = original_pdf.pages[page_num]
+                page_width = float(page.mediabox.width)
+                page_height = float(page.mediabox.height)
+
+                # Trouver toutes les signatures pour cette page
+                page_signatures = [sig for sig in signatures
+                                 if (sig.signature_page == page_num or
+                                     (sig.signature_page == -1 and page_num == len(original_pdf.pages) - 1))]
+
+                if page_signatures:
+                    # Créer un overlay avec toutes les signatures pour cette page
+                    packet = io.BytesIO()
+                    can = canvas.Canvas(packet, pagesize=(page_width, page_height))
+
+                    for sig in page_signatures:
+                        try:
+                            # Décoder l'image de signature
+                            signature_img_data = base64.b64decode(sig.signature_image)
+                            signature_img = Image.open(io.BytesIO(signature_img_data))
+
+                            if signature_img.mode not in ('RGB', 'RGBA'):
+                                signature_img = signature_img.convert('RGBA')
+
+                            # Sauvegarder temporairement l'image
+                            temp_sig = io.BytesIO()
+                            signature_img.save(temp_sig, format='PNG')
+                            temp_sig.seek(0)
+
+                            # Dimensions et position de la signature
+                            sig_width = 150
+                            sig_height = 50
+
+                            if sig.signature_x > 0 and sig.signature_y > 0:
+                                sig_x = sig.signature_x
+                                sig_y = sig.signature_y
+                            else:
+                                # Position par défaut
+                                sig_x = page_width - sig_width - 50
+                                sig_y = 50
+
+                            # Dessiner la signature
+                            img_reader = ImageReader(temp_sig)
+                            can.drawImage(img_reader, sig_x, sig_y, width=sig_width, height=sig_height, mask='auto')
+
+                            # Ajouter texte
+                            can.setFont("Helvetica", 8)
+                            try:
+                                can.drawString(sig_x, sig_y - 12, f"Signé par: {sig.signer_name}")
+                                can.drawString(sig_x, sig_y - 24, f"Date: {sig.signature_date.strftime('%d/%m/%Y %H:%M') if sig.signature_date else 'N/A'}")
+                            except:
+                                signer_ascii = sig.signer_name.encode('ascii', 'ignore').decode('ascii')
+                                can.drawString(sig_x, sig_y - 12, f"Signe par: {signer_ascii}")
+                                can.drawString(sig_x, sig_y - 24, f"Date: {sig.signature_date.strftime('%d/%m/%Y %H:%M') if sig.signature_date else 'N/A'}")
+
+                            _logger.info(f"  ✓ Signature de {sig.signer_name} ajoutée à page {page_num}")
+
+                        except Exception as e:
+                            _logger.error(f"❌ Erreur ajout signature {sig.signer_name}: {e}")
+                            continue
+
+                    can.save()
+
+                    # Merger l'overlay avec la page
+                    packet.seek(0)
+                    overlay = PdfReader(packet)
+                    page.merge_page(overlay.pages[0])
+
+                output.add_page(page)
+
+            # Écrire le PDF final
+            final_pdf = io.BytesIO()
+            output.write(final_pdf)
+            final_pdf.seek(0)
+
+            # Encoder en base64
+            pdf_bytes = final_pdf.read()
+            signed_pdf_b64 = base64.b64encode(pdf_bytes)
+
+            _logger.info(f"✅ PDF signé généré avec {len(signatures)} signature(s)")
+            _logger.info(f"   - Taille PDF: {len(pdf_bytes)} bytes")
+            _logger.info(f"   - Nombre de pages: {len(output.pages)}")
+
+            return signed_pdf_b64
+
+        except Exception as e:
+            _logger.error(f"❌ Erreur génération PDF avec toutes signatures: {e}", exc_info=True)
+            return None
+
 
 class OnedeskDocumentSignature(models.Model):
     _name = 'onedesk.document.signature'

@@ -281,17 +281,17 @@ class DocumentSignatureController(http.Controller):
 
                     _logger.info(f"✅ Signature électronique capturée pour {signature.signer_email}")
 
-                    # Générer le PDF signé avec la signature incrustée
-                    signed_pdf = signature.generate_signed_pdf()
+                    # Générer le PDF signé avec TOUTES les signatures (y compris la nouvelle)
+                    signed_pdf = document.generate_signed_pdf_with_all_signatures()
                     if signed_pdf:
                         # Stocker le PDF signé dans le document
                         document.write({
                             'signed_file': signed_pdf,
                             'signed_filename': f'{document.name}_signed.pdf'
                         })
-                        _logger.info(f"📄 PDF signé généré et stocké pour document {document.name}")
+                        _logger.info(f"📄 PDF signé généré avec toutes les signatures pour {document.name}")
                     else:
-                        _logger.error(f"❌ ERREUR: generate_signed_pdf() a retourné None pour {signature.signer_name}. Vérifier les logs ci-dessus pour la cause.")
+                        _logger.error(f"❌ ERREUR: generate_signed_pdf_with_all_signatures() a retourné None. Vérifier les logs ci-dessus pour la cause.")
                 else:
                     # Pas de signature fournie, juste marquer comme signé
                     signature.write({
