@@ -396,58 +396,27 @@
                 let currentZone = null;
                 let signatureModal = null;
 
-                // Créer zones de signature sur le PDF
-                function createSignatureZones() {
-                    const overlay = document.getElementById('signature-zones-overlay');
-                    overlay.innerHTML = ''; // Clear existing zones
+                // Clic direct sur le PDF pour placer la signature
+                if (canvas) {
+                    canvas.addEventListener('click', function(e) {
+                        const rect = canvas.getBoundingClientRect();
+                        const x = e.clientX - rect.left;
+                        const y = e.clientY - rect.top;
 
-                    if (!canvas) return;
-
-                    // Zone par défaut : bas de la dernière page
-                    const zone = document.createElement('div');
-                    zone.className = 'signature-zone-clickable';
-                    zone.style.cssText = `
-                        position: absolute;
-                        bottom: 50px;
-                        right: 50px;
-                        width: 200px;
-                        height: 60px;
-                        border: 3px dashed #ffc107;
-                        background: rgba(255, 193, 7, 0.2);
-                        cursor: pointer;
-                        border-radius: 4px;
-                        display: flex;
-                        align-items: center;
-                        justify-content: center;
-                        font-weight: bold;
-                        color: #856404;
-                        transition: all 0.3s;
-                    `;
-                    zone.innerHTML = '✍️ Cliquer pour signer';
-                    zone.setAttribute('data-page', pageNum - 1);
-                    zone.setAttribute('data-x', canvas.width - 200 - 50);
-                    zone.setAttribute('data-y', 50);
-
-                    zone.addEventListener('mouseenter', function() {
-                        this.style.background = 'rgba(255, 193, 7, 0.4)';
-                        this.style.borderColor = '#ff9800';
-                    });
-
-                    zone.addEventListener('mouseleave', function() {
-                        this.style.background = 'rgba(255, 193, 7, 0.2)';
-                        this.style.borderColor = '#ffc107';
-                    });
-
-                    zone.addEventListener('click', function() {
+                        // Calculer position en points PDF (inverser Y car PDF = bottom-up)
+                        const scale = 1.5;
                         currentZone = {
-                            page: parseInt(this.getAttribute('data-page')),
-                            x: parseInt(this.getAttribute('data-x')),
-                            y: parseInt(this.getAttribute('data-y'))
+                            page: pageNum - 1,
+                            x: x / scale,
+                            y: (canvas.height - y) / scale
                         };
+
+                        console.log('Zone cliquée:', currentZone);
                         openSignatureModal();
                     });
 
-                    overlay.appendChild(zone);
+                    // Changer le curseur pour indiquer que c'est cliquable
+                    canvas.style.cursor = 'crosshair';
                 }
 
                 // Ouvrir modal de signature
@@ -482,18 +451,14 @@
                     const signatureData = signatureCanvas.toDataURL('image/png');
                     document.getElementById('signature-data').value = signatureData;
 
-                    // Utiliser la position de la zone cliquée
+                    // Utiliser la position cliquée
                     if (currentZone) {
                         document.getElementById('signature-page-input').value = currentZone.page;
                         document.getElementById('signature-x-input').value = currentZone.x;
                         document.getElementById('signature-y-input').value = currentZone.y;
                     }
 
-                    console.log('Signature validée:', {
-                        page: currentZone.page,
-                        x: currentZone.x,
-                        y: currentZone.y
-                    });
+                    console.log('Signature validée:', currentZone);
 
                     // Fermer modal et soumettre
                     signatureModal.hide();
