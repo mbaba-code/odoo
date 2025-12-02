@@ -530,15 +530,22 @@ class OnedeskoClientInvitation(models.Model):
             self.state = 'expired'
             raise ValidationError("L'invitation a expiré")
 
-        # Créer l'utilisateur
+        # Créer l'utilisateur (sans les groupes)
         user = self.env['res.users'].create({
             'name': name or self.email.split('@')[0],
             'email': self.email,
             'login': self.email,
             'company_id': self.client_id.company_id.id,
             'company_ids': [(4, self.client_id.company_id.id)],
-            'groups_ids': [(6, 0, [self._get_group_id()])],  # Correct: groups_ids (avec 's')
         })
+
+        # Assigner le groupe après création
+        group_id = self._get_group_id()
+        if group_id:
+            user.write({
+                'groups_id': [(4, group_id)],
+            })
+            _logger.info(f'✅ Groupe property_manager assigné à l\'utilisateur {user.login}')
 
         if password:
             user.password = password
