@@ -139,6 +139,8 @@
                                     <div class="pdf-viewer-container" id="pdf-viewer">
                                         <div class="pdf-canvas-wrapper">
                                             <canvas id="pdf-canvas" class="pdf-canvas"></canvas>
+                                            <!-- Zones de signature seront ajoutées ici dynamiquement -->
+                                            <div id="signature-zones-overlay"></div>
                                         </div>
                                         <div class="pdf-controls">
                                             <button onclick="prevPage()" id="prev-btn"><i class="fa fa-chevron-left"></i></button>
@@ -146,60 +148,43 @@
                                             <button onclick="nextPage()" id="next-btn"><i class="fa fa-chevron-right"></i></button>
                                         </div>
                                     </div>
+                                    <div class="alert alert-info mt-3 mb-0">
+                                        <i class="fa fa-info-circle me-2"></i>
+                                        <strong>Cliquez sur les zones jaunes</strong> du document pour signer
+                                    </div>
                                 </div>
                             </div>
 
-                            <!-- Zone de signature -->
-                            <div class="card shadow-sm mb-4">
-                                <div class="card-header bg-success text-white">
-                                    <h5 class="mb-0"><i class="fa fa-pen-fancy me-2"></i>Votre signature</h5>
-                                </div>
-                                <div class="card-body">
-                                    <div class="signature-pad-container">
-                                        <p class="text-center mb-3">Dessinez votre signature dans le cadre ci-dessous:</p>
-                                        <canvas id="signature-canvas" class="signature-canvas" width="600" height="200"></canvas>
-                                        <div class="text-center mt-3">
-                                            <button type="button" class="btn btn-outline-secondary btn-sm" onclick="clearSignature()">
-                                                <i class="fa fa-eraser me-1"></i> Effacer
+                            <!-- Modal Signature -->
+                            <div class="modal fade" id="signatureModal" tabindex="-1">
+                                <div class="modal-dialog modal-dialog-centered">
+                                    <div class="modal-content">
+                                        <div class="modal-header bg-success text-white">
+                                            <h5 class="modal-title"><i class="fa fa-pen-fancy me-2"></i>Votre signature</h5>
+                                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <p class="text-center mb-3">Dessinez votre signature :</p>
+                                            <canvas id="signature-canvas" class="signature-canvas" width="500" height="150" style="border: 2px dashed #6c757d; border-radius: 8px; background: white; cursor: crosshair; display: block; margin: 0 auto;"></canvas>
+                                            <div class="text-center mt-3">
+                                                <button type="button" class="btn btn-outline-secondary btn-sm" onclick="clearSignature()">
+                                                    <i class="fa fa-eraser me-1"></i> Effacer
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                                            <button type="button" class="btn btn-success" onclick="validateSignature()">
+                                                <i class="fa fa-check me-1"></i> Valider et Signer
                                             </button>
                                         </div>
                                     </div>
+                                </div>
+                            </div>
 
-                                    <!-- Position de la signature -->
-                                    <div class="alert alert-info mb-3">
-                                        <h6 class="mb-3"><i class="fa fa-map-marker-alt me-2"></i>Position de votre signature sur le document</h6>
-                                        <div class="row">
-                                            <div class="col-md-4">
-                                                <label class="form-label"><strong>Page:</strong></label>
-                                                <select class="form-select" id="signature-page" name="signature_page">
-                                                    <option value="-1" selected="">Dernière page</option>
-                                                    <option value="0">Première page</option>
-                                                </select>
-                                                <small class="text-muted">Où placer la signature</small>
-                                            </div>
-                                            <div class="col-md-4">
-                                                <label class="form-label"><strong>Position:</strong></label>
-                                                <select class="form-select" id="signature-position" onchange="updateSignaturePosition()">
-                                                    <option value="bottom-right" selected="">Bas droite</option>
-                                                    <option value="bottom-left">Bas gauche</option>
-                                                    <option value="top-right">Haut droite</option>
-                                                    <option value="top-left">Haut gauche</option>
-                                                    <option value="center">Centre</option>
-                                                    <option value="custom">Personnalisée</option>
-                                                </select>
-                                                <small class="text-muted">Emplacement sur la page</small>
-                                            </div>
-                                            <div class="col-md-4" id="custom-position-fields" style="display: none;">
-                                                <label class="form-label"><strong>Coordonnées (X, Y):</strong></label>
-                                                <div class="input-group input-group-sm">
-                                                    <input type="number" class="form-control" id="signature-x" placeholder="X" value="50" min="0" max="600"/>
-                                                    <input type="number" class="form-control" id="signature-y" placeholder="Y" value="50" min="0" max="900"/>
-                                                </div>
-                                                <small class="text-muted">Points depuis gauche/bas</small>
-                                            </div>
-                                        </div>
-                                    </div>
-
+                            <!-- Zone de signature (cachée, formulaire de soumission) -->
+                            <div class="card shadow-sm mb-4" style="display: none;">
+                                <div class="card-body">
                                     <!-- Formulaire de soumission -->
                                     <form method="post" id="signature-form" t-attf-action="/onedesk/document/#{document.id}/sign/action">
                                         <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
@@ -210,17 +195,6 @@
                                         <input type="hidden" name="signature_x" id="signature-x-input" value="0"/>
                                         <input type="hidden" name="signature_y" id="signature-y-input" value="0"/>
                                         <input type="hidden" name="action" value="sign"/>
-
-                                        <div class="d-grid gap-2 mt-4">
-                                            <button type="button" class="btn btn-success btn-lg" onclick="submitSignature()">
-                                                <i class="fa fa-check-circle me-2"></i>
-                                                ✍️ Valider et Signer le Document
-                                            </button>
-                                            <button type="button" class="btn btn-outline-danger" onclick="declineDocument()">
-                                                <i class="fa fa-times me-2"></i>
-                                                Refuser de signer
-                                            </button>
-                                        </div>
                                     </form>
 
                                     <div class="alert alert-info mt-3 mb-0">
@@ -309,6 +283,8 @@
                                 renderPage(pageNumPending);
                                 pageNumPending = null;
                             }
+                            // Créer les zones de signature après le rendu
+                            createSignatureZones();
                         });
                     });
                     document.getElementById('page-num').textContent = num;
@@ -416,31 +392,75 @@
                     }
                 }
 
-                // Gérer le changement de position
-                function updateSignaturePosition() {
-                    const position = document.getElementById('signature-position').value;
-                    const customFields = document.getElementById('custom-position-fields');
+                // Variables pour la zone cliquée
+                let currentZone = null;
+                let signatureModal = null;
 
-                    if (position === 'custom') {
-                        customFields.style.display = 'block';
-                    } else {
-                        customFields.style.display = 'none';
+                // Créer zones de signature sur le PDF
+                function createSignatureZones() {
+                    const overlay = document.getElementById('signature-zones-overlay');
+                    overlay.innerHTML = ''; // Clear existing zones
 
-                        // Définir les coordonnées selon la position choisie
-                        let x = 0, y = 0;
-                        switch(position) {
-                            case 'bottom-right': x = 0; y = 0; break;
-                            case 'bottom-left': x = 50; y = 50; break;
-                            case 'top-right': x = 0; y = 750; break;
-                            case 'top-left': x = 50; y = 750; break;
-                            case 'center': x = 250; y = 400; break;
-                        }
-                        document.getElementById('signature-x').value = x;
-                        document.getElementById('signature-y').value = y;
-                    }
+                    if (!canvas) return;
+
+                    // Zone par défaut : bas de la dernière page
+                    const zone = document.createElement('div');
+                    zone.className = 'signature-zone-clickable';
+                    zone.style.cssText = `
+                        position: absolute;
+                        bottom: 50px;
+                        right: 50px;
+                        width: 200px;
+                        height: 60px;
+                        border: 3px dashed #ffc107;
+                        background: rgba(255, 193, 7, 0.2);
+                        cursor: pointer;
+                        border-radius: 4px;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        font-weight: bold;
+                        color: #856404;
+                        transition: all 0.3s;
+                    `;
+                    zone.innerHTML = '✍️ Cliquer pour signer';
+                    zone.setAttribute('data-page', pageNum - 1);
+                    zone.setAttribute('data-x', canvas.width - 200 - 50);
+                    zone.setAttribute('data-y', 50);
+
+                    zone.addEventListener('mouseenter', function() {
+                        this.style.background = 'rgba(255, 193, 7, 0.4)';
+                        this.style.borderColor = '#ff9800';
+                    });
+
+                    zone.addEventListener('mouseleave', function() {
+                        this.style.background = 'rgba(255, 193, 7, 0.2)';
+                        this.style.borderColor = '#ffc107';
+                    });
+
+                    zone.addEventListener('click', function() {
+                        currentZone = {
+                            page: parseInt(this.getAttribute('data-page')),
+                            x: parseInt(this.getAttribute('data-x')),
+                            y: parseInt(this.getAttribute('data-y'))
+                        };
+                        openSignatureModal();
+                    });
+
+                    overlay.appendChild(zone);
                 }
 
-                function submitSignature() {
+                // Ouvrir modal de signature
+                function openSignatureModal() {
+                    if (!signatureModal) {
+                        signatureModal = new bootstrap.Modal(document.getElementById('signatureModal'));
+                    }
+                    clearSignature();
+                    signatureModal.show();
+                }
+
+                // Valider la signature
+                function validateSignature() {
                     // Vérifier que la signature n'est pas vide
                     const imageData = signatureCtx.getImageData(0, 0, signatureCanvas.width, signatureCanvas.height);
                     const pixels = imageData.data;
@@ -462,19 +482,21 @@
                     const signatureData = signatureCanvas.toDataURL('image/png');
                     document.getElementById('signature-data').value = signatureData;
 
-                    // Copier les valeurs de position dans les inputs cachés
-                    const page = document.getElementById('signature-page').value;
-                    const position = document.getElementById('signature-position').value;
-                    let x = parseInt(document.getElementById('signature-x').value) || 0;
-                    let y = parseInt(document.getElementById('signature-y').value) || 0;
+                    // Utiliser la position de la zone cliquée
+                    if (currentZone) {
+                        document.getElementById('signature-page-input').value = currentZone.page;
+                        document.getElementById('signature-x-input').value = currentZone.x;
+                        document.getElementById('signature-y-input').value = currentZone.y;
+                    }
 
-                    document.getElementById('signature-page-input').value = page;
-                    document.getElementById('signature-x-input').value = x;
-                    document.getElementById('signature-y-input').value = y;
+                    console.log('Signature validée:', {
+                        page: currentZone.page,
+                        x: currentZone.x,
+                        y: currentZone.y
+                    });
 
-                    console.log('Position signature:', {page: page, x: x, y: y});
-
-                    // Soumettre le formulaire
+                    // Fermer modal et soumettre
+                    signatureModal.hide();
                     document.getElementById('signature-form').submit();
                 }
 
