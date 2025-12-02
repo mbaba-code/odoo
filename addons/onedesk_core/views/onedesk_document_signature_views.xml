@@ -20,6 +20,18 @@
                     <group string="Signature Électronique" invisible="not signature_image">
                         <field name="signature_image" widget="image" options="{'size': [300, 100]}"/>
                     </group>
+                    <group string="Position de la Signature sur le PDF" col="4">
+                        <field name="signature_page" placeholder="-1 = dernière page"/>
+                        <field name="signature_x" placeholder="0 = auto (droite)"/>
+                        <field name="signature_y" placeholder="0 = auto (bas)"/>
+                        <div colspan="4" class="alert alert-info">
+                            <strong>💡 Comment positionner la signature :</strong><br/>
+                            • Page : -1 = dernière page, 0 = première page, 1 = deuxième page, etc.<br/>
+                            • X et Y : Laisser à 0 pour position automatique (bas à droite)<br/>
+                            • X : Distance depuis la gauche en points (72 points = 1 pouce = 2.54cm)<br/>
+                            • Y : Distance depuis le bas en points<br/>
+                        </div>
+                    </group>
                 </sheet>
             </form>
         </field>

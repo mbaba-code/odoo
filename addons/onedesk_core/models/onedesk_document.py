@@ -489,6 +489,23 @@ class OnedeskDocumentSignature(models.Model):
         default='signature.png'
     )
 
+    # ========== POSITION DE LA SIGNATURE ==========
+    signature_page = fields.Integer(
+        string='Page de signature',
+        default=-1,
+        help="Numéro de la page où placer la signature (-1 = dernière page)"
+    )
+    signature_x = fields.Float(
+        string='Position X',
+        default=0,
+        help="Position horizontale de la signature (0 = auto, en bas à droite)"
+    )
+    signature_y = fields.Float(
+        string='Position Y',
+        default=0,
+        help="Position verticale de la signature (0 = auto, en bas à droite)"
+    )
+
     def generate_signed_pdf(self):
         """
         Génère un PDF avec la signature incrustée sur le document original
@@ -505,7 +522,6 @@ class OnedeskDocumentSignature(models.Model):
         try:
             from pypdf import PdfReader, PdfWriter
             from reportlab.pdfgen import canvas
-            from reportlab.lib.pagesizes import letter
             from PIL import Image
 
             # Décoder le PDF original
@@ -513,32 +529,65 @@ class OnedeskDocumentSignature(models.Model):
             original_pdf = PdfReader(io.BytesIO(original_pdf_data))
 
             # Décoder l'image de signature
-            signature_img_data = base64.b64decode(self.signature_image)
-            signature_img = Image.open(io.BytesIO(signature_img_data))
+            # Les champs Binary dans Odoo sont en base64
+            try:
+                signature_img_data = base64.b64decode(self.signature_image)
+            except Exception as e:
+                _logger.error(f"Erreur décodage base64 signature: {e}")
+                return None
+
+            # Vérifier que les données sont valides
+            if not signature_img_data or len(signature_img_data) < 100:
+                _logger.error(f"Données de signature invalides (taille: {len(signature_img_data) if signature_img_data else 0})")
+                return None
+
+            # Ouvrir l'image
+            try:
+                signature_img = Image.open(io.BytesIO(signature_img_data))
+                # Convertir en RGBA si nécessaire
+                if signature_img.mode not in ('RGB', 'RGBA'):
+                    signature_img = signature_img.convert('RGBA')
+            except Exception as e:
+                _logger.error(f"Erreur ouverture image signature: {e}")
+                return None
+
+            # Déterminer la page de signature
+            target_page_num = self.signature_page if self.signature_page >= 0 else len(original_pdf.pages) - 1
+            if target_page_num >= len(original_pdf.pages):
+                target_page_num = len(original_pdf.pages) - 1
+
+            target_page = original_pdf.pages[target_page_num]
+            page_width = float(target_page.mediabox.width)
+            page_height = float(target_page.mediabox.height)
 
             # Créer un PDF overlay avec la signature
             packet = io.BytesIO()
-            can = canvas.Canvas(packet, pagesize=letter)
+            can = canvas.Canvas(packet, pagesize=(page_width, page_height))
 
-            # Obtenir la dernière page
-            last_page_num = len(original_pdf.pages) - 1
-            last_page = original_pdf.pages[last_page_num]
-            page_width = float(last_page.mediabox.width)
-            page_height = float(last_page.mediabox.height)
-
-            # Sauvegarder temporairement l'image de signature
+            # Sauvegarder temporairement l'image de signature en PNG
             temp_sig = io.BytesIO()
             signature_img.save(temp_sig, format='PNG')
             temp_sig.seek(0)
 
-            # Position de la signature (en bas à droite)
+            # Dimensions de la signature
             sig_width = 150
             sig_height = 50
-            sig_x = page_width - sig_width - 50
-            sig_y = 50
+
+            # Position de la signature
+            if self.signature_x > 0 and self.signature_y > 0:
+                # Position personnalisée définie
+                sig_x = self.signature_x
+                sig_y = self.signature_y
+                _logger.info(f"Position signature personnalisée: ({sig_x}, {sig_y}) page {target_page_num}")
+            else:
+                # Position par défaut (en bas à droite)
+                sig_x = page_width - sig_width - 50
+                sig_y = 50
+                _logger.info(f"Position signature par défaut: ({sig_x}, {sig_y}) page {target_page_num}")
 
             # Dessiner la signature sur le canvas
-            can.drawImage(temp_sig, sig_x, sig_y, width=sig_width, height=sig_height, mask='auto')
+            can.drawImage(temp_sig, sig_x, sig_y, width=sig_width, height=sig_height,
+                         mask='auto', preserveAspectRatio=True)
 
             # Ajouter texte "Signé électroniquement"
             can.setFont("Helvetica", 8)
@@ -558,8 +607,8 @@ class OnedeskDocumentSignature(models.Model):
             for page_num in range(len(original_pdf.pages)):
                 page = original_pdf.pages[page_num]
 
-                # Ajouter la signature uniquement sur la dernière page
-                if page_num == last_page_num:
+                # Ajouter la signature sur la page cible
+                if page_num == target_page_num:
                     page.merge_page(overlay.pages[0])
 
                 output.add_page(page)
