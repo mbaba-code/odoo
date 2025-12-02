@@ -754,11 +754,14 @@ class OneDeskWebsite(http.Controller):
                 # Simule un paiement réussi
                 self._activate_subscription_after_payment(subscription)
 
+                # Utiliser la même logique de redirection que le callback réel
+                redirect_url = self._get_post_payment_redirect_url(subscription)
+
                 return http.Response(
                     json.dumps({
                         'status': 'success',
                         'message': '✅ Paiement simulé avec succès!',
-                        'redirect_url': '/onedesk/payment/success',
+                        'redirect_url': redirect_url,
                     }),
                     content_type='application/json'
                 )
