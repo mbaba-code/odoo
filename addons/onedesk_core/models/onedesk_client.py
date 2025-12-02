@@ -539,14 +539,16 @@ class OnedeskoClientInvitation(models.Model):
             'company_ids': [(4, self.client_id.company_id.id)],
         })
 
-        # Assigner le groupe après création (via la relation inverse sur le groupe)
+        # Assigner le groupe après création (directement via SQL pour contourner les restrictions)
         group_id = self._get_group_id()
         if group_id:
-            group = self.env['res.groups'].sudo().browse(group_id)
-            group.write({
-                'users': [(4, user.id)],
-            })
-            _logger.info(f'✅ Groupe {group.name} assigné à l\'utilisateur {user.login}')
+            # Utiliser la méthode SQL directe pour insérer dans la table de liaison Many2many
+            self.env.cr.execute("""
+                INSERT INTO res_groups_users_rel (gid, uid)
+                VALUES (%s, %s)
+                ON CONFLICT DO NOTHING
+            """, (group_id, user.id))
+            _logger.info(f'✅ Groupe property_manager (ID: {group_id}) assigné à l\'utilisateur {user.login}')
 
         if password:
             user.password = password
