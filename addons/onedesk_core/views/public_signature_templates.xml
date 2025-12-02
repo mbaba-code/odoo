@@ -150,7 +150,7 @@
                                     </div>
                                     <div class="alert alert-info mt-3 mb-0">
                                         <i class="fa fa-info-circle me-2"></i>
-                                        <strong>Cliquez sur les zones jaunes</strong> du document pour signer
+                                        <strong>Cliquez n'importe où sur le document</strong> pour placer et signer
                                     </div>
                                 </div>
                             </div>
@@ -244,17 +244,6 @@
                     pdfjsLib.getDocument(pdfUrl).promise.then(function(pdfDoc_) {
                         pdfDoc = pdfDoc_;
                         document.getElementById('page-count').textContent = pdfDoc.numPages;
-
-                        // Peupler le dropdown des pages
-                        const pageSelect = document.getElementById('signature-page');
-                        pageSelect.innerHTML = '&lt;option value="-1"&gt;Dernière page&lt;/option&gt;';
-                        for (let i = 0; i &lt; pdfDoc.numPages; i++) {
-                            const option = document.createElement('option');
-                            option.value = i;
-                            option.textContent = `Page ${i + 1}`;
-                            pageSelect.appendChild(option);
-                        }
-
                         renderPage(pageNum);
                     }).catch(function(error) {
                         console.error('Erreur chargement PDF:', error);
@@ -283,8 +272,6 @@
                                 renderPage(pageNumPending);
                                 pageNumPending = null;
                             }
-                            // Créer les zones de signature après le rendu
-                            createSignatureZones();
                         });
                     });
                     document.getElementById('page-num').textContent = num;
