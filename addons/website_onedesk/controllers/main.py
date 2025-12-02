@@ -948,12 +948,19 @@ class OneDeskWebsite(http.Controller):
             'start_date': fields.Date.today(),
         })
 
-        # 2. Activer le client OneDesk
+        # 2. Activer le client OneDesk (ou le créer s'il n'existe pas)
         client = request.env['onedesk.client'].sudo().search([
             ('company_id', '=', subscription.company_id.id)
         ], limit=1)
 
-        if client:
+        if not client:
+            # Créer le client s'il n'existe pas encore
+            client = request.env['onedesk.client'].sudo().create({
+                'company_id': subscription.company_id.id,
+                'state': 'active',
+            })
+            _logger.info(f'✅ Client {client.id} créé pour la company {subscription.company_id.id}')
+        else:
             client.write({'state': 'active'})
             _logger.info(f'✅ Client {client.id} activated')
 
@@ -968,6 +975,7 @@ class OneDeskWebsite(http.Controller):
             _logger.warning(f'⚠️ Error sending confirmation email: {e}')
 
         # 3.5. NOUVEAU: Créer invitation après paiement (les emails seront envoyés après acceptation)
+        _logger.info(f'📧 Vérification de la création d\'invitation pour {subscription.billing_contact_id.email}')
         try:
             contact_email = subscription.billing_contact_id.email
 
@@ -977,6 +985,7 @@ class OneDeskWebsite(http.Controller):
             if existing_user:
                 _logger.info(f'ℹ️ Utilisateur existe déjà: {contact_email}, pas d\'invitation créée')
             else:
+                _logger.info(f'🆕 Création d\'invitation pour {contact_email} avec client_id={client.id}')
                 # Créer une invitation pour que l'utilisateur définisse son mot de passe
                 invitation = request.env['onedesk.client.invitation'].sudo().create({
                     'client_id': client.id,
@@ -985,11 +994,11 @@ class OneDeskWebsite(http.Controller):
                     'state': 'pending',
                     'expires_date': fields.Datetime.now() + timedelta(days=7),
                 })
-                _logger.info(f'✅ Invitation créée pour {contact_email} (token: {invitation.invitation_token})')
+                _logger.info(f'✅ Invitation créée avec succès: ID={invitation.id}, token={invitation.invitation_token}')
 
                 # Note: L'invitation sera récupérée via l'email dans payment_callback
         except Exception as e:
-            _logger.warning(f'⚠️ Erreur création invitation après paiement: {e}', exc_info=True)
+            _logger.error(f'❌ Erreur création invitation après paiement: {e}', exc_info=True)
 
         # 4. Créer un audit log
         request.env['onedesk.audit.log'].sudo().create({
@@ -1011,6 +1020,7 @@ class OneDeskWebsite(http.Controller):
         - Sinon (utilisateur existe déjà) → Redirige vers la page de succès
         """
         contact_email = subscription.billing_contact_id.email
+        _logger.info(f'🔍 Recherche d\'invitation pour {contact_email}')
 
         # Chercher une invitation en attente pour cet email
         invitation = request.env['onedesk.client.invitation'].sudo().search([
@@ -1019,10 +1029,11 @@ class OneDeskWebsite(http.Controller):
         ], limit=1, order='id desc')
 
         if invitation:
-            _logger.info(f'🔗 Redirection vers page d\'invitation: /onedesk/invite/accept/{invitation.invitation_token}')
-            return f'/onedesk/invite/accept/{invitation.invitation_token}'
+            redirect_url = f'/onedesk/invite/accept/{invitation.invitation_token}'
+            _logger.info(f'✅ Invitation trouvée (ID: {invitation.id}), redirection vers: {redirect_url}')
+            return redirect_url
         else:
-            _logger.info(f'🔗 Pas d\'invitation trouvée, redirection vers page de succès')
+            _logger.warning(f'⚠️ Aucune invitation trouvée pour {contact_email}, redirection vers page de succès')
             return '/onedesk/payment/success'
 
     @http.route('/onedesk/payment/success', type='http', auth='public', website=True)
