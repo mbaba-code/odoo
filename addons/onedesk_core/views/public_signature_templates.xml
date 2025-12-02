@@ -150,6 +150,21 @@
                                         <i class="fa fa-info-circle me-2"></i>
                                         <strong>Cliquez n'importe où sur le document</strong> pour placer et signer
                                     </div>
+
+                                    <!-- Zone status signatures (mode single_signer_multiple) -->
+                                    <div id="signatures-status" class="alert alert-success mt-3" style="display: none;">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <i class="fa fa-check-circle me-2"></i>
+                                                <strong id="signatures-count">0 signature(s) ajoutée(s)</strong>
+                                                <br/>
+                                                <small>Cliquez encore pour ajouter une autre signature, ou terminez.</small>
+                                            </div>
+                                            <button type="button" class="btn btn-success btn-lg" onclick="finishAndSend()" id="finish-button">
+                                                <i class="fa fa-paper-plane me-2"></i> Terminer et Envoyer
+                                            </button>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
 
@@ -188,6 +203,9 @@
                                         <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
                                         <input type="hidden" name="signature_id" t-att-value="signature.id"/>
                                         <input type="hidden" name="access_token" t-att-value="signature.access_token"/>
+                                        <!-- Mode: single_signer_multiple (signatures multiples) -->
+                                        <input type="hidden" name="multiple_signatures_json" id="multiple-signatures-json"/>
+                                        <!-- Mode: multiple_signers (une signature par personne) -->
                                         <input type="hidden" name="signature_data" id="signature-data"/>
                                         <input type="hidden" name="signature_page" id="signature-page-input" value="-1"/>
                                         <input type="hidden" name="signature_x" id="signature-x-input" value="0"/>
@@ -221,7 +239,10 @@
             <!-- JavaScript pour PDF.js et signature -->
             <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
             <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
-            <script t-attf-data-document-id="{{ document.id }}" t-attf-data-access-token="{{ signature.access_token }}" id="pdf-data">
+            <script t-attf-data-document-id="{{ document.id }}"
+                    t-attf-data-access-token="{{ signature.access_token }}"
+                    t-attf-data-signature-mode="{{ signature_mode }}"
+                    id="pdf-data">
                 // Configuration PDF.js
                 pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
@@ -237,7 +258,13 @@
                 const scriptData = document.getElementById('pdf-data');
                 const documentId = scriptData.getAttribute('data-document-id');
                 const accessToken = scriptData.getAttribute('data-access-token');
+                const signatureMode = scriptData.getAttribute('data-signature-mode') || 'single_signer_multiple';
                 const pdfUrl = `/onedesk/document/${documentId}/pdf?access_token=${accessToken}`;
+
+                // Array pour stocker signatures multiples (mode single_signer_multiple)
+                let signaturesArray = [];
+
+                console.log('🔵 Mode signature:', signatureMode);
 
                 if (canvas &amp;&amp; ctx) {
                     pdfjsLib.getDocument(pdfUrl).promise.then(function(pdfDoc_) {
@@ -452,20 +479,83 @@
 
                     // Capturer la signature en base64
                     const signatureData = signatureCanvas.toDataURL('image/png');
-                    document.getElementById('signature-data').value = signatureData;
 
-                    // Utiliser la position cliquée
-                    if (currentZone) {
-                        document.getElementById('signature-page-input').value = currentZone.page;
-                        document.getElementById('signature-x-input').value = currentZone.x;
-                        document.getElementById('signature-y-input').value = currentZone.y;
+                    // MODE: Single signer - Multiple signatures
+                    if (signatureMode === 'single_signer_multiple') {
+                        // Ajouter à l'array
+                        if (currentZone) {
+                            signaturesArray.push({
+                                page: currentZone.page,
+                                x: currentZone.x,
+                                y: currentZone.y,
+                                image: signatureData
+                            });
+
+                            console.log('✅ Signature ajoutée:', signaturesArray.length, 'signature(s)');
+
+                            // Mettre à jour le compteur
+                            document.getElementById('signatures-count').textContent = signaturesArray.length + ' signature(s) ajoutée(s)';
+                            document.getElementById('signatures-status').style.display = 'block';
+
+                            // Fermer modal (NE PAS soumettre)
+                            signatureModal.hide();
+
+                            // Afficher un marqueur visuel sur le PDF
+                            showSignatureMarker(currentZone);
+                        }
+                    }
+                    // MODE: Multiple signers - One signature each
+                    else {
+                        document.getElementById('signature-data').value = signatureData;
+
+                        // Utiliser la position cliquée
+                        if (currentZone) {
+                            document.getElementById('signature-page-input').value = currentZone.page;
+                            document.getElementById('signature-x-input').value = currentZone.x;
+                            document.getElementById('signature-y-input').value = currentZone.y;
+                        }
+
+                        console.log('Signature validée:', currentZone);
+
+                        // Fermer modal et soumettre IMMÉDIATEMENT
+                        signatureModal.hide();
+                        document.getElementById('signature-form').submit();
+                    }
+                }
+
+                // Terminer et envoyer (mode single_signer_multiple)
+                function finishAndSend() {
+                    if (signaturesArray.length === 0) {
+                        alert('Veuillez ajouter au moins une signature avant d\'envoyer.');
+                        return;
                     }
 
-                    console.log('Signature validée:', currentZone);
+                    console.log('📤 Envoi de', signaturesArray.length, 'signature(s)...');
 
-                    // Fermer modal et soumettre
-                    signatureModal.hide();
+                    // Mettre les signatures en JSON
+                    document.getElementById('multiple-signatures-json').value = JSON.stringify(signaturesArray);
+
+                    // Soumettre le formulaire
                     document.getElementById('signature-form').submit();
+                }
+
+                // Afficher un marqueur visuel sur le PDF
+                function showSignatureMarker(zone) {
+                    // Créer un marqueur visuel
+                    const marker = document.createElement('div');
+                    marker.style.position = 'absolute';
+                    marker.style.left = (zone.x * 1.5) + 'px'; // scale 1.5
+                    marker.style.top = ((canvas.height - zone.y * 1.5)) + 'px';
+                    marker.style.width = '150px';
+                    marker.style.height = '50px';
+                    marker.style.border = '2px solid #28a745';
+                    marker.style.backgroundColor = 'rgba(40, 167, 69, 0.2)';
+                    marker.style.borderRadius = '4px';
+                    marker.style.pointerEvents = 'none';
+                    marker.innerHTML = '&lt;div style="text-align: center; padding-top: 15px; font-size: 12px; color: #28a745; font-weight: bold;"&gt;✓ Signé&lt;/div&gt;';
+
+                    // Ajouter au canvas wrapper
+                    document.querySelector('.pdf-canvas-wrapper').appendChild(marker);
                 }
 
                 function declineDocument() {

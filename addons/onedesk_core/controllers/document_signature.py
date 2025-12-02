@@ -182,6 +182,7 @@ class DocumentSignatureController(http.Controller):
             return request.render('onedesk_core.public_signature_page', {
                 'document': document,
                 'signature': signature,
+                'signature_mode': document.signature_mode or 'single_signer_multiple',
             })
 
         except Exception as e:
