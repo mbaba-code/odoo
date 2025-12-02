@@ -527,6 +527,13 @@
                                     Merci d'avoir signé le document "<strong t-esc="document.name"/>".
                                     Un email de confirmation vous a été envoyé avec le document signé.
                                 </p>
+                                <div class="d-grid gap-2 mb-3" t-if="document.signed_file">
+                                    <a t-attf-href="/web/content/onedesk.document/#{document.id}/signed_file/#{document.signed_filename}?download=true"
+                                       class="btn btn-success btn-lg">
+                                        <i class="fa fa-download me-2"></i>
+                                        Télécharger le Document Signé
+                                    </a>
+                                </div>
                                 <a href="/" class="btn btn-primary">
                                     <i class="fa fa-home me-2"></i>
                                     Retour à l'accueil
