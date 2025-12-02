@@ -16,14 +16,22 @@
                     border: 2px solid #dee2e6;
                     border-radius: 8px;
                     background: #f8f9fa;
-                    overflow: hidden;
+                    overflow: auto;
                     position: relative;
+                    display: flex;
+                    flex-direction: column;
+                }
+                .pdf-canvas-wrapper {
+                    flex: 1;
+                    overflow: auto;
+                    padding: 20px;
                 }
                 .pdf-canvas {
                     max-width: 100%;
                     height: auto;
                     display: block;
                     margin: 0 auto;
+                    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
                 }
                 .signature-canvas {
                     border: 2px dashed #6c757d;
@@ -127,12 +135,14 @@
                                         <i class="fa fa-download me-1"></i> Télécharger le PDF
                                     </a>
                                 </div>
-                                <div class="card-body p-2">
+                                <div class="card-body p-0">
                                     <div class="pdf-viewer-container" id="pdf-viewer">
-                                        <canvas id="pdf-canvas" class="pdf-canvas"></canvas>
+                                        <div class="pdf-canvas-wrapper">
+                                            <canvas id="pdf-canvas" class="pdf-canvas"></canvas>
+                                        </div>
                                         <div class="pdf-controls">
                                             <button onclick="prevPage()" id="prev-btn"><i class="fa fa-chevron-left"></i></button>
-                                            <span>Page <span id="page-num">1</span> / <span id="page-count">1</span></span>
+                                            <span style="color: white; margin: 0 15px;">Page <span id="page-num">1</span> / <span id="page-count">1</span></span>
                                             <button onclick="nextPage()" id="next-btn"><i class="fa fa-chevron-right"></i></button>
                                         </div>
                                     </div>
@@ -155,12 +165,50 @@
                                         </div>
                                     </div>
 
+                                    <!-- Position de la signature -->
+                                    <div class="alert alert-info mb-3">
+                                        <h6 class="mb-3"><i class="fa fa-map-marker-alt me-2"></i>Position de votre signature sur le document</h6>
+                                        <div class="row">
+                                            <div class="col-md-4">
+                                                <label class="form-label"><strong>Page:</strong></label>
+                                                <select class="form-select" id="signature-page" name="signature_page">
+                                                    <option value="-1" selected="">Dernière page</option>
+                                                    <option value="0">Première page</option>
+                                                </select>
+                                                <small class="text-muted">Où placer la signature</small>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <label class="form-label"><strong>Position:</strong></label>
+                                                <select class="form-select" id="signature-position" onchange="updateSignaturePosition()">
+                                                    <option value="bottom-right" selected="">Bas droite</option>
+                                                    <option value="bottom-left">Bas gauche</option>
+                                                    <option value="top-right">Haut droite</option>
+                                                    <option value="top-left">Haut gauche</option>
+                                                    <option value="center">Centre</option>
+                                                    <option value="custom">Personnalisée</option>
+                                                </select>
+                                                <small class="text-muted">Emplacement sur la page</small>
+                                            </div>
+                                            <div class="col-md-4" id="custom-position-fields" style="display: none;">
+                                                <label class="form-label"><strong>Coordonnées (X, Y):</strong></label>
+                                                <div class="input-group input-group-sm">
+                                                    <input type="number" class="form-control" id="signature-x" placeholder="X" value="50" min="0" max="600"/>
+                                                    <input type="number" class="form-control" id="signature-y" placeholder="Y" value="50" min="0" max="900"/>
+                                                </div>
+                                                <small class="text-muted">Points depuis gauche/bas</small>
+                                            </div>
+                                        </div>
+                                    </div>
+
                                     <!-- Formulaire de soumission -->
                                     <form method="post" id="signature-form" t-attf-action="/onedesk/document/#{document.id}/sign/action">
                                         <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
                                         <input type="hidden" name="signature_id" t-att-value="signature.id"/>
                                         <input type="hidden" name="access_token" t-att-value="signature.access_token"/>
                                         <input type="hidden" name="signature_data" id="signature-data"/>
+                                        <input type="hidden" name="signature_page" id="signature-page-input" value="-1"/>
+                                        <input type="hidden" name="signature_x" id="signature-x-input" value="0"/>
+                                        <input type="hidden" name="signature_y" id="signature-y-input" value="0"/>
                                         <input type="hidden" name="action" value="sign"/>
 
                                         <div class="d-grid gap-2 mt-4">
@@ -222,6 +270,17 @@
                     pdfjsLib.getDocument(pdfUrl).promise.then(function(pdfDoc_) {
                         pdfDoc = pdfDoc_;
                         document.getElementById('page-count').textContent = pdfDoc.numPages;
+
+                        // Peupler le dropdown des pages
+                        const pageSelect = document.getElementById('signature-page');
+                        pageSelect.innerHTML = '&lt;option value="-1"&gt;Dernière page&lt;/option&gt;';
+                        for (let i = 0; i &lt; pdfDoc.numPages; i++) {
+                            const option = document.createElement('option');
+                            option.value = i;
+                            option.textContent = `Page ${i + 1}`;
+                            pageSelect.appendChild(option);
+                        }
+
                         renderPage(pageNum);
                     }).catch(function(error) {
                         console.error('Erreur chargement PDF:', error);
@@ -357,6 +416,30 @@
                     }
                 }
 
+                // Gérer le changement de position
+                function updateSignaturePosition() {
+                    const position = document.getElementById('signature-position').value;
+                    const customFields = document.getElementById('custom-position-fields');
+
+                    if (position === 'custom') {
+                        customFields.style.display = 'block';
+                    } else {
+                        customFields.style.display = 'none';
+
+                        // Définir les coordonnées selon la position choisie
+                        let x = 0, y = 0;
+                        switch(position) {
+                            case 'bottom-right': x = 0; y = 0; break;
+                            case 'bottom-left': x = 50; y = 50; break;
+                            case 'top-right': x = 0; y = 750; break;
+                            case 'top-left': x = 50; y = 750; break;
+                            case 'center': x = 250; y = 400; break;
+                        }
+                        document.getElementById('signature-x').value = x;
+                        document.getElementById('signature-y').value = y;
+                    }
+                }
+
                 function submitSignature() {
                     // Vérifier que la signature n'est pas vide
                     const imageData = signatureCtx.getImageData(0, 0, signatureCanvas.width, signatureCanvas.height);
@@ -378,6 +461,18 @@
                     // Capturer la signature en base64
                     const signatureData = signatureCanvas.toDataURL('image/png');
                     document.getElementById('signature-data').value = signatureData;
+
+                    // Copier les valeurs de position dans les inputs cachés
+                    const page = document.getElementById('signature-page').value;
+                    const position = document.getElementById('signature-position').value;
+                    let x = parseInt(document.getElementById('signature-x').value) || 0;
+                    let y = parseInt(document.getElementById('signature-y').value) || 0;
+
+                    document.getElementById('signature-page-input').value = page;
+                    document.getElementById('signature-x-input').value = x;
+                    document.getElementById('signature-y-input').value = y;
+
+                    console.log('Position signature:', {page: page, x: x, y: y});
 
                     // Soumettre le formulaire
                     document.getElementById('signature-form').submit();

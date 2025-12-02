@@ -197,12 +197,27 @@ class DocumentSignatureController(http.Controller):
                     # PAS besoin de décoder/réencoder, le champ Binary le gère automatiquement
                     _logger.info(f"📸 Signature capturée: {len(signature_data)} caractères base64")
 
-                    # Signer le document avec l'image de signature
+                    # Capturer la position de la signature choisie par le signataire
+                    try:
+                        sig_page = int(kwargs.get('signature_page', -1))
+                        sig_x = float(kwargs.get('signature_x', 0))
+                        sig_y = float(kwargs.get('signature_y', 0))
+                        _logger.info(f"📍 Position signature: page={sig_page}, x={sig_x}, y={sig_y}")
+                    except (ValueError, TypeError) as e:
+                        _logger.warning(f"⚠️ Erreur parsing position signature: {e}, utilisation des valeurs par défaut")
+                        sig_page = -1
+                        sig_x = 0
+                        sig_y = 0
+
+                    # Signer le document avec l'image de signature ET la position
                     signature.write({
                         'status': 'signed',
                         'signature_date': fields.Datetime.now(),
                         'signature_image': signature_data,  # String base64, pas bytes!
-                        'signature_image_filename': f'signature_{signature.signer_name}.png'
+                        'signature_image_filename': f'signature_{signature.signer_name}.png',
+                        'signature_page': sig_page,
+                        'signature_x': sig_x,
+                        'signature_y': sig_y
                     })
 
                     _logger.info(f"✅ Signature électronique capturée pour {signature.signer_email}")
