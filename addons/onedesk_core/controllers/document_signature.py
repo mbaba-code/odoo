@@ -184,15 +184,24 @@ class DocumentSignatureController(http.Controller):
                     if ',' in signature_data:
                         signature_data = signature_data.split(',')[1]
 
-                    # Décoder base64 et stocker
-                    import base64
-                    signature_image_binary = base64.b64decode(signature_data)
+                    # Vérifier que la signature n'est pas vide (minimum 100 chars base64)
+                    if len(signature_data) < 100:
+                        _logger.error(f"❌ Signature trop courte ({len(signature_data)} chars), probablement vide ou corrompue")
+                        return request.render('onedesk_core.public_signature_form', {
+                            'document': document,
+                            'signature': signature,
+                            'error_message': "La signature semble vide ou invalide. Veuillez dessiner votre signature."
+                        })
+
+                    # Stocker la signature base64 DIRECTEMENT (Odoo Binary attend du base64, pas des bytes)
+                    # PAS besoin de décoder/réencoder, le champ Binary le gère automatiquement
+                    _logger.info(f"📸 Signature capturée: {len(signature_data)} caractères base64")
 
                     # Signer le document avec l'image de signature
                     signature.write({
                         'status': 'signed',
                         'signature_date': fields.Datetime.now(),
-                        'signature_image': signature_image_binary,
+                        'signature_image': signature_data,  # String base64, pas bytes!
                         'signature_image_filename': f'signature_{signature.signer_name}.png'
                     })
 

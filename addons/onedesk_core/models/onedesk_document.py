@@ -536,16 +536,27 @@ class OnedeskDocumentSignature(models.Model):
             original_pdf = PdfReader(io.BytesIO(original_pdf_data))
 
             # Décoder l'image de signature
-            # Les champs Binary dans Odoo sont en base64
-            try:
-                signature_img_data = base64.b64decode(self.signature_image)
-            except Exception as e:
-                _logger.error(f"Erreur décodage base64 signature: {e}")
+            # Les champs Binary dans Odoo sont stockés en base64
+            if not self.signature_image:
+                _logger.error(f"❌ Champ signature_image est vide")
                 return None
 
-            # Vérifier que les données sont valides
+            # Vérifier la longueur du base64 avant décodage
+            if len(self.signature_image) < 100:
+                _logger.error(f"❌ signature_image trop court ({len(self.signature_image)} chars), données corrompues")
+                return None
+
+            try:
+                signature_img_data = base64.b64decode(self.signature_image)
+                _logger.info(f"✓ Décodage base64 OK: {len(signature_img_data)} bytes PNG")
+            except Exception as e:
+                _logger.error(f"❌ Erreur décodage base64 signature: {e}")
+                _logger.error(f"   Début de signature_image: {self.signature_image[:50]}...")
+                return None
+
+            # Vérifier que les bytes PNG sont valides
             if not signature_img_data or len(signature_img_data) < 100:
-                _logger.error(f"Données de signature invalides (taille: {len(signature_img_data) if signature_img_data else 0})")
+                _logger.error(f"❌ Données PNG invalides après décodage (taille: {len(signature_img_data) if signature_img_data else 0} bytes)")
                 return None
 
             # Ouvrir l'image
