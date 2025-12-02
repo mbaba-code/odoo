@@ -341,7 +341,7 @@ class DocumentSignatureController(http.Controller):
                         'signed_filename': f'{document.name}_signed.pdf'
                     })
                     # Rafraîchir pour s'assurer que signed_file est visible
-                    document.invalidate_cache(['signed_file', 'signed_filename'])
+                    document.invalidate_recordset(['signed_file', 'signed_filename'])
                     _logger.info(f"📄 PDF signé généré et stocké pour {document.name}")
                     _logger.info(f"   - signed_file existe: {bool(document.signed_file)}")
                     _logger.info(f"   - signed_filename: {document.signed_filename}")
