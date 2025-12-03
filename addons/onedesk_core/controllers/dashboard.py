@@ -42,13 +42,16 @@ class OnedeskDashboardController(http.Controller):
             # 4. Distribution des propriétés par ville
             properties_by_city = self._get_properties_by_city(properties)
 
-            # 5. KPIs principaux
+            # 5. Calcul du revenu du mois (en temps réel)
+            revenue_this_month = self._get_revenue_this_month(units)
+
+            # 6. KPIs principaux
             kpis = {
                 'total_properties': len(properties),
                 'total_units': len(units),
                 'active_properties': len(properties.filtered('active')),
                 'available_units': len(units.filtered('available')),
-                'revenue_this_month': dashboard.revenue_this_month,
+                'revenue_this_month': revenue_this_month,
                 'reservations_confirmed_month': dashboard.reservations_confirmed_month,
             }
 
@@ -171,6 +174,19 @@ class OnedeskDashboardController(http.Controller):
             'cities': list(type_data.keys()),  # Gardé comme 'cities' pour compatibilité avec le frontend
             'counts': list(type_data.values())
         }
+
+    def _get_revenue_this_month(self, units):
+        """Calcul du revenu du mois en cours (en temps réel)"""
+        today = datetime.now()
+        month_start = today.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+
+        reservations = request.env['onedesk.reservation'].sudo().search([
+            ('unit_id', 'in', units.ids),
+            ('status', 'in', ['paid', 'checked_in', 'completed']),
+            ('end_date', '>=', month_start)
+        ])
+
+        return sum(reservations.mapped('total_price'))
 
     def _get_date_range(self, dashboard_rec):
         """Get date range based on selected period"""
