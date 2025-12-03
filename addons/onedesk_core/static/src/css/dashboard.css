@@ -599,3 +599,330 @@
         font-size: 0.75rem;
     }
 }
+}
+
+/* ==================== APEXCHARTS DASHBOARD STYLES - PHASE 2 ==================== */
+
+/* Dashboard Main Container */
+.onedesk-dashboard-main {
+    padding: 2rem;
+    background: #f5f6f8;
+    min-height: 100vh;
+}
+
+/* Header avec Actions */
+.dashboard-header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 2rem;
+    border-radius: 12px;
+    margin-bottom: 2rem;
+    box-shadow: 0 8px 16px rgba(102, 126, 234, 0.25);
+}
+
+.dashboard-title h1 {
+    color: white;
+    font-size: 2rem;
+    font-weight: 700;
+    margin: 0;
+}
+
+.dashboard-title p {
+    color: rgba(255, 255, 255, 0.9);
+    margin: 0.5rem 0 0 0;
+    font-size: 0.95rem;
+}
+
+.dashboard-actions {
+    display: flex;
+    gap: 1rem;
+}
+
+.dashboard-actions .btn {
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Loader */
+.dashboard-loader {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 4rem;
+    gap: 1rem;
+}
+
+.dashboard-loader .spinner-border {
+    width: 3rem;
+    height: 3rem;
+}
+
+/* KPI Cards - Redesign pour ApexCharts */
+.dashboard-kpis {
+    margin-bottom: 2rem;
+}
+
+.kpi-card {
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    border-left: 4px solid #667eea;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    height: 100%;
+}
+
+.kpi-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+
+.kpi-card.kpi-properties {
+    border-left-color: #667eea;
+}
+
+.kpi-card.kpi-units {
+    border-left-color: #0dcaf0;
+}
+
+.kpi-card.kpi-revenue {
+    border-left-color: #28a745;
+}
+
+.kpi-card.kpi-occupancy {
+    border-left-color: #ffc107;
+}
+
+.kpi-card.kpi-reservations {
+    border-left-color: #17a2b8;
+}
+
+.kpi-icon {
+    font-size: 2.5rem;
+    opacity: 0.2;
+}
+
+.kpi-properties .kpi-icon {
+    color: #667eea;
+}
+
+.kpi-units .kpi-icon {
+    color: #0dcaf0;
+}
+
+.kpi-revenue .kpi-icon {
+    color: #28a745;
+}
+
+.kpi-occupancy .kpi-icon {
+    color: #ffc107;
+}
+
+.kpi-reservations .kpi-icon {
+    color: #17a2b8;
+}
+
+.kpi-details {
+    flex: 1;
+}
+
+.kpi-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #2c3e50;
+    line-height: 1;
+    margin-bottom: 0.25rem;
+}
+
+.kpi-value.currency {
+    color: #28a745;
+}
+
+.kpi-value.percent {
+    color: #ffc107;
+}
+
+.kpi-label {
+    font-size: 0.9rem;
+    color: #6c757d;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+}
+
+.kpi-subtext {
+    font-size: 0.8rem;
+    color: #95a5a6;
+}
+
+.kpi-subtext .badge {
+    font-size: 0.75rem;
+}
+
+/* Chart Cards */
+.chart-card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+    height: 100%;
+}
+
+.chart-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.25rem 1.5rem;
+    background: linear-gradient(to right, #f8f9fa, #ffffff);
+    border-bottom: 1px solid #e9ecef;
+}
+
+.chart-card-header h5 {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+.chart-card-header h5 i {
+    margin-right: 0.5rem;
+    color: #667eea;
+}
+
+.chart-card-body {
+    padding: 1.5rem;
+}
+
+.chart-card-body > div {
+    min-height: 300px;
+}
+
+/* ApexCharts Customizations */
+.apexcharts-canvas {
+    margin: 0 auto;
+}
+
+.apexcharts-tooltip {
+    background: rgba(0, 0, 0, 0.85) !important;
+    border: none !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+}
+
+.apexcharts-tooltip .apexcharts-tooltip-title {
+    background: rgba(255, 255, 255, 0.1) !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2) !important;
+}
+
+/* Dashboard Footer */
+.dashboard-footer {
+    padding: 1.5rem;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    text-align: center;
+}
+
+.auto-refresh-status {
+    color: #6c757d;
+    font-size: 0.9rem;
+}
+
+.auto-refresh-status i {
+    margin-right: 0.5rem;
+    color: #28a745;
+}
+
+/* Responsive Design pour ApexCharts */
+@media (max-width: 1200px) {
+    .dashboard-header-content {
+        flex-direction: column;
+        gap: 1.5rem;
+        text-align: center;
+    }
+
+    .dashboard-actions {
+        justify-content: center;
+    }
+}
+
+@media (max-width: 768px) {
+    .onedesk-dashboard-main {
+        padding: 1rem;
+    }
+
+    .dashboard-header-content {
+        padding: 1.5rem;
+    }
+
+    .dashboard-title h1 {
+        font-size: 1.5rem;
+    }
+
+    .kpi-card {
+        padding: 1rem;
+    }
+
+    .kpi-icon {
+        font-size: 2rem;
+    }
+
+    .kpi-value {
+        font-size: 1.5rem;
+    }
+
+    .chart-card-body > div {
+        min-height: 250px;
+    }
+
+    .dashboard-actions {
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .dashboard-actions .btn,
+    .dashboard-actions .btn-group {
+        width: 100%;
+    }
+}
+
+@media (max-width: 480px) {
+    .dashboard-title h1 {
+        font-size: 1.25rem;
+    }
+
+    .kpi-value {
+        font-size: 1.25rem;
+    }
+
+    .kpi-label {
+        font-size: 0.8rem;
+    }
+
+    .chart-card-header h5 {
+        font-size: 0.9rem;
+    }
+
+    .chart-card-body > div {
+        min-height: 200px;
+    }
+}
+
+/* Animation pour le loader */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.dashboard-content {
+    animation: fadeIn 0.5s ease-in-out;
+}

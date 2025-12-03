@@ -515,3 +515,277 @@ class OnedeskDashboardController(http.Controller):
             'trend_class': trend_class,
             'period_length': period_length
         }
+
+    @http.route('/onedesk/dashboard/export/excel', type='json', auth='user', methods=['POST'])
+    def export_dashboard_excel(self):
+        """
+        Exporter les données du dashboard en Excel
+        """
+        try:
+            import io
+            import xlsxwriter
+            from datetime import datetime
+
+            dashboard = request.env['onedesk.dashboard'].search([
+                ('user_id', '=', request.env.user.id),
+                ('company_id', '=', request.env.company.id)
+            ], limit=1)
+
+            if not dashboard:
+                return {'status': 'error', 'message': 'Dashboard non trouvé'}
+
+            company_ids = dashboard._get_accessible_companies()
+            properties = request.env['onedesk.property'].sudo().search([('company_id', 'in', company_ids)])
+            units = request.env['onedesk.unit'].sudo().search([('property_id', 'in', properties.ids)])
+
+            # Créer le fichier Excel en mémoire
+            output = io.BytesIO()
+            workbook = xlsxwriter.Workbook(output, {'in_memory': True})
+
+            # Formats
+            header_format = workbook.add_format({
+                'bold': True,
+                'bg_color': '#667eea',
+                'font_color': 'white',
+                'align': 'center',
+                'border': 1
+            })
+            cell_format = workbook.add_format({'border': 1})
+            currency_format = workbook.add_format({'num_format': '#,##0.00 €', 'border': 1})
+
+            # Feuille 1: KPIs
+            ws_kpis = workbook.add_worksheet('KPIs')
+            ws_kpis.write(0, 0, 'Indicateur', header_format)
+            ws_kpis.write(0, 1, 'Valeur', header_format)
+
+            kpis_data = [
+                ('Total Propriétés', len(properties)),
+                ('Propriétés Actives', len(properties.filtered('active'))),
+                ('Total Unités', len(units)),
+                ('Unités Disponibles', len(units.filtered(lambda u: u.state == 'available'))),
+                ('Revenu du Mois', dashboard.revenue_this_month),
+                ('Taux d\'Occupation (%)', self._get_occupancy_rate(units)),
+                ('Réservations Confirmées', dashboard.reservations_confirmed_month),
+            ]
+
+            for idx, (label, value) in enumerate(kpis_data, start=1):
+                ws_kpis.write(idx, 0, label, cell_format)
+                if 'Revenu' in label:
+                    ws_kpis.write(idx, 1, value, currency_format)
+                else:
+                    ws_kpis.write(idx, 1, value, cell_format)
+
+            ws_kpis.set_column(0, 0, 30)
+            ws_kpis.set_column(1, 1, 15)
+
+            # Feuille 2: Revenus 12 mois
+            revenue_data = self._get_revenue_12_months(units)
+            ws_revenue = workbook.add_worksheet('Revenus 12 mois')
+
+            ws_revenue.write(0, 0, 'Mois', header_format)
+            ws_revenue.write(0, 1, 'Année Actuelle', header_format)
+            ws_revenue.write(0, 2, 'Année Précédente', header_format)
+
+            for idx, month in enumerate(revenue_data['months'], start=1):
+                ws_revenue.write(idx, 0, month, cell_format)
+                ws_revenue.write(idx, 1, revenue_data['current_year'][idx-1], currency_format)
+                ws_revenue.write(idx, 2, revenue_data['previous_year'][idx-1], currency_format)
+
+            ws_revenue.set_column(0, 0, 12)
+            ws_revenue.set_column(1, 2, 18)
+
+            # Feuille 3: Réservations par Statut
+            reservations_data = self._get_reservations_by_status(units)
+            ws_reservations = workbook.add_worksheet('Réservations')
+
+            ws_reservations.write(0, 0, 'Statut', header_format)
+            ws_reservations.write(0, 1, 'Nombre', header_format)
+
+            for idx, (status, count) in enumerate(zip(reservations_data['statuses'], reservations_data['counts']), start=1):
+                ws_reservations.write(idx, 0, status, cell_format)
+                ws_reservations.write(idx, 1, count, cell_format)
+
+            ws_reservations.set_column(0, 0, 20)
+            ws_reservations.set_column(1, 1, 15)
+
+            # Feuille 4: Propriétés par Ville
+            properties_data = self._get_properties_by_city(properties)
+            ws_properties = workbook.add_worksheet('Propriétés par Ville')
+
+            ws_properties.write(0, 0, 'Ville', header_format)
+            ws_properties.write(0, 1, 'Nombre', header_format)
+
+            for idx, (city, count) in enumerate(zip(properties_data['cities'], properties_data['counts']), start=1):
+                ws_properties.write(idx, 0, city, cell_format)
+                ws_properties.write(idx, 1, count, cell_format)
+
+            ws_properties.set_column(0, 0, 25)
+            ws_properties.set_column(1, 1, 15)
+
+            workbook.close()
+
+            # Créer l'attachement
+            output.seek(0)
+            filename = f"Dashboard_OneDesk_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
+
+            attachment = request.env['ir.attachment'].sudo().create({
+                'name': filename,
+                'type': 'binary',
+                'datas': output.read(),
+                'mimetype': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                'public': True,
+            })
+
+            return {
+                'status': 'success',
+                'file_url': f'/web/content/{attachment.id}?download=true'
+            }
+
+        except Exception as e:
+            return {
+                'status': 'error',
+                'message': str(e)
+            }
+
+    @http.route('/onedesk/dashboard/export/pdf', type='json', auth='user', methods=['POST'])
+    def export_dashboard_pdf(self):
+        """
+        Exporter le dashboard en PDF
+        """
+        try:
+            from datetime import datetime
+
+            dashboard = request.env['onedesk.dashboard'].search([
+                ('user_id', '=', request.env.user.id),
+                ('company_id', '=', request.env.company.id)
+            ], limit=1)
+
+            if not dashboard:
+                return {'status': 'error', 'message': 'Dashboard non trouvé'}
+
+            company_ids = dashboard._get_accessible_companies()
+            properties = request.env['onedesk.property'].sudo().search([('company_id', 'in', company_ids)])
+            units = request.env['onedesk.unit'].sudo().search([('property_id', 'in', properties.ids)])
+
+            # Préparer les données
+            revenue_data = self._get_revenue_12_months(units)
+            reservations_data = self._get_reservations_by_status(units)
+            occupancy_rate = self._get_occupancy_rate(units)
+            properties_data = self._get_properties_by_city(properties)
+
+            # Générer le HTML pour le PDF
+            html_content = f"""
+            <html>
+            <head>
+                <meta charset="utf-8"/>
+                <style>
+                    body {{ font-family: Arial, sans-serif; margin: 20px; }}
+                    h1 {{ color: #667eea; text-align: center; }}
+                    h2 {{ color: #333; border-bottom: 2px solid #667eea; padding-bottom: 5px; }}
+                    table {{ width: 100%; border-collapse: collapse; margin: 20px 0; }}
+                    th {{ background-color: #667eea; color: white; padding: 10px; text-align: left; }}
+                    td {{ border: 1px solid #ddd; padding: 8px; }}
+                    tr:nth-child(even) {{ background-color: #f2f2f2; }}
+                    .kpi-grid {{ display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin: 20px 0; }}
+                    .kpi-card {{ background: #f8f9fa; padding: 15px; border-left: 4px solid #667eea; }}
+                    .kpi-value {{ font-size: 24px; font-weight: bold; color: #333; }}
+                    .kpi-label {{ color: #666; margin-top: 5px; }}
+                </style>
+            </head>
+            <body>
+                <h1>📊 Dashboard OneDesk</h1>
+                <p style="text-align: center; color: #666;">Généré le {datetime.now().strftime('%d/%m/%Y à %H:%M')}</p>
+
+                <h2>Indicateurs Clés</h2>
+                <div class="kpi-grid">
+                    <div class="kpi-card">
+                        <div class="kpi-value">{len(properties)}</div>
+                        <div class="kpi-label">Total Propriétés</div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-value">{len(units)}</div>
+                        <div class="kpi-label">Total Unités</div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-value">{occupancy_rate}%</div>
+                        <div class="kpi-label">Taux d'Occupation</div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-value">{dashboard.revenue_this_month:,.2f} €</div>
+                        <div class="kpi-label">Revenu du Mois</div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-value">{dashboard.reservations_confirmed_month}</div>
+                        <div class="kpi-label">Réservations Confirmées</div>
+                    </div>
+                </div>
+
+                <h2>Revenus (12 derniers mois)</h2>
+                <table>
+                    <tr>
+                        <th>Mois</th>
+                        <th>Année Actuelle</th>
+                        <th>Année Précédente</th>
+                    </tr>
+                    {''.join([f'<tr><td>{month}</td><td>{current:,.2f} €</td><td>{prev:,.2f} €</td></tr>'
+                              for month, current, prev in zip(revenue_data['months'],
+                                                             revenue_data['current_year'],
+                                                             revenue_data['previous_year'])])}
+                </table>
+
+                <h2>Réservations par Statut</h2>
+                <table>
+                    <tr>
+                        <th>Statut</th>
+                        <th>Nombre</th>
+                    </tr>
+                    {''.join([f'<tr><td>{status}</td><td>{count}</td></tr>'
+                              for status, count in zip(reservations_data['statuses'],
+                                                      reservations_data['counts'])])}
+                </table>
+
+                <h2>Propriétés par Ville</h2>
+                <table>
+                    <tr>
+                        <th>Ville</th>
+                        <th>Nombre de Propriétés</th>
+                    </tr>
+                    {''.join([f'<tr><td>{city}</td><td>{count}</td></tr>'
+                              for city, count in zip(properties_data['cities'],
+                                                    properties_data['counts'])])}
+                </table>
+            </body>
+            </html>
+            """
+
+            # Générer le PDF avec wkhtmltopdf (Odoo natif)
+            pdf_content = request.env['ir.actions.report']._run_wkhtmltopdf(
+                [html_content],
+                landscape=False,
+                specific_paperformat_args={
+                    'data-report-margin-top': 10,
+                    'data-report-header-spacing': 10
+                }
+            )
+
+            # Créer l'attachement
+            filename = f"Dashboard_OneDesk_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
+
+            attachment = request.env['ir.attachment'].sudo().create({
+                'name': filename,
+                'type': 'binary',
+                'datas': pdf_content,
+                'mimetype': 'application/pdf',
+                'public': True,
+            })
+
+            return {
+                'status': 'success',
+                'file_url': f'/web/content/{attachment.id}?download=true'
+            }
+
+        except Exception as e:
+            return {
+                'status': 'error',
+                'message': str(e)
+            }
