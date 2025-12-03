@@ -3,6 +3,7 @@
 import { registry } from "@web/core/registry";
 import { Component, onWillStart, onMounted, useState } from "@odoo/owl";
 import { useService } from "@web/core/utils/hooks";
+import { rpc } from "@web/core/network/rpc";
 
 /**
  * OneDesk Dashboard avec ApexCharts
@@ -11,7 +12,6 @@ import { useService } from "@web/core/utils/hooks";
 export class OneDeskDashboard extends Component {
     setup() {
         this.orm = useService("orm");
-        this.rpc = useService("rpc");
 
         this.state = useState({
             loading: true,
@@ -38,7 +38,7 @@ export class OneDeskDashboard extends Component {
      */
     async loadDashboardData() {
         try {
-            const response = await this.rpc("/onedesk/dashboard/main/data", {});
+            const response = await rpc("/onedesk/dashboard/main/data", {});
             if (response.status === "success") {
                 this.state.data = response.data;
                 this.state.loading = false;
@@ -365,7 +365,7 @@ export class OneDeskDashboard extends Component {
      */
     async exportToExcel() {
         try {
-            const response = await this.rpc("/onedesk/dashboard/export/excel", {});
+            const response = await rpc("/onedesk/dashboard/export/excel", {});
             if (response.file_url) {
                 window.location.href = response.file_url;
             }
@@ -379,7 +379,7 @@ export class OneDeskDashboard extends Component {
      */
     async exportToPDF() {
         try {
-            const response = await this.rpc("/onedesk/dashboard/export/pdf", {});
+            const response = await rpc("/onedesk/dashboard/export/pdf", {});
             if (response.file_url) {
                 window.location.href = response.file_url;
             }
