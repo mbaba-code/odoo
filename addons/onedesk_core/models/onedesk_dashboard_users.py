@@ -146,7 +146,9 @@ class OneDesk_DashboardUsers(models.Model):
 
             # Previous period metrics
             all_prev_tasks = self.env['onedesk.task'].search([
-                ('company_id', 'in', companies.ids)
+                '|',
+                ('unit_id.property_id.company_id', 'in', companies.ids),
+                ('assigned_to.company_id', 'in', companies.ids)
             ])
             dashboard.previous_period_actions = len(all_prev_tasks)
 
