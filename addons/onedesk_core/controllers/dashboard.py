@@ -535,6 +535,7 @@ class OnedeskDashboardController(http.Controller):
         """
         try:
             import io
+            import base64
             import xlsxwriter
             from datetime import datetime
 
@@ -638,12 +639,14 @@ class OnedeskDashboardController(http.Controller):
 
             # Créer l'attachement
             output.seek(0)
+            excel_data = output.read()
+            excel_b64 = base64.b64encode(excel_data)
             filename = f"Dashboard_OneDesk_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
 
             attachment = request.env['ir.attachment'].sudo().create({
                 'name': filename,
                 'type': 'binary',
-                'datas': output.read(),
+                'datas': excel_b64,
                 'mimetype': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
                 'public': True,
             })
@@ -665,6 +668,7 @@ class OnedeskDashboardController(http.Controller):
         Exporter le dashboard en PDF
         """
         try:
+            import base64
             from datetime import datetime
 
             dashboard = request.env['onedesk.dashboard'].search([
@@ -780,13 +784,16 @@ class OnedeskDashboardController(http.Controller):
                 }
             )
 
+            # Encoder en base64
+            pdf_b64 = base64.b64encode(pdf_content)
+
             # Créer l'attachement
             filename = f"Dashboard_OneDesk_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
 
             attachment = request.env['ir.attachment'].sudo().create({
                 'name': filename,
                 'type': 'binary',
-                'datas': pdf_content,
+                'datas': pdf_b64,
                 'mimetype': 'application/pdf',
                 'public': True,
             })
