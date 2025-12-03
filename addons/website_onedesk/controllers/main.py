@@ -565,9 +565,12 @@ class OneDeskWebsite(http.Controller):
                 # Envoyer email de confirmation de souscription
                 try:
                     template_client = request.env.ref('website_onedesk.email_subscription_confirmation')
-                    template_client.send_mail(subscription.id, force_send=True, email_values={
-                        'email_to': email,
-                    })
+                    # Forcer le contexte de la company pour éviter les erreurs d'accès multi-tenant
+                    template_client.sudo().with_company(subscription.company_id).send_mail(
+                        subscription.id,
+                        force_send=True,
+                        email_values={'email_to': email}
+                    )
                     _logger.info(f'✅ Confirmation email sent to {email}')
                 except Exception as e:
                     _logger.warning(f'⚠️ Error sending client email: {e}')
@@ -598,9 +601,12 @@ class OneDeskWebsite(http.Controller):
                     admin_email = request.env['ir.config_parameter'].sudo().get_param('onedesk.admin_email')
                     if admin_email:
                         template_admin = request.env.ref('website_onedesk.email_subscription_admin_notification')
-                        template_admin.send_mail(subscription.id, force_send=True, email_values={
-                            'email_to': admin_email,
-                        })
+                        # Forcer le contexte de la company pour éviter les erreurs d'accès multi-tenant
+                        template_admin.sudo().with_company(subscription.company_id).send_mail(
+                            subscription.id,
+                            force_send=True,
+                            email_values={'email_to': admin_email}
+                        )
                         _logger.info(f'✅ Admin notification sent to {admin_email}')
                     else:
                         _logger.warning('⚠️ Aucun email admin configuré (onedesk.admin_email)')
@@ -1021,9 +1027,12 @@ class OneDeskWebsite(http.Controller):
             admin_email = request.env['ir.config_parameter'].sudo().get_param('onedesk.admin_email')
             if admin_email:
                 template_admin = request.env.ref('website_onedesk.email_subscription_admin_notification')
-                template_admin.sudo().send_mail(subscription.id, force_send=True, email_values={
-                    'email_to': admin_email,
-                })
+                # Forcer le contexte de la company pour éviter les erreurs d'accès multi-tenant
+                template_admin.sudo().with_company(subscription.company_id).send_mail(
+                    subscription.id,
+                    force_send=True,
+                    email_values={'email_to': admin_email}
+                )
                 _logger.info(f'✅ Email de notification admin envoyé à {admin_email}')
             else:
                 _logger.warning('⚠️ Aucun email admin configuré (onedesk.admin_email)')

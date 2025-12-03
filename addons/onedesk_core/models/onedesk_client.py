@@ -576,9 +576,12 @@ class OnedeskoClientInvitation(models.Model):
             if subscription:
                 subscription_template = self.env.ref('website_onedesk.email_subscription_confirmation')
                 if subscription_template:
-                    subscription_template.sudo().send_mail(subscription.id, force_send=True, email_values={
-                        'email_to': self.email,
-                    })
+                    # Forcer le contexte de la company pour éviter les erreurs d'accès multi-tenant
+                    subscription_template.sudo().with_company(subscription.company_id).send_mail(
+                        subscription.id,
+                        force_send=True,
+                        email_values={'email_to': self.email}
+                    )
                     _logger.info(f'✅ Email de confirmation de souscription envoyé à {self.email}')
         except Exception as e:
             _logger.warning(f'⚠️ Erreur envoi email de souscription: {e}')
