@@ -34,8 +34,16 @@
                 <p>Chargement des données...</p>
             </div>
 
+            <!-- Message d'erreur -->
+            <div t-if="!state.loading and state.error" class="alert alert-danger m-4" role="alert">
+                <h4 class="alert-heading"><i class="fa fa-exclamation-triangle"/> Erreur de chargement</h4>
+                <p><t t-esc="state.error"/></p>
+                <hr/>
+                <p class="mb-0">Vérifiez la console du navigateur (F12) pour plus de détails.</p>
+            </div>
+
             <!-- Contenu du dashboard -->
-            <div t-if="!state.loading" class="dashboard-content">
+            <div t-if="!state.loading and !state.error" class="dashboard-content">
                 <!-- Section KPIs Cards -->
                 <div class="dashboard-kpis">
                     <div class="row g-3">

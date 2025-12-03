@@ -15,6 +15,7 @@ export class OneDeskDashboard extends Component {
 
         this.state = useState({
             loading: true,
+            error: null,
             data: {},
             charts: {},
             autoRefresh: true,
@@ -38,14 +39,27 @@ export class OneDeskDashboard extends Component {
      */
     async loadDashboardData() {
         try {
+            console.log("📊 Chargement des données du dashboard...");
             const response = await rpc("/onedesk/dashboard/main/data", {});
+            console.log("📊 Réponse reçue:", response);
+
             if (response.status === "success") {
                 this.state.data = response.data;
                 this.state.loading = false;
+                console.log("✅ Données chargées avec succès:", this.state.data);
+            } else if (response.status === "error") {
+                console.error("❌ Erreur backend:", response.message);
+                this.state.loading = false;
+                this.state.error = response.message;
+            } else {
+                console.error("❌ Réponse inattendue:", response);
+                this.state.loading = false;
+                this.state.error = "Réponse inattendue du serveur";
             }
         } catch (error) {
-            console.error("Erreur chargement dashboard:", error);
+            console.error("❌ Erreur chargement dashboard:", error);
             this.state.loading = false;
+            this.state.error = error.message || "Erreur de connexion";
         }
     }
 
