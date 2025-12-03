@@ -95,7 +95,7 @@
                                         <t t-esc="(state.data.kpis?.revenue_this_month || 0).toLocaleString('fr-FR', {style: 'currency', currency: 'EUR'})"/>
                                     </div>
                                     <div class="kpi-label">Revenu du Mois</div>
-                                    <div class="kpi-subtext">Réservations complétées</div>
+                                    <div class="kpi-subtext">Réservations actives</div>
                                 </div>
                             </div>
                         </div>
