@@ -116,8 +116,13 @@
 
                             <!-- Action Buttons -->
                             <div class="d-flex gap-2 mb-4">
-                                <button type="submit" class="btn btn-primary btn-lg flex-grow-1">
-                                    <i class="fa fa-check"></i> Confirmer la souscription
+                                <button type="submit" id="submit-btn" class="btn btn-primary btn-lg flex-grow-1">
+                                    <span id="btn-text">
+                                        <i class="fa fa-check"></i> Confirmer la souscription
+                                    </span>
+                                    <span id="btn-loading" style="display: none;">
+                                        <i class="fa fa-spinner fa-spin"></i> Traitement en cours...
+                                    </span>
                                 </button>
                                 <a href="/onedesk/subscription" class="btn btn-outline-secondary btn-lg">
                                     <i class="fa fa-arrow-left"></i> Retour
@@ -132,6 +137,15 @@
             <script>
                 document.getElementById(&apos;subscription_form&apos;).addEventListener(&apos;submit&apos;, function(e) {
                     e.preventDefault();
+
+                    // Afficher le spinner et désactiver le bouton
+                    const submitBtn = document.getElementById(&apos;submit-btn&apos;);
+                    const btnText = document.getElementById(&apos;btn-text&apos;);
+                    const btnLoading = document.getElementById(&apos;btn-loading&apos;);
+
+                    submitBtn.disabled = true;
+                    btnText.style.display = &apos;none&apos;;
+                    btnLoading.style.display = &apos;inline&apos;;
 
                     const formData = new FormData(this);
                     const data = {
@@ -175,11 +189,19 @@
                             }
                         } else {
                             alert(&apos;❌ &apos; + (response.message || &apos;Une erreur est survenue&apos;));
+                            // Réactiver le bouton en cas d&apos;erreur
+                            submitBtn.disabled = false;
+                            btnText.style.display = &apos;inline&apos;;
+                            btnLoading.style.display = &apos;none&apos;;
                         }
                     })
                     .catch(error => {
                         console.error(&apos;Error:&apos;, error);
                         alert(&apos;Erreur lors de la souscription: &apos; + error.message);
+                        // Réactiver le bouton en cas d&apos;erreur
+                        submitBtn.disabled = false;
+                        btnText.style.display = &apos;inline&apos;;
+                        btnLoading.style.display = &apos;none&apos;;
                     });
                 });
             </script>
