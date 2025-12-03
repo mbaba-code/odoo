@@ -47,7 +47,7 @@ class OnedeskDashboardController(http.Controller):
                 'total_properties': len(properties),
                 'total_units': len(units),
                 'active_properties': len(properties.filtered('active')),
-                'available_units': len(units.filtered(lambda u: u.state == 'available')),
+                'available_units': len(units.filtered('available')),
                 'revenue_this_month': dashboard.revenue_this_month,
                 'reservations_confirmed_month': dashboard.reservations_confirmed_month,
             }
@@ -111,8 +111,8 @@ class OnedeskDashboardController(http.Controller):
 
     def _get_reservations_by_status(self, units):
         """Nombre de réservations par statut"""
-        statuses = ['draft', 'confirmed', 'checked_in', 'completed', 'cancelled']
-        status_labels = ['En attente', 'Confirmée', 'Enregistré', 'Complétée', 'Annulée']
+        statuses = ['draft', 'paid', 'checked_in', 'completed', 'cancelled']
+        status_labels = ['Brouillon', 'Payée', 'Enregistré', 'Complétée', 'Annulée']
         counts = []
 
         for status in statuses:
@@ -138,7 +138,7 @@ class OnedeskDashboardController(http.Controller):
         for unit in units:
             reservation_count = request.env['onedesk.reservation'].sudo().search_count([
                 ('unit_id', '=', unit.id),
-                ('status', 'in', ['confirmed', 'checked_in']),
+                ('status', 'in', ['paid', 'checked_in']),
                 ('start_date', '<=', today),
                 ('end_date', '>=', today)
             ])
@@ -300,7 +300,7 @@ class OnedeskDashboardController(http.Controller):
             for unit in units:
                 reservations_count = request.env['onedesk.reservation'].search_count([
                     ('unit_id', '=', unit.id),
-                    ('status', 'in', ['confirmed', 'checked_in']),
+                    ('status', 'in', ['paid', 'checked_in']),
                     ('start_date', '<=', date_to),
                     ('end_date', '>=', date_from)
                 ])
@@ -333,8 +333,8 @@ class OnedeskDashboardController(http.Controller):
         properties = request.env['onedesk.property'].search([('company_id', 'in', company_ids)])
         units = request.env['onedesk.unit'].search([('property_id', 'in', properties.ids)])
 
-        statuses = ['draft', 'confirmed', 'checked_in', 'completed', 'cancelled']
-        labels = ['Pending', 'Confirmed', 'Checked In', 'Completed', 'Cancelled']
+        statuses = ['draft', 'paid', 'checked_in', 'completed', 'cancelled']
+        labels = ['Brouillon', 'Payée', 'Enregistré', 'Complétée', 'Annulée']
         data = []
 
         for status in statuses:
@@ -462,14 +462,14 @@ class OnedeskDashboardController(http.Controller):
         elif metric == 'reservations':
             current = request.env['onedesk.reservation'].search_count([
                 ('unit_id', 'in', units.ids),
-                ('status', 'in', ['confirmed', 'checked_in', 'completed']),
+                ('status', 'in', ['paid', 'checked_in', 'completed']),
                 ('start_date', '>=', date_from),
                 ('start_date', '<=', date_to)
             ])
 
             previous = request.env['onedesk.reservation'].search_count([
                 ('unit_id', 'in', units.ids),
-                ('status', 'in', ['confirmed', 'checked_in', 'completed']),
+                ('status', 'in', ['paid', 'checked_in', 'completed']),
                 ('start_date', '>=', prev_date_from),
                 ('start_date', '<=', prev_date_to)
             ])
@@ -479,7 +479,7 @@ class OnedeskDashboardController(http.Controller):
             for unit in units:
                 if request.env['onedesk.reservation'].search_count([
                     ('unit_id', '=', unit.id),
-                    ('status', 'in', ['confirmed', 'checked_in']),
+                    ('status', 'in', ['paid', 'checked_in']),
                     ('start_date', '<=', date_to),
                     ('end_date', '>=', date_from)
                 ]):
@@ -490,7 +490,7 @@ class OnedeskDashboardController(http.Controller):
             for unit in units:
                 if request.env['onedesk.reservation'].search_count([
                     ('unit_id', '=', unit.id),
-                    ('status', 'in', ['confirmed', 'checked_in']),
+                    ('status', 'in', ['paid', 'checked_in']),
                     ('start_date', '<=', prev_date_to),
                     ('end_date', '>=', prev_date_from)
                 ]):
@@ -574,7 +574,7 @@ class OnedeskDashboardController(http.Controller):
                 ('Total Propriétés', len(properties)),
                 ('Propriétés Actives', len(properties.filtered('active'))),
                 ('Total Unités', len(units)),
-                ('Unités Disponibles', len(units.filtered(lambda u: u.state == 'available'))),
+                ('Unités Disponibles', len(units.filtered('available'))),
                 ('Revenu du Mois', dashboard.revenue_this_month),
                 ('Taux d\'Occupation (%)', self._get_occupancy_rate(units)),
                 ('Réservations Confirmées', dashboard.reservations_confirmed_month),
