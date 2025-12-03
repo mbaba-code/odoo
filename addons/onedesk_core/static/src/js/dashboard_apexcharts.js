@@ -235,9 +235,9 @@ export class OneDeskDashboard extends Component {
      */
     renderOccupancyGauge() {
         const container = document.getElementById("occupancy-gauge");
-        if (!container || !this.state.data.occupancy_rate) return;
+        if (!container || this.state.data.occupancy_rate === undefined || this.state.data.occupancy_rate === null) return;
 
-        const occupancyRate = this.state.data.occupancy_rate || 0;
+        const occupancyRate = this.state.data.occupancy_rate;
 
         const options = {
             series: [occupancyRate],
@@ -344,19 +344,28 @@ export class OneDeskDashboard extends Component {
      * Rafraîchir tous les graphiques
      */
     async refreshDashboard() {
-        this.state.loading = true;
-
-        // Recharger les données
-        await this.loadDashboardData();
-
-        // Mettre à jour les graphiques
+        // Détruire les graphiques existants d'abord
         Object.values(this.state.charts).forEach(chart => {
             if (chart && chart.destroy) {
                 chart.destroy();
             }
         });
+        this.state.charts = {};
 
-        this.initializeCharts();
+        // Activer le loader
+        this.state.loading = true;
+        this.state.error = null;
+
+        // Recharger les données
+        await this.loadDashboardData();
+
+        // Si pas d'erreur, réinitialiser les graphiques
+        if (!this.state.error) {
+            // Utiliser nextTick pour s'assurer que le DOM est mis à jour
+            setTimeout(() => {
+                this.initializeCharts();
+            }, 100);
+        }
     }
 
     /**

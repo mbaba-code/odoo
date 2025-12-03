@@ -775,8 +775,12 @@ class OnedeskDashboardController(http.Controller):
             """
 
             # Générer le PDF avec wkhtmltopdf (Odoo natif)
-            pdf_content = request.env['ir.actions.report']._run_wkhtmltopdf(
-                [html_content],
+            # Utiliser _run_wkhtmltopdf avec le bon format pour Odoo 17
+            IrActionsReport = request.env['ir.actions.report']
+
+            # Créer un rapport temporaire
+            pdf_content, _ = IrActionsReport._run_wkhtmltopdf(
+                bodies=[html_content.encode('utf-8')],
                 landscape=False,
                 specific_paperformat_args={
                     'data-report-margin-top': 10,
