@@ -7,6 +7,159 @@ from dateutil.relativedelta import relativedelta
 class OnedeskDashboardController(http.Controller):
     """Handle Dashboard API endpoints for charts and metrics"""
 
+    @http.route('/onedesk/dashboard/main/data', type='json', auth='user', methods=['POST'])
+    def get_main_dashboard_data(self):
+        """
+        Route principale: retourne toutes les données du Dashboard Principal en une seule requête
+        Pour ApexCharts - Odoo 19
+        """
+        try:
+            dashboard = request.env['onedesk.dashboard'].search([
+                ('user_id', '=', request.env.user.id),
+                ('company_id', '=', request.env.company.id)
+            ], limit=1)
+
+            if not dashboard:
+                # Créer le dashboard s'il n'existe pas
+                dashboard = request.env['onedesk.dashboard'].create({
+                    'user_id': request.env.user.id,
+                    'company_id': request.env.company.id,
+                })
+
+            company_ids = dashboard._get_accessible_companies()
+            properties = request.env['onedesk.property'].sudo().search([('company_id', 'in', company_ids)])
+            units = request.env['onedesk.unit'].sudo().search([('property_id', 'in', properties.ids)])
+
+            # 1. Données pour graphique revenus (12 derniers mois)
+            revenue_data = self._get_revenue_12_months(units)
+
+            # 2. Données pour graphique réservations par statut
+            reservations_data = self._get_reservations_by_status(units)
+
+            # 3. Taux d'occupation global
+            occupancy_rate = self._get_occupancy_rate(units)
+
+            # 4. Distribution des propriétés par ville
+            properties_by_city = self._get_properties_by_city(properties)
+
+            # 5. KPIs principaux
+            kpis = {
+                'total_properties': len(properties),
+                'total_units': len(units),
+                'active_properties': len(properties.filtered('active')),
+                'available_units': len(units.filtered(lambda u: u.state == 'available')),
+                'revenue_this_month': dashboard.revenue_this_month,
+                'reservations_confirmed_month': dashboard.reservations_confirmed_month,
+            }
+
+            return {
+                'status': 'success',
+                'data': {
+                    'revenue_12_months': revenue_data,
+                    'reservations_by_status': reservations_data,
+                    'occupancy_rate': occupancy_rate,
+                    'properties_by_city': properties_by_city,
+                    'kpis': kpis,
+                }
+            }
+
+        except Exception as e:
+            return {
+                'status': 'error',
+                'message': str(e)
+            }
+
+    def _get_revenue_12_months(self, units):
+        """Revenus des 12 derniers mois (année actuelle vs année précédente)"""
+        today = datetime.now()
+        current_year = []
+        previous_year = []
+        months = []
+
+        for i in range(11, -1, -1):
+            month_date = today - relativedelta(months=i)
+            month_start = month_date.replace(day=1)
+            month_end = (month_start + relativedelta(months=1)) - timedelta(days=1)
+
+            # Année actuelle
+            current_revenue = sum(request.env['onedesk.reservation'].sudo().search([
+                ('unit_id', 'in', units.ids),
+                ('status', '=', 'completed'),
+                ('end_date', '>=', month_start),
+                ('end_date', '<=', month_end)
+            ]).mapped('total_price'))
+            current_year.append(round(current_revenue, 2))
+
+            # Année précédente (même mois)
+            prev_month_start = month_start - relativedelta(years=1)
+            prev_month_end = month_end - relativedelta(years=1)
+            previous_revenue = sum(request.env['onedesk.reservation'].sudo().search([
+                ('unit_id', 'in', units.ids),
+                ('status', '=', 'completed'),
+                ('end_date', '>=', prev_month_start),
+                ('end_date', '<=', prev_month_end)
+            ]).mapped('total_price'))
+            previous_year.append(round(previous_revenue, 2))
+
+            months.append(month_date.strftime('%b'))
+
+        return {
+            'months': months,
+            'current_year': current_year,
+            'previous_year': previous_year
+        }
+
+    def _get_reservations_by_status(self, units):
+        """Nombre de réservations par statut"""
+        statuses = ['draft', 'confirmed', 'checked_in', 'completed', 'cancelled']
+        status_labels = ['En attente', 'Confirmée', 'Enregistré', 'Complétée', 'Annulée']
+        counts = []
+
+        for status in statuses:
+            count = request.env['onedesk.reservation'].sudo().search_count([
+                ('unit_id', 'in', units.ids),
+                ('status', '=', status)
+            ])
+            counts.append(count)
+
+        return {
+            'statuses': status_labels,
+            'counts': counts
+        }
+
+    def _get_occupancy_rate(self, units):
+        """Taux d'occupation global actuel"""
+        if not units:
+            return 0
+
+        today = datetime.now().date()
+        occupied = 0
+
+        for unit in units:
+            reservation_count = request.env['onedesk.reservation'].sudo().search_count([
+                ('unit_id', '=', unit.id),
+                ('status', 'in', ['confirmed', 'checked_in']),
+                ('start_date', '<=', today),
+                ('end_date', '>=', today)
+            ])
+            if reservation_count > 0:
+                occupied += 1
+
+        return round((occupied / len(units)) * 100, 1)
+
+    def _get_properties_by_city(self, properties):
+        """Distribution des propriétés par ville"""
+        city_data = {}
+
+        for prop in properties:
+            city = prop.city or 'Non spécifié'
+            city_data[city] = city_data.get(city, 0) + 1
+
+        return {
+            'cities': list(city_data.keys()),
+            'counts': list(city_data.values())
+        }
+
     def _get_date_range(self, dashboard_rec):
         """Get date range based on selected period"""
         today = datetime.now().date()

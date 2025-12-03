@@ -84,14 +84,14 @@
     # Assets (CSS, JavaScript)
     'assets': {
         'web.assets_backend': [
-            # Chart.js for graphs
-            'https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js',
+            # ApexCharts for graphs (replacing Chart.js)
+            'https://cdn.jsdelivr.net/npm/apexcharts@3.45.1/dist/apexcharts.min.js',
 
             # OneDesk Dashboard CSS & JS
             'onedesk_core/static/src/css/dashboard.css',
             'onedesk_core/static/src/css/document_form.css',
             'onedesk_core/static/src/js/dashboard_refresh.js',
-            'onedesk_core/static/src/js/dashboard_charts.js',
+            'onedesk_core/static/src/js/dashboard_apexcharts.js',  # NEW: ApexCharts dashboard
             'onedesk_core/static/src/js/dashboard_customization.js',
             'onedesk_core/static/src/js/document_form_layout.js',
         ]
