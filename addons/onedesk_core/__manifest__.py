@@ -93,6 +93,7 @@
             'onedesk_core/static/src/xml/dashboard_templates.xml',  # NEW: OWL Templates
             'onedesk_core/static/src/js/dashboard_refresh.js',
             'onedesk_core/static/src/js/dashboard_apexcharts.js',  # NEW: ApexCharts dashboard
+            'onedesk_core/static/src/js/dashboard_admin_master.js',  # NEW: Admin Master dashboard
             'onedesk_core/static/src/js/dashboard_customization.js',
             'onedesk_core/static/src/js/document_form_layout.js',
         ]

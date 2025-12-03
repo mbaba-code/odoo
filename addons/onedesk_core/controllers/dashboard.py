@@ -828,3 +828,365 @@ class OnedeskDashboardController(http.Controller):
                 'status': 'error',
                 'message': str(e)
             }
+
+    # ==================== Dashboard Admin Master Routes ====================
+
+    @http.route('/onedesk/dashboard/admin/data', type='json', auth='user', methods=['POST'])
+    def get_admin_dashboard_data(self):
+        """
+        Route Dashboard Admin Master: Vue globale multi-tenant
+        Accessible uniquement par Master Admin
+        """
+        try:
+            # Vérifier que l'utilisateur est Master Admin
+            if not request.env.user.has_group('onedesk_core.group_onedesk_master_admin'):
+                return {
+                    'status': 'error',
+                    'message': 'Accès refusé. Vous devez être Master Admin.'
+                }
+
+            # 1. KPIs globaux (toutes companies)
+            all_companies = request.env['res.company'].sudo().search([])
+            active_companies = all_companies.filtered(lambda c: c.active if hasattr(c, 'active') else True)
+
+            all_properties = request.env['onedesk.property'].sudo().search([])
+            all_units = request.env['onedesk.unit'].sudo().search([])
+
+            # Réservations actives (paid, checked_in, completed)
+            active_reservations = request.env['onedesk.reservation'].sudo().search([
+                ('status', 'in', ['paid', 'checked_in', 'completed'])
+            ])
+
+            # Revenu global du mois en cours
+            today = datetime.now()
+            month_start = today.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+
+            reservations_this_month = request.env['onedesk.reservation'].sudo().search([
+                ('status', 'in', ['paid', 'checked_in', 'completed']),
+                ('end_date', '>=', month_start)
+            ])
+            global_revenue_month = sum(reservations_this_month.mapped('total_price'))
+
+            kpis = {
+                'total_companies': len(all_companies),
+                'active_companies': len(active_companies),
+                'total_properties': len(all_properties),
+                'total_units': len(all_units),
+                'active_reservations': len(active_reservations),
+                'global_revenue_month': global_revenue_month,
+            }
+
+            # 2. Revenus par Company
+            revenue_by_company_data = self._get_revenue_by_company(all_companies)
+
+            # 3. Companies par statut
+            companies_status_data = self._get_companies_status(all_companies)
+
+            # 4. Évolution revenus globaux 12 mois
+            global_revenue_12_months = self._get_global_revenue_12_months()
+
+            # 5. Réservations actives par company
+            reservations_by_company_data = self._get_reservations_by_company(all_companies)
+
+            return {
+                'status': 'success',
+                'data': {
+                    'kpis': kpis,
+                    'revenue_by_company': revenue_by_company_data,
+                    'companies_status': companies_status_data,
+                    'global_revenue_12_months': global_revenue_12_months,
+                    'reservations_by_company': reservations_by_company_data,
+                }
+            }
+
+        except Exception as e:
+            return {
+                'status': 'error',
+                'message': str(e)
+            }
+
+    def _get_revenue_by_company(self, companies):
+        """Revenus par company (toutes les réservations actives)"""
+        company_names = []
+        revenues = []
+
+        for company in companies:
+            units = request.env['onedesk.unit'].sudo().search([
+                ('property_id.company_id', '=', company.id)
+            ])
+
+            if units:
+                reservations = request.env['onedesk.reservation'].sudo().search([
+                    ('unit_id', 'in', units.ids),
+                    ('status', 'in', ['paid', 'checked_in', 'completed'])
+                ])
+                revenue = sum(reservations.mapped('total_price'))
+
+                if revenue > 0:  # N'afficher que les companies avec revenu
+                    company_names.append(company.name)
+                    revenues.append(round(revenue, 2))
+
+        return {
+            'companies': company_names,
+            'revenues': revenues
+        }
+
+    def _get_companies_status(self, companies):
+        """Statut des companies (actives/inactives)"""
+        active_count = len(companies.filtered(lambda c: c.active if hasattr(c, 'active') else True))
+        inactive_count = len(companies) - active_count
+
+        return {
+            'labels': ['Actives', 'Inactives'],
+            'counts': [active_count, inactive_count]
+        }
+
+    def _get_global_revenue_12_months(self):
+        """Évolution des revenus globaux sur 12 mois (toutes companies)"""
+        today = datetime.now()
+        current_year = []
+        previous_year = []
+        months = []
+
+        for i in range(11, -1, -1):
+            month_date = today - relativedelta(months=i)
+            month_start = month_date.replace(day=1)
+            month_end = (month_start + relativedelta(months=1)) - timedelta(days=1)
+
+            # Année actuelle
+            current_revenue = sum(request.env['onedesk.reservation'].sudo().search([
+                ('status', 'in', ['paid', 'checked_in', 'completed']),
+                ('end_date', '>=', month_start),
+                ('end_date', '<=', month_end)
+            ]).mapped('total_price'))
+            current_year.append(round(current_revenue, 2))
+
+            # Année précédente
+            prev_month_start = month_start - relativedelta(years=1)
+            prev_month_end = month_end - relativedelta(years=1)
+            prev_revenue = sum(request.env['onedesk.reservation'].sudo().search([
+                ('status', 'in', ['paid', 'checked_in', 'completed']),
+                ('end_date', '>=', prev_month_start),
+                ('end_date', '<=', prev_month_end)
+            ]).mapped('total_price'))
+            previous_year.append(round(prev_revenue, 2))
+
+            # Labels des mois
+            months.append(month_date.strftime('%b %Y'))
+
+        return {
+            'months': months,
+            'current_year': current_year,
+            'previous_year': previous_year
+        }
+
+    def _get_reservations_by_company(self, companies):
+        """Nombre de réservations actives par company"""
+        company_names = []
+        counts = []
+
+        for company in companies:
+            units = request.env['onedesk.unit'].sudo().search([
+                ('property_id.company_id', '=', company.id)
+            ])
+
+            if units:
+                reservations_count = request.env['onedesk.reservation'].sudo().search_count([
+                    ('unit_id', 'in', units.ids),
+                    ('status', 'in', ['paid', 'checked_in', 'completed'])
+                ])
+
+                if reservations_count > 0:  # N'afficher que les companies avec réservations
+                    company_names.append(company.name)
+                    counts.append(reservations_count)
+
+        return {
+            'companies': company_names,
+            'counts': counts
+        }
+
+    @http.route('/onedesk/dashboard/admin/export/excel', type='json', auth='user', methods=['POST'])
+    def export_admin_dashboard_excel(self):
+        """Export Excel du Dashboard Admin Master"""
+        try:
+            # Vérifier que l'utilisateur est Master Admin
+            if not request.env.user.has_group('onedesk_core.group_onedesk_master_admin'):
+                return {
+                    'status': 'error',
+                    'message': 'Accès refusé. Vous devez être Master Admin.'
+                }
+
+            import io
+            import base64
+            from openpyxl import Workbook
+            from openpyxl.styles import Font, Alignment, PatternFill
+
+            # Créer le workbook
+            wb = Workbook()
+            ws = wb.active
+            ws.title = "Dashboard Admin Master"
+
+            # En-tête
+            ws['A1'] = 'Dashboard Admin Master - Vue Globale'
+            ws['A1'].font = Font(size=16, bold=True)
+            ws['A1'].alignment = Alignment(horizontal='center')
+            ws.merge_cells('A1:D1')
+
+            ws['A2'] = f'Généré le {datetime.now().strftime("%d/%m/%Y %H:%M")}'
+            ws['A2'].alignment = Alignment(horizontal='center')
+            ws.merge_cells('A2:D2')
+
+            # KPIs
+            ws['A4'] = 'Indicateurs Clés'
+            ws['A4'].font = Font(bold=True, size=12)
+            ws['A4'].fill = PatternFill(start_color='7c3aed', end_color='7c3aed', fill_type='solid')
+
+            all_companies = request.env['res.company'].sudo().search([])
+            all_properties = request.env['onedesk.property'].sudo().search([])
+            all_units = request.env['onedesk.unit'].sudo().search([])
+
+            # Calcul revenu global mois
+            today = datetime.now()
+            month_start = today.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+            reservations_this_month = request.env['onedesk.reservation'].sudo().search([
+                ('status', 'in', ['paid', 'checked_in', 'completed']),
+                ('end_date', '>=', month_start)
+            ])
+            global_revenue = sum(reservations_this_month.mapped('total_price'))
+
+            ws['A5'] = 'Total Companies'
+            ws['B5'] = len(all_companies)
+            ws['A6'] = 'Total Propriétés'
+            ws['B6'] = len(all_properties)
+            ws['A7'] = 'Total Unités'
+            ws['B7'] = len(all_units)
+            ws['A8'] = 'Revenu Global Mois'
+            ws['B8'] = f"{global_revenue:.2f} €"
+
+            # Sauvegarder dans un buffer
+            output = io.BytesIO()
+            wb.save(output)
+            output.seek(0)
+
+            # Créer l'attachment
+            excel_data = output.read()
+            excel_b64 = base64.b64encode(excel_data)
+
+            attachment = request.env['ir.attachment'].sudo().create({
+                'name': f'Dashboard_Admin_Master_{datetime.now().strftime("%Y%m%d_%H%M%S")}.xlsx',
+                'type': 'binary',
+                'datas': excel_b64,
+                'mimetype': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                'public': False,
+            })
+
+            return {
+                'status': 'success',
+                'attachment_id': attachment.id,
+                'filename': attachment.name
+            }
+
+        except Exception as e:
+            return {
+                'status': 'error',
+                'message': str(e)
+            }
+
+    @http.route('/onedesk/dashboard/admin/export/pdf', type='json', auth='user', methods=['POST'])
+    def export_admin_dashboard_pdf(self):
+        """Export PDF du Dashboard Admin Master"""
+        try:
+            # Vérifier que l'utilisateur est Master Admin
+            if not request.env.user.has_group('onedesk_core.group_onedesk_master_admin'):
+                return {
+                    'status': 'error',
+                    'message': 'Accès refusé. Vous devez être Master Admin.'
+                }
+
+            import base64
+
+            # Récupérer les données
+            all_companies = request.env['res.company'].sudo().search([])
+            all_properties = request.env['onedesk.property'].sudo().search([])
+            all_units = request.env['onedesk.unit'].sudo().search([])
+
+            today = datetime.now()
+            month_start = today.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+            reservations_this_month = request.env['onedesk.reservation'].sudo().search([
+                ('status', 'in', ['paid', 'checked_in', 'completed']),
+                ('end_date', '>=', month_start)
+            ])
+            global_revenue = sum(reservations_this_month.mapped('total_price'))
+
+            # Générer HTML
+            html_content = f"""
+            <html>
+            <head>
+                <style>
+                    body {{ font-family: Arial, sans-serif; margin: 40px; }}
+                    h1 {{ color: #7c3aed; text-align: center; }}
+                    .kpi-box {{
+                        border: 2px solid #7c3aed;
+                        padding: 15px;
+                        margin: 10px 0;
+                        background: #f8fafc;
+                    }}
+                    .kpi-label {{ font-weight: bold; color: #333; }}
+                    .kpi-value {{ font-size: 24px; color: #7c3aed; }}
+                </style>
+            </head>
+            <body>
+                <h1>Dashboard Admin Master</h1>
+                <p style="text-align: center;">Généré le {datetime.now().strftime('%d/%m/%Y à %H:%M')}</p>
+
+                <div class="kpi-box">
+                    <span class="kpi-label">Total Companies:</span>
+                    <span class="kpi-value">{len(all_companies)}</span>
+                </div>
+
+                <div class="kpi-box">
+                    <span class="kpi-label">Total Propriétés:</span>
+                    <span class="kpi-value">{len(all_properties)}</span>
+                </div>
+
+                <div class="kpi-box">
+                    <span class="kpi-label">Total Unités:</span>
+                    <span class="kpi-value">{len(all_units)}</span>
+                </div>
+
+                <div class="kpi-box">
+                    <span class="kpi-label">Revenu Global du Mois:</span>
+                    <span class="kpi-value">{global_revenue:.2f} €</span>
+                </div>
+            </body>
+            </html>
+            """
+
+            # Générer PDF avec wkhtmltopdf
+            IrActionsReport = request.env['ir.actions.report'].sudo()
+            pdf_content, _ = IrActionsReport._run_wkhtmltopdf(
+                bodies=[html_content.encode('utf-8')],
+                landscape=False,
+            )
+
+            # Créer l'attachment
+            pdf_b64 = base64.b64encode(pdf_content)
+            attachment = request.env['ir.attachment'].sudo().create({
+                'name': f'Dashboard_Admin_Master_{datetime.now().strftime("%Y%m%d_%H%M%S")}.pdf',
+                'type': 'binary',
+                'datas': pdf_b64,
+                'mimetype': 'application/pdf',
+                'public': False,
+            })
+
+            return {
+                'status': 'success',
+                'attachment_id': attachment.id,
+                'filename': attachment.name
+            }
+
+        except Exception as e:
+            return {
+                'status': 'error',
+                'message': str(e)
+            }
