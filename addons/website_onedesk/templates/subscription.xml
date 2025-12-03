@@ -160,12 +160,17 @@
                         if (response.status === &apos;success&apos;) {
                             alert(response.message);
 
-                            // ✅ CORRECTION: Rediriger vers page de paiement si requis
+                            // ✅ CORRECTION: Rediriger selon le type de réponse
                             if (response.requires_payment &amp;&amp; response.payment_url) {
+                                // Plan payant - rediriger vers page de paiement
                                 console.log(&apos;💳 Redirecting to payment:&apos;, response.payment_url);
                                 window.location.href = response.payment_url;
+                            } else if (response.redirect_url) {
+                                // Redirection vers invitation (plans gratuits ou après paiement)
+                                console.log(&apos;✉️ Redirecting to invitation:&apos;, response.redirect_url);
+                                window.location.href = response.redirect_url;
                             } else {
-                                // Plan gratuit - rediriger vers liste des plans
+                                // Par défaut - rediriger vers liste des plans
                                 window.location.href = &apos;/onedesk/subscription&apos;;
                             }
                         } else {
