@@ -106,14 +106,16 @@ class OneDesk_DashboardUsers(models.Model):
                 ('active', '=', False)
             ]))
 
-            # Count tasks
+            # Count tasks (filter by unit's company via property)
             all_tasks = self.env['onedesk.task'].search([
-                ('company_id', 'in', companies.ids)
+                '|',
+                ('unit_id.property_id.company_id', 'in', companies.ids),
+                ('assigned_to.company_id', 'in', companies.ids)
             ])
 
             dashboard.total_tasks = len(all_tasks)
-            dashboard.completed_tasks = len(all_tasks.filtered(lambda t: t.status == 'completed'))
-            dashboard.pending_tasks = len(all_tasks.filtered(lambda t: t.status != 'completed'))
+            dashboard.completed_tasks = len(all_tasks.filtered(lambda t: t.status == 'done'))
+            dashboard.pending_tasks = len(all_tasks.filtered(lambda t: t.status != 'done'))
 
             # Count user actions (tasks created/assigned in period)
             user_actions = {}
