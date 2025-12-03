@@ -632,6 +632,24 @@
               parent="menu_onedesk_root"
               sequence="50"/>
 
+    <!-- TEAM MENU -->
+    <menuitem id="menu_onedesk_team"
+              name="👥 Équipe"
+              parent="menu_onedesk_root"
+              sequence="60"/>
+
+    <menuitem id="menu_team_dashboard"
+              name="Dashboard Équipe"
+              parent="menu_onedesk_team"
+              action="action_dashboard_users"
+              sequence="10"/>
+
+    <menuitem id="menu_team_users"
+              name="Utilisateurs"
+              parent="menu_onedesk_team"
+              action="base.action_res_users"
+              sequence="20"/>
+
     <!-- SETTINGS MENU -->
     <menuitem id="menu_onedesk_settings"
               name="⚙️ Settings"

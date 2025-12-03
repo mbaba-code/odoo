@@ -796,7 +796,7 @@ class OnedeskDashboardController(http.Controller):
 
             # Créer un rapport temporaire
             pdf_content, _ = IrActionsReport._run_wkhtmltopdf(
-                bodies=[html_content.encode('utf-8')],
+                bodies=[html_content],
                 landscape=False,
                 specific_paperformat_args={
                     'data-report-margin-top': 10,
@@ -1165,7 +1165,7 @@ class OnedeskDashboardController(http.Controller):
             # Générer PDF avec wkhtmltopdf
             IrActionsReport = request.env['ir.actions.report'].sudo()
             pdf_content, _ = IrActionsReport._run_wkhtmltopdf(
-                bodies=[html_content.encode('utf-8')],
+                bodies=[html_content],
                 landscape=False,
             )
 
