@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Action Client pour Dashboard ApexCharts -->
+    <record id="action_onedesk_dashboard_apexcharts" model="ir.actions.client">
+        <field name="name">Dashboard Principal</field>
+        <field name="tag">onedesk_dashboard_main</field>
+        <field name="target">current</field>
+    </record>
+
+    <!-- Menu pour Dashboard ApexCharts -->
+    <menuitem
+        id="menu_onedesk_dashboard_main"
+        name="Dashboard Principal"
+        parent="menu_onedesk_dashboards"
+        action="action_onedesk_dashboard_apexcharts"
+        sequence="1"/>
+</odoo>
