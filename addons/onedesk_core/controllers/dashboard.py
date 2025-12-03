@@ -148,16 +148,28 @@ class OnedeskDashboardController(http.Controller):
         return round((occupied / len(units)) * 100, 1)
 
     def _get_properties_by_city(self, properties):
-        """Distribution des propriétés par ville"""
-        city_data = {}
+        """Distribution des propriétés par type"""
+        type_data = {}
+
+        # Mapping des types pour affichage
+        type_labels = {
+            'house': 'Maison',
+            'apartment': 'Appartement',
+            'villa': 'Villa',
+            'studio': 'Studio',
+            'cottage': 'Chalet',
+            'townhouse': 'Maison de ville',
+            'other': 'Autre',
+        }
 
         for prop in properties:
-            city = prop.city or 'Non spécifié'
-            city_data[city] = city_data.get(city, 0) + 1
+            prop_type = prop.property_type or 'other'
+            label = type_labels.get(prop_type, prop_type.capitalize())
+            type_data[label] = type_data.get(label, 0) + 1
 
         return {
-            'cities': list(city_data.keys()),
-            'counts': list(city_data.values())
+            'cities': list(type_data.keys()),  # Gardé comme 'cities' pour compatibilité avec le frontend
+            'counts': list(type_data.values())
         }
 
     def _get_date_range(self, dashboard_rec):

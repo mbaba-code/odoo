@@ -285,7 +285,7 @@ export class OneDeskDashboard extends Component {
     }
 
     /**
-     * Graphique 4: Distribution des Propriétés par Ville - Camembert
+     * Graphique 4: Distribution des Propriétés par Type - Camembert
      */
     renderPropertiesPieChart() {
         const container = document.getElementById("properties-pie");

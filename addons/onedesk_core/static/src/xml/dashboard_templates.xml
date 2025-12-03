@@ -180,11 +180,11 @@
                             </div>
                         </div>
 
-                        <!-- Graphique Propriétés par Ville -->
+                        <!-- Graphique Propriétés par Type -->
                         <div class="col-lg-6">
                             <div class="chart-card">
                                 <div class="chart-card-header">
-                                    <h5><i class="fa fa-map-marker-alt"/> Propriétés par Ville</h5>
+                                    <h5><i class="fa fa-home"/> Propriétés par Type</h5>
                                     <button class="btn btn-sm btn-outline-secondary" t-on-click="() => this.downloadChartPNG('propertiesPie')">
                                         <i class="fa fa-download"/> PNG
                                     </button>
