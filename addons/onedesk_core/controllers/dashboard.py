@@ -81,10 +81,10 @@ class OnedeskDashboardController(http.Controller):
             month_start = month_date.replace(day=1)
             month_end = (month_start + relativedelta(months=1)) - timedelta(days=1)
 
-            # Année actuelle
+            # Année actuelle - Inclut paid, checked_in, completed
             current_revenue = sum(request.env['onedesk.reservation'].sudo().search([
                 ('unit_id', 'in', units.ids),
-                ('status', '=', 'completed'),
+                ('status', 'in', ['paid', 'checked_in', 'completed']),
                 ('end_date', '>=', month_start),
                 ('end_date', '<=', month_end)
             ]).mapped('total_price'))
@@ -95,7 +95,7 @@ class OnedeskDashboardController(http.Controller):
             prev_month_end = month_end - relativedelta(years=1)
             previous_revenue = sum(request.env['onedesk.reservation'].sudo().search([
                 ('unit_id', 'in', units.ids),
-                ('status', '=', 'completed'),
+                ('status', 'in', ['paid', 'checked_in', 'completed']),
                 ('end_date', '>=', prev_month_start),
                 ('end_date', '<=', prev_month_end)
             ]).mapped('total_price'))
