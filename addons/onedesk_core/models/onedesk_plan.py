@@ -434,7 +434,7 @@ class OnedeskoSubscription(models.Model):
         role_config = role_mapping[role]
         group = self.env.ref(role_config['group_ref'])
 
-        user = self.env['res.users'].sudo().create({
+        user = self.env['res.users'].sudo().with_company(company).create({
             'name': role_config['name'],
             'login': role_config['login'],
             'email': role_config['email'],
