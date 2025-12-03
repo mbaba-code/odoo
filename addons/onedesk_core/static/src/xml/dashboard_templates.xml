@@ -8,7 +8,7 @@
                 <div class="dashboard-header-content">
                     <div class="dashboard-title">
                         <h1><i class="fa fa-chart-line"/> Tableau de Bord Principal</h1>
-                        <p class="text-muted">Vue d'ensemble complète de votre activité</p>
+                        <p style="color: white;">Vue d'ensemble complète de votre activité</p>
                     </div>
                     <div class="dashboard-actions">
                         <button class="btn btn-primary" t-on-click="refreshDashboard" title="Rafraîchir">

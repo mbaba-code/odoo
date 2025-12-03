@@ -629,7 +629,8 @@
     padding: 2rem;
     background: #f8fafc;
     min-height: 100vh;
-    overflow-y: auto;
+    max-height: 100vh;
+    overflow-y: scroll !important;  /* Force scrollbar toujours visible */
     overflow-x: hidden;
     scroll-behavior: smooth;
 }
