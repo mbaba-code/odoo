@@ -226,8 +226,9 @@
         <field name="res_model">onedesk.task</field>
         <field name="view_mode">kanban,list,form,calendar</field>
         <field name="domain">[
-            ('date_start', '&gt;=', (context_today() - relativedelta(days=context_today().weekday())).strftime('%Y-%m-%d')),
-            ('date_start', '&lt;=', (context_today() + relativedelta(days=6-context_today().weekday())).strftime('%Y-%m-%d'))
+            '&amp;',
+            ('date_start', '&gt;=', (context_today() + timedelta(days=-7)).strftime('%Y-%m-%d')),
+            ('date_start', '&lt;=', (context_today() + timedelta(days=7)).strftime('%Y-%m-%d'))
         ]</field>
     </record>
 
@@ -237,8 +238,9 @@
         <field name="res_model">onedesk.task</field>
         <field name="view_mode">kanban,list,form,calendar</field>
         <field name="domain">[
-            ('date_start', '&gt;=', time.strftime('%Y-%m-01')),
-            ('date_start', '&lt;=', (datetime.datetime.now() + relativedelta(months=1, day=1, days=-1)).strftime('%Y-%m-%d'))
+            '&amp;',
+            ('date_start', '&gt;=', (context_today() + timedelta(days=-30)).strftime('%Y-%m-%d')),
+            ('date_start', '&lt;=', (context_today() + timedelta(days=30)).strftime('%Y-%m-%d'))
         ]</field>
     </record>
 

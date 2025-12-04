@@ -429,8 +429,9 @@
         <field name="res_model">onedesk.reservation</field>
         <field name="view_mode">kanban,list,form,calendar</field>
         <field name="domain">[
-            ('start_date', '>=', (context_today() - relativedelta(days=context_today().weekday())).strftime('%Y-%m-%d')),
-            ('start_date', '&lt;=', (context_today() + relativedelta(days=6-context_today().weekday())).strftime('%Y-%m-%d'))
+            '&amp;',
+            ('start_date', '&gt;=', (context_today() + timedelta(days=-7)).strftime('%Y-%m-%d')),
+            ('start_date', '&lt;=', (context_today() + timedelta(days=7)).strftime('%Y-%m-%d'))
         ]</field>
     </record>
 
@@ -440,8 +441,9 @@
         <field name="res_model">onedesk.reservation</field>
         <field name="view_mode">kanban,list,form,calendar</field>
         <field name="domain">[
-            ('start_date', '>=', time.strftime('%Y-%m-01')),
-            ('start_date', '&lt;=', (datetime.datetime.now() + relativedelta(months=1, day=1, days=-1)).strftime('%Y-%m-%d'))
+            '&amp;',
+            ('start_date', '&gt;=', (context_today() + timedelta(days=-30)).strftime('%Y-%m-%d')),
+            ('start_date', '&lt;=', (context_today() + timedelta(days=30)).strftime('%Y-%m-%d'))
         ]</field>
     </record>
 
