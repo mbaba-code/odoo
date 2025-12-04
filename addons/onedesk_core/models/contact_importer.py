@@ -92,7 +92,7 @@ class ContactImporter(models.TransientModel):
             # À obtenir sur: https://api.insee.fr/catalogue/
             headers = {
                 'Accept': 'application/json',
-                # 'Authorization': 'Bearer VOTRE_CLE_API_ICI'  # À configurer
+                'Authorization': '699b7729-261f-4f02-9b77-29261faf02a2'  # À configurer
             }
 
             # Appel API (version sans authentification pour demo)
@@ -141,27 +141,30 @@ class ContactImporter(models.TransientModel):
         Pour l'instant, retourne des données de démonstration.
         """
         # EN PRODUCTION: Décommentez ce code et ajoutez votre clé API
-        # try:
-        #     response = requests.get(
-        #         "https://api.insee.fr/entreprises/sirene/V3/siret",
-        #         params=params,
-        #         headers={'Authorization': 'Bearer VOTRE_CLE_API'},
-        #         timeout=30
-        #     )
-        #     if response.status_code == 200:
-        #         return response.json()
-        # except Exception as e:
-        #     _logger.error(f"Erreur API Sirene: {str(e)}")
-        #     return None
+        try:
+             response = requests.get(
+                 "https://api.insee.fr/entreprises/sirene/V3/siret",
+                 params=params,
+                 headers={'Authorization': '699b7729-261f-4f02-9b77-29261faf02a2'},
+                 timeout=30
+             )
+             if response.status_code == 200:
+                 return response.json()
+        except Exception as e:
+             _logger.error(f"Erreur API Sirene: {str(e)}")
+             return None
 
         # DONNÉES DE DÉMONSTRATION (à remplacer par l'API réelle)
-        return self._get_demo_data()
+        #return self._get_demo_data()
 
+    
+        
+    """
     def _get_demo_data(self):
-        """
+        
         Retourne des données de démonstration.
         À REMPLACER par l'API Sirene réelle en production.
-        """
+        
         return {
             'header': {'total': 3},
             'etablissements': [
@@ -230,6 +233,8 @@ class ContactImporter(models.TransientModel):
                 }
             ]
         }
+
+    """
 
     def _process_sirene_results(self, response):
         """
