@@ -88,15 +88,7 @@ class ContactImporter(models.TransientModel):
 
             _logger.info(f"Import de contacts - Recherche: {params['q']}")
 
-            # Note: L'API Sirene nécessite une clé API gratuite
-            # À obtenir sur: https://api.insee.fr/catalogue/
-            headers = {
-                'Accept': 'application/json',
-                'Authorization': '699b7729-261f-4f02-9b77-29261faf02a2'  # À configurer
-            }
-
-            # Appel API (version sans authentification pour demo)
-            # En production, utilisez l'authentification
+            # Appel API Sirene (utilise la clé configurée dans les paramètres système)
             response = self._call_api_sirene(params)
 
             if not response:
@@ -252,8 +244,6 @@ class ContactImporter(models.TransientModel):
                 }
             ]
         }
-
-    """
 
     def _process_sirene_results(self, response):
         
