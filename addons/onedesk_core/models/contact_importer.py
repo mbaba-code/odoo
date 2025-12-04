@@ -140,8 +140,10 @@ class ContactImporter(models.TransientModel):
             try:
                 _logger.info("Appel API Sirene avec clé authentifiée...")
 
-                # URL correcte de l'API Sirene V3.11 (version actuelle)
-                url = "https://api.insee.fr/entreprises/sirene/V3.11/siret"
+                # URL CORRECTE de l'API Sirene (nouvelle URL officielle)
+                # Ancienne: https://api.insee.fr/entreprises/sirene/V3.11/siret (DÉPRÉCIÉE)
+                # Nouvelle: https://api.insee.fr/api-sirene/3.11/siret (ACTUELLE)
+                url = "https://api.insee.fr/api-sirene/3.11/siret"
 
                 _logger.info(f"URL API: {url}")
                 _logger.info(f"Paramètres: {params}")
