@@ -11,12 +11,12 @@
                             string="🚀 LANCER L'IMPORT"
                             type="object"
                             class="oe_highlight"
-                            attrs="{'invisible': [('state', 'in', ['importing', 'done'])]}"/>
+                            invisible="state in ['importing', 'done']"/>
                     <button name="action_view_imported_contacts"
                             string="📋 Voir les Contacts Importés"
                             type="object"
                             class="btn-primary"
-                            attrs="{'invisible': [('state', '!=', 'done')]}"/>
+                            invisible="state != 'done'"/>
                     <field name="state" widget="statusbar" statusbar_visible="draft,importing,done"/>
                 </header>
 
@@ -43,20 +43,20 @@
                             <field name="active_only"/>
                         </group>
 
-                        <group string="📊 Résultats" attrs="{'invisible': [('state', '=', 'draft')]}">
-                            <field name="import_count" attrs="{'invisible': [('state', '!=', 'done')]}"/>
-                            <field name="error_message" attrs="{'invisible': [('state', '!=', 'error')]}"/>
+                        <group string="📊 Résultats" invisible="state == 'draft'">
+                            <field name="import_count" invisible="state != 'done'"/>
+                            <field name="error_message" invisible="state != 'error'"/>
                         </group>
                     </group>
 
                     <!-- État d'import -->
-                    <div attrs="{'invisible': [('state', '!=', 'importing')]}" style="text-align: center; padding: 20px;">
+                    <div invisible="state != 'importing'" style="text-align: center; padding: 20px;">
                         <h3>⏳ Import en cours...</h3>
                         <p>Veuillez patienter pendant l'import des contacts depuis l'API Sirene.</p>
                     </div>
 
                     <!-- Succès -->
-                    <div attrs="{'invisible': [('state', '!=', 'done')]}" class="alert alert-success" role="alert" style="margin-top: 20px;">
+                    <div invisible="state != 'done'" class="alert alert-success" role="alert" style="margin-top: 20px;">
                         <h4>✅ Import Terminé avec Succès !</h4>
                         <p>
                             <field name="import_count"/> contact(s) ont été importés dans votre base Odoo.
@@ -73,7 +73,7 @@
                     </div>
 
                     <!-- Erreur -->
-                    <div attrs="{'invisible': [('state', '!=', 'error')]}" class="alert alert-danger" role="alert" style="margin-top: 20px;">
+                    <div invisible="state != 'error'" class="alert alert-danger" role="alert" style="margin-top: 20px;">
                         <h4>❌ Erreur lors de l'Import</h4>
                         <p><field name="error_message" readonly="1"/></p>
                         <p>
