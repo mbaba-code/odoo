@@ -14,10 +14,10 @@
                 <filter string="Archived" name="archived" domain="[('active', '=', False)]"/>
                 <separator/>
                 <!-- Filtres Chronologie -->
-                <filter string="Cette Semaine" name="this_week"
+                <filter string="Cette Semaine" name="week"
                     domain="[('start_date', '&gt;=', (context_today() - datetime.timedelta(days=7)).strftime('%Y-%m-%d')),
                              ('start_date', '&lt;=', (context_today() + datetime.timedelta(days=7)).strftime('%Y-%m-%d'))]"/>
-                <filter string="Ce Mois" name="this_month"
+                <filter string="Ce Mois" name="month"
                     domain="[('start_date', '&gt;=', (context_today() - datetime.timedelta(days=30)).strftime('%Y-%m-%d')),
                              ('start_date', '&lt;=', (context_today() + datetime.timedelta(days=30)).strftime('%Y-%m-%d'))]"/>
                 <filter string="À Venir" name="upcoming"
@@ -439,50 +439,6 @@
         <field name="view_mode">kanban,list,form,calendar</field>
         <field name="domain">[('status', '=', 'cancelled')]</field>
         <field name="context">{'default_status': 'cancelled'}</field>
-    </record>
-
-    <!-- ==================== ACTIONS CHRONOLOGIE ==================== -->
-
-    <!-- Réservations Cette Semaine -->
-    <record id="action_reservations_this_week" model="ir.actions.act_window">
-        <field name="name">Réservations Cette Semaine</field>
-        <field name="res_model">onedesk.reservation</field>
-        <field name="view_mode">kanban,list,form,calendar</field>
-        <field name="context">{'search_default_this_week': 1}</field>
-    </record>
-
-    <!-- Réservations Ce Mois -->
-    <record id="action_reservations_this_month" model="ir.actions.act_window">
-        <field name="name">Réservations Ce Mois</field>
-        <field name="res_model">onedesk.reservation</field>
-        <field name="view_mode">kanban,list,form,calendar</field>
-        <field name="context">{'search_default_this_month': 1}</field>
-    </record>
-
-    <!-- Réservations À Venir -->
-    <record id="action_reservations_upcoming" model="ir.actions.act_window">
-        <field name="name">Réservations À Venir</field>
-        <field name="res_model">onedesk.reservation</field>
-        <field name="view_mode">kanban,list,form,calendar</field>
-        <field name="context">{'search_default_upcoming': 1}</field>
-    </record>
-
-    <!-- ==================== ACTIONS ACCÈS RAPIDE ==================== -->
-
-    <!-- Arrivées Aujourd'hui (Check-in Today) -->
-    <record id="action_reservations_checkin_today" model="ir.actions.act_window">
-        <field name="name">Arrivées Aujourd'hui</field>
-        <field name="res_model">onedesk.reservation</field>
-        <field name="view_mode">kanban,list,form</field>
-        <field name="context">{'search_default_checkin_today': 1}</field>
-    </record>
-
-    <!-- Départs Aujourd'hui (Check-out Today) -->
-    <record id="action_reservations_checkout_today" model="ir.actions.act_window">
-        <field name="name">Départs Aujourd'hui</field>
-        <field name="res_model">onedesk.reservation</field>
-        <field name="view_mode">kanban,list,form</field>
-        <field name="context">{'search_default_checkout_today': 1}</field>
     </record>
 
 </odoo>
