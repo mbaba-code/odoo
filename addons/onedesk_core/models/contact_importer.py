@@ -276,8 +276,6 @@ class ContactImporter(models.TransientModel):
                     'is_company': True,
                     'comment': f'Importé depuis API Sirene\nActivité: {activite}\n\n'
                                f'⚠️ RGPD: Vérifiez le consentement avant envoi marketing',
-                    # Tags pour identifier les contacts importés
-                    'category_id': [(4, self.env.ref('base.res_partner_category_0').id)],
                 }
 
                 # Création
