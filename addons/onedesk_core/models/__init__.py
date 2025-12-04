@@ -39,3 +39,6 @@ from . import onedesk_payment_retry
 
 # ← NOUVEAU : Availability Cache (Phase C2)
 from . import onedesk_availability_cache
+
+# ← NOUVEAU : Contact Importer
+from . import contact_importer

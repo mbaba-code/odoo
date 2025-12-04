@@ -57,6 +57,9 @@
     'views/onedesk_payment_retry_views.xml',
     'views/onedesk_availability_cache_views.xml',
 
+    # Contact Importer (Marketing)
+    'views/contact_importer_views.xml',
+
     # Multi-tenant views (admin)
     'views/onedesk_plan_views.xml',
     'views/onedesk_client_views.xml',

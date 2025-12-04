@@ -1,0 +1,222 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Vue formulaire du wizard d'import -->
+    <record id="view_contact_importer_form" model="ir.ui.view">
+        <field name="name">onedesk.contact.importer.form</field>
+        <field name="model">onedesk.contact.importer</field>
+        <field name="arch" type="xml">
+            <form string="Importateur de Contacts Conciergeries">
+                <header>
+                    <button name="action_import_contacts"
+                            string="🚀 LANCER L'IMPORT"
+                            type="object"
+                            class="oe_highlight"
+                            attrs="{'invisible': [('state', 'in', ['importing', 'done'])]}"/>
+                    <button name="action_view_imported_contacts"
+                            string="📋 Voir les Contacts Importés"
+                            type="object"
+                            class="btn-primary"
+                            attrs="{'invisible': [('state', '!=', 'done')]}"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,importing,done"/>
+                </header>
+
+                <sheet>
+                    <!-- Avertissement RGPD -->
+                    <div class="alert alert-warning" role="alert" style="margin-bottom: 20px;">
+                        <h4>⚠️ Avertissement Légal - RGPD</h4>
+                        <p>
+                            <strong>Cet outil utilise l'API publique Sirene de l'INSEE (données légales).</strong>
+                        </p>
+                        <ul>
+                            <li>✅ Les données d'entreprises (SIREN, raison sociale, adresse) sont publiques</li>
+                            <li>⚠️ Pour le marketing par email, vous DEVEZ obtenir le consentement (RGPD)</li>
+                            <li>📧 Marketing B2B autorisé uniquement avec consentement explicite</li>
+                            <li>🔒 Ne spammez pas - respectez la loi anti-spam</li>
+                        </ul>
+                    </div>
+
+                    <group>
+                        <group string="🔍 Critères de Recherche">
+                            <field name="search_keyword" placeholder="Ex: conciergerie, gestion locative..."/>
+                            <field name="department" placeholder="Ex: 75 (Paris), 13 (Marseille)..."/>
+                            <field name="max_results"/>
+                            <field name="active_only"/>
+                        </group>
+
+                        <group string="📊 Résultats" attrs="{'invisible': [('state', '=', 'draft')]}">
+                            <field name="import_count" attrs="{'invisible': [('state', '!=', 'done')]}"/>
+                            <field name="error_message" attrs="{'invisible': [('state', '!=', 'error')]}"/>
+                        </group>
+                    </group>
+
+                    <!-- État d'import -->
+                    <div attrs="{'invisible': [('state', '!=', 'importing')]}" style="text-align: center; padding: 20px;">
+                        <h3>⏳ Import en cours...</h3>
+                        <p>Veuillez patienter pendant l'import des contacts depuis l'API Sirene.</p>
+                    </div>
+
+                    <!-- Succès -->
+                    <div attrs="{'invisible': [('state', '!=', 'done')]}" class="alert alert-success" role="alert" style="margin-top: 20px;">
+                        <h4>✅ Import Terminé avec Succès !</h4>
+                        <p>
+                            <field name="import_count"/> contact(s) ont été importés dans votre base Odoo.
+                        </p>
+                        <p>
+                            <strong>Prochaines étapes :</strong>
+                        </p>
+                        <ol>
+                            <li>Cliquez sur "Voir les Contacts Importés" pour consulter la liste</li>
+                            <li>Complétez manuellement les emails/téléphones si disponibles</li>
+                            <li>Obtenez le consentement RGPD avant tout envoi marketing</li>
+                            <li>Créez vos campagnes marketing via le module Email Marketing d'Odoo</li>
+                        </ol>
+                    </div>
+
+                    <!-- Erreur -->
+                    <div attrs="{'invisible': [('state', '!=', 'error')]}" class="alert alert-danger" role="alert" style="margin-top: 20px;">
+                        <h4>❌ Erreur lors de l'Import</h4>
+                        <p><field name="error_message" readonly="1"/></p>
+                        <p>
+                            <strong>Solutions possibles :</strong>
+                        </p>
+                        <ul>
+                            <li>Vérifiez votre connexion Internet</li>
+                            <li>Vérifiez que l'API Sirene est accessible</li>
+                            <li>Configurez votre clé API Sirene (gratuite sur api.insee.fr)</li>
+                            <li>Contactez votre administrateur système</li>
+                        </ul>
+                    </div>
+
+                    <!-- Instructions -->
+                    <notebook>
+                        <page string="📖 Instructions">
+                            <group>
+                                <field name="id" invisible="1"/>
+                            </group>
+                            <div style="padding: 10px;">
+                                <h3>Comment utiliser cet outil ?</h3>
+
+                                <h4>1. Configuration de l'API Sirene (OBLIGATOIRE en production)</h4>
+                                <p>
+                                    L'API Sirene de l'INSEE est <strong>gratuite</strong> mais nécessite une clé API :
+                                </p>
+                                <ul>
+                                    <li>🔗 Rendez-vous sur : <a href="https://api.insee.fr/catalogue/" target="_blank">https://api.insee.fr/catalogue/</a></li>
+                                    <li>📝 Créez un compte (gratuit)</li>
+                                    <li>🔑 Obtenez votre clé API</li>
+                                    <li>⚙️ Configurez la clé dans le fichier <code>contact_importer.py</code></li>
+                                </ul>
+
+                                <h4>2. Recherche de Conciergeries</h4>
+                                <ul>
+                                    <li><strong>Mot-clé :</strong> Entrez "conciergerie", "gestion locative", "property management", etc.</li>
+                                    <li><strong>Département :</strong> Filtrez par département (75=Paris, 13=Marseille, etc.) ou laissez vide pour toute la France</li>
+                                    <li><strong>Max résultats :</strong> Limitez le nombre d'imports (100 par défaut)</li>
+                                    <li><strong>Actives uniquement :</strong> Importez seulement les entreprises en activité</li>
+                                </ul>
+
+                                <h4>3. Import dans Odoo</h4>
+                                <p>
+                                    Les contacts sont automatiquement créés dans le module <strong>Contacts</strong> natif d'Odoo avec :
+                                </p>
+                                <ul>
+                                    <li>✅ Nom de l'entreprise</li>
+                                    <li>✅ SIRET (référence)</li>
+                                    <li>✅ SIREN</li>
+                                    <li>✅ Adresse complète</li>
+                                    <li>✅ Code postal et ville</li>
+                                    <li>✅ Pays (France)</li>
+                                </ul>
+
+                                <h4>4. Compléter les Informations</h4>
+                                <p>
+                                    L'API Sirene ne fournit <strong>pas</strong> les emails et téléphones. Vous devrez :
+                                </p>
+                                <ul>
+                                    <li>🔍 Rechercher manuellement sur Internet</li>
+                                    <li>📞 Appeler pour obtenir les coordonnées</li>
+                                    <li>🌐 Consulter le site web de l'entreprise</li>
+                                    <li>📧 Demander le consentement RGPD pour le marketing</li>
+                                </ul>
+
+                                <h4>5. Marketing par Email</h4>
+                                <p>
+                                    Une fois les emails collectés et le consentement obtenu :
+                                </p>
+                                <ul>
+                                    <li>📧 Utilisez le module <strong>Email Marketing</strong> d'Odoo</li>
+                                    <li>🎯 Créez des segments de contacts</li>
+                                    <li>✉️ Concevez vos campagnes</li>
+                                    <li>📊 Analysez les résultats (taux d'ouverture, clics, etc.)</li>
+                                </ul>
+
+                                <h4>⚖️ Conformité RGPD - IMPORTANT</h4>
+                                <div class="alert alert-danger">
+                                    <ul>
+                                        <li>❌ <strong>N'envoyez JAMAIS d'emails marketing sans consentement</strong></li>
+                                        <li>✅ Utilisez le double opt-in pour confirmer le consentement</li>
+                                        <li>✅ Incluez toujours un lien de désinscription</li>
+                                        <li>✅ Respectez les demandes de suppression de données</li>
+                                        <li>✅ Documentez vos bases légales de traitement</li>
+                                        <li>⚠️ Amendes RGPD : jusqu'à 4% du CA ou 20M€</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </page>
+
+                        <page string="🔧 Configuration API">
+                            <div style="padding: 10px;">
+                                <h3>Configuration de l'API Sirene</h3>
+
+                                <p>
+                                    <strong>Version actuelle :</strong> Mode DÉMONSTRATION (3 contacts fictifs)
+                                </p>
+
+                                <h4>Pour activer l'API Sirene réelle :</h4>
+                                <ol>
+                                    <li>Obtenez votre clé API gratuite sur <a href="https://api.insee.fr/catalogue/" target="_blank">api.insee.fr</a></li>
+                                    <li>Éditez le fichier : <code>addons/onedesk_core/models/contact_importer.py</code></li>
+                                    <li>Ligne ~100, décommentez le code de l'API réelle</li>
+                                    <li>Remplacez <code>VOTRE_CLE_API</code> par votre clé</li>
+                                    <li>Commentez la fonction <code>_get_demo_data()</code></li>
+                                    <li>Redémarrez Odoo</li>
+                                </ol>
+
+                                <p><strong>Exemple de configuration :</strong></p>
+                                <pre style="background: #f5f5f5; padding: 10px; border-radius: 5px;">
+headers = {
+    'Authorization': 'Bearer VOTRE_CLE_API_ICI'
+}
+
+response = requests.get(
+    "https://api.insee.fr/entreprises/sirene/V3/siret",
+    params=params,
+    headers=headers,
+    timeout=30
+)
+                                </pre>
+                            </div>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Action pour ouvrir le wizard -->
+    <record id="action_contact_importer" model="ir.actions.act_window">
+        <field name="name">🚀 Import Contacts Conciergeries</field>
+        <field name="res_model">onedesk.contact.importer</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="view_id" ref="view_contact_importer_form"/>
+    </record>
+
+    <!-- Menu pour accéder au wizard -->
+    <menuitem id="menu_contact_importer"
+              name="🚀 Import Conciergeries"
+              parent="menu_onedesk_team"
+              action="action_contact_importer"
+              sequence="20"/>
+
+</odoo>
