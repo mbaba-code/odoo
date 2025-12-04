@@ -273,6 +273,7 @@ class ContactImporter(models.TransientModel):
                     'zip': code_postal,
                     'city': ville,
                     'country_id': self.env.ref('base.fr').id,  # France
+                    'company_id': self.env.company.id,  # Entreprise courante (multi-tenant)
                     'is_company': True,
                     'comment': f'Importé depuis API Sirene\nActivité: {activite}\n\n'
                                f'⚠️ RGPD: Vérifiez le consentement avant envoi marketing',
