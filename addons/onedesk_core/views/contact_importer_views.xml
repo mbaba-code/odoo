@@ -166,35 +166,86 @@
 
                         <page string="🔧 Configuration API">
                             <div style="padding: 10px;">
-                                <h3>Configuration de l'API Sirene</h3>
+                                <h3>🔒 Configuration Sécurisée de l'API Sirene</h3>
+
+                                <div class="alert alert-info" style="margin: 15px 0;">
+                                    <strong>✨ NOUVEAU : Configuration sécurisée !</strong>
+                                    <p>Votre clé API est maintenant stockée dans les paramètres système Odoo au lieu d'être dans le code source.</p>
+                                </div>
 
                                 <p>
-                                    <strong>Version actuelle :</strong> Mode DÉMONSTRATION (3 contacts fictifs)
+                                    <strong>Mode actuel :</strong>
+                                    <span style="background: #ffe066; padding: 3px 8px; border-radius: 3px;">MODE DÉMO</span>
+                                    (3 contacts fictifs - Aucune clé API configurée)
                                 </p>
 
-                                <h4>Pour activer l'API Sirene réelle :</h4>
+                                <h4>📋 Activation en 3 étapes :</h4>
+
+                                <h5>Étape 1 : Obtenir votre clé API gratuite</h5>
                                 <ol>
-                                    <li>Obtenez votre clé API gratuite sur <a href="https://api.insee.fr/catalogue/" target="_blank">api.insee.fr</a></li>
-                                    <li>Éditez le fichier : <code>addons/onedesk_core/models/contact_importer.py</code></li>
-                                    <li>Ligne ~100, décommentez le code de l'API réelle</li>
-                                    <li>Remplacez <code>VOTRE_CLE_API</code> par votre clé</li>
-                                    <li>Commentez la fonction <code>_get_demo_data()</code></li>
-                                    <li>Redémarrez Odoo</li>
+                                    <li>Allez sur <a href="https://api.insee.fr/catalogue/" target="_blank">api.insee.fr/catalogue</a></li>
+                                    <li>Créez un compte (gratuit)</li>
+                                    <li>Abonnez-vous à l'API "Sirene V3"</li>
+                                    <li>Copiez votre clé API</li>
                                 </ol>
 
-                                <p><strong>Exemple de configuration :</strong></p>
-                                <pre style="background: #f5f5f5; padding: 10px; border-radius: 5px;">
-headers = {
-    'Authorization': 'Bearer VOTRE_CLE_API_ICI'
-}
+                                <h5>Étape 2 : Configurer dans Odoo (MÉTHODE SÉCURISÉE)</h5>
+                                <ol>
+                                    <li>Activez le mode développeur : <strong>Paramètres → Activer le mode développeur</strong></li>
+                                    <li>Allez dans : <strong>Paramètres → Technique → Paramètres Système</strong></li>
+                                    <li>Cliquez sur <strong>"Créer"</strong></li>
+                                    <li>Remplissez :
+                                        <ul>
+                                            <li><strong>Clé :</strong> <code>onedesk.sirene_api_key</code></li>
+                                            <li><strong>Valeur :</strong> Collez votre clé API</li>
+                                        </ul>
+                                    </li>
+                                    <li>Sauvegardez</li>
+                                </ol>
 
-response = requests.get(
-    "https://api.insee.fr/entreprises/sirene/V3/siret",
-    params=params,
-    headers=headers,
-    timeout=30
-)
+                                <h5>Étape 3 : Tester</h5>
+                                <p>Revenez sur cet écran et cliquez sur "🚀 LANCER L'IMPORT". Si configuré correctement, vous verrez dans les logs :</p>
+                                <pre style="background: #f5f5f5; padding: 10px; border-radius: 5px; font-size: 12px;">
+Appel API Sirene avec clé authentifiée...
+API Sirene: 127 résultats trouvés
                                 </pre>
+
+                                <h4>✅ Avantages de cette méthode :</h4>
+                                <ul>
+                                    <li>✅ Clé API <strong>PAS dans le code source</strong></li>
+                                    <li>✅ Clé API <strong>PAS dans Git/GitHub</strong></li>
+                                    <li>✅ Configuration facile via l'interface</li>
+                                    <li>✅ Une seule clé pour toute l'installation</li>
+                                    <li>✅ Changement de clé sans modifier le code</li>
+                                </ul>
+
+                                <h4>🔍 Vérification du mode actif</h4>
+                                <table style="width: 100%; border-collapse: collapse; margin: 10px 0;">
+                                    <tr style="background: #f9f9f9;">
+                                        <th style="padding: 8px; border: 1px solid #ddd; text-align: left;">Mode</th>
+                                        <th style="padding: 8px; border: 1px solid #ddd; text-align: left;">Log visible</th>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 8px; border: 1px solid #ddd;"><strong>MODE DÉMO</strong></td>
+                                        <td style="padding: 8px; border: 1px solid #ddd;"><code>Mode DÉMO activé - Aucune clé API Sirene configurée</code></td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 8px; border: 1px solid #ddd;"><strong>MODE PRODUCTION</strong></td>
+                                        <td style="padding: 8px; border: 1px solid #ddd;"><code>Appel API Sirene avec clé authentifiée...</code></td>
+                                    </tr>
+                                </table>
+
+                                <h4>❌ Erreurs possibles</h4>
+                                <ul>
+                                    <li><strong>401 Unauthorized :</strong> Clé API invalide → Vérifiez votre clé</li>
+                                    <li><strong>429 Too Many Requests :</strong> Limite atteinte → Attendez quelques minutes</li>
+                                    <li><strong>Erreur de connexion :</strong> Problème réseau → Vérifiez Internet</li>
+                                </ul>
+
+                                <div class="alert alert-warning" style="margin-top: 15px;">
+                                    <strong>📖 Documentation complète :</strong>
+                                    <p>Consultez le fichier <code>API_SIRENE_CONFIG.md</code> dans le module onedesk_core pour plus de détails.</p>
+                                </div>
                             </div>
                         </page>
                     </notebook>

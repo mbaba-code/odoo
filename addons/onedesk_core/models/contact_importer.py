@@ -137,34 +137,53 @@ class ContactImporter(models.TransientModel):
 
     def _call_api_sirene(self, params):
         """
-        Appelle l'API Sirene (à adapter avec votre clé API).
-        Pour l'instant, retourne des données de démonstration.
+        Appelle l'API Sirene avec la clé API stockée dans les paramètres système.
+        Si aucune clé n'est configurée, retourne des données de démonstration.
         """
-        # EN PRODUCTION: Décommentez ce code et ajoutez votre clé API
-        try:
-             response = requests.get(
-                 "https://api.insee.fr/entreprises/sirene/V3/siret",
-                 params=params,
-                 headers={'Authorization': '699b7729-261f-4f02-9b77-29261faf02a2'},
-                 timeout=30
-             )
-             if response.status_code == 200:
-                 return response.json()
-        except Exception as e:
-             _logger.error(f"Erreur API Sirene: {str(e)}")
-             return None
+        # Récupérer la clé API depuis les paramètres système Odoo (SÉCURISÉ)
+        api_key = self.env['ir.config_parameter'].sudo().get_param('onedesk.sirene_api_key', default='')
 
-        # DONNÉES DE DÉMONSTRATION (à remplacer par l'API réelle)
-        #return self._get_demo_data()
+        if api_key:
+            # MODE PRODUCTION: Appel API réel
+            try:
+                _logger.info("Appel API Sirene avec clé authentifiée...")
+                response = requests.get(
+                    "https://api.insee.fr/entreprises/sirene/V3/siret",
+                    params=params,
+                    headers={
+                        'Accept': 'application/json',
+                        'Authorization': f'Bearer {api_key}'
+                    },
+                    timeout=30
+                )
 
-    
-        
-    """
+                if response.status_code == 200:
+                    _logger.info(f"API Sirene: {response.json().get('header', {}).get('total', 0)} résultats trouvés")
+                    return response.json()
+                elif response.status_code == 401:
+                    _logger.error("API Sirene: Clé API invalide (401 Unauthorized)")
+                    raise Exception("Clé API Sirene invalide. Vérifiez votre clé dans Paramètres > Technique > Paramètres système")
+                elif response.status_code == 429:
+                    _logger.error("API Sirene: Limite de requêtes atteinte (429 Too Many Requests)")
+                    raise Exception("Limite de requêtes API atteinte. Réessayez plus tard.")
+                else:
+                    _logger.error(f"API Sirene: Erreur HTTP {response.status_code}")
+                    raise Exception(f"Erreur API Sirene: HTTP {response.status_code}")
+
+            except requests.exceptions.RequestException as e:
+                _logger.error(f"Erreur réseau API Sirene: {str(e)}")
+                raise Exception(f"Erreur de connexion à l'API Sirene: {str(e)}")
+        else:
+            # MODE DÉMO: Aucune clé API configurée
+            _logger.info("Mode DÉMO activé - Aucune clé API Sirene configurée")
+            _logger.info("Pour activer l'API réelle: Paramètres > Technique > Paramètres système > Créer 'onedesk.sirene_api_key'")
+            return self._get_demo_data()
+
     def _get_demo_data(self):
-        
+        """
         Retourne des données de démonstration.
         À REMPLACER par l'API Sirene réelle en production.
-        
+        """
         return {
             'header': {'total': 3},
             'etablissements': [
