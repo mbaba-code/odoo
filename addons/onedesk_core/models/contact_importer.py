@@ -246,9 +246,9 @@ class ContactImporter(models.TransientModel):
         }
 
     def _process_sirene_results(self, response):
-        
+        """
         Traite les résultats de l'API Sirene et crée les contacts dans Odoo.
-        
+        """
         Partner = self.env['res.partner']
         count = 0
 
@@ -303,8 +303,6 @@ class ContactImporter(models.TransientModel):
                 continue
 
         return count
-        
-    """
 
     def _format_address(self, adresse):
         """Formate l'adresse à partir des données Sirene."""
