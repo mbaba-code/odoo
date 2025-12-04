@@ -139,8 +139,15 @@ class ContactImporter(models.TransientModel):
             # MODE PRODUCTION: Appel API réel
             try:
                 _logger.info("Appel API Sirene avec clé authentifiée...")
+
+                # URL correcte de l'API Sirene V3.11 (version actuelle)
+                url = "https://api.insee.fr/entreprises/sirene/V3.11/siret"
+
+                _logger.info(f"URL API: {url}")
+                _logger.info(f"Paramètres: {params}")
+
                 response = requests.get(
-                    "https://api.insee.fr/entreprises/sirene/V3/siret",
+                    url,
                     params=params,
                     headers={
                         'Accept': 'application/json',
@@ -155,11 +162,24 @@ class ContactImporter(models.TransientModel):
                 elif response.status_code == 401:
                     _logger.error("API Sirene: Clé API invalide (401 Unauthorized)")
                     raise Exception("Clé API Sirene invalide. Vérifiez votre clé dans Paramètres > Technique > Paramètres système")
+                elif response.status_code == 404:
+                    _logger.error(f"API Sirene: Endpoint non trouvé (404)")
+                    _logger.error(f"URL appelée: {url}")
+                    _logger.error(f"Paramètres: {params}")
+                    try:
+                        _logger.error(f"Réponse: {response.text}")
+                    except:
+                        pass
+                    raise Exception("Erreur API Sirene (404): L'endpoint n'existe pas. Vérifiez la version de l'API ou les paramètres de recherche.")
                 elif response.status_code == 429:
                     _logger.error("API Sirene: Limite de requêtes atteinte (429 Too Many Requests)")
                     raise Exception("Limite de requêtes API atteinte. Réessayez plus tard.")
                 else:
                     _logger.error(f"API Sirene: Erreur HTTP {response.status_code}")
+                    try:
+                        _logger.error(f"Réponse: {response.text}")
+                    except:
+                        pass
                     raise Exception(f"Erreur API Sirene: HTTP {response.status_code}")
 
             except requests.exceptions.RequestException as e:
