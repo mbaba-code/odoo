@@ -1,4 +1,37 @@
 <odoo>
+    <!-- Search view for filtering tasks -->
+    <record id="view_onedesk_task_search" model="ir.ui.view">
+        <field name="name">onedesk.task.search</field>
+        <field name="model">onedesk.task</field>
+        <field name="arch" type="xml">
+            <search string="Tâches">
+                <field name="name" string="Tâche"/>
+                <field name="assigned_to" string="Assigné à"/>
+                <field name="task_type" string="Type"/>
+                <field name="status" string="Statut"/>
+                <separator/>
+                <!-- Filtres par Statut -->
+                <filter string="À Faire" name="todo" domain="[('status', '=', 'todo')]"/>
+                <filter string="En Cours" name="in_progress" domain="[('status', '=', 'in_progress')]"/>
+                <filter string="Terminées" name="done" domain="[('status', '=', 'done')]"/>
+                <separator/>
+                <!-- Filtres Chronologie -->
+                <filter string="Cette Semaine" name="this_week"
+                    domain="[('date_start', '&gt;=', (context_today() - datetime.timedelta(days=7)).strftime('%Y-%m-%d')),
+                             ('date_start', '&lt;=', (context_today() + datetime.timedelta(days=7)).strftime('%Y-%m-%d'))]"/>
+                <filter string="Ce Mois" name="this_month"
+                    domain="[('date_start', '&gt;=', (context_today() - datetime.timedelta(days=30)).strftime('%Y-%m-%d')),
+                             ('date_start', '&lt;=', (context_today() + datetime.timedelta(days=30)).strftime('%Y-%m-%d'))]"/>
+                <filter string="À Venir" name="upcoming"
+                    domain="[('date_start', '&gt;=', context_today().strftime('%Y-%m-%d'))]"/>
+                <separator/>
+                <!-- Filtres par Priorité -->
+                <filter string="Haute Priorité" name="high_priority" domain="[('priority', '=', 'high')]"/>
+                <filter string="Urgentes" name="urgent" domain="[('priority', '=', 'urgent')]"/>
+            </search>
+        </field>
+    </record>
+
     <!-- Liste des tâches -->
     <record id="view_onedesk_task_list" model="ir.ui.view">
         <field name="name">onedesk.task.list</field>
@@ -225,11 +258,7 @@
         <field name="name">Tâches Cette Semaine</field>
         <field name="res_model">onedesk.task</field>
         <field name="view_mode">kanban,list,form,calendar</field>
-        <field name="domain">[
-            '&amp;',
-            ('date_start', '&gt;=', (context_today() + timedelta(days=-7)).strftime('%Y-%m-%d')),
-            ('date_start', '&lt;=', (context_today() + timedelta(days=7)).strftime('%Y-%m-%d'))
-        ]</field>
+        <field name="context">{'search_default_this_week': 1}</field>
     </record>
 
     <!-- Tâches Ce Mois -->
@@ -237,11 +266,7 @@
         <field name="name">Tâches Ce Mois</field>
         <field name="res_model">onedesk.task</field>
         <field name="view_mode">kanban,list,form,calendar</field>
-        <field name="domain">[
-            '&amp;',
-            ('date_start', '&gt;=', (context_today() + timedelta(days=-30)).strftime('%Y-%m-%d')),
-            ('date_start', '&lt;=', (context_today() + timedelta(days=30)).strftime('%Y-%m-%d'))
-        ]</field>
+        <field name="context">{'search_default_this_month': 1}</field>
     </record>
 
 </odoo>

@@ -12,6 +12,26 @@
                 <separator/>
                 <filter string="Active" name="active" domain="[('active', '=', True)]"/>
                 <filter string="Archived" name="archived" domain="[('active', '=', False)]"/>
+                <separator/>
+                <!-- Filtres Chronologie -->
+                <filter string="Cette Semaine" name="this_week"
+                    domain="[('start_date', '&gt;=', (context_today() - datetime.timedelta(days=7)).strftime('%Y-%m-%d')),
+                             ('start_date', '&lt;=', (context_today() + datetime.timedelta(days=7)).strftime('%Y-%m-%d'))]"/>
+                <filter string="Ce Mois" name="this_month"
+                    domain="[('start_date', '&gt;=', (context_today() - datetime.timedelta(days=30)).strftime('%Y-%m-%d')),
+                             ('start_date', '&lt;=', (context_today() + datetime.timedelta(days=30)).strftime('%Y-%m-%d'))]"/>
+                <filter string="À Venir" name="upcoming"
+                    domain="[('start_date', '&gt;=', context_today().strftime('%Y-%m-%d'))]"/>
+                <separator/>
+                <!-- Filtres Accès Rapide -->
+                <filter string="Arrivées Aujourd'hui" name="checkin_today"
+                    domain="[('start_date', '&gt;=', context_today().strftime('%Y-%m-%d')),
+                             ('start_date', '&lt;', (context_today() + datetime.timedelta(days=1)).strftime('%Y-%m-%d')),
+                             ('status', 'in', ['paid', 'checked_in'])]"/>
+                <filter string="Départs Aujourd'hui" name="checkout_today"
+                    domain="[('end_date', '&gt;=', context_today().strftime('%Y-%m-%d')),
+                             ('end_date', '&lt;', (context_today() + datetime.timedelta(days=1)).strftime('%Y-%m-%d')),
+                             ('status', 'in', ['checked_in', 'completed'])]"/>
             </search>
         </field>
     </record>
@@ -428,11 +448,7 @@
         <field name="name">Réservations Cette Semaine</field>
         <field name="res_model">onedesk.reservation</field>
         <field name="view_mode">kanban,list,form,calendar</field>
-        <field name="domain">[
-            '&amp;',
-            ('start_date', '&gt;=', (context_today() + timedelta(days=-7)).strftime('%Y-%m-%d')),
-            ('start_date', '&lt;=', (context_today() + timedelta(days=7)).strftime('%Y-%m-%d'))
-        ]</field>
+        <field name="context">{'search_default_this_week': 1}</field>
     </record>
 
     <!-- Réservations Ce Mois -->
@@ -440,11 +456,7 @@
         <field name="name">Réservations Ce Mois</field>
         <field name="res_model">onedesk.reservation</field>
         <field name="view_mode">kanban,list,form,calendar</field>
-        <field name="domain">[
-            '&amp;',
-            ('start_date', '&gt;=', (context_today() + timedelta(days=-30)).strftime('%Y-%m-%d')),
-            ('start_date', '&lt;=', (context_today() + timedelta(days=30)).strftime('%Y-%m-%d'))
-        ]</field>
+        <field name="context">{'search_default_this_month': 1}</field>
     </record>
 
     <!-- Réservations À Venir -->
@@ -452,7 +464,6 @@
         <field name="name">Réservations À Venir</field>
         <field name="res_model">onedesk.reservation</field>
         <field name="view_mode">kanban,list,form,calendar</field>
-        <field name="domain">[('start_date', '&gt;=', context_today().strftime('%Y-%m-%d'))]</field>
         <field name="context">{'search_default_upcoming': 1}</field>
     </record>
 
@@ -463,11 +474,7 @@
         <field name="name">Arrivées Aujourd'hui</field>
         <field name="res_model">onedesk.reservation</field>
         <field name="view_mode">kanban,list,form</field>
-        <field name="domain">[
-            ('start_date', '&gt;=', context_today().strftime('%Y-%m-%d 00:00:00')),
-            ('start_date', '&lt;=', context_today().strftime('%Y-%m-%d 23:59:59')),
-            ('status', 'in', ['paid', 'checked_in'])
-        ]</field>
+        <field name="context">{'search_default_checkin_today': 1}</field>
     </record>
 
     <!-- Départs Aujourd'hui (Check-out Today) -->
@@ -475,11 +482,7 @@
         <field name="name">Départs Aujourd'hui</field>
         <field name="res_model">onedesk.reservation</field>
         <field name="view_mode">kanban,list,form</field>
-        <field name="domain">[
-            ('end_date', '&gt;=', context_today().strftime('%Y-%m-%d 00:00:00')),
-            ('end_date', '&lt;=', context_today().strftime('%Y-%m-%d 23:59:59')),
-            ('status', 'in', ['checked_in', 'completed'])
-        ]</field>
+        <field name="context">{'search_default_checkout_today': 1}</field>
     </record>
 
 </odoo>
