@@ -374,4 +374,110 @@
         </field>
     </record>
 
+    <!-- ==================== ACTIONS PAR STATUT ==================== -->
+
+    <!-- Réservations En Attente -->
+    <record id="action_reservations_pending" model="ir.actions.act_window">
+        <field name="name">Réservations En Attente</field>
+        <field name="res_model">onedesk.reservation</field>
+        <field name="view_mode">kanban,list,form,calendar</field>
+        <field name="domain">[('status', '=', 'pending_payment')]</field>
+        <field name="context">{'default_status': 'pending_payment'}</field>
+    </record>
+
+    <!-- Réservations Confirmées -->
+    <record id="action_reservations_confirmed" model="ir.actions.act_window">
+        <field name="name">Réservations Confirmées</field>
+        <field name="res_model">onedesk.reservation</field>
+        <field name="view_mode">kanban,list,form,calendar</field>
+        <field name="domain">[('status', '=', 'paid')]</field>
+        <field name="context">{'default_status': 'paid'}</field>
+    </record>
+
+    <!-- Réservations Enregistrées (Check-in) -->
+    <record id="action_reservations_checkedin" model="ir.actions.act_window">
+        <field name="name">Réservations Enregistrées</field>
+        <field name="res_model">onedesk.reservation</field>
+        <field name="view_mode">kanban,list,form,calendar</field>
+        <field name="domain">[('status', '=', 'checked_in')]</field>
+        <field name="context">{'default_status': 'checked_in'}</field>
+    </record>
+
+    <!-- Réservations Complétées -->
+    <record id="action_reservations_completed" model="ir.actions.act_window">
+        <field name="name">Réservations Complétées</field>
+        <field name="res_model">onedesk.reservation</field>
+        <field name="view_mode">kanban,list,form,calendar</field>
+        <field name="domain">[('status', '=', 'completed')]</field>
+        <field name="context">{'default_status': 'completed'}</field>
+    </record>
+
+    <!-- Réservations Annulées -->
+    <record id="action_reservations_cancelled" model="ir.actions.act_window">
+        <field name="name">Réservations Annulées</field>
+        <field name="res_model">onedesk.reservation</field>
+        <field name="view_mode">kanban,list,form,calendar</field>
+        <field name="domain">[('status', '=', 'cancelled')]</field>
+        <field name="context">{'default_status': 'cancelled'}</field>
+    </record>
+
+    <!-- ==================== ACTIONS CHRONOLOGIE ==================== -->
+
+    <!-- Réservations Cette Semaine -->
+    <record id="action_reservations_this_week" model="ir.actions.act_window">
+        <field name="name">Réservations Cette Semaine</field>
+        <field name="res_model">onedesk.reservation</field>
+        <field name="view_mode">kanban,list,form,calendar</field>
+        <field name="domain">[
+            ('start_date', '>=', (context_today() - relativedelta(days=context_today().weekday())).strftime('%Y-%m-%d')),
+            ('start_date', '&lt;=', (context_today() + relativedelta(days=6-context_today().weekday())).strftime('%Y-%m-%d'))
+        ]</field>
+    </record>
+
+    <!-- Réservations Ce Mois -->
+    <record id="action_reservations_this_month" model="ir.actions.act_window">
+        <field name="name">Réservations Ce Mois</field>
+        <field name="res_model">onedesk.reservation</field>
+        <field name="view_mode">kanban,list,form,calendar</field>
+        <field name="domain">[
+            ('start_date', '>=', time.strftime('%Y-%m-01')),
+            ('start_date', '&lt;=', (datetime.datetime.now() + relativedelta(months=1, day=1, days=-1)).strftime('%Y-%m-%d'))
+        ]</field>
+    </record>
+
+    <!-- Réservations À Venir -->
+    <record id="action_reservations_upcoming" model="ir.actions.act_window">
+        <field name="name">Réservations À Venir</field>
+        <field name="res_model">onedesk.reservation</field>
+        <field name="view_mode">kanban,list,form,calendar</field>
+        <field name="domain">[('start_date', '&gt;=', context_today().strftime('%Y-%m-%d'))]</field>
+        <field name="context">{'search_default_upcoming': 1}</field>
+    </record>
+
+    <!-- ==================== ACTIONS ACCÈS RAPIDE ==================== -->
+
+    <!-- Arrivées Aujourd'hui (Check-in Today) -->
+    <record id="action_reservations_checkin_today" model="ir.actions.act_window">
+        <field name="name">Arrivées Aujourd'hui</field>
+        <field name="res_model">onedesk.reservation</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="domain">[
+            ('start_date', '&gt;=', context_today().strftime('%Y-%m-%d 00:00:00')),
+            ('start_date', '&lt;=', context_today().strftime('%Y-%m-%d 23:59:59')),
+            ('status', 'in', ['paid', 'checked_in'])
+        ]</field>
+    </record>
+
+    <!-- Départs Aujourd'hui (Check-out Today) -->
+    <record id="action_reservations_checkout_today" model="ir.actions.act_window">
+        <field name="name">Départs Aujourd'hui</field>
+        <field name="res_model">onedesk.reservation</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="domain">[
+            ('end_date', '&gt;=', context_today().strftime('%Y-%m-%d 00:00:00')),
+            ('end_date', '&lt;=', context_today().strftime('%Y-%m-%d 23:59:59')),
+            ('status', 'in', ['checked_in', 'completed'])
+        ]</field>
+    </record>
+
 </odoo>
