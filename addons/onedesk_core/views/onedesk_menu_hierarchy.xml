@@ -321,13 +321,6 @@
         <field name="context">{'search_default_due_today': 1}</field>
     </record>
 
-    <record id="action_tasks_due_this_week" model="ir.actions.act_window">
-        <field name="name">Due This Week</field>
-        <field name="res_model">onedesk.task</field>
-        <field name="view_mode">list,form,kanban</field>
-        <field name="context">{'search_default_due_week': 1}</field>
-    </record>
-
     <record id="action_tasks_due_this_month" model="ir.actions.act_window">
         <field name="name">Due This Month</field>
         <field name="res_model">onedesk.task</field>
@@ -621,17 +614,11 @@
               action="action_tasks_due_today"
               sequence="10"/>
 
-    <menuitem id="menu_task_due_week"
-              name="Cette Semaine"
-              parent="menu_task_timeline"
-              action="action_tasks_due_this_week"
-              sequence="20"/>
-
     <menuitem id="menu_task_due_month"
               name="Ce Mois"
               parent="menu_task_timeline"
               action="action_tasks_due_this_month"
-              sequence="30"/>
+              sequence="20"/>
 
     <!-- INTEGRATION MENU -->
     <menuitem id="menu_onedesk_integration"
