@@ -360,6 +360,13 @@
               groups="onedesk_core.group_onedesk_master_admin"
               sequence="2"/>
 
+    <!-- Dashboard Équipe -->
+    <menuitem id="menu_dashboard_team"
+              name="👥 Dashboard Équipe"
+              parent="menu_onedesk_dashboards"
+              action="action_dashboard_users"
+              sequence="3"/>
+
     <!-- PROPERTIES MENU -->
     <menuitem id="menu_onedesk_property"
               name="🏠 Properties"
