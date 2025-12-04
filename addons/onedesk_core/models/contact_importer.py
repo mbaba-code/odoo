@@ -136,9 +136,15 @@ class ContactImporter(models.TransientModel):
         api_key = self.env['ir.config_parameter'].sudo().get_param('onedesk.sirene_api_key', default='')
 
         if api_key:
+            # Nettoyer la clé API (enlever "Bearer" si l'utilisateur l'a inclus)
+            api_key = api_key.strip()
+            if api_key.lower().startswith('bearer '):
+                api_key = api_key[7:].strip()  # Enlever "Bearer " du début
+
             # MODE PRODUCTION: Appel API réel
             try:
                 _logger.info("Appel API Sirene avec clé authentifiée...")
+                _logger.info(f"Longueur clé API: {len(api_key)} caractères")
 
                 # URL CORRECTE de l'API Sirene (nouvelle URL officielle)
                 # Ancienne: https://api.insee.fr/entreprises/sirene/V3.11/siret (DÉPRÉCIÉE)
