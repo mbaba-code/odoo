@@ -68,10 +68,10 @@ class OnedeskAvailabilityCache(models.Model):
     expires_at = fields.Datetime(string='Expire le', readonly=True)
     is_valid = fields.Boolean(string='Valide', default=True, readonly=True)
 
-    _sql_constraints = [
-        ('unique_cache_key', 'UNIQUE(unit_id, start_date, end_date)',
-         'Un cache ne peut exister qu\'une fois par unité et date range'),
-    ]
+    class Constraint(models.Constraint):
+        _constraint_name = 'unique_cache_key'
+        _sql_definition = 'UNIQUE(unit_id, start_date, end_date)'
+        _message = 'Un cache ne peut exister qu\'une fois par unité et date range'
 
     @api.model
     def _build_availability_cache(self, unit, start_date, end_date):

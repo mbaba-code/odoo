@@ -28,7 +28,7 @@
                     <div class="row mb-4">
                         <div class="col-md-12">
                             <strong>🖊️ Mode de Signature</strong>
-                            <div class="alert alert-info mb-2" style="margin-bottom: 10px; font-size: 13px;">
+                            <div class="alert alert-info mb-2" role="alert" style="margin-bottom: 10px; font-size: 13px;">
                                 <div><strong>👤 Une personne - Plusieurs signatures:</strong> 1 seul email, la personne clique plusieurs fois sur le PDF</div>
                                 <div><strong>👥 Plusieurs personnes - Plusieurs signatures:</strong> Chaque personne reçoit 1 email et peut cliquer plusieurs fois. Email envoyé quand TOUS ont signé.</div>
                             </div>
@@ -40,7 +40,7 @@
                     <div class="row mb-4">
                         <div class="col-md-12">
                             <strong>📁 Fichier PDF</strong>
-                            <div class="alert alert-warning mb-2" style="margin-bottom: 10px;">
+                            <div class="alert alert-warning mb-2" role="alert" style="margin-bottom: 10px;">
                                 💾 Téléchargez le PDF, puis cliquez Enregistrer avant d'ajouter les signataires.
                             </div>
                             <field name="file" widget="binary" filename="filename" class="w-100"
@@ -53,7 +53,7 @@
                     <div class="row mb-4">
                         <div class="col-md-12">
                             <strong>🔐 Signataires (Obligatoire)</strong>
-                            <div class="alert alert-danger mb-2">⚠️ Au moins 1 signataire requis!</div>
+                            <div class="alert alert-danger mb-2" role="alert">⚠️ Au moins 1 signataire requis!</div>
                             <field name="partner_signer_ids" nolabel="1"
                                    widget="many2many_tags"
                                    placeholder="Sélectionnez les contacts..."/>
@@ -135,7 +135,7 @@
                     <div class="row mb-4">
                         <div class="col-md-12">
                             <strong>📁 Fichier PDF</strong>
-                            <div class="alert alert-warning mb-2">💾 Téléchargez le PDF et cliquez Enregistrer.</div>
+                            <div class="alert alert-warning mb-2" role="alert">💾 Téléchargez le PDF et cliquez Enregistrer.</div>
                             <field name="file" widget="binary" filename="filename" class="w-100"
                                    options="{'no_open': True}" accept="application/pdf"/>
                             <field name="filename" invisible="1"/>
@@ -146,7 +146,7 @@
                     <div class="row mb-4" invisible="not signed_file">
                         <div class="col-md-12">
                             <strong>✅ Document Signé (avec signatures incrustées)</strong>
-                            <div class="alert alert-success mb-2">
+                            <div class="alert alert-success mb-2" role="alert">
                                 📄 Ce document contient toutes les signatures électroniques incrustées sur le PDF
                             </div>
                             <field name="signed_file" widget="binary" filename="signed_filename" class="w-100"

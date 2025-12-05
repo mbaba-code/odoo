@@ -369,7 +369,7 @@ class OnedeskoSignupController(http.Controller):
             'token': token,
         })
 
-    @http.route('/onedesk/invite/accept/submit', type='json', auth='public', csrf=False)
+    @http.route('/onedesk/invite/accept/submit', type='jsonrpc', auth='public', csrf=False)
     def accept_invitation(self, token, name=None, password=None, **data):
         """Accepter une invitation d'utilisateur et activer le compte"""
         try:

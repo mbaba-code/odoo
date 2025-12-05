@@ -151,7 +151,7 @@
                                 </ul>
 
                                 <h4>⚖️ Conformité RGPD - IMPORTANT</h4>
-                                <div class="alert alert-danger">
+                                <div class="alert alert-danger" role="alert">
                                     <ul>
                                         <li>❌ <strong>N'envoyez JAMAIS d'emails marketing sans consentement</strong></li>
                                         <li>✅ Utilisez le double opt-in pour confirmer le consentement</li>
@@ -168,7 +168,7 @@
                             <div style="padding: 10px;">
                                 <h3>🔒 Configuration Sécurisée de l'API Sirene</h3>
 
-                                <div class="alert alert-info" style="margin: 15px 0;">
+                                <div class="alert alert-info" role="alert" style="margin: 15px 0;">
                                     <strong>✨ NOUVEAU : Configuration sécurisée !</strong>
                                     <p>Votre clé API est maintenant stockée dans les paramètres système Odoo au lieu d'être dans le code source.</p>
                                 </div>
@@ -242,7 +242,7 @@ API Sirene: 127 résultats trouvés
                                     <li><strong>Erreur de connexion :</strong> Problème réseau → Vérifiez Internet</li>
                                 </ul>
 
-                                <div class="alert alert-warning" style="margin-top: 15px;">
+                                <div class="alert alert-warning" role="alert" style="margin-top: 15px;">
                                     <strong>📖 Documentation complète :</strong>
                                     <p>Consultez le fichier <code>API_SIRENE_CONFIG.md</code> dans le module onedesk_core pour plus de détails.</p>
                                 </div>

@@ -60,7 +60,7 @@ class SignaturitWebhook(http.Controller):
             _logger.error(f'❌ Erreur lors de la vérification HMAC: {str(e)}')
             return False
 
-    @http.route('/signaturit/webhook', auth='public', type='json', csrf=False, methods=['POST'])
+    @http.route('/signaturit/webhook', auth='public', type='jsonrpc', csrf=False, methods=['POST'])
     def signaturit_webhook(self, **kwargs):
         """
         Traiter les événements SignaturIT avec validation de sécurité

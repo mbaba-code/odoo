@@ -36,7 +36,7 @@ class ReservationsDashboardController(http.Controller):
         return user.company_ids or user.company_id
 
     # ==================== OCCUPANCY ANALYTICS ====================
-    @http.route('/onedesk/dashboard/reservations/occupancy-by-unit', type='json', auth='user')
+    @http.route('/onedesk/dashboard/reservations/occupancy-by-unit', type='jsonrpc', auth='user')
     def occupancy_by_unit(self, period_type='month', date_from=None, date_to=None, limit=15, **kwargs):
         """Top units by occupancy rate"""
         try:
@@ -91,7 +91,7 @@ class ReservationsDashboardController(http.Controller):
                 'message': str(e)
             }
 
-    @http.route('/onedesk/dashboard/reservations/status-distribution', type='json', auth='user')
+    @http.route('/onedesk/dashboard/reservations/status-distribution', type='jsonrpc', auth='user')
     def status_distribution(self, period_type='month', date_from=None, date_to=None, **kwargs):
         """Distribution of reservations by status"""
         try:
@@ -129,7 +129,7 @@ class ReservationsDashboardController(http.Controller):
                 'message': str(e)
             }
 
-    @http.route('/onedesk/dashboard/reservations/booking-trend', type='json', auth='user')
+    @http.route('/onedesk/dashboard/reservations/booking-trend', type='jsonrpc', auth='user')
     def booking_trend(self, period_type='month', date_from=None, date_to=None, **kwargs):
         """Reservation volume trend over time"""
         try:
@@ -170,7 +170,7 @@ class ReservationsDashboardController(http.Controller):
                 'message': str(e)
             }
 
-    @http.route('/onedesk/dashboard/reservations/cancellation-rate', type='json', auth='user')
+    @http.route('/onedesk/dashboard/reservations/cancellation-rate', type='jsonrpc', auth='user')
     def cancellation_rate(self, period_type='month', date_from=None, date_to=None, **kwargs):
         """Cancellation rate and comparison"""
         try:

@@ -7,7 +7,7 @@ from dateutil.relativedelta import relativedelta
 class OnedeskDashboardController(http.Controller):
     """Handle Dashboard API endpoints for charts and metrics"""
 
-    @http.route('/onedesk/dashboard/main/data', type='json', auth='user', methods=['POST'])
+    @http.route('/onedesk/dashboard/main/data', type='jsonrpc', auth='user', methods=['POST'])
     def get_main_dashboard_data(self):
         """
         Route principale: retourne toutes les données du Dashboard Principal en une seule requête
@@ -544,7 +544,7 @@ class OnedeskDashboardController(http.Controller):
             'period_length': period_length
         }
 
-    @http.route('/onedesk/dashboard/export/excel', type='json', auth='user', methods=['POST'])
+    @http.route('/onedesk/dashboard/export/excel', type='jsonrpc', auth='user', methods=['POST'])
     def export_dashboard_excel(self):
         """
         Exporter les données du dashboard en Excel
@@ -678,7 +678,7 @@ class OnedeskDashboardController(http.Controller):
                 'message': str(e)
             }
 
-    @http.route('/onedesk/dashboard/export/pdf', type='json', auth='user', methods=['POST'])
+    @http.route('/onedesk/dashboard/export/pdf', type='jsonrpc', auth='user', methods=['POST'])
     def export_dashboard_pdf(self):
         """
         Exporter le dashboard en PDF
@@ -831,7 +831,7 @@ class OnedeskDashboardController(http.Controller):
 
     # ==================== Dashboard Admin Master Routes ====================
 
-    @http.route('/onedesk/dashboard/admin/data', type='json', auth='user', methods=['POST'])
+    @http.route('/onedesk/dashboard/admin/data', type='jsonrpc', auth='user', methods=['POST'])
     def get_admin_dashboard_data(self):
         """
         Route Dashboard Admin Master: Vue globale multi-tenant
@@ -1005,7 +1005,7 @@ class OnedeskDashboardController(http.Controller):
             'counts': counts
         }
 
-    @http.route('/onedesk/dashboard/admin/export/excel', type='json', auth='user', methods=['POST'])
+    @http.route('/onedesk/dashboard/admin/export/excel', type='jsonrpc', auth='user', methods=['POST'])
     def export_admin_dashboard_excel(self):
         """Export Excel du Dashboard Admin Master"""
         try:
@@ -1092,7 +1092,7 @@ class OnedeskDashboardController(http.Controller):
                 'message': str(e)
             }
 
-    @http.route('/onedesk/dashboard/admin/export/pdf', type='json', auth='user', methods=['POST'])
+    @http.route('/onedesk/dashboard/admin/export/pdf', type='jsonrpc', auth='user', methods=['POST'])
     def export_admin_dashboard_pdf(self):
         """Export PDF du Dashboard Admin Master"""
         try:

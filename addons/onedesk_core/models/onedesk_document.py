@@ -1090,10 +1090,10 @@ class OnedeskDocumentRecipient(models.Model):
                 raise ValueError(f"Un signataire avec l'email {vals['email']} existe déjà!")
         return super().create(vals)
 
-    _sql_constraints = [
-        ('unique_email_company', 'unique(email, company_id)',
-         'L\'email doit être unique par company!')
-    ]
+    class Constraint(models.Constraint):
+        _constraint_name = 'unique_email_company'
+        _sql_definition = 'unique(email, company_id)'
+        _message = 'L\'email doit être unique par company!'
 
 
 # ========== MODÈLE TAGS/ÉTIQUETTES ==========
@@ -1115,10 +1115,10 @@ class OnedeskDocumentTag(models.Model):
                                     'tag_id', 'document_id',
                                     string='Documents')
 
-    _sql_constraints = [
-        ('unique_name_company', 'unique(name, company_id)',
-         'Le nom de l\'étiquette doit être unique par company!')
-    ]
+    class Constraint(models.Constraint):
+        _constraint_name = 'unique_name_company'
+        _sql_definition = 'unique(name, company_id)'
+        _message = 'Le nom de l\'étiquette doit être unique par company!'
 
     def name_get(self):
         """Afficher le tag avec un indicateur de couleur"""
