@@ -10,12 +10,6 @@ _logger = logging.getLogger(__name__)
 class ContactImporter(models.TransientModel):
     """
     Wizard pour importer des contacts de conciergeries depuis l'API Sirene (INSEE).
-
-    AVERTISSEMENT LEGAL:
-    - Utilise l'API publique Sirene de l'INSEE (données légales)
-    - Les données importées sont publiques (SIREN, raison sociale, adresse)
-    - Pour le marketing par email, vous DEVEZ respecter le RGPD
-    - Obtenez le consentement avant tout envoi marketing
     """
     _name = 'onedesk.contact.importer'
     _description = 'Importateur de Contacts Conciergeries'
@@ -69,33 +63,41 @@ class ContactImporter(models.TransientModel):
         self.import_count = 0
 
         try:
-            # API Sirene de l'INSEE (gratuite et publique)
-            base_url = "https://api.insee.fr/entreprises/sirene/V3/siret"
+            keyword = self.search_keyword.strip().replace('"', '')  # Nettoyage
+            if not keyword:
+                raise Exception("Le mot-clé de recherche ne peut pas être vide.")
 
-            # Construction de la requête
+            # Construction du paramètre q
+            q_parts = [f'denominationUniteLegale:{keyword}']
+
+            if self.department:
+                # On suppose que l'utilisateur met un code département ou code commune
+                q_parts.append(f"codeCommuneEtablissement:{self.department}")
+
+            #if self.active_only:
+               # q_parts.append('etatAdministratifEtablissement:A')
+
+            q_string = " AND ".join(q_parts)
+            _logger.info(f"Import de contacts - Recherche: {q_string}")
+
             params = {
-                'q': f'denominationUniteLegale:{self.search_keyword}*',
+                'q': q_parts,
                 'nombre': self.max_results,
             }
 
-            # Filtre par département si spécifié
-            if self.department:
-                params['q'] += f' AND codeCommuneEtablissement:{self.department}*'
-
-            # Filtre entreprises actives
-            if self.active_only:
-                params['q'] += ' AND etatAdministratifEtablissement:A'
-
-            _logger.info(f"Import de contacts - Recherche: {params['q']}")
-
-            # Appel API Sirene (utilise la clé configurée dans les paramètres système)
+            # Appel API
             response = self._call_api_sirene(params)
 
             if not response:
-                raise Exception("Impossible de contacter l'API Sirene. Configurez votre clé API.")
+                raise Exception("Impossible de contacter l'API Sirene. Vérifiez votre clé API.")
 
-            # Traitement des résultats
-            contacts_imported = self._process_sirene_results(response)
+            # Filtrage partiel côté Python
+            etablissements = [
+                e for e in response.get('etablissements', [])
+                if keyword.lower() in e.get('uniteLegale', {}).get('denominationUniteLegale', '').lower()
+            ]
+
+            contacts_imported = self._process_sirene_results(etablissements)
 
             self.import_count = contacts_imported
             self.state = 'done'
@@ -130,79 +132,42 @@ class ContactImporter(models.TransientModel):
     def _call_api_sirene(self, params):
         """
         Appelle l'API Sirene avec la clé API stockée dans les paramètres système.
-        Si aucune clé n'est configurée, retourne des données de démonstration.
         """
-        # Récupérer la clé API depuis les paramètres système Odoo (SÉCURISÉ)
         api_key = self.env['ir.config_parameter'].sudo().get_param('onedesk.sirene_api_key', default='')
 
-        if api_key:
-            # Nettoyer la clé API (enlever "Bearer" si l'utilisateur l'a inclus)
-            api_key = api_key.strip()
-            if api_key.lower().startswith('bearer '):
-                api_key = api_key[7:].strip()  # Enlever "Bearer " du début
-
-            # MODE PRODUCTION: Appel API réel
-            try:
-                _logger.info("Appel API Sirene avec clé authentifiée...")
-                _logger.info(f"Longueur clé API: {len(api_key)} caractères")
-
-                # URL CORRECTE de l'API Sirene (nouvelle URL officielle)
-                url = "https://api.insee.fr/api-sirene/3.11/siret"
-
-                _logger.info(f"URL API: {url}")
-                _logger.info(f"Paramètres: {params}")
-
-                # IMPORTANT: L'API Sirene utilise X-INSEE-Api-Key-Integration, PAS Authorization Bearer!
-                # Mode SIMPLE obligatoire (Backend-to-Backend ne fonctionne pas)
-                response = requests.get(
-                    url,
-                    params=params,
-                    headers={
-                        'Accept': 'application/json',
-                        'X-INSEE-Api-Key-Integration': api_key  # Header correct pour API Sirene Public
-                    },
-                    timeout=30
-                )
-
-                if response.status_code == 200:
-                    _logger.info(f"API Sirene: {response.json().get('header', {}).get('total', 0)} résultats trouvés")
-                    return response.json()
-                elif response.status_code == 401:
-                    _logger.error("API Sirene: Clé API invalide (401 Unauthorized)")
-                    raise Exception("Clé API Sirene invalide. Vérifiez votre clé dans Paramètres > Technique > Paramètres système")
-                elif response.status_code == 404:
-                    _logger.error(f"API Sirene: Endpoint non trouvé (404)")
-                    _logger.error(f"URL appelée: {url}")
-                    _logger.error(f"Paramètres: {params}")
-                    try:
-                        _logger.error(f"Réponse: {response.text}")
-                    except:
-                        pass
-                    raise Exception("Erreur API Sirene (404): L'endpoint n'existe pas. Vérifiez la version de l'API ou les paramètres de recherche.")
-                elif response.status_code == 429:
-                    _logger.error("API Sirene: Limite de requêtes atteinte (429 Too Many Requests)")
-                    raise Exception("Limite de requêtes API atteinte. Réessayez plus tard.")
-                else:
-                    _logger.error(f"API Sirene: Erreur HTTP {response.status_code}")
-                    try:
-                        _logger.error(f"Réponse: {response.text}")
-                    except:
-                        pass
-                    raise Exception(f"Erreur API Sirene: HTTP {response.status_code}")
-
-            except requests.exceptions.RequestException as e:
-                _logger.error(f"Erreur réseau API Sirene: {str(e)}")
-                raise Exception(f"Erreur de connexion à l'API Sirene: {str(e)}")
-        else:
-            # MODE DÉMO: Aucune clé API configurée
+        if not api_key:
             _logger.info("Mode DÉMO activé - Aucune clé API Sirene configurée")
-            _logger.info("Pour activer l'API réelle: Paramètres > Technique > Paramètres système > Créer 'onedesk.sirene_api_key'")
             return self._get_demo_data()
+
+        try:
+            _logger.info("Appel API Sirene avec clé authentifiée...")
+            response = requests.get(
+                "https://api.insee.fr/api-sirene/3.11/siret",
+                params=params,
+                headers={
+                    'Accept': 'application/json',
+                    'X-INSEE-Api-Key-Integration': api_key
+                },
+                timeout=30
+            )
+
+            if response.status_code == 200:
+                return response.json()
+            elif response.status_code == 400:
+                raise Exception("Erreur API Sirene: Syntaxe invalide dans le paramètre q")
+            elif response.status_code == 401:
+                raise Exception("Clé API Sirene invalide (401 Unauthorized)")
+            elif response.status_code == 429:
+                raise Exception("Limite de requêtes API atteinte (429 Too Many Requests)")
+            else:
+                raise Exception(f"Erreur API Sirene: HTTP {response.status_code}")
+
+        except requests.exceptions.RequestException as e:
+            raise Exception(f"Erreur de connexion à l'API Sirene: {str(e)}")
 
     def _get_demo_data(self):
         """
-        Retourne des données de démonstration.
-        À REMPLACER par l'API Sirene réelle en production.
+        Données de démonstration si aucune clé API n'est configurée.
         """
         return {
             'header': {'total': 3},
@@ -210,84 +175,38 @@ class ContactImporter(models.TransientModel):
                 {
                     'siret': '12345678901234',
                     'siren': '123456789',
-                    'uniteLegale': {
-                        'denominationUniteLegale': 'Conciergerie Premium Paris',
-                        'categorieJuridiqueUniteLegale': '5710'
-                    },
-                    'adresseEtablissement': {
-                        'numeroVoieEtablissement': '10',
-                        'typeVoieEtablissement': 'RUE',
-                        'libelleVoieEtablissement': 'DE LA PAIX',
-                        'codePostalEtablissement': '75001',
-                        'libelleCommuneEtablissement': 'PARIS'
-                    },
-                    'periodesEtablissement': [
-                        {
-                            'etatAdministratifEtablissement': 'A',
-                            'activitePrincipaleEtablissement': '96.09Z'
-                        }
-                    ]
+                    'uniteLegale': {'denominationUniteLegale': 'Conciergerie Premium Paris', 'categorieJuridiqueUniteLegale': '5710'},
+                    'adresseEtablissement': {'numeroVoieEtablissement': '10', 'typeVoieEtablissement': 'RUE', 'libelleVoieEtablissement': 'DE LA PAIX', 'codePostalEtablissement': '75001', 'libelleCommuneEtablissement': 'PARIS'},
+                    'periodesEtablissement': [{'etatAdministratifEtablissement': 'A', 'activitePrincipaleEtablissement': '96.09Z'}]
                 },
                 {
                     'siret': '98765432109876',
                     'siren': '987654321',
-                    'uniteLegale': {
-                        'denominationUniteLegale': 'Conciergerie Luxe Marseille',
-                        'categorieJuridiqueUniteLegale': '5710'
-                    },
-                    'adresseEtablissement': {
-                        'numeroVoieEtablissement': '25',
-                        'typeVoieEtablissement': 'AVENUE',
-                        'libelleVoieEtablissement': 'DU PRADO',
-                        'codePostalEtablissement': '13008',
-                        'libelleCommuneEtablissement': 'MARSEILLE'
-                    },
-                    'periodesEtablissement': [
-                        {
-                            'etatAdministratifEtablissement': 'A',
-                            'activitePrincipaleEtablissement': '96.09Z'
-                        }
-                    ]
+                    'uniteLegale': {'denominationUniteLegale': 'Conciergerie Luxe Marseille', 'categorieJuridiqueUniteLegale': '5710'},
+                    'adresseEtablissement': {'numeroVoieEtablissement': '25', 'typeVoieEtablissement': 'AVENUE', 'libelleVoieEtablissement': 'DU PRADO', 'codePostalEtablissement': '13008', 'libelleCommuneEtablissement': 'MARSEILLE'},
+                    'periodesEtablissement': [{'etatAdministratifEtablissement': 'A', 'activitePrincipaleEtablissement': '96.09Z'}]
                 },
                 {
                     'siret': '11122233344455',
                     'siren': '111222333',
-                    'uniteLegale': {
-                        'denominationUniteLegale': 'Conciergerie Services Lyon',
-                        'categorieJuridiqueUniteLegale': '5710'
-                    },
-                    'adresseEtablissement': {
-                        'numeroVoieEtablissement': '5',
-                        'typeVoieEtablissement': 'PLACE',
-                        'libelleVoieEtablissement': 'BELLECOUR',
-                        'codePostalEtablissement': '69002',
-                        'libelleCommuneEtablissement': 'LYON'
-                    },
-                    'periodesEtablissement': [
-                        {
-                            'etatAdministratifEtablissement': 'A',
-                            'activitePrincipaleEtablissement': '96.09Z'
-                        }
-                    ]
+                    'uniteLegale': {'denominationUniteLegale': 'Conciergerie Services Lyon', 'categorieJuridiqueUniteLegale': '5710'},
+                    'adresseEtablissement': {'numeroVoieEtablissement': '5', 'typeVoieEtablissement': 'PLACE', 'libelleVoieEtablissement': 'BELLECOUR', 'codePostalEtablissement': '69002', 'libelleCommuneEtablissement': 'LYON'},
+                    'periodesEtablissement': [{'etatAdministratifEtablissement': 'A', 'activitePrincipaleEtablissement': '96.09Z'}]
                 }
             ]
         }
 
-    def _process_sirene_results(self, response):
+    def _process_sirene_results(self, etablissements):
         """
-        Traite les résultats de l'API Sirene et crée les contacts dans Odoo.
+        Crée les contacts Odoo à partir des établissements récupérés.
         """
         Partner = self.env['res.partner']
         count = 0
 
-        etablissements = response.get('etablissements', [])
-
         for etab in etablissements:
             try:
-                # Extraction des données
                 siret = etab.get('siret', '')
                 siren = etab.get('siren', '')
-
                 unite_legale = etab.get('uniteLegale', {})
                 nom = unite_legale.get('denominationUniteLegale', 'Entreprise inconnue')
 
@@ -296,32 +215,28 @@ class ContactImporter(models.TransientModel):
                 code_postal = adresse.get('codePostalEtablissement', '')
                 ville = adresse.get('libelleCommuneEtablissement', '')
 
-                periode = etab.get('periodesEtablissement', [{}])[0]
+                periodes = etab.get('periodesEtablissement', [])
+                periode = periodes[0] if periodes else {}
                 activite = periode.get('activitePrincipaleEtablissement', '')
 
-                # Vérifier si le contact existe déjà (par SIRET)
                 existing = Partner.search([('ref', '=', siret)], limit=1)
-
                 if existing:
                     _logger.info(f"Contact existant ignoré: {nom} (SIRET: {siret})")
                     continue
 
-                # Création du contact
                 partner_vals = {
                     'name': nom,
-                    'ref': siret,  # SIRET comme référence
-                    'company_registry': siren,  # SIREN
+                    'ref': siret,
+                    'company_registry': siren,
                     'street': rue,
                     'zip': code_postal,
                     'city': ville,
-                    'country_id': self.env.ref('base.fr').id,  # France
-                    'company_id': self.env.company.id,  # Entreprise courante (multi-tenant)
+                    'country_id': self.env.ref('base.fr').id,
+                    'company_id': self.env.company.id,
                     'is_company': True,
-                    'comment': f'Importé depuis API Sirene\nActivité: {activite}\n\n'
-                               f'⚠️ RGPD: Vérifiez le consentement avant envoi marketing',
+                    'comment': f'Importé depuis API Sirene\nActivité: {activite}\n⚠️ RGPD: Vérifiez le consentement avant envoi marketing',
                 }
 
-                # Création
                 Partner.create(partner_vals)
                 count += 1
                 _logger.info(f"Contact créé: {nom} (SIRET: {siret})")
@@ -333,22 +248,28 @@ class ContactImporter(models.TransientModel):
         return count
 
     def _format_address(self, adresse):
-        """Formate l'adresse à partir des données Sirene."""
+        """
+        Formate correctement l'adresse complète depuis l'API Sirene.
+        """
         parts = []
+        numero = adresse.get('numeroVoieEtablissement', '')
+        type_voie = adresse.get('typeVoieEtablissement', '')
+        libelle = adresse.get('libelleVoieEtablissement', '')
 
-        if adresse.get('numeroVoieEtablissement'):
-            parts.append(adresse['numeroVoieEtablissement'])
-        if adresse.get('typeVoieEtablissement'):
-            parts.append(adresse['typeVoieEtablissement'].lower())
-        if adresse.get('libelleVoieEtablissement'):
-            parts.append(adresse['libelleVoieEtablissement'].title())
+        if numero:
+            parts.append(numero)
+        if type_voie:
+            parts.append(type_voie.lower())
+        if libelle:
+            parts.append(libelle.title())
 
-        return ' '.join(parts) if parts else ''
+        return ' '.join(parts).strip() if parts else ''
 
     def action_view_imported_contacts(self):
-        """Affiche les contacts importés."""
+        """
+        Ouvre la vue Odoo pour voir les contacts importés.
+        """
         self.ensure_one()
-
         return {
             'name': 'Contacts Importés',
             'type': 'ir.actions.act_window',
