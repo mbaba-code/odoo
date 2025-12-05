@@ -49,4 +49,12 @@
               groups="group_onedesk_support"
               action="action_onedesk_system_log"
               sequence="1"/>
+
+    <!-- Menu Contact Importer (Marketing) -->
+    <menuitem id="menu_contact_importer"
+              name="🚀 Import Conciergeries"
+              parent="onedesk_core.menu_onedesk_team"
+              action="onedesk_core.action_contact_importer"
+              sequence="20"/>
+
 </odoo>
