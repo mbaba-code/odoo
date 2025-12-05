@@ -24,7 +24,7 @@
                         <field name="signature_page" placeholder="-1 = dernière page"/>
                         <field name="signature_x" placeholder="0 = auto (droite)"/>
                         <field name="signature_y" placeholder="0 = auto (bas)"/>
-                        <div colspan="4" class="alert alert-info">
+                        <div colspan="4" class="alert alert-info" role="alert">
                             <strong>💡 Comment positionner la signature :</strong><br/>
                             • Page : -1 = dernière page, 0 = première page, 1 = deuxième page, etc.<br/>
                             • X et Y : Laisser à 0 pour position automatique (bas à droite)<br/>
