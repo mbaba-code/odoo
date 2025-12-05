@@ -30,7 +30,7 @@
     <menuitem id="menu_onedesk_root"
               name="OneDesk"
               sequence="10"
-              web_icon="base/static/img/icons/stock_icon.svg"/>
+              web_icon="onedesk_core,static/description/icon.png"/>
 
     <menuitem id="menu_onedesk_property"
               name="Properties"
