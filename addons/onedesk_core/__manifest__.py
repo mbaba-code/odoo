@@ -30,6 +30,7 @@
 
     # Actions and wizards (must load BEFORE views that reference them)
     'views/onedesk_image_wizard_views.xml',
+    'views/contact_importer_views.xml',
 
     # Autres vues
     # ⚠️ ORDRE IMPORTANT: seasonal_price AVANT unit car unit en dépend

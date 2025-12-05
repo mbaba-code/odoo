@@ -40,5 +40,5 @@ from . import onedesk_payment_retry
 # ← NOUVEAU : Availability Cache (Phase C2)
 from . import onedesk_availability_cache
 
-# ← NOUVEAU : Contact Importer
+# ← NOUVEAU : Contact Importer (API Sirene)
 from . import contact_importer

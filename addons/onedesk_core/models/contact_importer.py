@@ -147,19 +147,19 @@ class ContactImporter(models.TransientModel):
                 _logger.info(f"Longueur clé API: {len(api_key)} caractères")
 
                 # URL CORRECTE de l'API Sirene (nouvelle URL officielle)
-                # Ancienne: https://api.insee.fr/entreprises/sirene/V3.11/siret (DÉPRÉCIÉE)
-                # Nouvelle: https://api.insee.fr/api-sirene/3.11/siret (ACTUELLE)
                 url = "https://api.insee.fr/api-sirene/3.11/siret"
 
                 _logger.info(f"URL API: {url}")
                 _logger.info(f"Paramètres: {params}")
 
+                # IMPORTANT: L'API Sirene utilise X-INSEE-Api-Key-Integration, PAS Authorization Bearer!
+                # Mode SIMPLE obligatoire (Backend-to-Backend ne fonctionne pas)
                 response = requests.get(
                     url,
                     params=params,
                     headers={
                         'Accept': 'application/json',
-                        'Authorization': f'Bearer {api_key}'
+                        'X-INSEE-Api-Key-Integration': api_key  # Header correct pour API Sirene Public
                     },
                     timeout=30
                 )

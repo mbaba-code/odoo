@@ -12,14 +12,31 @@ Votre clé API est maintenant stockée dans les **paramètres système Odoo** au
 
 ---
 
+## ⚠️ IMPORTANT : Mode SIMPLE OBLIGATOIRE
+
+**L'API Sirene Public fonctionne uniquement en mode "SIMPLE"**
+
+- ✅ Mode SIMPLE = FONCTIONNE
+- ❌ Mode Backend-to-Backend = NE FONCTIONNE JAMAIS
+
+**Header d'authentification :**
+```
+X-INSEE-Api-Key-Integration: VOTRE_CLE_API
+```
+
+⚠️ **PAS** `Authorization: Bearer` (provoque erreur 401)
+
+---
+
 ## 📋 Configuration en 3 étapes
 
 ### **Étape 1 : Obtenir votre clé API gratuite**
 
-1. Allez sur https://api.insee.fr/catalogue/
+1. Allez sur https://portail-api.insee.fr/
 2. Créez un compte (gratuit)
-3. Abonnez-vous à l'API "Sirene V3"
-4. Copiez votre clé API (commence par "Bearer_...")
+3. Créez une application en mode **"SIMPLE"** (obligatoire!)
+4. Souscrivez au plan "Public" de l'API Sirene
+5. Copiez votre clé API (ex: `699b7729-261f-4f02-9b77-29261faf02a2`)
 
 ### **Étape 2 : Configurer dans Odoo**
 
