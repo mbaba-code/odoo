@@ -270,4 +270,265 @@ API Sirene: 127 résultats trouvés
               action="action_contact_importer"
               sequence="20"/>
 
+    <!-- ========================================== -->
+    <!-- VUES NATIVES ODOO - CONTACTS IMPORTÉS     -->
+    <!-- Support Studio complet pour personnalisation -->
+    <!-- ========================================== -->
+
+    <!-- Vue Tree (Liste) des contacts importés -->
+    <record id="view_imported_contacts_tree" model="ir.ui.view">
+        <field name="name">res.partner.imported.tree</field>
+        <field name="model">res.partner</field>
+        <field name="arch" type="xml">
+            <tree string="Contacts Conciergeries Importés"
+                  create="true"
+                  edit="true"
+                  delete="true"
+                  decoration-success="active == True"
+                  decoration-muted="active == False">
+                <field name="name" string="Nom Entreprise"/>
+                <field name="ref" string="SIRET" optional="show"/>
+                <field name="company_registry" string="SIREN" optional="show"/>
+                <field name="street" optional="hide"/>
+                <field name="zip" string="Code Postal" optional="show"/>
+                <field name="city" string="Ville" optional="show"/>
+                <field name="phone" optional="show"/>
+                <field name="email" optional="show"/>
+                <field name="active" optional="show"/>
+                <field name="create_date" string="Date Import" optional="show"/>
+                <field name="company_id" groups="base.group_multi_company" optional="hide"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- Vue Form (Formulaire) des contacts importés -->
+    <record id="view_imported_contacts_form" model="ir.ui.view">
+        <field name="name">res.partner.imported.form</field>
+        <field name="model">res.partner</field>
+        <field name="arch" type="xml">
+            <form string="Contact Conciergerie">
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="toggle_active" type="object" class="oe_stat_button" icon="fa-archive">
+                            <field name="active" widget="boolean_button" options='{"terminology": "archive"}'/>
+                        </button>
+                    </div>
+
+                    <field name="image_1920" widget="image" class="oe_avatar"/>
+
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" placeholder="Nom de l'entreprise"/>
+                        </h1>
+                        <field name="category_id" widget="many2many_tags"
+                               options="{'color_field': 'color', 'no_create_edit': True}"
+                               placeholder="Tags..."/>
+                    </div>
+
+                    <group>
+                        <group string="📋 Informations Légales">
+                            <field name="ref" string="SIRET"/>
+                            <field name="company_registry" string="SIREN"/>
+                            <field name="vat" string="TVA Intracommunautaire"/>
+                            <field name="is_company" invisible="1"/>
+                        </group>
+
+                        <group string="📍 Adresse">
+                            <field name="street" placeholder="Rue..."/>
+                            <field name="street2" placeholder="Complément d'adresse..."/>
+                            <div class="o_address_format">
+                                <field name="zip" placeholder="Code Postal" class="o_address_zip"/>
+                                <field name="city" placeholder="Ville" class="o_address_city"/>
+                            </div>
+                            <field name="state_id" placeholder="Département/Région" options="{'no_create': True}"/>
+                            <field name="country_id" placeholder="Pays" options="{'no_create': True}"/>
+                        </group>
+                    </group>
+
+                    <group>
+                        <group string="📞 Contact">
+                            <field name="phone" widget="phone" placeholder="+33 1 23 45 67 89"/>
+                            <field name="mobile" widget="phone" placeholder="+33 6 12 34 56 78"/>
+                            <field name="email" widget="email" placeholder="contact@example.com"/>
+                            <field name="website" widget="url" placeholder="https://www.example.com"/>
+                        </group>
+
+                        <group string="🏢 Organisation">
+                            <field name="company_id" groups="base.group_multi_company" options="{'no_create': True}"/>
+                            <field name="user_id" string="Commercial"/>
+                            <field name="parent_id" string="Entreprise Mère" domain="[('is_company', '=', True)]"/>
+                        </group>
+                    </group>
+
+                    <notebook>
+                        <page string="📝 Notes &amp; Commentaires" name="internal_notes">
+                            <field name="comment" placeholder="Notes internes sur ce contact...&#10;&#10;⚠️ RGPD: Vérifiez le consentement avant envoi marketing"/>
+                        </page>
+
+                        <page string="📊 Ventes &amp; Achats" name="sales">
+                            <group>
+                                <group string="Ventes">
+                                    <field name="customer_rank" invisible="1"/>
+                                </group>
+                                <group string="Achats">
+                                    <field name="supplier_rank" invisible="1"/>
+                                </group>
+                            </group>
+                        </page>
+
+                        <page string="📧 Marketing" name="marketing">
+                            <group>
+                                <group string="Consentement Marketing (RGPD)">
+                                    <label for="comment" string="⚠️ Important"/>
+                                    <div class="alert alert-warning">
+                                        <p>Avant tout envoi marketing :</p>
+                                        <ul>
+                                            <li>✅ Obtenez le consentement explicite</li>
+                                            <li>✅ Documentez la date et la méthode de consentement</li>
+                                            <li>✅ Incluez toujours un lien de désinscription</li>
+                                        </ul>
+                                    </div>
+                                </group>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+
+                <div class="oe_chatter">
+                    <field name="message_follower_ids"/>
+                    <field name="activity_ids"/>
+                    <field name="message_ids"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <!-- Vue Search (Recherche) avec filtres intelligents -->
+    <record id="view_imported_contacts_search" model="ir.ui.view">
+        <field name="name">res.partner.imported.search</field>
+        <field name="model">res.partner</field>
+        <field name="arch" type="xml">
+            <search string="Rechercher Conciergeries">
+                <!-- Champs de recherche -->
+                <field name="name" string="Nom" filter_domain="[('name', 'ilike', self)]"/>
+                <field name="ref" string="SIRET" filter_domain="[('ref', 'ilike', self)]"/>
+                <field name="company_registry" string="SIREN" filter_domain="[('company_registry', 'ilike', self)]"/>
+                <field name="city" string="Ville"/>
+                <field name="zip" string="Code Postal"/>
+                <field name="email"/>
+                <field name="phone"/>
+
+                <!-- Filtres prédéfinis -->
+                <filter string="📧 Avec Email" name="filter_has_email" domain="[('email', '!=', False)]"/>
+                <filter string="📞 Avec Téléphone" name="filter_has_phone" domain="['|', ('phone', '!=', False), ('mobile', '!=', False)]"/>
+                <filter string="✅ Actifs" name="filter_active" domain="[('active', '=', True)]"/>
+                <filter string="🗄️ Archivés" name="filter_inactive" domain="[('active', '=', False)]"/>
+
+                <separator/>
+                <filter string="🏢 Entreprises" name="filter_companies" domain="[('is_company', '=', True)]"/>
+
+                <separator/>
+                <filter string="📅 Importés cette semaine" name="filter_this_week"
+                        domain="[('create_date', '&gt;=', (context_today() - datetime.timedelta(days=7)).strftime('%Y-%m-%d'))]"/>
+                <filter string="📅 Importés ce mois" name="filter_this_month"
+                        domain="[('create_date', '&gt;=', (context_today().replace(day=1)).strftime('%Y-%m-%d'))]"/>
+
+                <!-- Groupements -->
+                <group expand="0" string="Grouper Par">
+                    <filter string="Ville" name="group_city" context="{'group_by': 'city'}"/>
+                    <filter string="Code Postal" name="group_zip" context="{'group_by': 'zip'}"/>
+                    <filter string="Pays" name="group_country" context="{'group_by': 'country_id'}"/>
+                    <filter string="Date Import" name="group_create_date" context="{'group_by': 'create_date'}"/>
+                    <filter string="Commercial" name="group_user" context="{'group_by': 'user_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Vue Kanban pour visualisation rapide -->
+    <record id="view_imported_contacts_kanban" model="ir.ui.view">
+        <field name="name">res.partner.imported.kanban</field>
+        <field name="model">res.partner</field>
+        <field name="arch" type="xml">
+            <kanban class="o_res_partner_kanban">
+                <field name="id"/>
+                <field name="name"/>
+                <field name="city"/>
+                <field name="country_id"/>
+                <field name="email"/>
+                <field name="phone"/>
+                <field name="mobile"/>
+                <field name="image_1920"/>
+                <field name="active"/>
+
+                <templates>
+                    <t t-name="kanban-box">
+                        <div class="oe_kanban_global_click o_kanban_record_has_image_fill">
+                            <div class="o_kanban_image_fill_left d-none d-md-block"
+                                 t-attf-style="background-image: url('#{kanban_image('res.partner', 'image_1920', record.id.raw_value)}')">
+                                <img class="o_kanban_image_inner_pic"
+                                     t-att-alt="record.name.value"
+                                     t-att-src="kanban_image('res.partner', 'image_1920', record.id.raw_value)"/>
+                            </div>
+
+                            <div class="oe_kanban_details">
+                                <strong class="o_kanban_record_title">
+                                    <field name="name"/>
+                                </strong>
+
+                                <ul>
+                                    <li t-if="record.city.raw_value and record.country_id.raw_value">
+                                        <i class="fa fa-map-marker"/>
+                                        <field name="city"/> (<field name="country_id"/>)
+                                    </li>
+                                    <li t-if="record.email.raw_value">
+                                        <i class="fa fa-envelope"/>
+                                        <a t-att-href="'mailto:' + record.email.raw_value">
+                                            <field name="email"/>
+                                        </a>
+                                    </li>
+                                    <li t-if="record.phone.raw_value">
+                                        <i class="fa fa-phone"/>
+                                        <field name="phone"/>
+                                    </li>
+                                    <li t-if="!record.phone.raw_value and record.mobile.raw_value">
+                                        <i class="fa fa-mobile"/>
+                                        <field name="mobile"/>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- Action pour voir les contacts importés (avec toutes les vues natives) -->
+    <record id="action_view_imported_contacts" model="ir.actions.act_window">
+        <field name="name">Contacts Conciergeries</field>
+        <field name="res_model">res.partner</field>
+        <field name="view_mode">kanban,tree,form</field>
+        <field name="domain">[('is_company', '=', True), ('comment', 'ilike', 'Importé depuis API Sirene')]</field>
+        <field name="context">{
+            'default_is_company': True,
+            'search_default_filter_active': 1
+        }</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Aucun contact importé pour le moment
+            </p>
+            <p>
+                Utilisez le bouton <b>"🚀 Import Conciergeries"</b> dans le menu pour importer des contacts depuis l'API Sirene.
+            </p>
+        </field>
+    </record>
+
+    <!-- Menu pour voir tous les contacts importés -->
+    <menuitem id="menu_view_imported_contacts"
+              name="📋 Contacts Importés"
+              parent="menu_onedesk_team"
+              action="action_view_imported_contacts"
+              sequence="21"/>
+
 </odoo>
