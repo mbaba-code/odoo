@@ -26,6 +26,11 @@ class ContactImporter(models.TransientModel):
         help='Code département (ex: 75 pour Paris, 13 pour Marseille). Laissez vide pour toute la France.'
     )
 
+    naf_code = fields.Char(
+        string='Code NAF',
+        help='Code NAF pour filtrer par activité (ex: 81.21Z pour nettoyage, 96.09Z pour services). Laissez vide si non utilisé.'
+    )
+
     max_results = fields.Integer(
         string='Nombre maximum de résultats',
         default=100,
@@ -73,6 +78,11 @@ class ContactImporter(models.TransientModel):
             if self.department:
                 # On suppose que l'utilisateur met un code département ou code commune
                 q_parts.append(f"codeCommuneEtablissement:{self.department}")
+
+            if self.naf_code:
+                # Code NAF pour filtrer par activité principale
+                naf_clean = self.naf_code.strip().replace('.', '')  # Enlever le point si présent
+                q_parts.append(f"activitePrincipaleUniteLegale:{naf_clean}")
 
             #if self.active_only:
                # q_parts.append('etatAdministratifEtablissement:A')

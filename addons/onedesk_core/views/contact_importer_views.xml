@@ -39,6 +39,7 @@
                         <group string="🔍 Critères de Recherche">
                             <field name="search_keyword" placeholder="Ex: conciergerie, gestion locative..."/>
                             <field name="department" placeholder="Ex: 75 (Paris), 13 (Marseille)..."/>
+                            <field name="naf_code" placeholder="Ex: 81.21Z (nettoyage), 96.09Z (services)..."/>
                             <field name="max_results"/>
                             <field name="active_only"/>
                         </group>
@@ -111,6 +112,7 @@
                                 <ul>
                                     <li><strong>Mot-clé :</strong> Entrez "conciergerie", "gestion locative", "property management", etc.</li>
                                     <li><strong>Département :</strong> Filtrez par département (75=Paris, 13=Marseille, etc.) ou laissez vide pour toute la France</li>
+                                    <li><strong>Code NAF :</strong> Filtrez par activité principale (ex: 81.21Z pour nettoyage, 96.09Z pour services personnels, 68.20A pour location immobilière). Laissez vide si non utilisé.</li>
                                     <li><strong>Max résultats :</strong> Limitez le nombre d'imports (100 par défaut)</li>
                                     <li><strong>Actives uniquement :</strong> Importez seulement les entreprises en activité</li>
                                 </ul>
