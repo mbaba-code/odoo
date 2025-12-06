@@ -95,7 +95,7 @@ class ContactImporter(models.TransientModel):
             _logger.info(f"Import de contacts - Recherche: {q_string}")
 
             params = {
-                'q': q_parts,
+                'q': q_string,
                 'nombre': self.max_results,
             }
 
