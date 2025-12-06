@@ -14,7 +14,7 @@
 
 /* ==================== DASHBOARD HEADER ==================== */
 .dashboard-header {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #5B9BD5 0%, #8FA0B3 100%);
     color: white;
     padding: 2.5rem;
     border-radius: 12px;
@@ -94,33 +94,33 @@
     left: 0;
     right: 0;
     height: 4px;
-    background: linear-gradient(90deg, #667eea, #764ba2);
+    background: linear-gradient(90deg, #5B9BD5, #8FA0B3);
 }
 
 .kpi-card:hover {
     transform: translateY(-4px);
     box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
-    border-color: #667eea;
+    border-color: #5B9BD5;
 }
 
 .kpi-card.kpi-properties::before {
-    background: linear-gradient(90deg, #28a745, #20c997);
+    background: linear-gradient(90deg, #70AD47, #70AD47);
 }
 
 .kpi-card.kpi-units::before {
-    background: linear-gradient(90deg, #17a2b8, #00d4ff);
+    background: linear-gradient(90deg, #5B9BD5, #5B9BD5);
 }
 
 .kpi-card.kpi-revenue::before {
-    background: linear-gradient(90deg, #ffc107, #ff9800);
+    background: linear-gradient(90deg, #E89A6A, #E89A6A);
 }
 
 .kpi-card.kpi-occupancy::before {
-    background: linear-gradient(90deg, #667eea, #764ba2);
+    background: linear-gradient(90deg, #5B9BD5, #8FA0B3);
 }
 
 .kpi-card.kpi-reservations::before {
-    background: linear-gradient(90deg, #e83e8c, #fd7e14);
+    background: linear-gradient(90deg, #C98DB8, #E89A6A);
 }
 
 .kpi-value {
@@ -134,7 +134,7 @@
 .kpi-value.currency,
 .kpi-value.percent {
     font-family: 'Courier New', monospace;
-    color: #667eea;
+    color: #5B9BD5;
 }
 
 .kpi-label {
@@ -165,7 +165,7 @@
     margin-bottom: 2rem;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
     border: 1px solid #e8eaed;
-    border-left: 5px solid #667eea;
+    border-left: 5px solid #5B9BD5;
     transition: all 0.3s ease;
 }
 
@@ -174,23 +174,23 @@
 }
 
 .revenue-section {
-    border-left-color: #ffc107;
+    border-left-color: #E89A6A;
 }
 
 .properties-section {
-    border-left-color: #28a745;
+    border-left-color: #70AD47;
 }
 
 .units-section {
-    border-left-color: #17a2b8;
+    border-left-color: #5B9BD5;
 }
 
 .reservations-section {
-    border-left-color: #e83e8c;
+    border-left-color: #C98DB8;
 }
 
 .tasks-section {
-    border-left-color: #dc3545;
+    border-left-color: #E07A7A;
 }
 
 .section-title {
@@ -205,7 +205,7 @@
 
 /* ==================== CHARTS SECTION ==================== */
 .charts-section {
-    border-left-color: #667eea !important;
+    border-left-color: #5B9BD5 !important;
 }
 
 .charts-section #revenue-chart-container,
@@ -224,7 +224,7 @@
 /* Dashboard Update Time */
 .dashboard-update-time {
     font-weight: bold;
-    color: #667eea;
+    color: #5B9BD5;
 }
 
 /* Metric Cards */
@@ -256,7 +256,7 @@
 .metric-value {
     font-size: 1.8rem;
     font-weight: bold;
-    color: #667eea;
+    color: #5B9BD5;
     transition: opacity 0.3s ease;
 }
 
@@ -277,22 +277,22 @@
 }
 
 .badge-info {
-    background-color: #d1ecf1;
-    color: #0c5460;
+    background-color: #E8F2F8;
+    color: #506075;
 }
 
 .badge-success {
-    background-color: #d4edda;
-    color: #155724;
+    background-color: #E8F5E9;
+    color: #506075;
 }
 
 .badge-warning {
-    background-color: #fff3cd;
-    color: #856404;
+    background-color: #FFF4E6;
+    color: #506075;
 }
 
 .badge-danger {
-    background-color: #f8d7da;
+    background-color: #FCE8E8;
     color: #721c24;
 }
 
@@ -320,7 +320,7 @@
 .kpi-value {
     font-size: 2.5rem;
     font-weight: bold;
-    color: #667eea;
+    color: #5B9BD5;
     margin: 0.5rem 0;
 }
 
@@ -353,26 +353,26 @@
 }
 
 .alert-info {
-    background-color: #d1ecf1;
+    background-color: #E8F2F8;
     border: 1px solid #bee5eb;
-    color: #0c5460;
+    color: #506075;
 }
 
 .alert-warning {
-    background-color: #fff3cd;
+    background-color: #FFF4E6;
     border: 1px solid #ffeeba;
-    color: #856404;
+    color: #506075;
 }
 
 .alert-danger {
-    background-color: #f8d7da;
+    background-color: #FCE8E8;
     border: 1px solid #f5c6cb;
     color: #721c24;
 }
 
 /* Refresh Button */
 .btn-refresh {
-    background-color: #667eea;
+    background-color: #5B9BD5;
     color: white;
     border: none;
     padding: 0.5rem 1rem;
@@ -383,7 +383,7 @@
 }
 
 .btn-refresh:hover {
-    background-color: #764ba2;
+    background-color: #8FA0B3;
     box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
 }
 
@@ -452,7 +452,7 @@
 /* Loading spinner */
 .spinner {
     border: 4px solid #f3f3f3;
-    border-top: 4px solid #667eea;
+    border-top: 4px solid #5B9BD5;
     border-radius: 50%;
     width: 24px;
     height: 24px;
@@ -479,15 +479,15 @@
 }
 
 .status-indicator.active {
-    background-color: #28a745;
+    background-color: #70AD47;
 }
 
 .status-indicator.inactive {
-    background-color: #dc3545;
+    background-color: #E07A7A;
 }
 
 .status-indicator.pending {
-    background-color: #ffc107;
+    background-color: #E89A6A;
 }
 
 /* Footer */
@@ -615,13 +615,13 @@
 }
 
 .onedesk-dashboard-main::-webkit-scrollbar-thumb {
-    background: linear-gradient(180deg, #1e40af 0%, #3b82f6 100%);
+    background: linear-gradient(180deg, #5B9BD5 0%, #5B9BD5 100%);
     border-radius: 10px;
     border: 2px solid #f1f5f9;
 }
 
 .onedesk-dashboard-main::-webkit-scrollbar-thumb:hover {
-    background: linear-gradient(180deg, #1e3a8a 0%, #2563eb 100%);
+    background: linear-gradient(180deg, #506075 0%, #5B9BD5 100%);
 }
 
 /* Dashboard Main Container */
@@ -640,7 +640,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background: linear-gradient(135deg, #1e40af 0%, #6366f1 100%);
+    background: linear-gradient(135deg, #5B9BD5 0%, #8FA0B3 100%);
     padding: 2rem;
     border-radius: 12px;
     margin-bottom: 2rem;
@@ -694,7 +694,7 @@
     border-radius: 12px;
     padding: 1.5rem;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    border-left: 4px solid #1e40af;
+    border-left: 4px solid #5B9BD5;
     transition: all 0.3s ease;
     display: flex;
     align-items: center;
@@ -708,15 +708,15 @@
 }
 
 .kpi-card.kpi-properties {
-    border-left-color: #1e40af;
+    border-left-color: #5B9BD5;
 }
 
 .kpi-card.kpi-units {
-    border-left-color: #0891b2;
+    border-left-color: #5B9BD5;
 }
 
 .kpi-card.kpi-revenue {
-    border-left-color: #059669;
+    border-left-color: #70AD47;
 }
 
 .kpi-card.kpi-occupancy {
@@ -724,7 +724,7 @@
 }
 
 .kpi-card.kpi-reservations {
-    border-left-color: #17a2b8;
+    border-left-color: #5B9BD5;
 }
 
 .kpi-icon {
@@ -733,15 +733,15 @@
 }
 
 .kpi-properties .kpi-icon {
-    color: #1e40af;
+    color: #5B9BD5;
 }
 
 .kpi-units .kpi-icon {
-    color: #0891b2;
+    color: #5B9BD5;
 }
 
 .kpi-revenue .kpi-icon {
-    color: #059669;
+    color: #70AD47;
 }
 
 .kpi-occupancy .kpi-icon {
@@ -765,7 +765,7 @@
 }
 
 .kpi-value.currency {
-    color: #059669;
+    color: #70AD47;
 }
 
 .kpi-value.percent {
@@ -815,7 +815,7 @@
 
 .chart-card-header h5 i {
     margin-right: 0.5rem;
-    color: #667eea;
+    color: #5B9BD5;
 }
 
 .chart-card-body {
@@ -858,7 +858,7 @@
 
 .auto-refresh-status i {
     margin-right: 0.5rem;
-    color: #28a745;
+    color: #70AD47;
 }
 
 /* Responsive Design pour ApexCharts */
