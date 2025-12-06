@@ -17,8 +17,7 @@ class ContactImporter(models.TransientModel):
     search_keyword = fields.Char(
         string='Mot-clé de recherche',
         default='conciergerie',
-        required=True,
-        help='Mot-clé pour filtrer les entreprises (ex: conciergerie, gestion locative, etc.)'
+        help='Mot-clé pour filtrer les entreprises (ex: conciergerie, gestion locative, etc.). Optionnel si code NAF spécifié.'
     )
 
     department = fields.Char(
@@ -68,12 +67,17 @@ class ContactImporter(models.TransientModel):
         self.import_count = 0
 
         try:
-            keyword = self.search_keyword.strip().replace('"', '')  # Nettoyage
-            if not keyword:
-                raise Exception("Le mot-clé de recherche ne peut pas être vide.")
-
             # Construction du paramètre q
-            q_parts = [f'denominationUniteLegale:{keyword}']
+            q_parts = []
+
+            # Mot-clé (optionnel si NAF spécifié)
+            keyword = self.search_keyword.strip().replace('"', '') if self.search_keyword else ''
+            if keyword:
+                q_parts.append(f'denominationUniteLegale:{keyword}')
+
+            # Au moins un critère requis (keyword OU NAF)
+            if not keyword and not self.naf_code:
+                raise Exception("Veuillez spécifier au moins un mot-clé OU un code NAF.")
 
             if self.department:
                 # On suppose que l'utilisateur met un code département ou code commune
@@ -101,11 +105,13 @@ class ContactImporter(models.TransientModel):
             if not response:
                 raise Exception("Impossible de contacter l'API Sirene. Vérifiez votre clé API.")
 
-            # Filtrage partiel côté Python
-            etablissements = [
-                e for e in response.get('etablissements', [])
-                if keyword.lower() in e.get('uniteLegale', {}).get('denominationUniteLegale', '').lower()
-            ]
+            # Filtrage partiel côté Python (uniquement si keyword spécifié)
+            etablissements = response.get('etablissements', [])
+            if keyword:
+                etablissements = [
+                    e for e in etablissements
+                    if keyword.lower() in e.get('uniteLegale', {}).get('denominationUniteLegale', '').lower()
+                ]
 
             contacts_imported = self._process_sirene_results(etablissements)
 

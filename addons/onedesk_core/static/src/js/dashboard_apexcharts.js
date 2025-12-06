@@ -113,7 +113,7 @@ export class OneDeskDashboard extends Component {
                     speed: 800
                 }
             },
-            colors: ["#008FFB", "#00E396"],
+            colors: ["#5B9BD5", "#70AD47"],
             dataLabels: {
                 enabled: false
             },
@@ -184,7 +184,7 @@ export class OneDeskDashboard extends Component {
                     show: true
                 }
             },
-            colors: ["#00E396", "#FEB019", "#008FFB", "#FF4560"],
+            colors: ["#70AD47", "#E89A6A", "#5B9BD5", "#E07A7A"],
             plotOptions: {
                 bar: {
                     horizontal: false,
@@ -200,7 +200,7 @@ export class OneDeskDashboard extends Component {
                 offsetY: -20,
                 style: {
                     fontSize: "12px",
-                    colors: ["#304758"]
+                    colors: ["#506075"]
                 }
             },
             xaxis: {
@@ -267,7 +267,7 @@ export class OneDeskDashboard extends Component {
                     }
                 }
             },
-            colors: [occupancyRate < 60 ? "#FF4560" : occupancyRate < 80 ? "#FEB019" : "#00E396"],
+            colors: [occupancyRate < 60 ? "#E07A7A" : occupancyRate < 80 ? "#E89A6A" : "#70AD47"],
             labels: ["Taux d'Occupation"],
             fill: {
                 type: "gradient",
@@ -300,7 +300,7 @@ export class OneDeskDashboard extends Component {
                 height: 350
             },
             labels: data.cities || [],
-            colors: ["#008FFB", "#00E396", "#FEB019", "#FF4560", "#775DD0"],
+            colors: ["#5B9BD5", "#70AD47", "#E89A6A", "#E07A7A", "#9B8FC9"],
             legend: {
                 position: "bottom"
             },

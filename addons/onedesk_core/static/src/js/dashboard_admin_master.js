@@ -122,7 +122,7 @@ class DashboardAdminMaster extends Component {
                 offsetY: -20,
                 style: {
                     fontSize: '11px',
-                    colors: ["#304758"]
+                    colors: ["#506075"]
                 }
             },
             xaxis: {
@@ -143,7 +143,7 @@ class DashboardAdminMaster extends Component {
                     }
                 }
             },
-            colors: ['#1e40af'],
+            colors: ['#5B9BD5'],
             title: {
                 text: 'Revenus par Company',
                 align: 'center',
@@ -181,7 +181,7 @@ class DashboardAdminMaster extends Component {
                 height: 300
             },
             labels: data.labels || [],
-            colors: ['#059669', '#dc2626'],
+            colors: ['#70AD47', '#E07A7A'],
             legend: {
                 position: 'bottom'
             },
@@ -275,7 +275,7 @@ class DashboardAdminMaster extends Component {
                     }
                 }
             },
-            colors: ['#3b82f6', '#94a3b8'],
+            colors: ['#5B9BD5', '#8FA0B3'],
             fill: {
                 type: 'gradient',
                 gradient: {
@@ -347,7 +347,7 @@ class DashboardAdminMaster extends Component {
                 offsetX: 30,
                 style: {
                     fontSize: '12px',
-                    colors: ['#304758']
+                    colors: ['#506075']
                 }
             },
             xaxis: {
@@ -358,7 +358,7 @@ class DashboardAdminMaster extends Component {
                     text: 'Nombre de Réservations'
                 }
             },
-            colors: ['#0891b2'],
+            colors: ['#5B9BD5'],
             title: {
                 text: 'Réservations Actives par Company',
                 align: 'center',
