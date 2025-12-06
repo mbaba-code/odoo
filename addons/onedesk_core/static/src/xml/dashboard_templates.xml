@@ -11,14 +11,14 @@
                         <p style="color: white;">Vue d'ensemble complète de votre activité</p>
                     </div>
                     <div class="dashboard-actions">
-                        <button class="btn btn-primary" t-on-click="refreshDashboard" title="Rafraîchir">
+                        <button class="btn" style="background-color: #5B9BD5; color: white; border: none;" t-on-click="refreshDashboard" title="Rafraîchir">
                             <i class="fa fa-sync"/> Actualiser
                         </button>
                         <div class="btn-group" role="group">
-                            <button class="btn btn-success" t-on-click="exportToExcel" title="Export Excel">
+                            <button class="btn" style="background-color: #70AD47; color: white; border: none;" t-on-click="exportToExcel" title="Export Excel">
                                 <i class="fa fa-file-excel"/> Excel
                             </button>
-                            <button class="btn btn-danger" t-on-click="exportToPDF" title="Export PDF">
+                            <button class="btn" style="background-color: #E07A7A; color: white; border: none;" t-on-click="exportToPDF" title="Export PDF">
                                 <i class="fa fa-file-pdf"/> PDF
                             </button>
                         </div>
@@ -58,7 +58,7 @@
                                     </div>
                                     <div class="kpi-label">Propriétés</div>
                                     <div class="kpi-subtext">
-                                        <span class="badge bg-success">
+                                        <span class="badge" style="background-color: #70AD47; color: white;">
                                             <t t-esc="state.data.kpis?.active_properties || 0"/> actives
                                         </span>
                                     </div>
@@ -77,7 +77,7 @@
                                     </div>
                                     <div class="kpi-label">Unités</div>
                                     <div class="kpi-subtext">
-                                        <span class="badge bg-info">
+                                        <span class="badge" style="background-color: #5B9BD5; color: white;">
                                             <t t-esc="state.data.kpis?.available_units || 0"/> disponibles
                                         </span>
                                     </div>
@@ -217,7 +217,7 @@
     <t t-name="onedesk_core.DashboardAdminMaster" owl="1">
         <div class="onedesk-dashboard-main onedesk-dashboard-admin">
             <!-- Header avec boutons d'action -->
-            <div class="dashboard-header" style="background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);">
+            <div class="dashboard-header" style="background: linear-gradient(135deg, #5B9BD5 0%, #8FA0B3 100%);">
                 <div class="dashboard-header-content">
                     <div class="dashboard-title">
                         <h1><i class="fa fa-crown"/> Dashboard Admin Master</h1>
@@ -228,10 +228,10 @@
                             <i class="fa fa-sync"/> Actualiser
                         </button>
                         <div class="btn-group" role="group">
-                            <button class="btn btn-success" t-on-click="exportToExcel" title="Export Excel">
+                            <button class="btn" style="background-color: #70AD47; color: white; border: none;" t-on-click="exportToExcel" title="Export Excel">
                                 <i class="fa fa-file-excel"/> Excel
                             </button>
-                            <button class="btn btn-danger" t-on-click="exportToPDF" title="Export PDF">
+                            <button class="btn" style="background-color: #E07A7A; color: white; border: none;" t-on-click="exportToPDF" title="Export PDF">
                                 <i class="fa fa-file-pdf"/> PDF
                             </button>
                         </div>
@@ -262,7 +262,7 @@
                     <div class="row g-3">
                         <!-- Total Companies -->
                         <div class="col-md-3">
-                            <div class="kpi-card" style="border-left-color: #7c3aed;">
+                            <div class="kpi-card" style="border-left-color: #9B8FC9;">
                                 <div class="kpi-icon">
                                     <i class="fa fa-building"/>
                                 </div>
@@ -272,7 +272,7 @@
                                     </div>
                                     <div class="kpi-label">Companies</div>
                                     <div class="kpi-subtext">
-                                        <span class="badge bg-success">
+                                        <span class="badge" style="background-color: #70AD47; color: white;">
                                             <t t-esc="state.data.kpis?.active_companies || 0"/> actives
                                         </span>
                                     </div>
@@ -282,7 +282,7 @@
 
                         <!-- Revenu Total Global -->
                         <div class="col-md-3">
-                            <div class="kpi-card" style="border-left-color: #059669;">
+                            <div class="kpi-card" style="border-left-color: #70AD47;">
                                 <div class="kpi-icon">
                                     <i class="fa fa-euro-sign"/>
                                 </div>
@@ -298,7 +298,7 @@
 
                         <!-- Total Propriétés -->
                         <div class="col-md-2">
-                            <div class="kpi-card" style="border-left-color: #1e40af;">
+                            <div class="kpi-card" style="border-left-color: #5B9BD5;">
                                 <div class="kpi-icon">
                                     <i class="fa fa-home"/>
                                 </div>
@@ -314,7 +314,7 @@
 
                         <!-- Total Unités -->
                         <div class="col-md-2">
-                            <div class="kpi-card" style="border-left-color: #0891b2;">
+                            <div class="kpi-card" style="border-left-color: #5B9BD5;">
                                 <div class="kpi-icon">
                                     <i class="fa fa-door-open"/>
                                 </div>
@@ -330,7 +330,7 @@
 
                         <!-- Réservations Actives -->
                         <div class="col-md-2">
-                            <div class="kpi-card" style="border-left-color: #d97706;">
+                            <div class="kpi-card" style="border-left-color: #E89A6A;">
                                 <div class="kpi-icon">
                                     <i class="fa fa-calendar-check"/>
                                 </div>
