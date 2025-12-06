@@ -269,7 +269,7 @@ API Sirene: 127 résultats trouvés
     <record id="action_imported_contacts_list" model="ir.actions.act_window">
         <field name="name">📋 Contacts Importés (Conciergeries)</field>
         <field name="res_model">res.partner</field>
-        <field name="view_mode">tree,form</field>
+        <field name="view_mode">list,form</field>
         <field name="domain">[('ref', 'ilike', 'SIRET:')]</field>
         <field name="context">{'default_is_company': True}</field>
         <field name="help" type="html">
