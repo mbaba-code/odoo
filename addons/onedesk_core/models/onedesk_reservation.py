@@ -304,6 +304,21 @@ class OneDeskReservation(models.Model):
                     message_type='comment'
                 )
 
+            # ========== CREATE AUTOMATIC TASKS (Check-in + Ménage) ==========
+            # Crée automatiquement les tâches liées à la réservation
+            try:
+                tasks = self.env['onedesk.task'].create_task_from_reservation(reservation)
+                task_names = ', '.join([t.name for t in tasks])
+                reservation.message_post(
+                    body=f"✅ Tâches créées automatiquement: {task_names}",
+                    message_type='comment'
+                )
+            except Exception as e:
+                reservation.message_post(
+                    body=f"⚠️ Erreur création tâches automatiques: {str(e)}",
+                    message_type='comment'
+                )
+
         return reservations
 
     def _copy_images_from_unit(self):
