@@ -30,6 +30,13 @@ class OneDeskWebsite(http.Controller):
 
     # ==================== PAGES PUBLIQUES ====================
 
+    @http.route('/onedesk', type='http', auth='public', website=True)
+    def landing_page(self, **kw):
+        """Page d'accueil OneDesk - Landing page professionnelle"""
+        return request.render('website_onedesk.landing_page', {
+            'page_title': 'OneDesk - Gestion de Propriétés et Conciergeries',
+        })
+
     @http.route('/onedesk/properties', type='http', auth='public', website=True)
     def properties_list(self, **kw):
         """Page de listing de toutes les propriétés"""

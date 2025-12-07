@@ -10,6 +10,7 @@
         'onedesk_core',
     ],
     'data': [
+        'templates/landing.xml',
         'templates/pages.xml',
         'templates/subscription.xml',
         'templates/payment.xml',
