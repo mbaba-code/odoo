@@ -413,7 +413,7 @@
                             <div class="col-md-3 col-6">
                                 <div class="stat-item">
                                     <div class="stat-number">100%</div>
-                                    <div class="stat-label">Cloud & Sécurisé</div>
+                                    <div class="stat-label">Cloud &amp; Sécurisé</div>
                                 </div>
                             </div>
                             <div class="col-md-3 col-6">
@@ -425,7 +425,7 @@
                             <div class="col-md-3 col-6">
                                 <div class="stat-item">
                                     <div class="stat-number">∞</div>
-                                    <div class="stat-label">Propriétés & Unités</div>
+                                    <div class="stat-label">Propriétés &amp; Unités</div>
                                 </div>
                             </div>
                         </div>
@@ -461,7 +461,7 @@
                                     <div class="feature-icon" style="background: linear-gradient(135deg, var(--success-green), #90C870);">
                                         🏠
                                     </div>
-                                    <h3>Unités & Chambres</h3>
+                                    <h3>Unités &amp; Chambres</h3>
                                     <p>
                                         Organisez vos appartements, chambres et studios. Tarification dynamique,
                                         disponibilité en temps réel, et gestion des équipements spécifiques.
@@ -532,7 +532,7 @@
                 <section class="onedesk-dashboard-preview">
                     <div class="container">
                         <div class="section-title">
-                            <h2>📊 Dashboard Puissant & Intuitif</h2>
+                            <h2>📊 Dashboard Puissant &amp; Intuitif</h2>
                             <p>Visualisez toutes vos données en un coup d'œil</p>
                         </div>
 
@@ -630,7 +630,7 @@
                                         <li>✅ Tout illimité</li>
                                         <li>✅ Dashboard Master Admin</li>
                                         <li>✅ Multi-tenant</li>
-                                        <li>✅ API & Intégrations</li>
+                                        <li>✅ API &amp; Intégrations</li>
                                         <li>✅ Support dédié 24/7</li>
                                     </ul>
                                     <a href="/onedesk/subscription?plan=enterprise" class="btn-pricing">
