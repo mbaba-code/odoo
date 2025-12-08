@@ -1,671 +1,1094 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <!-- Landing Page OneDesk - Page d'accueil professionnelle -->
+    <!-- Landing Page OneDesk - Style PayFit moderne -->
     <template id="landing_page" name="OneDesk Landing Page">
         <t t-call="website.layout">
             <div id="wrap" class="oe_structure oe_empty">
-                <!-- CSS Personnalisé -->
+                <!-- CSS Moderne -->
                 <style>
-                    /* Palette de couleurs professionnelle douce */
+                    /* Reset et variables */
                     :root {
                         --primary-blue: #5B9BD5;
-                        --secondary-slate: #8FA0B3;
-                        --success-green: #70AD47;
-                        --accent-orange: #E89A6A;
-                        --accent-red: #E07A7A;
-                        --accent-purple: #9B8FC9;
-                        --accent-pink: #C98DB8;
-                        --light-bg: #F8F9FA;
-                        --dark-text: #2C3E50;
+                        --primary-dark: #4A7DB0;
+                        --text-dark: #1a1a1a;
+                        --text-gray: #666;
+                        --text-light: #999;
+                        --bg-light: #f8f9fa;
+                        --bg-lighter: #ffffff;
+                        --border-light: #e5e5e5;
+                        --success: #70AD47;
+                        --shadow-sm: 0 2px 8px rgba(0,0,0,0.08);
+                        --shadow-md: 0 4px 20px rgba(0,0,0,0.12);
+                        --shadow-lg: 0 8px 30px rgba(0,0,0,0.15);
                     }
 
-                    /* Hero Section */
-                    .onedesk-hero {
-                        background: linear-gradient(135deg, var(--primary-blue) 0%, var(--secondary-slate) 100%);
-                        color: white;
-                        padding: 100px 0 80px;
-                        text-align: center;
-                        position: relative;
-                        overflow: hidden;
+                    * {
+                        box-sizing: border-box;
                     }
 
-                    .onedesk-hero::before {
-                        content: '';
-                        position: absolute;
-                        top: 0;
-                        left: 0;
-                        right: 0;
-                        bottom: 0;
-                        background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120"><path fill="%23ffffff" fill-opacity="0.1" d="M0,96L48,80C96,64,192,32,288,32C384,32,480,64,576,69.3C672,75,768,53,864,42.7C960,32,1056,32,1152,42.7L1200,48L1200,120L1152,120C1056,120,960,120,864,120C768,120,672,120,576,120C480,120,384,120,288,120C192,120,96,120,48,120L0,120Z"></path></svg>');
-                        background-size: cover;
-                        background-position: bottom;
-                    }
-
-                    .onedesk-hero h1 {
-                        font-size: 3.5rem;
-                        font-weight: 700;
-                        margin-bottom: 1.5rem;
-                        animation: fadeInDown 1s ease-out;
-                    }
-
-                    .onedesk-hero p.lead {
-                        font-size: 1.5rem;
-                        margin-bottom: 2rem;
-                        opacity: 0.95;
-                        animation: fadeInUp 1s ease-out 0.2s both;
-                    }
-
-                    .onedesk-hero .cta-buttons {
-                        animation: fadeInUp 1s ease-out 0.4s both;
-                    }
-
-                    .btn-hero-primary {
-                        background: white;
-                        color: var(--primary-blue);
-                        padding: 15px 40px;
-                        font-size: 1.2rem;
-                        font-weight: 600;
-                        border-radius: 50px;
-                        border: none;
-                        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-                        transition: all 0.3s ease;
-                        text-decoration: none;
-                        display: inline-block;
-                        margin: 10px;
-                    }
-
-                    .btn-hero-primary:hover {
-                        transform: translateY(-3px);
-                        box-shadow: 0 6px 20px rgba(0,0,0,0.3);
-                        color: var(--primary-blue);
-                    }
-
-                    .btn-hero-secondary {
-                        background: transparent;
-                        color: white;
-                        padding: 15px 40px;
-                        font-size: 1.2rem;
-                        font-weight: 600;
-                        border-radius: 50px;
-                        border: 2px solid white;
-                        transition: all 0.3s ease;
-                        text-decoration: none;
-                        display: inline-block;
-                        margin: 10px;
-                    }
-
-                    .btn-hero-secondary:hover {
-                        background: white;
-                        color: var(--primary-blue);
-                        transform: translateY(-3px);
-                    }
-
-                    /* Animations */
-                    @keyframes fadeInDown {
-                        from {
-                            opacity: 0;
-                            transform: translateY(-30px);
-                        }
-                        to {
-                            opacity: 1;
-                            transform: translateY(0);
-                        }
-                    }
-
-                    @keyframes fadeInUp {
-                        from {
-                            opacity: 0;
-                            transform: translateY(30px);
-                        }
-                        to {
-                            opacity: 1;
-                            transform: translateY(0);
-                        }
-                    }
-
-                    @keyframes fadeIn {
-                        from { opacity: 0; }
-                        to { opacity: 1; }
-                    }
-
-                    /* Features Section */
-                    .onedesk-features {
-                        padding: 80px 0;
-                        background: var(--light-bg);
-                    }
-
-                    .section-title {
-                        text-align: center;
-                        margin-bottom: 60px;
-                    }
-
-                    .section-title h2 {
-                        font-size: 2.5rem;
-                        color: var(--dark-text);
-                        margin-bottom: 1rem;
-                        font-weight: 700;
-                    }
-
-                    .section-title p {
-                        font-size: 1.2rem;
-                        color: #6c757d;
-                    }
-
-                    .feature-card {
-                        background: white;
-                        border-radius: 15px;
-                        padding: 30px;
-                        margin-bottom: 30px;
-                        box-shadow: 0 5px 15px rgba(0,0,0,0.08);
-                        transition: all 0.3s ease;
-                        height: 100%;
-                    }
-
-                    .feature-card:hover {
-                        transform: translateY(-10px);
-                        box-shadow: 0 10px 30px rgba(0,0,0,0.15);
-                    }
-
-                    .feature-icon {
-                        width: 70px;
-                        height: 70px;
-                        border-radius: 15px;
-                        display: flex;
-                        align-items: center;
-                        justify-content: center;
-                        margin-bottom: 20px;
-                        font-size: 2rem;
-                    }
-
-                    .feature-card h3 {
-                        font-size: 1.5rem;
-                        margin-bottom: 15px;
-                        color: var(--dark-text);
-                        font-weight: 600;
-                    }
-
-                    .feature-card p {
-                        color: #6c757d;
+                    body {
+                        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+                        color: var(--text-dark);
                         line-height: 1.6;
                     }
 
-                    /* Dashboard Preview */
-                    .onedesk-dashboard-preview {
-                        padding: 80px 0;
-                        background: white;
+                    /* Hero Section - Style PayFit */
+                    .hero-modern {
+                        background: linear-gradient(180deg, #ffffff 0%, #f8f9fa 100%);
+                        padding: 80px 0 100px;
+                        overflow: hidden;
                     }
 
-                    .dashboard-mockup {
-                        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-                        border-radius: 20px;
-                        padding: 40px;
-                        box-shadow: 0 20px 60px rgba(0,0,0,0.15);
-                        margin-top: 30px;
+                    .hero-content {
+                        display: flex;
+                        align-items: center;
+                        gap: 60px;
                     }
 
-                    .dashboard-header-mock {
-                        background: linear-gradient(135deg, var(--primary-blue) 0%, var(--secondary-slate) 100%);
-                        border-radius: 10px;
-                        padding: 20px;
+                    .hero-text {
+                        flex: 1;
+                        max-width: 600px;
+                    }
+
+                    .hero-text h1 {
+                        font-size: 3.5rem;
+                        font-weight: 700;
+                        line-height: 1.2;
+                        margin-bottom: 24px;
+                        color: var(--text-dark);
+                    }
+
+                    .hero-text .subtitle {
+                        font-size: 1.25rem;
+                        color: var(--text-gray);
+                        margin-bottom: 32px;
+                        line-height: 1.6;
+                    }
+
+                    .hero-cta {
+                        display: flex;
+                        gap: 16px;
+                        align-items: center;
+                    }
+
+                    .btn-primary-modern {
+                        background: var(--primary-blue);
                         color: white;
+                        padding: 14px 32px;
+                        border-radius: 8px;
+                        font-weight: 600;
+                        font-size: 1rem;
+                        border: none;
+                        cursor: pointer;
+                        transition: all 0.2s;
+                        text-decoration: none;
+                        display: inline-block;
+                    }
+
+                    .btn-primary-modern:hover {
+                        background: var(--primary-dark);
+                        transform: translateY(-2px);
+                        box-shadow: var(--shadow-md);
+                        color: white;
+                    }
+
+                    .btn-secondary-modern {
+                        background: transparent;
+                        color: var(--text-dark);
+                        padding: 14px 32px;
+                        border-radius: 8px;
+                        font-weight: 600;
+                        font-size: 1rem;
+                        border: 2px solid var(--border-light);
+                        cursor: pointer;
+                        transition: all 0.2s;
+                        text-decoration: none;
+                        display: inline-block;
+                    }
+
+                    .btn-secondary-modern:hover {
+                        border-color: var(--primary-blue);
+                        color: var(--primary-blue);
+                    }
+
+                    /* Screenshot mockup */
+                    .hero-screenshot {
+                        flex: 1;
+                        position: relative;
+                    }
+
+                    .screenshot-container {
+                        background: white;
+                        border-radius: 12px;
+                        box-shadow: var(--shadow-lg);
+                        overflow: hidden;
+                        border: 1px solid var(--border-light);
+                    }
+
+                    .screenshot-header {
+                        background: linear-gradient(135deg, var(--primary-blue), #8FA0B3);
+                        padding: 16px 20px;
+                        display: flex;
+                        align-items: center;
+                        gap: 8px;
+                    }
+
+                    .screenshot-dot {
+                        width: 10px;
+                        height: 10px;
+                        border-radius: 50%;
+                        background: rgba(255,255,255,0.3);
+                    }
+
+                    .screenshot-body {
+                        padding: 24px;
+                        background: #f5f7fa;
+                    }
+
+                    .kpi-grid-mock {
+                        display: grid;
+                        grid-template-columns: repeat(2, 1fr);
+                        gap: 16px;
                         margin-bottom: 20px;
                     }
 
-                    .kpi-grid {
-                        display: grid;
-                        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-                        gap: 15px;
-                        margin-top: 20px;
-                    }
-
-                    .kpi-mock {
+                    .kpi-card-mock {
                         background: white;
-                        border-radius: 10px;
                         padding: 20px;
-                        border-left: 4px solid var(--success-green);
+                        border-radius: 8px;
+                        border-left: 4px solid var(--primary-blue);
                     }
 
-                    .kpi-mock.blue { border-left-color: var(--primary-blue); }
-                    .kpi-mock.orange { border-left-color: var(--accent-orange); }
-                    .kpi-mock.purple { border-left-color: var(--accent-purple); }
+                    .kpi-card-mock.green { border-left-color: var(--success); }
+                    .kpi-card-mock.orange { border-left-color: #E89A6A; }
+                    .kpi-card-mock.purple { border-left-color: #9B8FC9; }
 
-                    .kpi-mock h4 {
-                        font-size: 0.9rem;
-                        color: #6c757d;
-                        margin-bottom: 10px;
+                    .kpi-label {
+                        font-size: 0.85rem;
+                        color: var(--text-gray);
+                        margin-bottom: 8px;
                     }
 
-                    .kpi-mock .value {
+                    .kpi-value {
                         font-size: 2rem;
                         font-weight: 700;
-                        color: var(--dark-text);
+                        color: var(--text-dark);
                     }
 
-                    /* Pricing Preview */
-                    .onedesk-pricing-preview {
-                        padding: 80px 0;
-                        background: var(--light-bg);
-                    }
-
-                    .pricing-card-preview {
+                    .chart-mock {
                         background: white;
-                        border-radius: 15px;
-                        padding: 40px 30px;
+                        border-radius: 8px;
+                        padding: 20px;
+                        height: 200px;
+                        display: flex;
+                        align-items: flex-end;
+                        gap: 12px;
+                    }
+
+                    .bar-mock {
+                        flex: 1;
+                        background: linear-gradient(180deg, var(--primary-blue), #8FA0B3);
+                        border-radius: 4px 4px 0 0;
+                        transition: all 0.3s;
+                    }
+
+                    .bar-mock:hover {
+                        opacity: 0.8;
+                    }
+
+                    /* Section Social Proof */
+                    .social-proof {
+                        background: white;
+                        padding: 60px 0;
+                        border-top: 1px solid var(--border-light);
+                        border-bottom: 1px solid var(--border-light);
+                    }
+
+                    .social-proof h3 {
                         text-align: center;
-                        box-shadow: 0 5px 15px rgba(0,0,0,0.08);
-                        transition: all 0.3s ease;
-                        height: 100%;
+                        font-size: 0.9rem;
+                        text-transform: uppercase;
+                        letter-spacing: 1px;
+                        color: var(--text-light);
+                        margin-bottom: 40px;
+                        font-weight: 600;
                     }
 
-                    .pricing-card-preview:hover {
-                        transform: translateY(-10px);
-                        box-shadow: 0 15px 40px rgba(0,0,0,0.15);
+                    .logos-grid {
+                        display: grid;
+                        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+                        gap: 40px;
+                        align-items: center;
+                        opacity: 0.6;
                     }
 
-                    .pricing-card-preview.featured {
-                        border: 3px solid var(--primary-blue);
+                    .logo-item {
+                        text-align: center;
+                        font-weight: 700;
+                        font-size: 1.2rem;
+                        color: var(--text-gray);
+                    }
+
+                    /* Features avec screenshots alternés */
+                    .feature-section {
+                        padding: 100px 0;
+                    }
+
+                    .feature-section:nth-child(even) {
+                        background: var(--bg-light);
+                    }
+
+                    .feature-row {
+                        display: flex;
+                        align-items: center;
+                        gap: 80px;
+                        margin-bottom: 40px;
+                    }
+
+                    .feature-row.reverse {
+                        flex-direction: row-reverse;
+                    }
+
+                    .feature-text {
+                        flex: 1;
+                    }
+
+                    .feature-tag {
+                        display: inline-block;
+                        background: #E8F4FD;
+                        color: var(--primary-blue);
+                        padding: 6px 16px;
+                        border-radius: 20px;
+                        font-size: 0.85rem;
+                        font-weight: 600;
+                        margin-bottom: 16px;
+                    }
+
+                    .feature-text h2 {
+                        font-size: 2.5rem;
+                        font-weight: 700;
+                        margin-bottom: 20px;
+                        color: var(--text-dark);
+                    }
+
+                    .feature-text p {
+                        font-size: 1.1rem;
+                        color: var(--text-gray);
+                        line-height: 1.7;
+                        margin-bottom: 24px;
+                    }
+
+                    .feature-list {
+                        list-style: none;
+                        padding: 0;
+                        margin: 24px 0;
+                    }
+
+                    .feature-list li {
+                        padding: 12px 0;
+                        display: flex;
+                        align-items: center;
+                        gap: 12px;
+                        font-size: 1.05rem;
+                        color: var(--text-gray);
+                    }
+
+                    .feature-list li::before {
+                        content: '✓';
+                        color: var(--success);
+                        font-weight: 700;
+                        font-size: 1.2rem;
+                    }
+
+                    .feature-visual {
+                        flex: 1;
+                    }
+
+                    /* Screenshot variants */
+                    .screenshot-calendar {
+                        background: white;
+                        border-radius: 12px;
+                        box-shadow: var(--shadow-lg);
+                        padding: 24px;
+                        border: 1px solid var(--border-light);
+                    }
+
+                    .calendar-header {
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: center;
+                        margin-bottom: 20px;
+                        padding-bottom: 16px;
+                        border-bottom: 2px solid var(--border-light);
+                    }
+
+                    .calendar-title {
+                        font-size: 1.3rem;
+                        font-weight: 700;
+                        color: var(--text-dark);
+                    }
+
+                    .calendar-grid {
+                        display: grid;
+                        grid-template-columns: repeat(7, 1fr);
+                        gap: 8px;
+                    }
+
+                    .calendar-day {
+                        aspect-ratio: 1;
+                        border: 1px solid var(--border-light);
+                        border-radius: 6px;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        font-size: 0.9rem;
+                        transition: all 0.2s;
+                    }
+
+                    .calendar-day:hover {
+                        border-color: var(--primary-blue);
+                        background: #E8F4FD;
+                    }
+
+                    .calendar-day.booked {
+                        background: var(--primary-blue);
+                        color: white;
+                        border-color: var(--primary-blue);
+                    }
+
+                    .calendar-day.available {
+                        background: #E8F8F0;
+                        border-color: var(--success);
+                    }
+
+                    /* Task board mockup */
+                    .task-board {
+                        background: white;
+                        border-radius: 12px;
+                        box-shadow: var(--shadow-lg);
+                        padding: 24px;
+                        border: 1px solid var(--border-light);
+                    }
+
+                    .task-columns {
+                        display: grid;
+                        grid-template-columns: repeat(3, 1fr);
+                        gap: 16px;
+                    }
+
+                    .task-column {
+                        background: var(--bg-light);
+                        border-radius: 8px;
+                        padding: 16px;
+                    }
+
+                    .task-column-title {
+                        font-weight: 700;
+                        font-size: 0.9rem;
+                        color: var(--text-gray);
+                        margin-bottom: 12px;
+                        text-transform: uppercase;
+                        letter-spacing: 0.5px;
+                    }
+
+                    .task-card {
+                        background: white;
+                        padding: 12px;
+                        border-radius: 6px;
+                        margin-bottom: 8px;
+                        border-left: 3px solid var(--primary-blue);
+                        box-shadow: var(--shadow-sm);
+                        font-size: 0.9rem;
+                    }
+
+                    .task-card.high { border-left-color: #E07A7A; }
+                    .task-card.medium { border-left-color: #E89A6A; }
+
+                    /* Testimonials */
+                    .testimonials {
+                        background: var(--bg-light);
+                        padding: 100px 0;
+                    }
+
+                    .section-header {
+                        text-align: center;
+                        max-width: 700px;
+                        margin: 0 auto 60px;
+                    }
+
+                    .section-header h2 {
+                        font-size: 2.5rem;
+                        font-weight: 700;
+                        margin-bottom: 16px;
+                        color: var(--text-dark);
+                    }
+
+                    .section-header p {
+                        font-size: 1.2rem;
+                        color: var(--text-gray);
+                    }
+
+                    .testimonials-grid {
+                        display: grid;
+                        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+                        gap: 32px;
+                    }
+
+                    .testimonial-card {
+                        background: white;
+                        padding: 32px;
+                        border-radius: 12px;
+                        box-shadow: var(--shadow-sm);
+                        transition: all 0.3s;
+                    }
+
+                    .testimonial-card:hover {
+                        transform: translateY(-4px);
+                        box-shadow: var(--shadow-md);
+                    }
+
+                    .testimonial-text {
+                        font-size: 1.05rem;
+                        line-height: 1.7;
+                        color: var(--text-gray);
+                        margin-bottom: 24px;
+                        font-style: italic;
+                    }
+
+                    .testimonial-author {
+                        display: flex;
+                        align-items: center;
+                        gap: 16px;
+                    }
+
+                    .author-avatar {
+                        width: 50px;
+                        height: 50px;
+                        border-radius: 50%;
+                        background: linear-gradient(135deg, var(--primary-blue), #8FA0B3);
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        color: white;
+                        font-weight: 700;
+                        font-size: 1.2rem;
+                    }
+
+                    .author-info h4 {
+                        font-weight: 700;
+                        margin: 0;
+                        color: var(--text-dark);
+                    }
+
+                    .author-info p {
+                        margin: 0;
+                        font-size: 0.9rem;
+                        color: var(--text-light);
+                    }
+
+                    /* Pricing moderne */
+                    .pricing-section {
+                        padding: 100px 0;
+                        background: white;
+                    }
+
+                    .pricing-grid {
+                        display: grid;
+                        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+                        gap: 32px;
+                        max-width: 1200px;
+                        margin: 0 auto;
+                    }
+
+                    .pricing-card {
+                        background: white;
+                        border: 2px solid var(--border-light);
+                        border-radius: 16px;
+                        padding: 40px 32px;
+                        transition: all 0.3s;
+                    }
+
+                    .pricing-card:hover {
+                        border-color: var(--primary-blue);
+                        box-shadow: var(--shadow-lg);
+                        transform: translateY(-4px);
+                    }
+
+                    .pricing-card.featured {
+                        border-color: var(--primary-blue);
+                        border-width: 3px;
                         position: relative;
                     }
 
                     .pricing-badge {
-                        background: var(--success-green);
+                        position: absolute;
+                        top: -12px;
+                        left: 50%;
+                        transform: translateX(-50%);
+                        background: var(--success);
                         color: white;
-                        padding: 5px 20px;
+                        padding: 6px 20px;
                         border-radius: 20px;
-                        font-size: 0.9rem;
+                        font-size: 0.85rem;
                         font-weight: 600;
-                        display: inline-block;
-                        margin-bottom: 15px;
                     }
 
-                    .pricing-card-preview h3 {
-                        font-size: 1.8rem;
-                        color: var(--dark-text);
-                        margin-bottom: 15px;
+                    .pricing-header h3 {
+                        font-size: 1.5rem;
+                        font-weight: 700;
+                        margin-bottom: 8px;
                     }
 
-                    .price {
+                    .pricing-price {
                         font-size: 3rem;
                         font-weight: 700;
-                        color: var(--primary-blue);
+                        color: var(--text-dark);
                         margin: 20px 0;
                     }
 
-                    .price small {
+                    .pricing-price span {
                         font-size: 1.2rem;
-                        color: #6c757d;
+                        color: var(--text-gray);
+                        font-weight: 400;
                     }
 
                     .pricing-features {
-                        text-align: left;
-                        margin: 30px 0;
+                        list-style: none;
+                        padding: 0;
+                        margin: 32px 0;
                     }
 
                     .pricing-features li {
-                        padding: 10px 0;
-                        border-bottom: 1px solid #f0f0f0;
+                        padding: 12px 0;
+                        border-bottom: 1px solid var(--border-light);
+                        display: flex;
+                        align-items: center;
+                        gap: 12px;
                     }
 
-                    .btn-pricing {
-                        background: var(--primary-blue);
-                        color: white;
-                        padding: 12px 40px;
-                        border-radius: 50px;
-                        border: none;
-                        font-weight: 600;
-                        transition: all 0.3s ease;
-                        text-decoration: none;
-                        display: inline-block;
-                        margin-top: 20px;
-                    }
-
-                    .btn-pricing:hover {
-                        background: var(--secondary-slate);
-                        transform: scale(1.05);
-                        color: white;
-                    }
-
-                    /* CTA Section */
-                    .onedesk-cta {
-                        padding: 80px 0;
-                        background: linear-gradient(135deg, var(--primary-blue) 0%, var(--secondary-slate) 100%);
-                        color: white;
-                        text-align: center;
-                    }
-
-                    .onedesk-cta h2 {
-                        font-size: 2.5rem;
-                        margin-bottom: 20px;
+                    .pricing-features li::before {
+                        content: '✓';
+                        color: var(--success);
                         font-weight: 700;
                     }
 
-                    .onedesk-cta p {
+                    /* CTA final */
+                    .cta-final {
+                        background: linear-gradient(135deg, var(--primary-blue), #8FA0B3);
+                        color: white;
+                        padding: 100px 0;
+                        text-align: center;
+                    }
+
+                    .cta-final h2 {
+                        font-size: 3rem;
+                        font-weight: 700;
+                        margin-bottom: 20px;
+                    }
+
+                    .cta-final p {
                         font-size: 1.3rem;
-                        margin-bottom: 30px;
+                        margin-bottom: 40px;
                         opacity: 0.95;
                     }
 
-                    /* Responsive */
-                    @media (max-width: 768px) {
-                        .onedesk-hero h1 { font-size: 2.5rem; }
-                        .onedesk-hero p.lead { font-size: 1.2rem; }
-                        .btn-hero-primary, .btn-hero-secondary {
-                            padding: 12px 30px;
-                            font-size: 1rem;
-                        }
-                        .section-title h2 { font-size: 2rem; }
-                        .kpi-grid { grid-template-columns: 1fr; }
-                    }
-
-                    /* Stats Section */
-                    .onedesk-stats {
-                        padding: 60px 0;
+                    .btn-cta-white {
                         background: white;
-                    }
-
-                    .stat-item {
-                        text-align: center;
-                        padding: 20px;
-                    }
-
-                    .stat-number {
-                        font-size: 3rem;
-                        font-weight: 700;
                         color: var(--primary-blue);
-                        margin-bottom: 10px;
+                        padding: 16px 40px;
+                        border-radius: 8px;
+                        font-weight: 600;
+                        font-size: 1.1rem;
+                        border: none;
+                        cursor: pointer;
+                        transition: all 0.2s;
+                        text-decoration: none;
+                        display: inline-block;
                     }
 
-                    .stat-label {
-                        font-size: 1.1rem;
-                        color: #6c757d;
+                    .btn-cta-white:hover {
+                        transform: translateY(-2px);
+                        box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+                        color: var(--primary-blue);
+                    }
+
+                    /* Responsive */
+                    @media (max-width: 992px) {
+                        .hero-content {
+                            flex-direction: column;
+                            gap: 40px;
+                        }
+
+                        .feature-row,
+                        .feature-row.reverse {
+                            flex-direction: column;
+                            gap: 40px;
+                        }
+
+                        .hero-text h1 {
+                            font-size: 2.5rem;
+                        }
+
+                        .feature-text h2 {
+                            font-size: 2rem;
+                        }
+
+                        .task-columns {
+                            grid-template-columns: 1fr;
+                        }
+
+                        .calendar-grid {
+                            grid-template-columns: repeat(7, 1fr);
+                            gap: 4px;
+                        }
+                    }
+
+                    @media (max-width: 576px) {
+                        .hero-text h1 {
+                            font-size: 2rem;
+                        }
+
+                        .hero-cta {
+                            flex-direction: column;
+                            width: 100%;
+                        }
+
+                        .btn-primary-modern,
+                        .btn-secondary-modern {
+                            width: 100%;
+                            text-align: center;
+                        }
+
+                        .kpi-grid-mock {
+                            grid-template-columns: 1fr;
+                        }
+
+                        .cta-final h2 {
+                            font-size: 2rem;
+                        }
                     }
                 </style>
 
-                <!-- Hero Section -->
-                <section class="onedesk-hero">
+                <!-- Hero Section Moderne -->
+                <section class="hero-modern">
                     <div class="container">
-                        <h1>🏢 OneDesk</h1>
-                        <p class="lead">
-                            La plateforme tout-en-un pour gérer vos propriétés,<br/>
-                            conciergeries et locations courte durée
-                        </p>
-                        <div class="cta-buttons">
-                            <a href="/onedesk/subscription" class="btn-hero-primary">
-                                🚀 Démarrer Gratuitement
-                            </a>
-                            <a href="#features" class="btn-hero-secondary">
-                                📖 Découvrir les Fonctionnalités
-                            </a>
-                        </div>
-                    </div>
-                </section>
+                        <div class="hero-content">
+                            <div class="hero-text">
+                                <h1>Gérez vos propriétés comme un pro</h1>
+                                <p class="subtitle">
+                                    OneDesk simplifie la gestion de vos locations courte durée.
+                                    Réservations, tâches automatiques, et analytics en temps réel.
+                                </p>
+                                <div class="hero-cta">
+                                    <a href="/onedesk/subscription" class="btn-primary-modern">
+                                        Démarrer gratuitement
+                                    </a>
+                                    <a href="#demo" class="btn-secondary-modern">
+                                        Voir une démo
+                                    </a>
+                                </div>
+                                <p style="margin-top: 20px; color: var(--text-light); font-size: 0.9rem;">
+                                    ✓ Aucune carte bancaire requise · ✓ Installation en 5 min
+                                </p>
+                            </div>
 
-                <!-- Stats Section -->
-                <section class="onedesk-stats">
-                    <div class="container">
-                        <div class="row">
-                            <div class="col-md-3 col-6">
-                                <div class="stat-item">
-                                    <div class="stat-number">6</div>
-                                    <div class="stat-label">Modules Intégrés</div>
-                                </div>
-                            </div>
-                            <div class="col-md-3 col-6">
-                                <div class="stat-item">
-                                    <div class="stat-number">100%</div>
-                                    <div class="stat-label">Cloud &amp; Sécurisé</div>
-                                </div>
-                            </div>
-                            <div class="col-md-3 col-6">
-                                <div class="stat-item">
-                                    <div class="stat-number">24/7</div>
-                                    <div class="stat-label">Accès Illimité</div>
-                                </div>
-                            </div>
-                            <div class="col-md-3 col-6">
-                                <div class="stat-item">
-                                    <div class="stat-number">∞</div>
-                                    <div class="stat-label">Propriétés &amp; Unités</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-
-                <!-- Features Section -->
-                <section class="onedesk-features" id="features">
-                    <div class="container">
-                        <div class="section-title">
-                            <h2>✨ Fonctionnalités Complètes</h2>
-                            <p>Tout ce dont vous avez besoin pour gérer vos locations comme un pro</p>
-                        </div>
-
-                        <div class="row">
-                            <!-- Feature 1: Properties -->
-                            <div class="col-lg-4 col-md-6">
-                                <div class="feature-card">
-                                    <div class="feature-icon" style="background: linear-gradient(135deg, var(--primary-blue), var(--secondary-slate));">
-                                        🏢
+                            <div class="hero-screenshot">
+                                <div class="screenshot-container">
+                                    <div class="screenshot-header">
+                                        <div class="screenshot-dot"></div>
+                                        <div class="screenshot-dot"></div>
+                                        <div class="screenshot-dot"></div>
                                     </div>
-                                    <h3>Gestion de Propriétés</h3>
-                                    <p>
-                                        Gérez tous vos biens immobiliers en un seul endroit. Adresses,
-                                        photos, équipements, documents - tout est centralisé et accessible.
-                                    </p>
-                                </div>
-                            </div>
-
-                            <!-- Feature 2: Units -->
-                            <div class="col-lg-4 col-md-6">
-                                <div class="feature-card">
-                                    <div class="feature-icon" style="background: linear-gradient(135deg, var(--success-green), #90C870);">
-                                        🏠
+                                    <div class="screenshot-body">
+                                        <div class="kpi-grid-mock">
+                                            <div class="kpi-card-mock purple">
+                                                <div class="kpi-label">Companies</div>
+                                                <div class="kpi-value">12</div>
+                                            </div>
+                                            <div class="kpi-card-mock green">
+                                                <div class="kpi-label">Revenus</div>
+                                                <div class="kpi-value">125K€</div>
+                                            </div>
+                                            <div class="kpi-card-mock">
+                                                <div class="kpi-label">Propriétés</div>
+                                                <div class="kpi-value">45</div>
+                                            </div>
+                                            <div class="kpi-card-mock orange">
+                                                <div class="kpi-label">Réservations</div>
+                                                <div class="kpi-value">187</div>
+                                            </div>
+                                        </div>
+                                        <div class="chart-mock">
+                                            <div class="bar-mock" style="height: 60%;"></div>
+                                            <div class="bar-mock" style="height: 85%;"></div>
+                                            <div class="bar-mock" style="height: 70%;"></div>
+                                            <div class="bar-mock" style="height: 95%;"></div>
+                                            <div class="bar-mock" style="height: 80%;"></div>
+                                            <div class="bar-mock" style="height: 65%;"></div>
+                                        </div>
                                     </div>
-                                    <h3>Unités &amp; Chambres</h3>
-                                    <p>
-                                        Organisez vos appartements, chambres et studios. Tarification dynamique,
-                                        disponibilité en temps réel, et gestion des équipements spécifiques.
-                                    </p>
-                                </div>
-                            </div>
-
-                            <!-- Feature 3: Reservations -->
-                            <div class="col-lg-4 col-md-6">
-                                <div class="feature-card">
-                                    <div class="feature-icon" style="background: linear-gradient(135deg, var(--accent-orange), #F0B080);">
-                                        📅
-                                    </div>
-                                    <h3>Réservations</h3>
-                                    <p>
-                                        Calendrier intelligent, gestion des arrivées/départs, synchronisation
-                                        avec les plateformes de booking, et facturation automatique.
-                                    </p>
-                                </div>
-                            </div>
-
-                            <!-- Feature 4: Tasks -->
-                            <div class="col-lg-4 col-md-6">
-                                <div class="feature-card">
-                                    <div class="feature-icon" style="background: linear-gradient(135deg, var(--accent-purple), #B5A8DB);">
-                                        ✅
-                                    </div>
-                                    <h3>Tâches Automatiques</h3>
-                                    <p>
-                                        Création automatique des tâches de ménage, check-in/check-out.
-                                        Assignation d'équipes, notifications email, et suivi en temps réel.
-                                    </p>
-                                </div>
-                            </div>
-
-                            <!-- Feature 5: Documents -->
-                            <div class="col-lg-4 col-md-6">
-                                <div class="feature-card">
-                                    <div class="feature-icon" style="background: linear-gradient(135deg, var(--accent-red), #F09090);">
-                                        📄
-                                    </div>
-                                    <h3>Gestion Documentaire</h3>
-                                    <p>
-                                        Stockez et organisez tous vos documents : contrats, factures,
-                                        inventaires, photos. Recherche rapide et partage sécurisé.
-                                    </p>
-                                </div>
-                            </div>
-
-                            <!-- Feature 6: Dashboard -->
-                            <div class="col-lg-4 col-md-6">
-                                <div class="feature-card">
-                                    <div class="feature-icon" style="background: linear-gradient(135deg, var(--accent-pink), #D9ADCC);">
-                                        📊
-                                    </div>
-                                    <h3>Dashboard Analytics</h3>
-                                    <p>
-                                        Tableaux de bord puissants avec KPIs en temps réel. Revenus,
-                                        taux d'occupation, performance par propriété. Export Excel/PDF.
-                                    </p>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </section>
 
-                <!-- Dashboard Preview -->
-                <section class="onedesk-dashboard-preview">
+                <!-- Social Proof -->
+                <section class="social-proof">
                     <div class="container">
-                        <div class="section-title">
-                            <h2>📊 Dashboard Puissant &amp; Intuitif</h2>
-                            <p>Visualisez toutes vos données en un coup d'œil</p>
+                        <h3>Ils nous font confiance</h3>
+                        <div class="logos-grid">
+                            <div class="logo-item">🏨 Hôtel Luxe</div>
+                            <div class="logo-item">🏠 Résidence Paris</div>
+                            <div class="logo-item">🏢 Conciergerie Pro</div>
+                            <div class="logo-item">🏘️ Urban Stay</div>
+                            <div class="logo-item">⭐ Premium Lodges</div>
                         </div>
+                    </div>
+                </section>
 
-                        <div class="dashboard-mockup">
-                            <div class="dashboard-header-mock">
-                                <h3 style="margin: 0; font-size: 1.5rem;">📊 Dashboard Admin Master</h3>
-                                <p style="margin: 5px 0 0 0; opacity: 0.9;">Vue globale multi-tenant - Toutes les companies</p>
+                <!-- Feature 1: Dashboard Analytics -->
+                <section class="feature-section" id="demo">
+                    <div class="container">
+                        <div class="feature-row">
+                            <div class="feature-text">
+                                <span class="feature-tag">📊 ANALYTICS</span>
+                                <h2>Pilotez votre activité en temps réel</h2>
+                                <p>
+                                    Visualisez vos KPIs essentiels d'un coup d'œil. Revenus, taux d'occupation,
+                                    réservations à venir - tout est centralisé dans un dashboard intuitif.
+                                </p>
+                                <ul class="feature-list">
+                                    <li>Dashboard multi-tenant pour gérer plusieurs sociétés</li>
+                                    <li>KPIs en temps réel (revenus, occupation, performance)</li>
+                                    <li>Graphiques interactifs et exportables (Excel, PDF)</li>
+                                    <li>Filtres par période, propriété, ou unité</li>
+                                </ul>
+                                <a href="/onedesk/subscription" class="btn-primary-modern">
+                                    Essayer maintenant
+                                </a>
                             </div>
-                            <div class="kpi-grid">
-                                <div class="kpi-mock purple">
-                                    <h4>COMPANIES</h4>
-                                    <div class="value">12</div>
-                                </div>
-                                <div class="kpi-mock">
-                                    <h4>REVENUS TOTAUX</h4>
-                                    <div class="value">125K€</div>
-                                </div>
-                                <div class="kpi-mock blue">
-                                    <h4>PROPRIÉTÉS</h4>
-                                    <div class="value">45</div>
-                                </div>
-                                <div class="kpi-mock orange">
-                                    <h4>RÉSERVATIONS</h4>
-                                    <div class="value">187</div>
+                            <div class="feature-visual">
+                                <div class="screenshot-container">
+                                    <div class="screenshot-header">
+                                        <div class="screenshot-dot"></div>
+                                        <div class="screenshot-dot"></div>
+                                        <div class="screenshot-dot"></div>
+                                    </div>
+                                    <div class="screenshot-body">
+                                        <div style="background: white; padding: 20px; border-radius: 8px; margin-bottom: 16px;">
+                                            <h4 style="margin: 0 0 16px 0; color: var(--text-dark);">📈 Performance Mensuelle</h4>
+                                            <div class="chart-mock" style="height: 160px;">
+                                                <div class="bar-mock" style="height: 50%;"></div>
+                                                <div class="bar-mock" style="height: 70%;"></div>
+                                                <div class="bar-mock" style="height: 60%;"></div>
+                                                <div class="bar-mock" style="height: 85%;"></div>
+                                                <div class="bar-mock" style="height: 75%;"></div>
+                                                <div class="bar-mock" style="height: 90%;"></div>
+                                                <div class="bar-mock" style="height: 80%;"></div>
+                                            </div>
+                                        </div>
+                                        <div class="kpi-grid-mock">
+                                            <div class="kpi-card-mock">
+                                                <div class="kpi-label">Taux d'occupation</div>
+                                                <div class="kpi-value" style="font-size: 1.5rem;">87%</div>
+                                            </div>
+                                            <div class="kpi-card-mock green">
+                                                <div class="kpi-label">CA ce mois</div>
+                                                <div class="kpi-value" style="font-size: 1.5rem;">45K€</div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </section>
 
-                <!-- Pricing Preview -->
-                <section class="onedesk-pricing-preview">
+                <!-- Feature 2: Réservations -->
+                <section class="feature-section">
                     <div class="container">
-                        <div class="section-title">
-                            <h2>💎 Plans Tarifaires Flexibles</h2>
-                            <p>Choisissez le plan qui correspond à vos besoins</p>
-                        </div>
+                        <div class="feature-row reverse">
+                            <div class="feature-text">
+                                <span class="feature-tag">📅 RÉSERVATIONS</span>
+                                <h2>Calendrier intelligent et disponibilités</h2>
+                                <p>
+                                    Gérez vos réservations avec un calendrier visuel. Vérification automatique
+                                    de disponibilité, gestion des arrivées/départs, et synchronisation temps réel.
+                                </p>
+                                <ul class="feature-list">
+                                    <li>Calendrier visuel avec code couleur (disponible/réservé)</li>
+                                    <li>Vérification automatique des conflits de dates</li>
+                                    <li>Notifications par email client et équipe</li>
+                                    <li>Export des réservations et facturation automatique</li>
+                                </ul>
+                                <a href="/onedesk/subscription" class="btn-primary-modern">
+                                    Découvrir les réservations
+                                </a>
+                            </div>
+                            <div class="feature-visual">
+                                <div class="screenshot-calendar">
+                                    <div class="calendar-header">
+                                        <div class="calendar-title">📅 Janvier 2025</div>
+                                        <div style="display: flex; gap: 8px;">
+                                            <button style="background: none; border: 1px solid var(--border-light); border-radius: 6px; padding: 6px 12px; cursor: pointer;">←</button>
+                                            <button style="background: none; border: 1px solid var(--border-light); border-radius: 6px; padding: 6px 12px; cursor: pointer;">→</button>
+                                        </div>
+                                    </div>
+                                    <div class="calendar-grid">
+                                        <div class="calendar-day" style="font-weight: 700; border: none;">L</div>
+                                        <div class="calendar-day" style="font-weight: 700; border: none;">M</div>
+                                        <div class="calendar-day" style="font-weight: 700; border: none;">M</div>
+                                        <div class="calendar-day" style="font-weight: 700; border: none;">J</div>
+                                        <div class="calendar-day" style="font-weight: 700; border: none;">V</div>
+                                        <div class="calendar-day" style="font-weight: 700; border: none;">S</div>
+                                        <div class="calendar-day" style="font-weight: 700; border: none;">D</div>
 
-                        <div class="row">
-                            <!-- Starter Plan -->
-                            <div class="col-lg-4 col-md-6 mb-4">
-                                <div class="pricing-card-preview">
+                                        <div class="calendar-day">1</div>
+                                        <div class="calendar-day">2</div>
+                                        <div class="calendar-day booked">3</div>
+                                        <div class="calendar-day booked">4</div>
+                                        <div class="calendar-day booked">5</div>
+                                        <div class="calendar-day available">6</div>
+                                        <div class="calendar-day available">7</div>
+                                        <div class="calendar-day available">8</div>
+                                        <div class="calendar-day available">9</div>
+                                        <div class="calendar-day">10</div>
+                                        <div class="calendar-day">11</div>
+                                        <div class="calendar-day booked">12</div>
+                                        <div class="calendar-day booked">13</div>
+                                        <div class="calendar-day booked">14</div>
+                                        <div class="calendar-day available">15</div>
+                                        <div class="calendar-day available">16</div>
+                                        <div class="calendar-day available">17</div>
+                                        <div class="calendar-day">18</div>
+                                        <div class="calendar-day booked">19</div>
+                                        <div class="calendar-day booked">20</div>
+                                    </div>
+                                    <div style="margin-top: 20px; display: flex; gap: 20px; font-size: 0.9rem;">
+                                        <div style="display: flex; align-items: center; gap: 8px;">
+                                            <div style="width: 20px; height: 20px; background: var(--primary-blue); border-radius: 4px;"></div>
+                                            <span>Réservé</span>
+                                        </div>
+                                        <div style="display: flex; align-items: center; gap: 8px;">
+                                            <div style="width: 20px; height: 20px; background: #E8F8F0; border: 1px solid var(--success); border-radius: 4px;"></div>
+                                            <span>Disponible</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Feature 3: Tâches Automatiques -->
+                <section class="feature-section">
+                    <div class="container">
+                        <div class="feature-row">
+                            <div class="feature-text">
+                                <span class="feature-tag">✅ AUTOMATISATION</span>
+                                <h2>Tâches automatiques et gestion d'équipe</h2>
+                                <p>
+                                    Créez automatiquement vos tâches de ménage et check-in/out lors de chaque
+                                    réservation. Assignez, suivez et optimisez le travail de votre équipe.
+                                </p>
+                                <ul class="feature-list">
+                                    <li>Création automatique des tâches à chaque réservation</li>
+                                    <li>Assignation aux membres de l'équipe avec notification</li>
+                                    <li>Tableau Kanban (À faire / En cours / Terminé)</li>
+                                    <li>Historique complet et rapports de productivité</li>
+                                </ul>
+                                <a href="/onedesk/subscription" class="btn-primary-modern">
+                                    Automatiser mes tâches
+                                </a>
+                            </div>
+                            <div class="feature-visual">
+                                <div class="task-board">
+                                    <h4 style="margin: 0 0 20px 0; color: var(--text-dark);">📋 Tableau des Tâches</h4>
+                                    <div class="task-columns">
+                                        <div class="task-column">
+                                            <div class="task-column-title">À FAIRE</div>
+                                            <div class="task-card high">
+                                                <div style="font-weight: 600; margin-bottom: 4px;">Check-in - Apt 205</div>
+                                                <div style="font-size: 0.8rem; color: var(--text-light);">Aujourd'hui 14h</div>
+                                            </div>
+                                            <div class="task-card">
+                                                <div style="font-weight: 600; margin-bottom: 4px;">Ménage - Studio 12</div>
+                                                <div style="font-size: 0.8rem; color: var(--text-light);">Demain 10h</div>
+                                            </div>
+                                        </div>
+                                        <div class="task-column">
+                                            <div class="task-column-title">EN COURS</div>
+                                            <div class="task-card medium">
+                                                <div style="font-weight: 600; margin-bottom: 4px;">Ménage - Apt 103</div>
+                                                <div style="font-size: 0.8rem; color: var(--text-light);">Marie · 2h restantes</div>
+                                            </div>
+                                        </div>
+                                        <div class="task-column">
+                                            <div class="task-column-title">TERMINÉ</div>
+                                            <div class="task-card">
+                                                <div style="font-weight: 600; margin-bottom: 4px;">Check-out - Villa 8</div>
+                                                <div style="font-size: 0.8rem; color: var(--text-light);">✓ Terminé</div>
+                                            </div>
+                                            <div class="task-card">
+                                                <div style="font-weight: 600; margin-bottom: 4px;">Inventaire - Apt 201</div>
+                                                <div style="font-size: 0.8rem; color: var(--text-light);">✓ Terminé</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Testimonials -->
+                <section class="testimonials">
+                    <div class="container">
+                        <div class="section-header">
+                            <h2>Ce que disent nos clients</h2>
+                            <p>Plus de 100 gestionnaires nous font confiance pour optimiser leurs opérations</p>
+                        </div>
+                        <div class="testimonials-grid">
+                            <div class="testimonial-card">
+                                <div class="testimonial-text">
+                                    "OneDesk a transformé notre façon de gérer nos 25 appartements.
+                                    Tout est automatisé, nos équipes sont plus efficaces et nos clients ravis."
+                                </div>
+                                <div class="testimonial-author">
+                                    <div class="author-avatar">MR</div>
+                                    <div class="author-info">
+                                        <h4>Marie Rousseau</h4>
+                                        <p>Directrice, Conciergerie Prestige</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="testimonial-card">
+                                <div class="testimonial-text">
+                                    "Le dashboard analytics nous a permis d'augmenter notre taux d'occupation de 15%.
+                                    On voit enfin où on en est en temps réel !"
+                                </div>
+                                <div class="testimonial-author">
+                                    <div class="author-avatar">JD</div>
+                                    <div class="author-info">
+                                        <h4>Jean Dupont</h4>
+                                        <p>Gérant, Urban Stay Paris</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="testimonial-card">
+                                <div class="testimonial-text">
+                                    "Installation en 10 minutes, prise en main immédiate.
+                                    Le meilleur outil de gestion que nous ayons testé."
+                                </div>
+                                <div class="testimonial-author">
+                                    <div class="author-avatar">SL</div>
+                                    <div class="author-info">
+                                        <h4>Sophie Laurent</h4>
+                                        <p>Fondatrice, Premium Lodges</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Pricing -->
+                <section class="pricing-section">
+                    <div class="container">
+                        <div class="section-header">
+                            <h2>Des tarifs adaptés à votre croissance</h2>
+                            <p>Commencez gratuitement, évoluez à votre rythme</p>
+                        </div>
+                        <div class="pricing-grid">
+                            <!-- Starter -->
+                            <div class="pricing-card">
+                                <div class="pricing-header">
                                     <h3>🌱 Starter</h3>
-                                    <div class="price">
-                                        49€
-                                        <small>/mois</small>
-                                    </div>
-                                    <ul class="pricing-features list-unstyled">
-                                        <li>✅ Jusqu'à 5 propriétés</li>
-                                        <li>✅ 20 unités maximum</li>
-                                        <li>✅ Réservations illimitées</li>
-                                        <li>✅ Dashboard basique</li>
-                                        <li>✅ Support email</li>
-                                    </ul>
-                                    <a href="/onedesk/subscription?plan=starter" class="btn-pricing">
-                                        Choisir Starter
-                                    </a>
+                                    <p style="color: var(--text-gray); margin: 0;">Pour débuter</p>
                                 </div>
+                                <div class="pricing-price">
+                                    49€
+                                    <span>/mois</span>
+                                </div>
+                                <ul class="pricing-features">
+                                    <li>Jusqu'à 5 propriétés</li>
+                                    <li>20 unités maximum</li>
+                                    <li>Réservations illimitées</li>
+                                    <li>Dashboard basique</li>
+                                    <li>Support email</li>
+                                </ul>
+                                <a href="/onedesk/subscription?plan=starter" class="btn-primary-modern" style="width: 100%; text-align: center;">
+                                    Choisir Starter
+                                </a>
                             </div>
 
-                            <!-- Professional Plan (Featured) -->
-                            <div class="col-lg-4 col-md-6 mb-4">
-                                <div class="pricing-card-preview featured">
-                                    <span class="pricing-badge">⭐ POPULAIRE</span>
+                            <!-- Professional (Featured) -->
+                            <div class="pricing-card featured">
+                                <span class="pricing-badge">⭐ POPULAIRE</span>
+                                <div class="pricing-header">
                                     <h3>💼 Professional</h3>
-                                    <div class="price">
-                                        99€
-                                        <small>/mois</small>
-                                    </div>
-                                    <ul class="pricing-features list-unstyled">
-                                        <li>✅ Jusqu'à 20 propriétés</li>
-                                        <li>✅ 100 unités maximum</li>
-                                        <li>✅ Réservations illimitées</li>
-                                        <li>✅ Dashboard avancé + Analytics</li>
-                                        <li>✅ Tâches automatiques</li>
-                                        <li>✅ Support prioritaire</li>
-                                    </ul>
-                                    <a href="/onedesk/subscription?plan=professional" class="btn-pricing">
-                                        Choisir Professional
-                                    </a>
+                                    <p style="color: var(--text-gray); margin: 0;">Pour se développer</p>
                                 </div>
+                                <div class="pricing-price">
+                                    99€
+                                    <span>/mois</span>
+                                </div>
+                                <ul class="pricing-features">
+                                    <li>Jusqu'à 20 propriétés</li>
+                                    <li>100 unités maximum</li>
+                                    <li>Réservations illimitées</li>
+                                    <li>Dashboard avancé + Analytics</li>
+                                    <li>Tâches automatiques</li>
+                                    <li>Support prioritaire</li>
+                                </ul>
+                                <a href="/onedesk/subscription?plan=professional" class="btn-primary-modern" style="width: 100%; text-align: center;">
+                                    Choisir Professional
+                                </a>
                             </div>
 
-                            <!-- Enterprise Plan -->
-                            <div class="col-lg-4 col-md-6 mb-4">
-                                <div class="pricing-card-preview">
+                            <!-- Enterprise -->
+                            <div class="pricing-card">
+                                <div class="pricing-header">
                                     <h3>🏆 Enterprise</h3>
-                                    <div class="price">
-                                        199€
-                                        <small>/mois</small>
-                                    </div>
-                                    <ul class="pricing-features list-unstyled">
-                                        <li>✅ Propriétés illimitées</li>
-                                        <li>✅ Unités illimitées</li>
-                                        <li>✅ Tout illimité</li>
-                                        <li>✅ Dashboard Master Admin</li>
-                                        <li>✅ Multi-tenant</li>
-                                        <li>✅ API &amp; Intégrations</li>
-                                        <li>✅ Support dédié 24/7</li>
-                                    </ul>
-                                    <a href="/onedesk/subscription?plan=enterprise" class="btn-pricing">
-                                        Choisir Enterprise
-                                    </a>
+                                    <p style="color: var(--text-gray); margin: 0;">Pour les pros</p>
                                 </div>
+                                <div class="pricing-price">
+                                    199€
+                                    <span>/mois</span>
+                                </div>
+                                <ul class="pricing-features">
+                                    <li>Propriétés illimitées</li>
+                                    <li>Unités illimitées</li>
+                                    <li>Tout illimité</li>
+                                    <li>Dashboard Master Admin</li>
+                                    <li>Multi-tenant</li>
+                                    <li>API &amp; Intégrations</li>
+                                    <li>Support dédié 24/7</li>
+                                </ul>
+                                <a href="/onedesk/subscription?plan=enterprise" class="btn-primary-modern" style="width: 100%; text-align: center;">
+                                    Choisir Enterprise
+                                </a>
                             </div>
                         </div>
-
-                        <div class="text-center mt-4">
-                            <a href="/onedesk/subscription/plans" class="btn-hero-primary" style="background: var(--primary-blue); color: white;">
-                                📋 Voir Tous les Plans en Détail
-                            </a>
-                        </div>
+                        <p style="text-align: center; margin-top: 40px; color: var(--text-light);">
+                            💳 Aucune carte bancaire requise pour l'essai · 📅 14 jours gratuits · ❌ Annulation à tout moment
+                        </p>
                     </div>
                 </section>
 
                 <!-- CTA Final -->
-                <section class="onedesk-cta">
+                <section class="cta-final">
                     <div class="container">
-                        <h2>🚀 Prêt à Transformer Votre Gestion Locative ?</h2>
-                        <p>
-                            Rejoignez des centaines de gestionnaires qui font confiance à OneDesk<br/>
-                            pour optimiser leurs opérations et maximiser leurs revenus.
-                        </p>
-                        <div class="cta-buttons">
-                            <a href="/onedesk/subscription" class="btn-hero-primary">
-                                ✨ Commencer Maintenant - C'est Gratuit
-                            </a>
-                            <a href="/onedesk/properties" class="btn-hero-secondary">
-                                🏢 Voir les Propriétés Disponibles
-                            </a>
-                        </div>
+                        <h2>Prêt à simplifier votre gestion ?</h2>
+                        <p>Rejoignez des centaines de gestionnaires qui optimisent leurs opérations avec OneDesk</p>
+                        <a href="/onedesk/subscription" class="btn-cta-white">
+                            Commencer gratuitement
+                        </a>
                         <p style="margin-top: 30px; font-size: 0.9rem; opacity: 0.8;">
-                            💳 Aucune carte bancaire requise · 📅 14 jours d'essai gratuit · ❌ Annulation à tout moment
+                            Installation en 5 minutes · Aucun engagement
                         </p>
                     </div>
                 </section>
