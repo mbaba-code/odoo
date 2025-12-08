@@ -1,25 +1,32 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <!-- Landing Page OneDesk - Style PayFit moderne -->
+    <!-- Landing Page OneDesk - Style PayFit moderne avec couleurs vives -->
     <template id="landing_page" name="OneDesk Landing Page">
         <t t-call="website.layout">
             <div id="wrap" class="oe_structure oe_empty">
-                <!-- CSS Moderne -->
+                <!-- CSS Moderne avec couleurs vives -->
                 <style>
-                    /* Reset et variables */
+                    /* Reset et variables - COULEURS VIVES */
                     :root {
-                        --primary-blue: #5B9BD5;
-                        --primary-dark: #4A7DB0;
+                        --primary-blue: #3B82F6;
+                        --primary-dark: #2563EB;
+                        --primary-light: #60A5FA;
+                        --success-green: #10B981;
+                        --success-dark: #059669;
+                        --warning-orange: #F59E0B;
+                        --danger-red: #EF4444;
+                        --purple-vivid: #8B5CF6;
+                        --pink-vivid: #EC4899;
                         --text-dark: #1a1a1a;
-                        --text-gray: #666;
-                        --text-light: #999;
-                        --bg-light: #f8f9fa;
+                        --text-gray: #4B5563;
+                        --text-light: #9CA3AF;
+                        --bg-light: #F9FAFB;
                         --bg-lighter: #ffffff;
-                        --border-light: #e5e5e5;
-                        --success: #70AD47;
+                        --border-light: #E5E7EB;
                         --shadow-sm: 0 2px 8px rgba(0,0,0,0.08);
                         --shadow-md: 0 4px 20px rgba(0,0,0,0.12);
                         --shadow-lg: 0 8px 30px rgba(0,0,0,0.15);
+                        --shadow-color: 0 10px 40px rgba(59, 130, 246, 0.2);
                     }
 
                     * {
@@ -32,9 +39,9 @@
                         line-height: 1.6;
                     }
 
-                    /* Hero Section - Style PayFit */
+                    /* Hero Section - VIVE */
                     .hero-modern {
-                        background: linear-gradient(180deg, #ffffff 0%, #f8f9fa 100%);
+                        background: linear-gradient(135deg, #EFF6FF 0%, #DBEAFE 50%, #BFDBFE 100%);
                         padding: 80px 0 100px;
                         overflow: hidden;
                     }
@@ -56,6 +63,10 @@
                         line-height: 1.2;
                         margin-bottom: 24px;
                         color: var(--text-dark);
+                        background: linear-gradient(135deg, var(--primary-blue), var(--purple-vivid));
+                        -webkit-background-clip: text;
+                        -webkit-text-fill-color: transparent;
+                        background-clip: text;
                     }
 
                     .hero-text .subtitle {
@@ -72,46 +83,46 @@
                     }
 
                     .btn-primary-modern {
-                        background: var(--primary-blue);
+                        background: linear-gradient(135deg, var(--primary-blue), var(--primary-dark));
                         color: white;
-                        padding: 14px 32px;
-                        border-radius: 8px;
+                        padding: 16px 40px;
+                        border-radius: 12px;
                         font-weight: 600;
-                        font-size: 1rem;
+                        font-size: 1.1rem;
                         border: none;
                         cursor: pointer;
-                        transition: all 0.2s;
+                        transition: all 0.3s;
                         text-decoration: none;
                         display: inline-block;
+                        box-shadow: 0 4px 14px rgba(59, 130, 246, 0.4);
                     }
 
                     .btn-primary-modern:hover {
-                        background: var(--primary-dark);
                         transform: translateY(-2px);
-                        box-shadow: var(--shadow-md);
+                        box-shadow: 0 6px 20px rgba(59, 130, 246, 0.5);
                         color: white;
                     }
 
                     .btn-secondary-modern {
-                        background: transparent;
-                        color: var(--text-dark);
-                        padding: 14px 32px;
-                        border-radius: 8px;
+                        background: white;
+                        color: var(--primary-blue);
+                        padding: 16px 40px;
+                        border-radius: 12px;
                         font-weight: 600;
-                        font-size: 1rem;
-                        border: 2px solid var(--border-light);
+                        font-size: 1.1rem;
+                        border: 2px solid var(--primary-blue);
                         cursor: pointer;
-                        transition: all 0.2s;
+                        transition: all 0.3s;
                         text-decoration: none;
                         display: inline-block;
                     }
 
                     .btn-secondary-modern:hover {
-                        border-color: var(--primary-blue);
-                        color: var(--primary-blue);
+                        background: var(--primary-blue);
+                        color: white;
                     }
 
-                    /* Screenshot mockup */
+                    /* Screenshot mockup - COULEURS VIVES */
                     .hero-screenshot {
                         flex: 1;
                         position: relative;
@@ -119,30 +130,30 @@
 
                     .screenshot-container {
                         background: white;
-                        border-radius: 12px;
-                        box-shadow: var(--shadow-lg);
+                        border-radius: 16px;
+                        box-shadow: 0 20px 60px rgba(59, 130, 246, 0.3);
                         overflow: hidden;
-                        border: 1px solid var(--border-light);
+                        border: 1px solid var(--primary-light);
                     }
 
                     .screenshot-header {
-                        background: linear-gradient(135deg, var(--primary-blue), #8FA0B3);
-                        padding: 16px 20px;
+                        background: linear-gradient(135deg, var(--primary-blue), var(--purple-vivid));
+                        padding: 20px 24px;
                         display: flex;
                         align-items: center;
                         gap: 8px;
                     }
 
                     .screenshot-dot {
-                        width: 10px;
-                        height: 10px;
+                        width: 12px;
+                        height: 12px;
                         border-radius: 50%;
-                        background: rgba(255,255,255,0.3);
+                        background: rgba(255,255,255,0.4);
                     }
 
                     .screenshot-body {
-                        padding: 24px;
-                        background: #f5f7fa;
+                        padding: 28px;
+                        background: linear-gradient(180deg, #F9FAFB 0%, #F3F4F6 100%);
                     }
 
                     .kpi-grid-mock {
@@ -154,49 +165,70 @@
 
                     .kpi-card-mock {
                         background: white;
-                        padding: 20px;
-                        border-radius: 8px;
-                        border-left: 4px solid var(--primary-blue);
+                        padding: 24px;
+                        border-radius: 12px;
+                        border-left: 5px solid var(--primary-blue);
+                        box-shadow: var(--shadow-sm);
+                        transition: all 0.3s;
                     }
 
-                    .kpi-card-mock.green { border-left-color: var(--success); }
-                    .kpi-card-mock.orange { border-left-color: #E89A6A; }
-                    .kpi-card-mock.purple { border-left-color: #9B8FC9; }
+                    .kpi-card-mock:hover {
+                        transform: translateY(-4px);
+                        box-shadow: var(--shadow-md);
+                    }
+
+                    .kpi-card-mock.green {
+                        border-left-color: var(--success-green);
+                        background: linear-gradient(135deg, #FFFFFF 0%, #ECFDF5 100%);
+                    }
+                    .kpi-card-mock.orange {
+                        border-left-color: var(--warning-orange);
+                        background: linear-gradient(135deg, #FFFFFF 0%, #FFFBEB 100%);
+                    }
+                    .kpi-card-mock.purple {
+                        border-left-color: var(--purple-vivid);
+                        background: linear-gradient(135deg, #FFFFFF 0%, #F5F3FF 100%);
+                    }
 
                     .kpi-label {
                         font-size: 0.85rem;
                         color: var(--text-gray);
                         margin-bottom: 8px;
+                        font-weight: 600;
+                        text-transform: uppercase;
+                        letter-spacing: 0.5px;
                     }
 
                     .kpi-value {
-                        font-size: 2rem;
-                        font-weight: 700;
+                        font-size: 2.5rem;
+                        font-weight: 800;
                         color: var(--text-dark);
                     }
 
                     .chart-mock {
                         background: white;
-                        border-radius: 8px;
-                        padding: 20px;
+                        border-radius: 12px;
+                        padding: 24px;
                         height: 200px;
                         display: flex;
                         align-items: flex-end;
                         gap: 12px;
+                        box-shadow: var(--shadow-sm);
                     }
 
                     .bar-mock {
                         flex: 1;
-                        background: linear-gradient(180deg, var(--primary-blue), #8FA0B3);
-                        border-radius: 4px 4px 0 0;
+                        background: linear-gradient(180deg, var(--primary-blue), var(--primary-dark));
+                        border-radius: 8px 8px 0 0;
                         transition: all 0.3s;
                     }
 
                     .bar-mock:hover {
-                        opacity: 0.8;
+                        background: linear-gradient(180deg, var(--success-green), var(--success-dark));
+                        transform: scaleY(1.05);
                     }
 
-                    /* Section Social Proof */
+                    /* Section Social Proof - VIVE */
                     .social-proof {
                         background: white;
                         padding: 60px 0;
@@ -206,12 +238,12 @@
 
                     .social-proof h3 {
                         text-align: center;
-                        font-size: 0.9rem;
+                        font-size: 0.95rem;
                         text-transform: uppercase;
-                        letter-spacing: 1px;
-                        color: var(--text-light);
+                        letter-spacing: 2px;
+                        color: var(--primary-blue);
                         margin-bottom: 40px;
-                        font-weight: 600;
+                        font-weight: 700;
                     }
 
                     .logos-grid {
@@ -219,17 +251,22 @@
                         grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
                         gap: 40px;
                         align-items: center;
-                        opacity: 0.6;
                     }
 
                     .logo-item {
                         text-align: center;
                         font-weight: 700;
-                        font-size: 1.2rem;
+                        font-size: 1.3rem;
                         color: var(--text-gray);
+                        transition: all 0.3s;
                     }
 
-                    /* Features avec screenshots alternés */
+                    .logo-item:hover {
+                        color: var(--primary-blue);
+                        transform: scale(1.1);
+                    }
+
+                    /* Features avec screenshots alternés - VIVES */
                     .feature-section {
                         padding: 100px 0;
                     }
@@ -255,176 +292,399 @@
 
                     .feature-tag {
                         display: inline-block;
-                        background: #E8F4FD;
-                        color: var(--primary-blue);
-                        padding: 6px 16px;
-                        border-radius: 20px;
+                        background: linear-gradient(135deg, var(--primary-blue), var(--purple-vivid));
+                        color: white;
+                        padding: 8px 20px;
+                        border-radius: 24px;
                         font-size: 0.85rem;
-                        font-weight: 600;
-                        margin-bottom: 16px;
+                        font-weight: 700;
+                        margin-bottom: 20px;
+                        text-transform: uppercase;
+                        letter-spacing: 1px;
+                        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+                    }
+
+                    .feature-tag.green {
+                        background: linear-gradient(135deg, var(--success-green), var(--success-dark));
+                        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+                    }
+
+                    .feature-tag.orange {
+                        background: linear-gradient(135deg, var(--warning-orange), #D97706);
+                        box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+                    }
+
+                    .feature-tag.purple {
+                        background: linear-gradient(135deg, var(--purple-vivid), #7C3AED);
+                        box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
                     }
 
                     .feature-text h2 {
-                        font-size: 2.5rem;
-                        font-weight: 700;
-                        margin-bottom: 20px;
+                        font-size: 2.8rem;
+                        font-weight: 800;
+                        margin-bottom: 24px;
                         color: var(--text-dark);
+                        line-height: 1.2;
                     }
 
                     .feature-text p {
-                        font-size: 1.1rem;
+                        font-size: 1.15rem;
                         color: var(--text-gray);
-                        line-height: 1.7;
-                        margin-bottom: 24px;
+                        line-height: 1.8;
+                        margin-bottom: 28px;
                     }
 
                     .feature-list {
                         list-style: none;
                         padding: 0;
-                        margin: 24px 0;
+                        margin: 28px 0;
                     }
 
                     .feature-list li {
-                        padding: 12px 0;
+                        padding: 14px 0;
                         display: flex;
                         align-items: center;
-                        gap: 12px;
+                        gap: 14px;
                         font-size: 1.05rem;
                         color: var(--text-gray);
                     }
 
                     .feature-list li::before {
                         content: '✓';
-                        color: var(--success);
-                        font-weight: 700;
-                        font-size: 1.2rem;
+                        color: var(--success-green);
+                        font-weight: 900;
+                        font-size: 1.4rem;
+                        width: 28px;
+                        height: 28px;
+                        background: #ECFDF5;
+                        border-radius: 50%;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
                     }
 
                     .feature-visual {
                         flex: 1;
                     }
 
-                    /* Screenshot variants */
+                    /* Screenshot variants - VIVES */
                     .screenshot-calendar {
                         background: white;
-                        border-radius: 12px;
-                        box-shadow: var(--shadow-lg);
-                        padding: 24px;
-                        border: 1px solid var(--border-light);
+                        border-radius: 16px;
+                        box-shadow: 0 20px 60px rgba(59, 130, 246, 0.2);
+                        padding: 28px;
+                        border: 2px solid var(--primary-light);
                     }
 
                     .calendar-header {
                         display: flex;
                         justify-content: space-between;
                         align-items: center;
-                        margin-bottom: 20px;
-                        padding-bottom: 16px;
-                        border-bottom: 2px solid var(--border-light);
+                        margin-bottom: 24px;
+                        padding-bottom: 20px;
+                        border-bottom: 3px solid var(--primary-blue);
                     }
 
                     .calendar-title {
-                        font-size: 1.3rem;
-                        font-weight: 700;
-                        color: var(--text-dark);
+                        font-size: 1.5rem;
+                        font-weight: 800;
+                        color: var(--primary-blue);
                     }
 
                     .calendar-grid {
                         display: grid;
                         grid-template-columns: repeat(7, 1fr);
-                        gap: 8px;
+                        gap: 10px;
                     }
 
                     .calendar-day {
                         aspect-ratio: 1;
-                        border: 1px solid var(--border-light);
-                        border-radius: 6px;
+                        border: 2px solid var(--border-light);
+                        border-radius: 8px;
                         display: flex;
                         align-items: center;
                         justify-content: center;
-                        font-size: 0.9rem;
+                        font-size: 1rem;
+                        font-weight: 600;
                         transition: all 0.2s;
+                        cursor: pointer;
                     }
 
                     .calendar-day:hover {
                         border-color: var(--primary-blue);
-                        background: #E8F4FD;
+                        background: #EFF6FF;
+                        transform: scale(1.05);
                     }
 
                     .calendar-day.booked {
-                        background: var(--primary-blue);
+                        background: linear-gradient(135deg, var(--primary-blue), var(--primary-dark));
                         color: white;
                         border-color: var(--primary-blue);
+                        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
                     }
 
                     .calendar-day.available {
-                        background: #E8F8F0;
-                        border-color: var(--success);
+                        background: linear-gradient(135deg, var(--success-green), var(--success-dark));
+                        color: white;
+                        border-color: var(--success-green);
+                        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
                     }
 
-                    /* Task board mockup */
+                    /* Task board mockup - VIVE */
                     .task-board {
                         background: white;
-                        border-radius: 12px;
-                        box-shadow: var(--shadow-lg);
-                        padding: 24px;
-                        border: 1px solid var(--border-light);
+                        border-radius: 16px;
+                        box-shadow: 0 20px 60px rgba(59, 130, 246, 0.2);
+                        padding: 28px;
+                        border: 2px solid var(--primary-light);
                     }
 
                     .task-columns {
                         display: grid;
                         grid-template-columns: repeat(3, 1fr);
-                        gap: 16px;
+                        gap: 20px;
                     }
 
                     .task-column {
-                        background: var(--bg-light);
-                        border-radius: 8px;
-                        padding: 16px;
+                        background: linear-gradient(180deg, #F9FAFB 0%, #F3F4F6 100%);
+                        border-radius: 12px;
+                        padding: 20px;
+                        border: 2px solid var(--border-light);
                     }
 
                     .task-column-title {
-                        font-weight: 700;
-                        font-size: 0.9rem;
+                        font-weight: 800;
+                        font-size: 0.95rem;
                         color: var(--text-gray);
-                        margin-bottom: 12px;
+                        margin-bottom: 16px;
                         text-transform: uppercase;
-                        letter-spacing: 0.5px;
+                        letter-spacing: 1px;
                     }
 
                     .task-card {
                         background: white;
-                        padding: 12px;
-                        border-radius: 6px;
-                        margin-bottom: 8px;
-                        border-left: 3px solid var(--primary-blue);
+                        padding: 16px;
+                        border-radius: 8px;
+                        margin-bottom: 12px;
+                        border-left: 4px solid var(--primary-blue);
                         box-shadow: var(--shadow-sm);
+                        font-size: 0.95rem;
+                        transition: all 0.3s;
+                    }
+
+                    .task-card:hover {
+                        transform: translateX(4px);
+                        box-shadow: var(--shadow-md);
+                    }
+
+                    .task-card.high {
+                        border-left-color: var(--danger-red);
+                        background: linear-gradient(135deg, #FFFFFF 0%, #FEF2F2 100%);
+                    }
+                    .task-card.medium {
+                        border-left-color: var(--warning-orange);
+                        background: linear-gradient(135deg, #FFFFFF 0%, #FFFBEB 100%);
+                    }
+
+                    /* Document signature mockup */
+                    .signature-mockup {
+                        background: white;
+                        border-radius: 16px;
+                        box-shadow: 0 20px 60px rgba(139, 92, 246, 0.2);
+                        padding: 28px;
+                        border: 2px solid #C4B5FD;
+                    }
+
+                    .signature-header {
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: center;
+                        margin-bottom: 24px;
+                        padding-bottom: 20px;
+                        border-bottom: 3px solid var(--purple-vivid);
+                    }
+
+                    .signature-title {
+                        font-size: 1.3rem;
+                        font-weight: 800;
+                        color: var(--purple-vivid);
+                    }
+
+                    .signature-badge {
+                        background: linear-gradient(135deg, var(--success-green), var(--success-dark));
+                        color: white;
+                        padding: 6px 16px;
+                        border-radius: 20px;
+                        font-size: 0.85rem;
+                        font-weight: 700;
+                    }
+
+                    .signature-doc {
+                        background: #FAFAFA;
+                        border: 2px dashed #D1D5DB;
+                        border-radius: 8px;
+                        padding: 24px;
+                        margin-bottom: 20px;
+                        min-height: 180px;
+                    }
+
+                    .signature-line {
+                        height: 3px;
+                        background: linear-gradient(90deg, transparent 0%, var(--purple-vivid) 50%, transparent 100%);
+                        margin: 12px 0;
+                        opacity: 0.3;
+                    }
+
+                    .signature-field {
+                        background: white;
+                        border: 2px solid var(--purple-vivid);
+                        border-radius: 8px;
+                        padding: 16px;
+                        text-align: center;
+                        font-weight: 600;
+                        color: var(--purple-vivid);
+                    }
+
+                    /* iCal sync mockup */
+                    .ical-mockup {
+                        background: white;
+                        border-radius: 16px;
+                        box-shadow: 0 20px 60px rgba(16, 185, 129, 0.2);
+                        padding: 28px;
+                        border: 2px solid #6EE7B7;
+                    }
+
+                    .ical-header {
+                        display: flex;
+                        align-items: center;
+                        gap: 16px;
+                        margin-bottom: 24px;
+                        padding-bottom: 20px;
+                        border-bottom: 3px solid var(--success-green);
+                    }
+
+                    .ical-icon {
+                        width: 60px;
+                        height: 60px;
+                        background: linear-gradient(135deg, var(--success-green), var(--success-dark));
+                        border-radius: 12px;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        color: white;
+                        font-size: 2rem;
+                        box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3);
+                    }
+
+                    .ical-title {
+                        font-size: 1.3rem;
+                        font-weight: 800;
+                        color: var(--success-green);
+                    }
+
+                    .sync-arrow {
+                        text-align: center;
+                        font-size: 2rem;
+                        color: var(--success-green);
+                        margin: 20px 0;
+                    }
+
+                    .calendar-badges {
+                        display: flex;
+                        gap: 12px;
+                        flex-wrap: wrap;
+                    }
+
+                    .calendar-badge {
+                        background: linear-gradient(135deg, #ECFDF5, #D1FAE5);
+                        border: 2px solid var(--success-green);
+                        color: var(--success-dark);
+                        padding: 12px 20px;
+                        border-radius: 12px;
+                        font-weight: 700;
+                        flex: 1;
+                        min-width: 120px;
+                        text-align: center;
+                    }
+
+                    /* Properties list mockup */
+                    .properties-mockup {
+                        background: white;
+                        border-radius: 16px;
+                        box-shadow: 0 20px 60px rgba(245, 158, 11, 0.2);
+                        padding: 28px;
+                        border: 2px solid #FCD34D;
+                    }
+
+                    .property-item {
+                        background: linear-gradient(135deg, #FFFFFF, #FFFBEB);
+                        border: 2px solid var(--warning-orange);
+                        border-radius: 12px;
+                        padding: 20px;
+                        margin-bottom: 16px;
+                        display: flex;
+                        align-items: center;
+                        gap: 20px;
+                        transition: all 0.3s;
+                    }
+
+                    .property-item:hover {
+                        transform: translateX(8px);
+                        box-shadow: 0 8px 24px rgba(245, 158, 11, 0.3);
+                    }
+
+                    .property-icon {
+                        width: 60px;
+                        height: 60px;
+                        background: linear-gradient(135deg, var(--warning-orange), #D97706);
+                        border-radius: 12px;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        color: white;
+                        font-size: 2rem;
+                    }
+
+                    .property-info {
+                        flex: 1;
+                    }
+
+                    .property-name {
+                        font-weight: 800;
+                        font-size: 1.1rem;
+                        color: var(--text-dark);
+                        margin-bottom: 4px;
+                    }
+
+                    .property-stats {
+                        color: var(--text-gray);
                         font-size: 0.9rem;
                     }
 
-                    .task-card.high { border-left-color: #E07A7A; }
-                    .task-card.medium { border-left-color: #E89A6A; }
-
-                    /* Testimonials */
+                    /* Testimonials - VIVES */
                     .testimonials {
-                        background: var(--bg-light);
+                        background: linear-gradient(180deg, #F9FAFB 0%, #FFFFFF 100%);
                         padding: 100px 0;
                     }
 
                     .section-header {
                         text-align: center;
-                        max-width: 700px;
+                        max-width: 800px;
                         margin: 0 auto 60px;
                     }
 
                     .section-header h2 {
-                        font-size: 2.5rem;
-                        font-weight: 700;
-                        margin-bottom: 16px;
-                        color: var(--text-dark);
+                        font-size: 3rem;
+                        font-weight: 800;
+                        margin-bottom: 20px;
+                        background: linear-gradient(135deg, var(--primary-blue), var(--purple-vivid));
+                        -webkit-background-clip: text;
+                        -webkit-text-fill-color: transparent;
+                        background-clip: text;
                     }
 
                     .section-header p {
-                        font-size: 1.2rem;
+                        font-size: 1.3rem;
                         color: var(--text-gray);
                     }
 
@@ -436,22 +696,24 @@
 
                     .testimonial-card {
                         background: white;
-                        padding: 32px;
-                        border-radius: 12px;
-                        box-shadow: var(--shadow-sm);
+                        padding: 36px;
+                        border-radius: 16px;
+                        box-shadow: 0 10px 40px rgba(0,0,0,0.08);
                         transition: all 0.3s;
+                        border: 2px solid transparent;
                     }
 
                     .testimonial-card:hover {
-                        transform: translateY(-4px);
-                        box-shadow: var(--shadow-md);
+                        transform: translateY(-8px);
+                        box-shadow: 0 20px 60px rgba(59, 130, 246, 0.2);
+                        border-color: var(--primary-blue);
                     }
 
                     .testimonial-text {
                         font-size: 1.05rem;
-                        line-height: 1.7;
+                        line-height: 1.8;
                         color: var(--text-gray);
-                        margin-bottom: 24px;
+                        margin-bottom: 28px;
                         font-style: italic;
                     }
 
@@ -462,20 +724,21 @@
                     }
 
                     .author-avatar {
-                        width: 50px;
-                        height: 50px;
+                        width: 56px;
+                        height: 56px;
                         border-radius: 50%;
-                        background: linear-gradient(135deg, var(--primary-blue), #8FA0B3);
+                        background: linear-gradient(135deg, var(--primary-blue), var(--purple-vivid));
                         display: flex;
                         align-items: center;
                         justify-content: center;
                         color: white;
-                        font-weight: 700;
-                        font-size: 1.2rem;
+                        font-weight: 800;
+                        font-size: 1.3rem;
+                        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
                     }
 
                     .author-info h4 {
-                        font-weight: 700;
+                        font-weight: 800;
                         margin: 0;
                         color: var(--text-dark);
                     }
@@ -486,15 +749,15 @@
                         color: var(--text-light);
                     }
 
-                    /* Pricing moderne */
+                    /* Pricing moderne - TRÈS VIVE */
                     .pricing-section {
                         padding: 100px 0;
-                        background: white;
+                        background: linear-gradient(180deg, #FFFFFF 0%, #EFF6FF 100%);
                     }
 
                     .pricing-grid {
                         display: grid;
-                        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+                        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
                         gap: 32px;
                         max-width: 1200px;
                         margin: 0 auto;
@@ -502,113 +765,154 @@
 
                     .pricing-card {
                         background: white;
-                        border: 2px solid var(--border-light);
-                        border-radius: 16px;
-                        padding: 40px 32px;
+                        border: 3px solid var(--border-light);
+                        border-radius: 20px;
+                        padding: 44px 36px;
                         transition: all 0.3s;
+                        position: relative;
                     }
 
                     .pricing-card:hover {
                         border-color: var(--primary-blue);
-                        box-shadow: var(--shadow-lg);
-                        transform: translateY(-4px);
+                        box-shadow: 0 20px 60px rgba(59, 130, 246, 0.3);
+                        transform: translateY(-8px);
                     }
 
                     .pricing-card.featured {
                         border-color: var(--primary-blue);
-                        border-width: 3px;
-                        position: relative;
+                        border-width: 4px;
+                        background: linear-gradient(180deg, #FFFFFF 0%, #EFF6FF 100%);
+                        box-shadow: 0 20px 60px rgba(59, 130, 246, 0.2);
                     }
 
                     .pricing-badge {
                         position: absolute;
-                        top: -12px;
+                        top: -16px;
                         left: 50%;
                         transform: translateX(-50%);
-                        background: var(--success);
+                        background: linear-gradient(135deg, var(--success-green), var(--success-dark));
                         color: white;
-                        padding: 6px 20px;
-                        border-radius: 20px;
-                        font-size: 0.85rem;
-                        font-weight: 600;
+                        padding: 8px 24px;
+                        border-radius: 24px;
+                        font-size: 0.9rem;
+                        font-weight: 800;
+                        text-transform: uppercase;
+                        letter-spacing: 1px;
+                        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
                     }
 
                     .pricing-header h3 {
-                        font-size: 1.5rem;
-                        font-weight: 700;
-                        margin-bottom: 8px;
+                        font-size: 1.8rem;
+                        font-weight: 800;
+                        margin-bottom: 12px;
+                    }
+
+                    .pricing-header p {
+                        color: var(--text-gray);
+                        font-size: 1.05rem;
                     }
 
                     .pricing-price {
-                        font-size: 3rem;
-                        font-weight: 700;
-                        color: var(--text-dark);
-                        margin: 20px 0;
+                        font-size: 3.5rem;
+                        font-weight: 900;
+                        background: linear-gradient(135deg, var(--primary-blue), var(--purple-vivid));
+                        -webkit-background-clip: text;
+                        -webkit-text-fill-color: transparent;
+                        background-clip: text;
+                        margin: 28px 0;
                     }
 
                     .pricing-price span {
-                        font-size: 1.2rem;
+                        font-size: 1.3rem;
                         color: var(--text-gray);
-                        font-weight: 400;
+                        font-weight: 600;
                     }
 
                     .pricing-features {
                         list-style: none;
                         padding: 0;
-                        margin: 32px 0;
+                        margin: 36px 0;
                     }
 
                     .pricing-features li {
-                        padding: 12px 0;
+                        padding: 14px 0;
                         border-bottom: 1px solid var(--border-light);
                         display: flex;
                         align-items: center;
-                        gap: 12px;
+                        gap: 14px;
+                        font-size: 1.05rem;
                     }
 
                     .pricing-features li::before {
                         content: '✓';
-                        color: var(--success);
-                        font-weight: 700;
+                        color: white;
+                        background: var(--success-green);
+                        font-weight: 900;
+                        width: 24px;
+                        height: 24px;
+                        border-radius: 50%;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        font-size: 0.9rem;
                     }
 
-                    /* CTA final */
+                    /* CTA final - TRÈS VIVE */
                     .cta-final {
-                        background: linear-gradient(135deg, var(--primary-blue), #8FA0B3);
+                        background: linear-gradient(135deg, var(--primary-blue), var(--purple-vivid));
                         color: white;
-                        padding: 100px 0;
+                        padding: 120px 0;
                         text-align: center;
+                        position: relative;
+                        overflow: hidden;
+                    }
+
+                    .cta-final::before {
+                        content: '';
+                        position: absolute;
+                        top: 0;
+                        left: 0;
+                        right: 0;
+                        bottom: 0;
+                        background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120"><path fill="%23ffffff" fill-opacity="0.1" d="M0,96L48,80C96,64,192,32,288,32C384,32,480,64,576,74.7C672,85,768,75,864,58.7C960,43,1056,21,1152,16C1248,11,1344,21,1392,26.7L1440,32L1440,0L1392,0C1344,0,1248,0,1152,0C1056,0,960,0,864,0C768,0,672,0,576,0C480,0,384,0,288,0C192,0,96,0,48,0L0,0Z"></path></svg>');
+                        background-size: cover;
+                        opacity: 0.3;
                     }
 
                     .cta-final h2 {
-                        font-size: 3rem;
-                        font-weight: 700;
-                        margin-bottom: 20px;
+                        font-size: 3.5rem;
+                        font-weight: 900;
+                        margin-bottom: 24px;
+                        position: relative;
+                        text-shadow: 0 4px 12px rgba(0,0,0,0.2);
                     }
 
                     .cta-final p {
-                        font-size: 1.3rem;
-                        margin-bottom: 40px;
+                        font-size: 1.4rem;
+                        margin-bottom: 44px;
                         opacity: 0.95;
+                        position: relative;
                     }
 
                     .btn-cta-white {
                         background: white;
                         color: var(--primary-blue);
-                        padding: 16px 40px;
-                        border-radius: 8px;
-                        font-weight: 600;
-                        font-size: 1.1rem;
+                        padding: 20px 48px;
+                        border-radius: 16px;
+                        font-weight: 800;
+                        font-size: 1.2rem;
                         border: none;
                         cursor: pointer;
-                        transition: all 0.2s;
+                        transition: all 0.3s;
                         text-decoration: none;
                         display: inline-block;
+                        box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+                        position: relative;
                     }
 
                     .btn-cta-white:hover {
-                        transform: translateY(-2px);
-                        box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+                        transform: translateY(-4px) scale(1.05);
+                        box-shadow: 0 12px 32px rgba(0,0,0,0.3);
                         color: var(--primary-blue);
                     }
 
@@ -630,7 +934,7 @@
                         }
 
                         .feature-text h2 {
-                            font-size: 2rem;
+                            font-size: 2.2rem;
                         }
 
                         .task-columns {
@@ -639,7 +943,7 @@
 
                         .calendar-grid {
                             grid-template-columns: repeat(7, 1fr);
-                            gap: 4px;
+                            gap: 6px;
                         }
                     }
 
@@ -664,7 +968,11 @@
                         }
 
                         .cta-final h2 {
-                            font-size: 2rem;
+                            font-size: 2.2rem;
+                        }
+
+                        .section-header h2 {
+                            font-size: 2.2rem;
                         }
                     }
                 </style>
@@ -681,14 +989,14 @@
                                 </p>
                                 <div class="hero-cta">
                                     <a href="/onedesk/subscription" class="btn-primary-modern">
-                                        Démarrer gratuitement
+                                        🚀 Démarrer gratuitement
                                     </a>
                                     <a href="#demo" class="btn-secondary-modern">
-                                        Voir une démo
+                                        📹 Voir une démo
                                     </a>
                                 </div>
-                                <p style="margin-top: 20px; color: var(--text-light); font-size: 0.9rem;">
-                                    ✓ Aucune carte bancaire requise · ✓ Installation en 5 min
+                                <p style="margin-top: 24px; color: var(--text-gray); font-size: 0.95rem; font-weight: 600;">
+                                    ✓ Aucune carte bancaire · ✓ Installation en 5 min · ✓ Support 24/7
                                 </p>
                             </div>
 
@@ -736,7 +1044,7 @@
                 <!-- Social Proof -->
                 <section class="social-proof">
                     <div class="container">
-                        <h3>Ils nous font confiance</h3>
+                        <h3>✨ Ils nous font confiance</h3>
                         <div class="logos-grid">
                             <div class="logo-item">🏨 Hôtel Luxe</div>
                             <div class="logo-item">🏠 Résidence Paris</div>
@@ -756,7 +1064,7 @@
                                 <h2>Pilotez votre activité en temps réel</h2>
                                 <p>
                                     Visualisez vos KPIs essentiels d'un coup d'œil. Revenus, taux d'occupation,
-                                    réservations à venir - tout est centralisé dans un dashboard intuitif.
+                                    réservations à venir - tout est centralisé dans un dashboard intuitif et moderne.
                                 </p>
                                 <ul class="feature-list">
                                     <li>Dashboard multi-tenant pour gérer plusieurs sociétés</li>
@@ -765,7 +1073,7 @@
                                     <li>Filtres par période, propriété, ou unité</li>
                                 </ul>
                                 <a href="/onedesk/subscription" class="btn-primary-modern">
-                                    Essayer maintenant
+                                    ✨ Essayer maintenant
                                 </a>
                             </div>
                             <div class="feature-visual">
@@ -776,9 +1084,9 @@
                                         <div class="screenshot-dot"></div>
                                     </div>
                                     <div class="screenshot-body">
-                                        <div style="background: white; padding: 20px; border-radius: 8px; margin-bottom: 16px;">
-                                            <h4 style="margin: 0 0 16px 0; color: var(--text-dark);">📈 Performance Mensuelle</h4>
-                                            <div class="chart-mock" style="height: 160px;">
+                                        <div style="background: white; padding: 24px; border-radius: 12px; margin-bottom: 16px; box-shadow: var(--shadow-sm);">
+                                            <h4 style="margin: 0 0 20px 0; color: var(--primary-blue); font-weight: 800; font-size: 1.2rem;">📈 Performance Mensuelle</h4>
+                                            <div class="chart-mock" style="height: 180px;">
                                                 <div class="bar-mock" style="height: 50%;"></div>
                                                 <div class="bar-mock" style="height: 70%;"></div>
                                                 <div class="bar-mock" style="height: 60%;"></div>
@@ -790,12 +1098,12 @@
                                         </div>
                                         <div class="kpi-grid-mock">
                                             <div class="kpi-card-mock">
-                                                <div class="kpi-label">Taux d'occupation</div>
-                                                <div class="kpi-value" style="font-size: 1.5rem;">87%</div>
+                                                <div class="kpi-label">Taux occupation</div>
+                                                <div class="kpi-value" style="font-size: 1.8rem;">87%</div>
                                             </div>
                                             <div class="kpi-card-mock green">
                                                 <div class="kpi-label">CA ce mois</div>
-                                                <div class="kpi-value" style="font-size: 1.5rem;">45K€</div>
+                                                <div class="kpi-value" style="font-size: 1.8rem;">45K€</div>
                                             </div>
                                         </div>
                                     </div>
@@ -805,15 +1113,74 @@
                     </div>
                 </section>
 
-                <!-- Feature 2: Réservations -->
+                <!-- Feature 2: Gestion Propriétés -->
                 <section class="feature-section">
                     <div class="container">
                         <div class="feature-row reverse">
                             <div class="feature-text">
-                                <span class="feature-tag">📅 RÉSERVATIONS</span>
-                                <h2>Calendrier intelligent et disponibilités</h2>
+                                <span class="feature-tag orange">🏢 PROPRIÉTÉS</span>
+                                <h2>Centralisez vos propriétés</h2>
                                 <p>
-                                    Gérez vos réservations avec un calendrier visuel. Vérification automatique
+                                    Gérez tous vos biens immobiliers en un seul endroit. Photos HD, équipements,
+                                    documents légaux, tarifs - tout est organisé et accessible en un clic.
+                                </p>
+                                <ul class="feature-list">
+                                    <li>Galerie photos illimitée avec photos de couverture</li>
+                                    <li>Gestion des équipements et services par propriété</li>
+                                    <li>Documents centralisés (contrats, assurances, diagnostics)</li>
+                                    <li>Stats de performance par propriété en temps réel</li>
+                                </ul>
+                                <a href="/onedesk/subscription" class="btn-primary-modern">
+                                    🏢 Gérer mes propriétés
+                                </a>
+                            </div>
+                            <div class="feature-visual">
+                                <div class="properties-mockup">
+                                    <div class="property-item">
+                                        <div class="property-icon">🏨</div>
+                                        <div class="property-info">
+                                            <div class="property-name">Résidence Le Parc</div>
+                                            <div class="property-stats">📍 Paris 15ème · 12 unités · 94% occupation</div>
+                                        </div>
+                                        <div style="color: var(--success-green); font-weight: 800; font-size: 1.3rem;">
+                                            ↗ 15%
+                                        </div>
+                                    </div>
+                                    <div class="property-item">
+                                        <div class="property-icon">🏠</div>
+                                        <div class="property-info">
+                                            <div class="property-name">Villa Méditerranée</div>
+                                            <div class="property-stats">📍 Nice · 8 unités · 88% occupation</div>
+                                        </div>
+                                        <div style="color: var(--success-green); font-weight: 800; font-size: 1.3rem;">
+                                            ↗ 8%
+                                        </div>
+                                    </div>
+                                    <div class="property-item">
+                                        <div class="property-icon">🏘️</div>
+                                        <div class="property-info">
+                                            <div class="property-name">Appart'City Lyon</div>
+                                            <div class="property-stats">📍 Lyon 6ème · 20 unités · 91% occupation</div>
+                                        </div>
+                                        <div style="color: var(--success-green); font-weight: 800; font-size: 1.3rem;">
+                                            ↗ 12%
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Feature 3: Réservations -->
+                <section class="feature-section">
+                    <div class="container">
+                        <div class="feature-row">
+                            <div class="feature-text">
+                                <span class="feature-tag">📅 RÉSERVATIONS</span>
+                                <h2>Calendrier intelligent</h2>
+                                <p>
+                                    Gérez vos réservations avec un calendrier visuel ultra-moderne. Vérification automatique
                                     de disponibilité, gestion des arrivées/départs, et synchronisation temps réel.
                                 </p>
                                 <ul class="feature-list">
@@ -823,7 +1190,7 @@
                                     <li>Export des réservations et facturation automatique</li>
                                 </ul>
                                 <a href="/onedesk/subscription" class="btn-primary-modern">
-                                    Découvrir les réservations
+                                    📅 Découvrir le calendrier
                                 </a>
                             </div>
                             <div class="feature-visual">
@@ -831,18 +1198,18 @@
                                     <div class="calendar-header">
                                         <div class="calendar-title">📅 Janvier 2025</div>
                                         <div style="display: flex; gap: 8px;">
-                                            <button style="background: none; border: 1px solid var(--border-light); border-radius: 6px; padding: 6px 12px; cursor: pointer;">←</button>
-                                            <button style="background: none; border: 1px solid var(--border-light); border-radius: 6px; padding: 6px 12px; cursor: pointer;">→</button>
+                                            <button style="background: linear-gradient(135deg, var(--primary-blue), var(--primary-dark)); color: white; border: none; border-radius: 8px; padding: 8px 16px; cursor: pointer; font-weight: 700;">←</button>
+                                            <button style="background: linear-gradient(135deg, var(--primary-blue), var(--primary-dark)); color: white; border: none; border-radius: 8px; padding: 8px 16px; cursor: pointer; font-weight: 700;">→</button>
                                         </div>
                                     </div>
                                     <div class="calendar-grid">
-                                        <div class="calendar-day" style="font-weight: 700; border: none;">L</div>
-                                        <div class="calendar-day" style="font-weight: 700; border: none;">M</div>
-                                        <div class="calendar-day" style="font-weight: 700; border: none;">M</div>
-                                        <div class="calendar-day" style="font-weight: 700; border: none;">J</div>
-                                        <div class="calendar-day" style="font-weight: 700; border: none;">V</div>
-                                        <div class="calendar-day" style="font-weight: 700; border: none;">S</div>
-                                        <div class="calendar-day" style="font-weight: 700; border: none;">D</div>
+                                        <div class="calendar-day" style="font-weight: 800; border: none; color: var(--primary-blue);">L</div>
+                                        <div class="calendar-day" style="font-weight: 800; border: none; color: var(--primary-blue);">M</div>
+                                        <div class="calendar-day" style="font-weight: 800; border: none; color: var(--primary-blue);">M</div>
+                                        <div class="calendar-day" style="font-weight: 800; border: none; color: var(--primary-blue);">J</div>
+                                        <div class="calendar-day" style="font-weight: 800; border: none; color: var(--primary-blue);">V</div>
+                                        <div class="calendar-day" style="font-weight: 800; border: none; color: var(--primary-blue);">S</div>
+                                        <div class="calendar-day" style="font-weight: 800; border: none; color: var(--primary-blue);">D</div>
 
                                         <div class="calendar-day">1</div>
                                         <div class="calendar-day">2</div>
@@ -865,13 +1232,13 @@
                                         <div class="calendar-day booked">19</div>
                                         <div class="calendar-day booked">20</div>
                                     </div>
-                                    <div style="margin-top: 20px; display: flex; gap: 20px; font-size: 0.9rem;">
-                                        <div style="display: flex; align-items: center; gap: 8px;">
-                                            <div style="width: 20px; height: 20px; background: var(--primary-blue); border-radius: 4px;"></div>
+                                    <div style="margin-top: 24px; display: flex; gap: 24px; font-size: 0.95rem; font-weight: 700;">
+                                        <div style="display: flex; align-items: center; gap: 10px;">
+                                            <div style="width: 24px; height: 24px; background: linear-gradient(135deg, var(--primary-blue), var(--primary-dark)); border-radius: 6px;"></div>
                                             <span>Réservé</span>
                                         </div>
-                                        <div style="display: flex; align-items: center; gap: 8px;">
-                                            <div style="width: 20px; height: 20px; background: #E8F8F0; border: 1px solid var(--success); border-radius: 4px;"></div>
+                                        <div style="display: flex; align-items: center; gap: 10px;">
+                                            <div style="width: 24px; height: 24px; background: linear-gradient(135deg, var(--success-green), var(--success-dark)); border-radius: 6px;"></div>
                                             <span>Disponible</span>
                                         </div>
                                     </div>
@@ -881,13 +1248,112 @@
                     </div>
                 </section>
 
-                <!-- Feature 3: Tâches Automatiques -->
+                <!-- Feature 4: Synchronisation iCal -->
+                <section class="feature-section">
+                    <div class="container">
+                        <div class="feature-row reverse">
+                            <div class="feature-text">
+                                <span class="feature-tag green">🔄 SYNCHRONISATION</span>
+                                <h2>Sync iCal automatique</h2>
+                                <p>
+                                    Synchronisez automatiquement vos réservations avec Google Calendar, Airbnb, Booking.com
+                                    et tous les outils compatibles iCal. Fini les doubles réservations !
+                                </p>
+                                <ul class="feature-list">
+                                    <li>Synchronisation bidirectionnelle en temps réel</li>
+                                    <li>Compatible avec tous les calendriers (Google, Outlook, Apple)</li>
+                                    <li>Import/Export iCal pour chaque unité</li>
+                                    <li>Mise à jour automatique des disponibilités</li>
+                                </ul>
+                                <a href="/onedesk/subscription" class="btn-primary-modern">
+                                    🔄 Activer la sync
+                                </a>
+                            </div>
+                            <div class="feature-visual">
+                                <div class="ical-mockup">
+                                    <div class="ical-header">
+                                        <div class="ical-icon">📅</div>
+                                        <div style="flex: 1;">
+                                            <div class="ical-title">Synchronisation iCal</div>
+                                            <div style="color: var(--success-green); font-weight: 700; margin-top: 4px;">✓ Actif - Sync toutes les 5 min</div>
+                                        </div>
+                                    </div>
+                                    <div style="background: linear-gradient(135deg, #ECFDF5, #D1FAE5); border: 2px solid var(--success-green); border-radius: 12px; padding: 20px; margin-bottom: 20px;">
+                                        <div style="font-weight: 800; color: var(--success-dark); margin-bottom: 8px;">📊 OneDesk Calendar</div>
+                                        <div style="font-size: 0.9rem; color: var(--text-gray);">https://onedesk.app/ical/abc123...</div>
+                                    </div>
+                                    <div class="sync-arrow">⬇️ ⬆️</div>
+                                    <div class="calendar-badges">
+                                        <div class="calendar-badge">📱 Google Calendar</div>
+                                        <div class="calendar-badge">🏠 Airbnb</div>
+                                        <div class="calendar-badge">🏨 Booking.com</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Feature 5: Signature Électronique -->
                 <section class="feature-section">
                     <div class="container">
                         <div class="feature-row">
                             <div class="feature-text">
+                                <span class="feature-tag purple">✍️ SIGNATURE</span>
+                                <h2>Signature électronique</h2>
+                                <p>
+                                    Faites signer vos contrats de location en ligne. Rapide, légal, et entièrement
+                                    sécurisé. Plus besoin d'imprimer, scanner ou poster !
+                                </p>
+                                <ul class="feature-list">
+                                    <li>Signature électronique conforme eIDAS</li>
+                                    <li>Envoi automatique par email aux locataires</li>
+                                    <li>Notifications de signature en temps réel</li>
+                                    <li>Stockage sécurisé et archivage légal</li>
+                                </ul>
+                                <a href="/onedesk/subscription" class="btn-primary-modern">
+                                    ✍️ Signer en ligne
+                                </a>
+                            </div>
+                            <div class="feature-visual">
+                                <div class="signature-mockup">
+                                    <div class="signature-header">
+                                        <div class="signature-title">📄 Contrat de Location</div>
+                                        <div class="signature-badge">✓ Signé</div>
+                                    </div>
+                                    <div class="signature-doc">
+                                        <div style="font-weight: 800; color: var(--text-dark); margin-bottom: 12px;">CONTRAT DE LOCATION MEUBLÉE</div>
+                                        <div class="signature-line"></div>
+                                        <div class="signature-line"></div>
+                                        <div class="signature-line"></div>
+                                        <div style="height: 16px;"></div>
+                                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 20px;">
+                                            <div class="signature-field" style="border-color: var(--success-green); color: var(--success-dark);">
+                                                ✓ Signature Propriétaire
+                                                <div style="font-size: 0.8rem; margin-top: 4px;">Jean Dupont · 05/12/2025</div>
+                                            </div>
+                                            <div class="signature-field">
+                                                ✍️ En attente Locataire
+                                                <div style="font-size: 0.8rem; margin-top: 4px;">Email envoyé</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div style="text-align: center; color: var(--text-gray); font-size: 0.85rem; margin-top: 16px;">
+                                        🔒 Signature conforme eIDAS · Valeur légale
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Feature 6: Tâches Automatiques -->
+                <section class="feature-section">
+                    <div class="container">
+                        <div class="feature-row reverse">
+                            <div class="feature-text">
                                 <span class="feature-tag">✅ AUTOMATISATION</span>
-                                <h2>Tâches automatiques et gestion d'équipe</h2>
+                                <h2>Tâches automatiques</h2>
                                 <p>
                                     Créez automatiquement vos tâches de ménage et check-in/out lors de chaque
                                     réservation. Assignez, suivez et optimisez le travail de votre équipe.
@@ -899,40 +1365,40 @@
                                     <li>Historique complet et rapports de productivité</li>
                                 </ul>
                                 <a href="/onedesk/subscription" class="btn-primary-modern">
-                                    Automatiser mes tâches
+                                    ✅ Automatiser mes tâches
                                 </a>
                             </div>
                             <div class="feature-visual">
                                 <div class="task-board">
-                                    <h4 style="margin: 0 0 20px 0; color: var(--text-dark);">📋 Tableau des Tâches</h4>
+                                    <h4 style="margin: 0 0 24px 0; color: var(--primary-blue); font-weight: 800; font-size: 1.3rem;">📋 Tableau des Tâches</h4>
                                     <div class="task-columns">
                                         <div class="task-column">
-                                            <div class="task-column-title">À FAIRE</div>
+                                            <div class="task-column-title">⏳ À FAIRE</div>
                                             <div class="task-card high">
-                                                <div style="font-weight: 600; margin-bottom: 4px;">Check-in - Apt 205</div>
-                                                <div style="font-size: 0.8rem; color: var(--text-light);">Aujourd'hui 14h</div>
+                                                <div style="font-weight: 700; margin-bottom: 6px;">Check-in - Apt 205</div>
+                                                <div style="font-size: 0.85rem; color: var(--text-gray);">🕐 Aujourd'hui 14h</div>
                                             </div>
                                             <div class="task-card">
-                                                <div style="font-weight: 600; margin-bottom: 4px;">Ménage - Studio 12</div>
-                                                <div style="font-size: 0.8rem; color: var(--text-light);">Demain 10h</div>
+                                                <div style="font-weight: 700; margin-bottom: 6px;">Ménage - Studio 12</div>
+                                                <div style="font-size: 0.85rem; color: var(--text-gray);">🕐 Demain 10h</div>
                                             </div>
                                         </div>
                                         <div class="task-column">
-                                            <div class="task-column-title">EN COURS</div>
+                                            <div class="task-column-title">⚡ EN COURS</div>
                                             <div class="task-card medium">
-                                                <div style="font-weight: 600; margin-bottom: 4px;">Ménage - Apt 103</div>
-                                                <div style="font-size: 0.8rem; color: var(--text-light);">Marie · 2h restantes</div>
+                                                <div style="font-weight: 700; margin-bottom: 6px;">Ménage - Apt 103</div>
+                                                <div style="font-size: 0.85rem; color: var(--text-gray);">👤 Marie · 2h restantes</div>
                                             </div>
                                         </div>
                                         <div class="task-column">
-                                            <div class="task-column-title">TERMINÉ</div>
+                                            <div class="task-column-title">✅ TERMINÉ</div>
                                             <div class="task-card">
-                                                <div style="font-weight: 600; margin-bottom: 4px;">Check-out - Villa 8</div>
-                                                <div style="font-size: 0.8rem; color: var(--text-light);">✓ Terminé</div>
+                                                <div style="font-weight: 700; margin-bottom: 6px;">Check-out - Villa 8</div>
+                                                <div style="font-size: 0.85rem; color: var(--success-green);">✓ Terminé</div>
                                             </div>
                                             <div class="task-card">
-                                                <div style="font-weight: 600; margin-bottom: 4px;">Inventaire - Apt 201</div>
-                                                <div style="font-size: 0.8rem; color: var(--text-light);">✓ Terminé</div>
+                                                <div style="font-weight: 700; margin-bottom: 6px;">Inventaire - Apt 201</div>
+                                                <div style="font-size: 0.85rem; color: var(--success-green);">✓ Terminé</div>
                                             </div>
                                         </div>
                                     </div>
@@ -999,8 +1465,8 @@
                 <section class="pricing-section">
                     <div class="container">
                         <div class="section-header">
-                            <h2>Des tarifs adaptés à votre croissance</h2>
-                            <p>Commencez gratuitement, évoluez à votre rythme</p>
+                            <h2>Choisissez votre plan</h2>
+                            <p>Tous nos plans incluent un essai gratuit de 14 jours</p>
                         </div>
                         <div class="pricing-grid">
                             <!-- Starter -->
@@ -1042,6 +1508,8 @@
                                     <li>Réservations illimitées</li>
                                     <li>Dashboard avancé + Analytics</li>
                                     <li>Tâches automatiques</li>
+                                    <li>Signature électronique</li>
+                                    <li>Sync iCal</li>
                                     <li>Support prioritaire</li>
                                 </ul>
                                 <a href="/onedesk/subscription?plan=professional" class="btn-primary-modern" style="width: 100%; text-align: center;">
@@ -1066,6 +1534,8 @@
                                     <li>Dashboard Master Admin</li>
                                     <li>Multi-tenant</li>
                                     <li>API &amp; Intégrations</li>
+                                    <li>Signature électronique</li>
+                                    <li>Sync iCal avancée</li>
                                     <li>Support dédié 24/7</li>
                                 </ul>
                                 <a href="/onedesk/subscription?plan=enterprise" class="btn-primary-modern" style="width: 100%; text-align: center;">
@@ -1073,8 +1543,8 @@
                                 </a>
                             </div>
                         </div>
-                        <p style="text-align: center; margin-top: 40px; color: var(--text-light);">
-                            💳 Aucune carte bancaire requise pour l'essai · 📅 14 jours gratuits · ❌ Annulation à tout moment
+                        <p style="text-align: center; margin-top: 44px; color: var(--text-gray); font-weight: 600; font-size: 1.05rem;">
+                            💳 Aucune carte bancaire requise · 📅 14 jours d'essai gratuit · ❌ Annulation à tout moment
                         </p>
                     </div>
                 </section>
@@ -1085,10 +1555,10 @@
                         <h2>Prêt à simplifier votre gestion ?</h2>
                         <p>Rejoignez des centaines de gestionnaires qui optimisent leurs opérations avec OneDesk</p>
                         <a href="/onedesk/subscription" class="btn-cta-white">
-                            Commencer gratuitement
+                            🚀 Commencer gratuitement
                         </a>
-                        <p style="margin-top: 30px; font-size: 0.9rem; opacity: 0.8;">
-                            Installation en 5 minutes · Aucun engagement
+                        <p style="margin-top: 36px; font-size: 1rem; opacity: 0.9; font-weight: 600;">
+                            ⚡ Installation en 5 minutes · 🎯 Aucun engagement
                         </p>
                     </div>
                 </section>
