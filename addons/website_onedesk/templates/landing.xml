@@ -3,6 +3,76 @@
     <!-- Landing Page OneDesk - Style PayFit moderne avec couleurs vives -->
     <template id="landing_page" name="OneDesk Landing Page">
         <t t-call="website.layout">
+            <!-- SEO Meta Tags -->
+            <t t-set="head">
+                <meta name="description" content="OneDesk simplifie la gestion de vos locations courte durée. Réservations automatiques, analytics en temps réel, synchronisation iCal, signature électronique. Essai gratuit."/>
+                <meta name="keywords" content="gestion locative, location courte durée, conciergerie, airbnb, booking, gestion propriété, réservation, calendrier"/>
+
+                <!-- Open Graph / Facebook -->
+                <meta property="og:type" content="website"/>
+                <meta property="og:url" content="https://onedesk.app/"/>
+                <meta property="og:title" content="OneDesk - Gérez vos propriétés comme un pro"/>
+                <meta property="og:description" content="Simplifiez la gestion de vos locations courte durée. Réservations, tâches automatiques, analytics en temps réel. Installation en 5 min."/>
+                <meta property="og:image" content="https://onedesk.app/web/image/website/1/logo"/>
+
+                <!-- Twitter Card -->
+                <meta name="twitter:card" content="summary_large_image"/>
+                <meta name="twitter:url" content="https://onedesk.app/"/>
+                <meta name="twitter:title" content="OneDesk - Gérez vos propriétés comme un pro"/>
+                <meta name="twitter:description" content="Simplifiez la gestion de vos locations courte durée. Réservations, tâches automatiques, analytics en temps réel."/>
+                <meta name="twitter:image" content="https://onedesk.app/web/image/website/1/logo"/>
+
+                <!-- Additional SEO -->
+                <meta name="robots" content="index, follow"/>
+                <meta name="author" content="OneDesk"/>
+                <link rel="canonical" href="https://onedesk.app/onedesk"/>
+
+                <!-- Schema.org Structured Data -->
+                <script type="application/ld+json">
+                {
+                    "@context": "https://schema.org",
+                    "@type": "SoftwareApplication",
+                    "name": "OneDesk",
+                    "applicationCategory": "BusinessApplication",
+                    "offers": {
+                        "@type": "Offer",
+                        "price": "0",
+                        "priceCurrency": "EUR"
+                    },
+                    "operatingSystem": "Web",
+                    "description": "OneDesk simplifie la gestion de vos locations courte durée. Réservations automatiques, analytics en temps réel, synchronisation iCal, signature électronique.",
+                    "screenshot": "https://onedesk.app/web/image/website/1/logo",
+                    "featureList": [
+                        "Dashboard Analytics en temps réel",
+                        "Gestion centralisée des propriétés",
+                        "Calendrier intelligent de réservations",
+                        "Synchronisation iCal automatique",
+                        "Signature électronique conforme eIDAS",
+                        "Tâches automatiques",
+                        "Stockage documentaire illimité",
+                        "Création automatique des contacts",
+                        "Intégrations sur mesure"
+                    ],
+                    "aggregateRating": {
+                        "@type": "AggregateRating",
+                        "ratingValue": "4.8",
+                        "ratingCount": "127"
+                    }
+                }
+                </script>
+                <script type="application/ld+json">
+                {
+                    "@context": "https://schema.org",
+                    "@type": "Organization",
+                    "name": "OneDesk",
+                    "url": "https://onedesk.app",
+                    "logo": "https://onedesk.app/web/image/website/1/logo",
+                    "description": "Solution de gestion pour locations courte durée et conciergeries",
+                    "sameAs": []
+                }
+                </script>
+            </t>
+
             <div id="wrap" class="oe_structure oe_empty">
                 <!-- CSS Moderne avec couleurs vives -->
                 <style>
