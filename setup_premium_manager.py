@@ -23,7 +23,7 @@ else:
     all_internal_users = env['res.users'].sudo().search([
         ('share', '=', False),  # Exclude portal users
     ])
-    premium_users = all_internal_users.filtered(lambda u: premium_group.id in u.groups_id.ids)
+    premium_users = all_internal_users.filtered(lambda u: premium_group.id in u.group_ids.ids)
     
     if not premium_users:
         print("\n⚠️ Aucun utilisateur n'a le rôle Premium Manager")
@@ -39,7 +39,7 @@ else:
             company = u.company_id.name if u.company_id else "❌ AUCUNE"
             print(f"   • {u.name} (ID: {u.id}, Login: {u.login})")
             print(f"     Company: {company}")
-            print(f"     Groups: {', '.join(u.groups_id.mapped('name')[:3])}...")
+            print(f"     Groups: {', '.join(u.group_ids.mapped('name')[:3])}...")
             print()
         
         print("\n💡 POUR ASSIGNER LE RÔLE PREMIUM MANAGER:")
