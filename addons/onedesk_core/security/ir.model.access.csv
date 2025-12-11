@@ -169,3 +169,16 @@ access_availability_cache_system,access_availability_cache_system,model_onedesk_
 access_contact_importer_pm,access_contact_importer_pm,model_onedesk_contact_importer,onedesk_core.group_onedesk_property_manager,1,1,1,1
 access_contact_importer_admin,access_contact_importer_admin,model_onedesk_contact_importer,onedesk_core.group_onedesk_master_admin,1,1,1,1
 access_contact_importer_support,access_contact_importer_support,model_onedesk_contact_importer,onedesk_core.group_onedesk_support,1,1,1,1
+access_premium_website,Premium Manager - website,website.model_website,group_onedesk_premium_manager,1,1,1,1
+access_premium_website_page,Premium Manager - website.page,website.model_website_page,group_onedesk_premium_manager,1,1,1,1
+access_premium_website_menu,Premium Manager - website.menu,website.model_website_menu,group_onedesk_premium_manager,1,1,1,1
+access_premium_crm_lead,Premium Manager - crm.lead,crm.model_crm_lead,group_onedesk_premium_manager,1,1,1,1
+access_premium_account_move,Premium Manager - account.move,account.model_account_move,group_onedesk_premium_manager,1,1,1,1
+access_premium_account_payment,Premium Manager - account.payment,account.model_account_payment,group_onedesk_premium_manager,1,1,1,1
+access_premium_account_journal,Premium Manager - account.journal,account.model_account_journal,group_onedesk_premium_manager,1,1,1,1
+access_premium_sale_order,Premium Manager - sale.order,sale.model_sale_order,group_onedesk_premium_manager,1,1,1,1
+access_premium_product_product,Premium Manager - product.product,product.model_product_product,group_onedesk_premium_manager,1,1,1,1
+access_premium_product_template,Premium Manager - product.template,product.model_product_template,group_onedesk_premium_manager,1,1,1,1
+access_premium_res_users,Premium Manager - res.users,base.model_res_users,group_onedesk_premium_manager,1,1,1,1
+access_premium_res_company,Premium Manager - res.company,base.model_res_company,group_onedesk_premium_manager,1,1,0,0
+access_premium_ir_sequence,Premium Manager - ir.sequence,base.model_ir_sequence,group_onedesk_premium_manager,1,1,1,1
