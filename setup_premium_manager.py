@@ -18,9 +18,12 @@ else:
     print(f"\n✅ Groupe Premium Manager trouvé (ID: {premium_group.id})")
     
     # Trouver tous les utilisateurs avec ce groupe
-    premium_users = env['res.users'].sudo().search([
-        ('groups_id', 'in', [premium_group.id])
+    # Note: En Odoo 19, on ne peut pas chercher directement par groups_id dans search()
+    # On doit charger tous les users et filtrer avec Python
+    all_internal_users = env['res.users'].sudo().search([
+        ('share', '=', False),  # Exclude portal users
     ])
+    premium_users = all_internal_users.filtered(lambda u: premium_group.id in u.groups_id.ids)
     
     if not premium_users:
         print("\n⚠️ Aucun utilisateur n'a le rôle Premium Manager")
