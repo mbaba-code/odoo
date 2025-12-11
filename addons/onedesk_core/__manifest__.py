@@ -10,6 +10,8 @@
         'payment',              # NEW - Payment Engine
         'account_payment',      # NEW - Invoice Payment Integration
         'website',              # NEW - Website module for portal/frontend
+        'crm',                  # CRM (for Premium Manager access)
+        'sale',                 # Sales Orders (for Premium Manager access)
     ],
     'data': [
     # Multi-tenant data FIRST - Groupes et séquences doivent exister AVANT ir.model.access.csv
