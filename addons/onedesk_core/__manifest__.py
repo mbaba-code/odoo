@@ -62,6 +62,9 @@
     # Contact Importer (Marketing)
     'views/contact_importer_views.xml',
 
+    # Website menu override for Premium Manager
+    'views/website_menu_override.xml',
+
     # Multi-tenant views (admin)
     'views/onedesk_plan_views.xml',
     'views/onedesk_client_views.xml',

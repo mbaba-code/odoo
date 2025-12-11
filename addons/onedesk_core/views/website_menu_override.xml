@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Server Action: Ouvre automatiquement le website de la company de l'utilisateur -->
+    <record id="action_open_user_website" model="ir.actions.server">
+        <field name="name">Mon Site Web</field>
+        <field name="model_id" ref="website.model_website"/>
+        <field name="state">code</field>
+        <field name="code">
+# Trouver le website de la company de l'utilisateur
+user_website = env['website'].search([
+    ('company_id', '=', env.user.company_id.id)
+], limit=1)
+
+if not user_website:
+    # Si pas de website pour cette company, en créer un
+    unique_domain = f'company-{env.user.company_id.id}.local'
+    user_website = env['website'].create({
+        'name': f'Site {env.user.company_id.name}',
+        'company_id': env.user.company_id.id,
+        'domain': unique_domain,
+    })
+
+# Rediriger vers ce website
+action = {
+    'type': 'ir.actions.act_url',
+    'url': f'/website/force/{user_website.id}',
+    'target': 'self',
+}
+        </field>
+    </record>
+
+    <!-- Menu Website pour Premium Manager -->
+    <menuitem
+        id="menu_premium_website"
+        name="Mon Site Web"
+        parent="website.menu_website_configuration"
+        action="action_open_user_website"
+        groups="onedesk_core.group_onedesk_premium_manager"
+        sequence="5"/>
+
+</odoo>
