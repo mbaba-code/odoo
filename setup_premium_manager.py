@@ -70,10 +70,14 @@ else:
                 print(f"\n   ⚠️ AUCUN website pour {user.company_id.name}")
                 print(f"   🔧 Création d'un website...")
                 
+                # Use unique domain to avoid constraint violation
+                # Format: company-{id}.local (unique per company)
+                unique_domain = f'company-{user.company_id.id}.local'
+
                 new_website = env['website'].sudo().create({
                     'name': f'Site {user.company_id.name}',
                     'company_id': user.company_id.id,
-                    'domain': '',
+                    'domain': unique_domain,
                 })
                 
                 print(f"   ✅ Website créé: {new_website.name} (ID: {new_website.id})")
