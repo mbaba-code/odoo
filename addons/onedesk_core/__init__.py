@@ -107,8 +107,18 @@ def _auto_configure_existing_premium_managers(env):
             if not user.company_id:
                 default_company = env['res.company'].sudo().search([], limit=1)
                 if default_company:
-                    user.sudo().write({'company_id': default_company.id})
+                    user.sudo().write({
+                        'company_id': default_company.id,
+                        'company_ids': [(6, 0, [default_company.id])]  # ONLY this company!
+                    })
                     _logger.info(f"  ✓ Company assignée: {default_company.name}")
+            else:
+                # Ensure company_ids contains ONLY the user's company (not admin's companies)
+                if set(user.company_ids.ids) != {user.company_id.id}:
+                    user.sudo().write({
+                        'company_ids': [(6, 0, [user.company_id.id])]  # Replace with ONLY user's company
+                    })
+                    _logger.info(f"  ✓ Accès restreint à la company: {user.company_id.name}")
 
             # 3. Créer le website pour la company si besoin
             if user.company_id:

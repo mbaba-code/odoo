@@ -81,8 +81,18 @@ class ResUsers(models.Model):
         if not user.company_id:
             default_company = self.env['res.company'].search([], limit=1)
             if default_company:
-                user.sudo().with_context(skip_premium_auto_config=True).write({'company_id': default_company.id})
+                user.sudo().with_context(skip_premium_auto_config=True).write({
+                    'company_id': default_company.id,
+                    'company_ids': [(6, 0, [default_company.id])]  # ONLY this company!
+                })
                 _logger.info(f"  ✅ Assigned company: {default_company.name}")
+        else:
+            # Ensure company_ids contains ONLY the user's company (not admin's companies)
+            if set(user.company_ids.ids) != {user.company_id.id}:
+                user.sudo().with_context(skip_premium_auto_config=True).write({
+                    'company_ids': [(6, 0, [user.company_id.id])]  # Replace with ONLY user's company
+                })
+                _logger.info(f"  ✅ Restricted access to ONLY company: {user.company_id.name}")
 
         # 3. Create website for the company if needed
         if user.company_id:
