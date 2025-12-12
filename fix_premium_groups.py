@@ -9,7 +9,7 @@ print("🔧 FIX: Ajout des groupes manquants pour Premium Manager")
 print("=" * 80)
 
 # Trouver l'utilisateur Premium Test
-premium_user = env['res.users'].sudo().browse(116)
+premium_user = env['res.users'].sudo().browse(119)
 
 print(f"\n👤 Utilisateur: {premium_user.name}")
 print(f"   Company: {premium_user.company_id.name}")
