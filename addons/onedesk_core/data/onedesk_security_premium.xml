@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ============================================ -->
+    <!-- PREMIUM MANAGER SECURITY RULES              -->
+    <!-- Multi-tenant isolation for full Odoo access -->
+    <!-- ============================================ -->
+
+    <!-- ============================= -->
+    <!-- GROUP PREMIUM MANAGER         -->
+    <!-- ============================= -->
+
+    <!-- ================== CRM LEADS ================== -->
+    <record id="rule_premium_manager_crm_lead" model="ir.rule">
+        <field name="name">Premium Manager - CRM Leads Own Company</field>
+        <field name="model_id" ref="crm.model_crm_lead"/>
+        <field name="domain_force">['|', ('company_id', '=', False), ('company_id', '=', user.company_id.id)]</field>
+        <field name="groups" eval="[(4, ref('group_onedesk_premium_manager'))]"/>
+        <field name="perm_read">True</field>
+        <field name="perm_write">True</field>
+        <field name="perm_create">True</field>
+        <field name="perm_unlink">True</field>
+    </record>
+
+    <!-- ================== ACCOUNTING ================== -->
+    <record id="rule_premium_manager_account_move" model="ir.rule">
+        <field name="name">Premium Manager - Account Moves Own Company</field>
+        <field name="model_id" ref="account.model_account_move"/>
+        <field name="domain_force">['|', ('company_id', '=', False), ('company_id', '=', user.company_id.id)]</field>
+        <field name="groups" eval="[(4, ref('group_onedesk_premium_manager'))]"/>
+        <field name="perm_read">True</field>
+        <field name="perm_write">True</field>
+        <field name="perm_create">True</field>
+        <field name="perm_unlink">True</field>
+    </record>
+
+    <record id="rule_premium_manager_account_payment" model="ir.rule">
+        <field name="name">Premium Manager - Payments Own Company</field>
+        <field name="model_id" ref="account.model_account_payment"/>
+        <field name="domain_force">['|', ('company_id', '=', False), ('company_id', '=', user.company_id.id)]</field>
+        <field name="groups" eval="[(4, ref('group_onedesk_premium_manager'))]"/>
+        <field name="perm_read">True</field>
+        <field name="perm_write">True</field>
+        <field name="perm_create">True</field>
+        <field name="perm_unlink">True</field>
+    </record>
+
+    <record id="rule_premium_manager_account_journal" model="ir.rule">
+        <field name="name">Premium Manager - Journals Own Company</field>
+        <field name="model_id" ref="account.model_account_journal"/>
+        <field name="domain_force">['|', ('company_id', '=', False), ('company_id', '=', user.company_id.id)]</field>
+        <field name="groups" eval="[(4, ref('group_onedesk_premium_manager'))]"/>
+        <field name="perm_read">True</field>
+        <field name="perm_write">True</field>
+        <field name="perm_create">True</field>
+        <field name="perm_unlink">True</field>
+    </record>
+
+    <!-- ================== WEBSITE ================== -->
+
+    <!-- CRITICAL: Filter website.website by company_id (ROOT MODEL) -->
+    <!-- EXCEPTION: System admins (base.group_system) see ALL websites -->
+    <record id="rule_premium_manager_website" model="ir.rule">
+        <field name="name">Premium Manager - Websites Own Company ONLY</field>
+        <field name="model_id" ref="website.model_website"/>
+        <field name="domain_force">['|', ('company_id', '=', False), ('company_id', '=', user.company_id.id)] if not user.has_group('base.group_system') else []</field>
+        <field name="groups" eval="[(4, ref('group_onedesk_premium_manager'))]"/>
+        <field name="perm_read">True</field>
+        <field name="perm_write">True</field>
+        <field name="perm_create">True</field>
+        <field name="perm_unlink">False</field>
+    </record>
+
+    <record id="rule_premium_manager_website_page" model="ir.rule">
+        <field name="name">Premium Manager - Website Pages Own Company</field>
+        <field name="model_id" ref="website.model_website_page"/>
+        <field name="domain_force">['|', ('website_id.company_id', '=', False), ('website_id.company_id', '=', user.company_id.id)]</field>
+        <field name="groups" eval="[(4, ref('group_onedesk_premium_manager'))]"/>
+        <field name="perm_read">True</field>
+        <field name="perm_write">True</field>
+        <field name="perm_create">True</field>
+        <field name="perm_unlink">True</field>
+    </record>
+
+    <record id="rule_premium_manager_website_menu" model="ir.rule">
+        <field name="name">Premium Manager - Website Menus Own Company</field>
+        <field name="model_id" ref="website.model_website_menu"/>
+        <field name="domain_force">['|', ('website_id.company_id', '=', False), ('website_id.company_id', '=', user.company_id.id)]</field>
+        <field name="groups" eval="[(4, ref('group_onedesk_premium_manager'))]"/>
+        <field name="perm_read">True</field>
+        <field name="perm_write">True</field>
+        <field name="perm_create">True</field>
+        <field name="perm_unlink">True</field>
+    </record>
+
+    <!-- ================== SALE ORDERS ================== -->
+    <record id="rule_premium_manager_sale_order" model="ir.rule">
+        <field name="name">Premium Manager - Sale Orders Own Company</field>
+        <field name="model_id" ref="sale.model_sale_order"/>
+        <field name="domain_force">['|', ('company_id', '=', False), ('company_id', '=', user.company_id.id)]</field>
+        <field name="groups" eval="[(4, ref('group_onedesk_premium_manager'))]"/>
+        <field name="perm_read">True</field>
+        <field name="perm_write">True</field>
+        <field name="perm_create">True</field>
+        <field name="perm_unlink">True</field>
+    </record>
+
+    <!-- ================== PRODUCTS ================== -->
+    <record id="rule_premium_manager_product_template" model="ir.rule">
+        <field name="name">Premium Manager - Products Own Company</field>
+        <field name="model_id" ref="product.model_product_template"/>
+        <field name="domain_force">['|', ('company_id', '=', False), ('company_id', '=', user.company_id.id)]</field>
+        <field name="groups" eval="[(4, ref('group_onedesk_premium_manager'))]"/>
+        <field name="perm_read">True</field>
+        <field name="perm_write">True</field>
+        <field name="perm_create">True</field>
+        <field name="perm_unlink">True</field>
+    </record>
+
+    <record id="rule_premium_manager_product_product" model="ir.rule">
+        <field name="name">Premium Manager - Product Variants Own Company</field>
+        <field name="model_id" ref="product.model_product_product"/>
+        <field name="domain_force">['|', ('company_id', '=', False), ('company_id', '=', user.company_id.id)]</field>
+        <field name="groups" eval="[(4, ref('group_onedesk_premium_manager'))]"/>
+        <field name="perm_read">True</field>
+        <field name="perm_write">True</field>
+        <field name="perm_create">True</field>
+        <field name="perm_unlink">True</field>
+    </record>
+
+    <record id="rule_partner_company" model="ir.rule">
+        <field name="name">res.partner company</field>
+        <field name="model_id" ref="base.model_res_partner"/>
+        <field name="domain_force">
+            ['|', ('company_id','=',False), ('company_id','=',user.company_id.id)] if not user.has_group('base.group_system') else []
+        </field>
+
+        <field name="groups" eval="[(4, ref('group_onedesk_premium_manager'))]"/>
+        <field name="perm_read">True</field>
+        <field name="perm_write">True</field>
+        <field name="perm_create">True</field>
+        <field name="perm_unlink">False</field>
+    </record>
+
+    <!-- ================== USERS & SYSTEM ================== -->
+
+    <!-- Companies: Only see own company (critical for multi-tenant) -->
+    <!-- EXCEPTION: System admins (base.group_system) see ALL companies -->
+    <record id="rule_premium_manager_res_company" model="ir.rule">
+        <field name="name">Premium Manager - Own Company ONLY</field>
+        <field name="model_id" ref="base.model_res_company"/>
+        <field name="domain_force">[('id', '=', user.company_id.id)] if not user.has_group('base.group_system') else []</field>
+        <field name="groups" eval="[(4, ref('group_onedesk_premium_manager'))]"/>
+        <field name="perm_read">True</field>
+        <field name="perm_write">True</field>
+        <field name="perm_create">False</field>
+        <field name="perm_unlink">False</field>
+    </record>
+
+    <!-- Users: Only see users from own company -->
+    <!-- EXCEPTION: System admins (base.group_system) see ALL users -->
+    <record id="rule_premium_manager_res_users" model="ir.rule">
+        <field name="name">Premium Manager - Users Own Company</field>
+        <field name="model_id" ref="base.model_res_users"/>
+        <field name="domain_force">[('company_id', '=', user.company_id.id)] if not user.has_group('base.group_system') else []</field>
+        <field name="groups" eval="[(4, ref('group_onedesk_premium_manager'))]"/>
+        <field name="perm_read">True</field>
+        <field name="perm_write">True</field>
+        <field name="perm_create">True</field>
+        <field name="perm_unlink">False</field>
+    </record>
+
+    <!-- Sequences: Each company has its own numbering -->
+    <record id="rule_premium_manager_ir_sequence" model="ir.rule">
+        <field name="name">Premium Manager - Sequences Own Company</field>
+        <field name="model_id" ref="base.model_ir_sequence"/>
+        <field name="domain_force">['|', ('company_id', '=', False), ('company_id', '=', user.company_id.id)]</field>
+        <field name="groups" eval="[(4, ref('group_onedesk_premium_manager'))]"/>
+        <field name="perm_read">True</field>
+        <field name="perm_write">True</field>
+        <field name="perm_create">True</field>
+        <field name="perm_unlink">False</field>
+    </record>
+
+</odoo>
