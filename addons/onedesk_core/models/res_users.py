@@ -18,6 +18,10 @@ class ResUsers(models.Model):
         2. Creates a website for the user's company if needed
         3. Ensures proper company assignment
         """
+        # Avoid infinite recursion: skip if we're already auto-configuring
+        if self.env.context.get('skip_premium_auto_config'):
+            return super(ResUsers, self).write(vals)
+
         res = super(ResUsers, self).write(vals)
 
         # Check if groups were modified
@@ -66,9 +70,9 @@ class ResUsers(models.Model):
             except:
                 _logger.warning(f"  ⚠️ Group {xml_id} not found, skipping")
 
-        # Add all missing groups at once
+        # Add all missing groups at once (with context to avoid recursion)
         if groups_to_add:
-            user.sudo().write({
+            user.sudo().with_context(skip_premium_auto_config=True).write({
                 'group_ids': [(4, gid) for gid in groups_to_add]
             })
             _logger.info(f"  ✅ Added {len(groups_to_add)} missing groups")
@@ -77,7 +81,7 @@ class ResUsers(models.Model):
         if not user.company_id:
             default_company = self.env['res.company'].search([], limit=1)
             if default_company:
-                user.sudo().write({'company_id': default_company.id})
+                user.sudo().with_context(skip_premium_auto_config=True).write({'company_id': default_company.id})
                 _logger.info(f"  ✅ Assigned company: {default_company.name}")
 
         # 3. Create website for the company if needed
