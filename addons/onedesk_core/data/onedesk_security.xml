@@ -863,6 +863,18 @@
         <field name="perm_unlink">False</field>
     </record>
 
+    <!-- Contacts/Partners: Only own company -->
+    <record id="rule_premium_manager_res_partner" model="ir.rule">
+        <field name="name">Premium Manager - Contacts Own Company</field>
+        <field name="model_id" ref="base.model_res_partner"/>
+        <field name="domain_force">['|', ('company_id', '=', False), ('company_id', '=', user.company_id.id)]</field>
+        <field name="groups" eval="[(4, ref('group_onedesk_premium_manager'))]"/>
+        <field name="perm_read">True</field>
+        <field name="perm_write">True</field>
+        <field name="perm_create">True</field>
+        <field name="perm_unlink">False</field>
+    </record>
+
     <!-- CRM Leads: Only own company -->
     <record id="rule_premium_manager_crm_lead" model="ir.rule">
         <field name="name">Premium Manager - CRM Leads Own Company</field>
