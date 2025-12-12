@@ -23,6 +23,9 @@ def post_init_hook(env):
     # Migration: Assigner les anciens partenaires sans company_id à la compagnie par défaut
     _migrate_partners_without_company(env)
 
+    # Auto-configuration: Configurer automatiquement tous les Premium Managers existants
+    _auto_configure_existing_premium_managers(env)
+
 
 def _migrate_partners_without_company(env):
     """Assigne les anciens partenaires sans company_id à une compagnie par défaut"""
@@ -54,3 +57,79 @@ def _migrate_partners_without_company(env):
         )
     except Exception as e:
         _logger.error(f"❌ Erreur lors de la migration des partenaires: {e}")
+
+
+def _auto_configure_existing_premium_managers(env):
+    """Configure automatiquement tous les utilisateurs Premium Manager existants"""
+    try:
+        # Trouver le groupe Premium Manager
+        try:
+            premium_group = env.ref('onedesk_core.group_onedesk_premium_manager')
+        except:
+            _logger.info("ℹ️ Groupe Premium Manager non trouvé, skip auto-configuration")
+            return
+
+        # Trouver tous les utilisateurs qui ont ce groupe
+        premium_users = env['res.users'].sudo().search([
+            ('groups_id', 'in', [premium_group.id])
+        ])
+
+        if not premium_users:
+            _logger.info("ℹ️ Aucun utilisateur Premium Manager à configurer")
+            return
+
+        _logger.info(f"🔧 Auto-configuration de {len(premium_users)} utilisateur(s) Premium Manager...")
+
+        # Groupes requis
+        required_groups_xml_ids = [
+            'base.group_erp_manager',           # Settings
+            'sales_team.group_sale_manager',    # CRM
+            'website.group_website_designer',   # Website
+            'account.group_account_manager',    # Accounting
+            'base.group_partner_manager',       # Contacts
+        ]
+
+        configured_count = 0
+        for user in premium_users:
+            groups_added = []
+
+            # 1. Ajouter les groupes manquants
+            for xml_id in required_groups_xml_ids:
+                try:
+                    group = env.ref(xml_id)
+                    if group not in user.groups_id:
+                        user.sudo().write({'groups_id': [(4, group.id)]})
+                        groups_added.append(group.name)
+                except Exception as e:
+                    _logger.warning(f"⚠️ Impossible d'ajouter le groupe {xml_id}: {e}")
+
+            # 2. Assurer que l'utilisateur a une company
+            if not user.company_id:
+                default_company = env['res.company'].sudo().search([], limit=1)
+                if default_company:
+                    user.sudo().write({'company_id': default_company.id})
+                    _logger.info(f"  ✓ Company assignée: {default_company.name}")
+
+            # 3. Créer le website pour la company si besoin
+            if user.company_id:
+                existing_website = env['website'].sudo().search([
+                    ('company_id', '=', user.company_id.id)
+                ], limit=1)
+
+                if not existing_website:
+                    unique_domain = f'company-{user.company_id.id}.local'
+                    new_website = env['website'].sudo().create({
+                        'name': f'Site {user.company_id.name}',
+                        'company_id': user.company_id.id,
+                        'domain': unique_domain,
+                    })
+                    _logger.info(f"  ✓ Website créé: {new_website.name}")
+
+            if groups_added:
+                _logger.info(f"  ✓ {user.name}: {len(groups_added)} groupe(s) ajouté(s)")
+                configured_count += 1
+
+        _logger.info(f"✅ Auto-configuration terminée: {configured_count}/{len(premium_users)} utilisateur(s) configuré(s)")
+
+    except Exception as e:
+        _logger.error(f"❌ Erreur lors de l'auto-configuration des Premium Managers: {e}")
