@@ -9,7 +9,7 @@ print("🔍 DIAGNOSTIC ACCÈS WEBSITE POUR PREMIUM MANAGER")
 print("=" * 70)
 
 # ID de l'utilisateur qui a le problème (à modifier si nécessaire)
-USER_ID = 112  # baba merveilles
+USER_ID = 5  # baba merveilles
 
 # 1. Informations sur l'utilisateur
 print(f"\n👤 UTILISATEUR (ID: {USER_ID})")

@@ -9,7 +9,7 @@ print("🔧 FIX: Ajout des groupes manquants pour Premium Manager")
 print("=" * 80)
 
 # Trouver l'utilisateur Premium Test
-premium_user = env['res.users'].sudo().browse(119)
+premium_user = env['res.users'].sudo().browse(5)
 
 print(f"\n👤 Utilisateur: {premium_user.name}")
 print(f"   Company: {premium_user.company_id.name}")
@@ -61,7 +61,7 @@ print(f"\n{'=' * 80}")
 print("✅ VÉRIFICATION FINALE")
 print(f"{'=' * 80}\n")
 
-premium_user_refreshed = env['res.users'].sudo().browse(119)
+premium_user_refreshed = env['res.users'].sudo().browse(5)
 
 for name, xml_id in required_groups.items():
     try:
