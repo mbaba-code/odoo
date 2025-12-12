@@ -15,7 +15,7 @@ except:
 
 # Chercher tous les utilisateurs
 premium_users = env['res.users'].sudo().search([
-    ('groups_id', 'in', [premium_group.id])
+    ('group_ids', 'in', [premium_group.id])
 ])
 
 if not premium_users:
@@ -45,7 +45,7 @@ for user in premium_users:
     for name, xml_id in required:
         try:
             g = env.ref(xml_id)
-            if g not in user.groups_id:
+            if g not in user.group_ids:
                 missing.append((name, g))
         except:
             pass
@@ -53,7 +53,7 @@ for user in premium_users:
     if missing:
         print(f"  ➕ Ajout de {len(missing)} groupe(s)...")
         for name, g in missing:
-            user.write({'groups_id': [(4, g.id)]})
+            user.write({'group_ids': [(4, g.id)]})
             print(f"     ✅ {name}")
     else:
         print("  ✅ Tous les groupes présents")
