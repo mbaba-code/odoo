@@ -29,12 +29,7 @@ action = {
         </field>
     </record>
 
-    <!-- Masquer le menu "My Website" par défaut pour Premium Managers -->
-    <record id="website.menu_website_website" model="ir.ui.menu">
-        <field name="groups_id" eval="[(3, ref('onedesk_core.group_onedesk_premium_manager'))]"/>
-    </record>
-
-    <!-- Créer un nouveau menu "Site Web" en haut pour Premium Manager -->
+    <!-- Menu principal "Site Web" pour Premium Manager (remplace le menu par défaut) -->
     <menuitem
         id="menu_premium_website_main"
         name="Site Web"
