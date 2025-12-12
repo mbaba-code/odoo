@@ -8,7 +8,7 @@ print(f"Company IDs: {[c.name for c in user.company_ids]}")
 
 # Voir ce que l'utilisateur peut voir (avec ses règles)
 print(f"\n📋 WEBSITES VISIBLES PAR L'UTILISATEUR:")
-websites = env['website'].sudo(user.id).search([])
+websites = env['website'].with_user(user).search([])
 for site in websites:
     company = site.company_id.name if site.company_id else "AUCUNE"
     print(f"  - {site.name} (ID: {site.id}, Company: {company})")
