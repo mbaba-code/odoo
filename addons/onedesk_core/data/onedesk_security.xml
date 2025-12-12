@@ -823,20 +823,11 @@
         <field name="perm_unlink">False</field>
     </record>
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-    <record id="rule_partner_create_no_company" model="ir.rule">
-        <field name="name">Partner - Allow Create without Company</field>
-=======
     <!-- ================== PREMIUM MANAGER MULTI-TENANT RULES ================== -->
     <!-- Premium Manager is the admin of THEIR company only, with full Odoo access -->
-=======
-    <!-- PREMIUM MANAGER MULTI-TENANT RULES -->
-    <!-- Premium Manager: admin of THEIR company only with full Odoo access -->
->>>>>>> 29ef0b35b57eb58930ccab1440c022742f7277b0
     <!-- BUT isolated by company_id (multi-tenant SaaS architecture) -->
 
-    <!-- CRITICAL: Global Website Multi-tenant Rule for ALL users -->
+    <!-- CRITICAL: Global Website Multi-tenant Rule (applies to ALL non-System users) -->
     <record id="rule_global_website_multitenant" model="ir.rule">
         <field name="name">GLOBAL Multi-tenant: Websites restricted by company_ids</field>
         <field name="model_id" ref="website.model_website"/>
@@ -884,7 +875,6 @@
     <!-- Contacts/Partners: Only own company -->
     <record id="rule_premium_manager_res_partner" model="ir.rule">
         <field name="name">Premium Manager - Contacts Own Company</field>
->>>>>>> bc23b7c221c34924181a4c33f422b9d6f6cf78b2
         <field name="model_id" ref="base.model_res_partner"/>
         <field name="domain_force">[( 'company_id', '=', False )]</field>
         <field name="groups" eval="[
