@@ -14,6 +14,7 @@ from . import onedesk_integration_log
 from . import onedesk_plan
 from . import onedesk_client
 from . import res_company
+from . import res_users  # Auto-configuration Premium Manager
 from . import onedesk_audit_log
 from . import account_move
 
