@@ -46,9 +46,9 @@ for name, xml_id in required_groups.items():
 if groups_to_add:
     print(f"\n⚙️ Ajout de {len(groups_to_add)} groupe(s)...")
     
-    # Utiliser write pour ajouter les groupes
+    # Utiliser write pour ajouter les groupes (Odoo 19: group_ids not groups_id!)
     premium_user.write({
-        'groups_id': [(4, gid) for gid in groups_to_add]
+        'group_ids': [(4, gid) for gid in groups_to_add]
     })
     
     env.cr.commit()
