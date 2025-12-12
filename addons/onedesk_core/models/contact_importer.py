@@ -91,7 +91,7 @@ class ContactImporter(models.TransientModel):
             #if self.active_only:
                # q_parts.append('etatAdministratifEtablissement:A')
 
-            q_string = " AND ".join(q_parts)
+            q_string = "  ".join(q_parts)
             _logger.info(f"Import de contacts - Recherche: {q_string}")
 
             params = {
