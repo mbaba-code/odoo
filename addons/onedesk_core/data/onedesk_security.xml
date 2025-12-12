@@ -824,14 +824,19 @@
     </record>
 
 <<<<<<< HEAD
+<<<<<<< HEAD
     <record id="rule_partner_create_no_company" model="ir.rule">
         <field name="name">Partner - Allow Create without Company</field>
 =======
     <!-- ================== PREMIUM MANAGER MULTI-TENANT RULES ================== -->
     <!-- Premium Manager is the admin of THEIR company only, with full Odoo access -->
+=======
+    <!-- PREMIUM MANAGER MULTI-TENANT RULES -->
+    <!-- Premium Manager: admin of THEIR company only with full Odoo access -->
+>>>>>>> 29ef0b35b57eb58930ccab1440c022742f7277b0
     <!-- BUT isolated by company_id (multi-tenant SaaS architecture) -->
 
-    <!-- CRITICAL: Global Website Multi-tenant Rule (applies to ALL non-System users) -->
+    <!-- CRITICAL: Global Website Multi-tenant Rule for ALL users -->
     <record id="rule_global_website_multitenant" model="ir.rule">
         <field name="name">GLOBAL Multi-tenant: Websites restricted by company_ids</field>
         <field name="model_id" ref="website.model_website"/>
