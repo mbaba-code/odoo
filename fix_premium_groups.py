@@ -61,7 +61,7 @@ print(f"\n{'=' * 80}")
 print("✅ VÉRIFICATION FINALE")
 print(f"{'=' * 80}\n")
 
-premium_user_refreshed = env['res.users'].sudo().browse(116)
+premium_user_refreshed = env['res.users'].sudo().browse(119)
 
 for name, xml_id in required_groups.items():
     try:
