@@ -827,7 +827,16 @@
     <!-- Premium Manager is the admin of THEIR company only, with full Odoo access -->
     <!-- BUT isolated by company_id (multi-tenant SaaS architecture) -->
 
-    <!-- CRITICAL: Website Access -->
+    <!-- CRITICAL: Global Website Multi-tenant Rule (applies to ALL non-System users) -->
+    <record id="rule_global_website_multitenant" model="ir.rule">
+        <field name="name">GLOBAL Multi-tenant: Websites restricted by company_ids</field>
+        <field name="model_id" ref="website.model_website"/>
+        <field name="domain_force">['|', ('company_id', '=', False), ('company_id', 'in', user.company_ids.ids)]</field>
+        <field name="groups" eval="[(4, ref('base.group_user'))]"/>
+        <field name="global">True</field>
+    </record>
+
+    <!-- Premium Manager: Full access to own company websites -->
     <record id="rule_premium_manager_website" model="ir.rule">
         <field name="name">Premium Manager - Websites Own Company</field>
         <field name="model_id" ref="website.model_website"/>
