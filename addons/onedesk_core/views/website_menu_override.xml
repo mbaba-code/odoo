@@ -1,16 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-<<<<<<< HEAD
     <!-- Server Action: Ouvre automatiquement le website de la company de l'utilisateur -->
     <record id="action_open_user_website" model="ir.actions.server">
         <field name="name">Mon Site Web</field>
-=======
-    <!-- Override Website menu for Premium Managers to open THEIR website -->
-
-    <!-- Server Action: Open user's own website -->
-    <record id="action_open_user_website" model="ir.actions.server">
-        <field name="name">Ouvrir mon site web</field>
->>>>>>> 3e55d22cdc5e8207ec13690ca33b5b329d25d765
         <field name="model_id" ref="website.model_website"/>
         <field name="state">code</field>
         <field name="code">
@@ -21,7 +13,6 @@ user_website = env['website'].search([
 
 if not user_website:
     # Si pas de website pour cette company, en créer un
-<<<<<<< HEAD
     unique_domain = f'company-{env.user.company_id.id}.local'
     user_website = env['website'].create({
         'name': f'Site {env.user.company_id.name}',
@@ -33,24 +24,11 @@ if not user_website:
 action = {
     'type': 'ir.actions.act_url',
     'url': f'/website/force/{user_website.id}',
-=======
-    user_website = env['website'].create({
-        'name': f'Site {env.user.company_id.name}',
-        'company_id': env.user.company_id.id,
-        'domain': '',
-    })
-
-# Rediriger vers l'action website avec le bon website_id en contexte
-action = {
-    'type': 'ir.actions.act_url',
-    'url': f'/website/{user_website.id}',
->>>>>>> 3e55d22cdc5e8207ec13690ca33b5b329d25d765
     'target': 'self',
 }
         </field>
     </record>
 
-<<<<<<< HEAD
     <!-- Menu principal "Site Web" pour Premium Manager (remplace le menu par défaut) -->
     <menuitem
         id="menu_premium_website_main"
@@ -59,15 +37,5 @@ action = {
         groups="onedesk_core.group_onedesk_premium_manager"
         web_icon="website,static/description/icon.png"
         sequence="65"/>
-=======
-    <!-- Menu personnalisé pour Premium Manager -->
-    <menuitem
-        id="menu_premium_website"
-        name="Mon Site Web"
-        parent="website.menu_website_configuration"
-        action="action_open_user_website"
-        groups="onedesk_core.group_onedesk_premium_manager"
-        sequence="1"/>
->>>>>>> 3e55d22cdc5e8207ec13690ca33b5b329d25d765
 
 </odoo>
