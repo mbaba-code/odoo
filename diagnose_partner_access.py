@@ -58,7 +58,8 @@ all_rules = env['ir.rule'].sudo().search([
 print(f"\n   Toutes les règles ({len(all_rules)}):")
 for rule in all_rules:
     groups_str = ', '.join([g.name for g in rule.groups]) if rule.groups else 'TOUS LES UTILISATEURS'
-    global_str = "GLOBAL" if rule.global else "NON-GLOBAL"
+    is_global = getattr(rule, 'global', False)
+    global_str = "GLOBAL" if is_global else "NON-GLOBAL"
     print(f"\n   - {rule.name} ({global_str})")
     print(f"     Domain: {rule.domain_force}")
     print(f"     Groups: {groups_str}")
