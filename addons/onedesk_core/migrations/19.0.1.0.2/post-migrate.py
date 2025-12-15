@@ -75,7 +75,7 @@ def migrate(cr, version):
     try:
         premium_group = env.ref('onedesk_core.group_onedesk_premium_manager')
         premium_users = env['res.users'].search([
-            ('groups_id', 'in', [premium_group.id])
+            ('group_ids', 'in', [premium_group.id])
         ])
 
         restricted_count = 0
