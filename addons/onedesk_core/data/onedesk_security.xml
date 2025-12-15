@@ -567,7 +567,7 @@
     <record id="rule_property_manager_partner" model="ir.rule">
         <field name="name">Property Manager - Company Partners</field>
         <field name="model_id" ref="base.model_res_partner"/>
-        <field name="domain_force">[('company_id', '=', user.company_id.id)]</field>
+        <field name="domain_force">['|', ('company_id', '=', False), ('company_id', '=', user.company_id.id)]</field>
         <field name="groups" eval="[(4, ref('group_onedesk_property_manager'))]"/>
         <field name="perm_read">True</field>
         <field name="perm_write">True</field>
@@ -579,7 +579,7 @@
     <record id="rule_staff_partner" model="ir.rule">
         <field name="name">Staff - Company Partners</field>
         <field name="model_id" ref="base.model_res_partner"/>
-        <field name="domain_force">[('company_id', '=', user.company_id.id)]</field>
+        <field name="domain_force">['|', ('company_id', '=', False), ('company_id', '=', user.company_id.id)]</field>
         <field name="groups" eval="[(4, ref('group_onedesk_staff'))]"/>
         <field name="perm_read">True</field>
         <field name="perm_write">True</field>
@@ -591,7 +591,7 @@
     <record id="rule_viewer_partner" model="ir.rule">
         <field name="name">Viewer - Company Partners (Read-Only)</field>
         <field name="model_id" ref="base.model_res_partner"/>
-        <field name="domain_force">[('company_id', '=', user.company_id.id)]</field>
+        <field name="domain_force">['|', ('company_id', '=', False), ('company_id', '=', user.company_id.id)]</field>
         <field name="groups" eval="[(4, ref('group_onedesk_viewer'))]"/>
         <field name="perm_read">True</field>
         <field name="perm_write">False</field>
@@ -674,5 +674,215 @@
         <field name="perm_create">False</field>
         <field name="perm_unlink">False</field>
     </record>
+
+    <!-- ================== DOCUMENT ACCESS (Multi-tenant filtering) ================== -->
+
+    <!-- System Admin (Odoo native): all documents -->
+    <record id="rule_system_admin_document" model="ir.rule">
+        <field name="name">System Admin - All Documents</field>
+        <field name="model_id" ref="model_onedesk_document"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('base.group_system'))]"/>
+        <field name="perm_read">True</field>
+        <field name="perm_write">True</field>
+        <field name="perm_create">True</field>
+        <field name="perm_unlink">True</field>
+    </record>
+
+    <!-- Master Admin: all documents -->
+    <record id="rule_master_admin_document" model="ir.rule">
+        <field name="name">Master Admin - All Documents</field>
+        <field name="model_id" ref="model_onedesk_document"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('group_onedesk_master_admin'))]"/>
+        <field name="perm_read">True</field>
+        <field name="perm_write">True</field>
+        <field name="perm_create">True</field>
+        <field name="perm_unlink">False</field>
+    </record>
+
+    <!-- Support: all documents (read-only) -->
+    <record id="rule_support_document_read" model="ir.rule">
+        <field name="name">Support - Read All Documents</field>
+        <field name="model_id" ref="model_onedesk_document"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('group_onedesk_support'))]"/>
+        <field name="perm_read">True</field>
+        <field name="perm_write">False</field>
+        <field name="perm_create">False</field>
+        <field name="perm_unlink">False</field>
+    </record>
+
+    <!-- Property Manager: only their company's documents -->
+    <record id="rule_property_manager_document" model="ir.rule">
+        <field name="name">Property Manager - Company Documents</field>
+        <field name="model_id" ref="model_onedesk_document"/>
+        <field name="domain_force">[('company_id', '=', user.company_id.id)]</field>
+        <field name="groups" eval="[(4, ref('group_onedesk_property_manager'))]"/>
+        <field name="perm_read">True</field>
+        <field name="perm_write">True</field>
+        <field name="perm_create">True</field>
+        <field name="perm_unlink">False</field>
+    </record>
+
+    <!-- Staff: only their company's documents -->
+    <record id="rule_staff_document" model="ir.rule">
+        <field name="name">Staff - Company Documents</field>
+        <field name="model_id" ref="model_onedesk_document"/>
+        <field name="domain_force">[('company_id', '=', user.company_id.id)]</field>
+        <field name="groups" eval="[(4, ref('group_onedesk_staff'))]"/>
+        <field name="perm_read">True</field>
+        <field name="perm_write">True</field>
+        <field name="perm_create">True</field>
+        <field name="perm_unlink">False</field>
+    </record>
+
+    <!-- Viewer: only their company's documents (read-only) -->
+    <record id="rule_viewer_document" model="ir.rule">
+        <field name="name">Viewer - Company Documents (Read-Only)</field>
+        <field name="model_id" ref="model_onedesk_document"/>
+        <field name="domain_force">[('company_id', '=', user.company_id.id)]</field>
+        <field name="groups" eval="[(4, ref('group_onedesk_viewer'))]"/>
+        <field name="perm_read">True</field>
+        <field name="perm_write">False</field>
+        <field name="perm_create">False</field>
+        <field name="perm_unlink">False</field>
+    </record>
+
+    <!-- ================== DOCUMENT RECIPIENT ACCESS (Multi-tenant filtering) ================== -->
+
+    <!-- System Admin (Odoo native): all recipients -->
+    <record id="rule_system_admin_document_recipient" model="ir.rule">
+        <field name="name">System Admin - All Recipients</field>
+        <field name="model_id" ref="model_onedesk_document_recipient"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('base.group_system'))]"/>
+        <field name="perm_read">True</field>
+        <field name="perm_write">True</field>
+        <field name="perm_create">True</field>
+        <field name="perm_unlink">True</field>
+    </record>
+
+    <!-- Master Admin: all recipients -->
+    <record id="rule_master_admin_document_recipient" model="ir.rule">
+        <field name="name">Master Admin - All Recipients</field>
+        <field name="model_id" ref="model_onedesk_document_recipient"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('group_onedesk_master_admin'))]"/>
+        <field name="perm_read">True</field>
+        <field name="perm_write">True</field>
+        <field name="perm_create">True</field>
+        <field name="perm_unlink">False</field>
+    </record>
+
+    <!-- Support: all recipients (read-only) -->
+    <record id="rule_support_document_recipient_read" model="ir.rule">
+        <field name="name">Support - Read All Recipients</field>
+        <field name="model_id" ref="model_onedesk_document_recipient"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('group_onedesk_support'))]"/>
+        <field name="perm_read">True</field>
+        <field name="perm_write">False</field>
+        <field name="perm_create">False</field>
+        <field name="perm_unlink">False</field>
+    </record>
+
+    <!-- Property Manager: only their company's recipients -->
+    <record id="rule_property_manager_document_recipient" model="ir.rule">
+        <field name="name">Property Manager - Company Recipients</field>
+        <field name="model_id" ref="model_onedesk_document_recipient"/>
+        <field name="domain_force">[('company_id', '=', user.company_id.id)]</field>
+        <field name="groups" eval="[(4, ref('group_onedesk_property_manager'))]"/>
+        <field name="perm_read">True</field>
+        <field name="perm_write">True</field>
+        <field name="perm_create">True</field>
+        <field name="perm_unlink">False</field>
+    </record>
+
+    <!-- Staff: only their company's recipients -->
+    <record id="rule_staff_document_recipient" model="ir.rule">
+        <field name="name">Staff - Company Recipients</field>
+        <field name="model_id" ref="model_onedesk_document_recipient"/>
+        <field name="domain_force">[('company_id', '=', user.company_id.id)]</field>
+        <field name="groups" eval="[(4, ref('group_onedesk_staff'))]"/>
+        <field name="perm_read">True</field>
+        <field name="perm_write">True</field>
+        <field name="perm_create">True</field>
+        <field name="perm_unlink">False</field>
+    </record>
+
+    <!-- Viewer: only their company's recipients (read-only) -->
+    <record id="rule_viewer_document_recipient" model="ir.rule">
+        <field name="name">Viewer - Company Recipients (Read-Only)</field>
+        <field name="model_id" ref="model_onedesk_document_recipient"/>
+        <field name="domain_force">[('company_id', '=', user.company_id.id)]</field>
+        <field name="groups" eval="[(4, ref('group_onedesk_viewer'))]"/>
+        <field name="perm_read">True</field>
+        <field name="perm_write">False</field>
+        <field name="perm_create">False</field>
+        <field name="perm_unlink">False</field>
+    </record>
+
+    <!-- ================== PREMIUM MANAGER MULTI-TENANT RULES ================== -->
+    <!-- Premium Manager is the admin of THEIR company only, with full Odoo access -->
+    <!-- BUT isolated by company_id (multi-tenant SaaS architecture) -->
+
+    <!-- CRITICAL: Global Website Multi-tenant Rule (applies to ALL non-System users) -->
+    <record id="rule_global_website_multitenant" model="ir.rule">
+        <field name="name">GLOBAL Multi-tenant: Websites restricted by company_ids</field>
+        <field name="model_id" ref="website.model_website"/>
+        <field name="domain_force">['|', ('company_id', '=', False), ('company_id', 'in', user.company_ids.ids)]</field>
+        <field name="groups" eval="[(4, ref('base.group_user'))]"/>
+        <field name="global">True</field>
+    </record>
+
+    <!-- Premium Manager: Full access to own company websites -->
+    <record id="rule_premium_manager_website" model="ir.rule">
+        <field name="name">Premium Manager - Websites Own Company</field>
+        <field name="model_id" ref="website.model_website"/>
+        <field name="domain_force">['|', ('company_id', '=', False), ('company_id', '=', user.company_id.id)]</field>
+        <field name="groups" eval="[(4, ref('group_onedesk_premium_manager'))]"/>
+        <field name="perm_read">True</field>
+        <field name="perm_write">True</field>
+        <field name="perm_create">True</field>
+        <field name="perm_unlink">False</field>
+    </record>
+
+    <!-- Companies: Only see own company -->
+    <record id="rule_premium_manager_res_company" model="ir.rule">
+        <field name="name">Premium Manager - Own Company ONLY</field>
+        <field name="model_id" ref="base.model_res_company"/>
+        <field name="domain_force">[('id', '=', user.company_id.id)]</field>
+        <field name="groups" eval="[(4, ref('group_onedesk_premium_manager'))]"/>
+        <field name="perm_read">True</field>
+        <field name="perm_write">True</field>
+        <field name="perm_create">False</field>
+        <field name="perm_unlink">False</field>
+    </record>
+
+    <!-- Users: Only see users from own company -->
+    <record id="rule_premium_manager_res_users" model="ir.rule">
+        <field name="name">Premium Manager - Users Own Company</field>
+        <field name="model_id" ref="base.model_res_users"/>
+        <field name="domain_force">['|', ('company_id', '=', False), ('company_id', '=', user.company_id.id)]</field>
+        <field name="groups" eval="[(4, ref('group_onedesk_premium_manager'))]"/>
+        <field name="perm_read">True</field>
+        <field name="perm_write">True</field>
+        <field name="perm_create">True</field>
+        <field name="perm_unlink">False</field>
+    </record>
+
+    <!-- Contacts/Partners: Only own company + company's partner -->
+    <record id="rule_premium_manager_res_partner" model="ir.rule">
+        <field name="name">Premium Manager - Contacts Own Company</field>
+        <field name="model_id" ref="base.model_res_partner"/>
+        <field name="domain_force">['|', ('company_id', '=', False), ('company_id', '=', user.company_id.id)]</field>
+        <field name="groups" eval="[(4, ref('group_onedesk_premium_manager'))]"/>
+        <field name="perm_read">True</field>
+        <field name="perm_write">True</field>
+        <field name="perm_create">True</field>
+        <field name="perm_unlink">False</field>
+    </record>
+    
 
 </odoo>

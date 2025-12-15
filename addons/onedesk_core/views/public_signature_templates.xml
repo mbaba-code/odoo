@@ -1,0 +1,704 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ========================================
+         PAGE PUBLIQUE DE SIGNATURE DE DOCUMENT
+         Version complète avec visualiseur PDF et signature électronique
+         ======================================== -->
+
+    <!-- Page principale de signature avec PDF viewer et signature -->
+    <template id="public_signature_page" name="Public Document Signature Page">
+        <t t-call="website.layout">
+            <!-- CSS personnalisé -->
+            <style>
+                .pdf-viewer-container {
+                    width: 100%;
+                    height: 600px;
+                    border: 2px solid #dee2e6;
+                    border-radius: 8px;
+                    background: #f8f9fa;
+                    overflow: auto;
+                    position: relative;
+                    display: flex;
+                    flex-direction: column;
+                }
+                .pdf-canvas-wrapper {
+                    flex: 1;
+                    overflow: auto;
+                    padding: 20px;
+                }
+                .pdf-canvas {
+                    max-width: 100%;
+                    height: auto;
+                    display: block;
+                    margin: 0 auto;
+                    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+                }
+                .signature-canvas {
+                    border: 2px dashed #6c757d;
+                    border-radius: 8px;
+                    background: white;
+                    cursor: crosshair;
+                    touch-action: none;
+                }
+                .signature-pad-container {
+                    background: #f8f9fa;
+                    padding: 20px;
+                    border-radius: 8px;
+                    margin: 20px 0;
+                }
+                .pdf-controls {
+                    position: absolute;
+                    bottom: 10px;
+                    left: 50%;
+                    transform: translateX(-50%);
+                    background: rgba(0,0,0,0.7);
+                    padding: 10px 20px;
+                    border-radius: 25px;
+                    z-index: 10;
+                }
+                .pdf-controls button {
+                    background: transparent;
+                    border: none;
+                    color: white;
+                    padding: 5px 15px;
+                    cursor: pointer;
+                    font-size: 16px;
+                }
+                .pdf-controls button:hover {
+                    background: rgba(255,255,255,0.2);
+                    border-radius: 4px;
+                }
+                .pdf-controls span {
+                    color: white;
+                    margin: 0 10px;
+                }
+            </style>
+
+            <div class="container mt-5 mb-5">
+                <div class="row justify-content-center">
+                    <div class="col-lg-10 col-xl-9">
+
+                        <!-- En-tête -->
+                        <div class="text-center mb-4">
+                            <h1 class="display-6 mb-2">
+                                <i class="fa fa-file-signature text-primary me-2"></i>
+                                Signature Électronique
+                            </h1>
+                            <p class="text-muted">Consultez le document et apposez votre signature</p>
+                        </div>
+
+                        <!-- Vérifier le statut -->
+                        <t t-if="signature.status == 'signed'">
+                            <div class="alert alert-success text-center" role="alert">
+                                <h4><i class="fa fa-check-circle me-2"></i> Document déjà signé</h4>
+                                <p class="mb-0">Ce document a été signé le <strong t-esc="signature.signature_date"/>.</p>
+                            </div>
+                        </t>
+
+                        <t t-elif="signature.status == 'declined'">
+                            <div class="alert alert-warning text-center" role="alert">
+                                <h4><i class="fa fa-times-circle me-2"></i> Signature refusée</h4>
+                                <p class="mb-0">Vous avez refusé de signer ce document.</p>
+                            </div>
+                        </t>
+
+                        <t t-else="">
+                            <!-- Document en attente de signature -->
+
+                            <!-- Infos document -->
+                            <div class="card shadow-sm mb-4">
+                                <div class="card-header bg-primary text-white">
+                                    <h5 class="mb-0"><i class="fa fa-file-alt me-2"></i>Document à signer</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <p class="mb-2"><strong>Titre:</strong> <span t-esc="document.name"/></p>
+                                            <p class="mb-2" t-if="document.document_type"><strong>Type:</strong> <span t-esc="document.document_type"/></p>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <p class="mb-2"><strong>Signataire:</strong> <span t-esc="signature.signer_name"/></p>
+                                            <p class="mb-2"><strong>Email:</strong> <span t-esc="signature.signer_email"/></p>
+                                        </div>
+                                    </div>
+                                    <p class="mb-0 mt-2" t-if="document.notes"><strong>Remarques:</strong> <span t-esc="document.notes"/></p>
+                                </div>
+                            </div>
+
+                            <!-- Visualiseur PDF -->
+                            <div class="card shadow-sm mb-4" t-if="document.file">
+                                <div class="card-header bg-secondary text-white d-flex justify-content-between align-items-center">
+                                    <h5 class="mb-0"><i class="fa fa-eye me-2"></i>Aperçu du document</h5>
+                                    <a t-attf-href="/onedesk/document/#{document.id}/pdf?access_token=#{signature.access_token}&amp;download=1"
+                                       class="btn btn-sm btn-light"
+                                       download="">
+                                        <i class="fa fa-download me-1"></i> Télécharger le PDF
+                                    </a>
+                                </div>
+                                <div class="card-body p-0">
+                                    <div class="pdf-viewer-container" id="pdf-viewer">
+                                        <div class="pdf-canvas-wrapper">
+                                            <canvas id="pdf-canvas" class="pdf-canvas"></canvas>
+                                        </div>
+                                        <div class="pdf-controls">
+                                            <button onclick="prevPage()" id="prev-btn"><i class="fa fa-chevron-left"></i></button>
+                                            <span style="color: white; margin: 0 15px;">Page <span id="page-num">1</span> / <span id="page-count">1</span></span>
+                                            <button onclick="nextPage()" id="next-btn"><i class="fa fa-chevron-right"></i></button>
+                                        </div>
+                                    </div>
+                                    <div class="alert alert-info mt-3 mb-0">
+                                        <i class="fa fa-info-circle me-2"></i>
+                                        <strong>Cliquez n'importe où sur le document</strong> pour placer et signer
+                                    </div>
+
+                                    <!-- Zone status signatures (mode single_signer_multiple) -->
+                                    <div id="signatures-status" class="alert alert-success mt-3" style="display: none;">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <i class="fa fa-check-circle me-2"></i>
+                                                <strong id="signatures-count">0 signature(s) ajoutée(s)</strong>
+                                                <br/>
+                                                <small>Cliquez encore pour ajouter une autre signature, ou terminez.</small>
+                                            </div>
+                                            <button type="button" class="btn btn-success btn-lg" onclick="finishAndSend()" id="finish-button">
+                                                <i class="fa fa-paper-plane me-2"></i> Terminer et Envoyer
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Modal Signature -->
+                            <div class="modal fade" id="signatureModal" tabindex="-1">
+                                <div class="modal-dialog modal-dialog-centered">
+                                    <div class="modal-content">
+                                        <div class="modal-header bg-success text-white">
+                                            <h5 class="modal-title"><i class="fa fa-pen-fancy me-2"></i>Votre signature</h5>
+                                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <p class="text-center mb-3">Dessinez votre signature :</p>
+                                            <canvas id="signature-canvas" class="signature-canvas" width="500" height="150" style="border: 2px dashed #6c757d; border-radius: 8px; background: white; cursor: crosshair; display: block; margin: 0 auto;"></canvas>
+                                            <div class="text-center mt-3">
+                                                <button type="button" class="btn btn-outline-secondary btn-sm" onclick="clearSignature()">
+                                                    <i class="fa fa-eraser me-1"></i> Effacer
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                                            <button type="button" class="btn btn-success" onclick="validateSignature()">
+                                                <i class="fa fa-check me-1"></i> Valider et Signer
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Zone de signature (cachée, formulaire de soumission) -->
+                            <div class="card shadow-sm mb-4" style="display: none;">
+                                <div class="card-body">
+                                    <!-- Formulaire de soumission -->
+                                    <form method="post" id="signature-form" t-attf-action="/onedesk/document/#{document.id}/sign/action">
+                                        <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                                        <input type="hidden" name="signature_id" t-att-value="signature.id"/>
+                                        <input type="hidden" name="access_token" t-att-value="signature.access_token"/>
+                                        <!-- Mode: single_signer_multiple (signatures multiples) -->
+                                        <input type="hidden" name="multiple_signatures_json" id="multiple-signatures-json"/>
+                                        <!-- Mode: multiple_signers (une signature par personne) -->
+                                        <input type="hidden" name="signature_data" id="signature-data"/>
+                                        <input type="hidden" name="signature_page" id="signature-page-input" value="-1"/>
+                                        <input type="hidden" name="signature_x" id="signature-x-input" value="0"/>
+                                        <input type="hidden" name="signature_y" id="signature-y-input" value="0"/>
+                                        <input type="hidden" name="action" value="sign"/>
+                                    </form>
+
+                                    <div class="alert alert-info mt-3 mb-0">
+                                        <small>
+                                            <i class="fa fa-info-circle me-1"></i>
+                                            En signant, vous acceptez les termes et conditions du document présenté.
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </t>
+
+                        <!-- Footer -->
+                        <div class="text-center mt-4">
+                            <p class="text-muted small mb-0">
+                                <i class="fa fa-shield-alt me-1"></i>
+                                Connexion sécurisée | Signature protégée par token unique
+                            </p>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+            <!-- JavaScript pour PDF.js et signature -->
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+            <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+            <script t-attf-data-document-id="{{ document.id }}"
+                    t-attf-data-access-token="{{ signature.access_token }}"
+                    t-attf-data-signature-mode="{{ signature_mode }}"
+                    id="pdf-data">
+                // Configuration PDF.js
+                pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+                // Variables globales
+                let pdfDoc = null;
+                let pageNum = 1;
+                let pageRendering = false;
+                let pageNumPending = null;
+                const canvas = document.getElementById('pdf-canvas');
+                const ctx = canvas ? canvas.getContext('2d') : null;
+
+                // Charger le PDF - Utilisation de la route sécurisée publique
+                const scriptData = document.getElementById('pdf-data');
+                const documentId = scriptData.getAttribute('data-document-id');
+                const accessToken = scriptData.getAttribute('data-access-token');
+                const signatureMode = scriptData.getAttribute('data-signature-mode') || 'single_signer_multiple';
+                const pdfUrl = `/onedesk/document/${documentId}/pdf?access_token=${accessToken}`;
+
+                // Array pour stocker signatures multiples (mode single_signer_multiple)
+                let signaturesArray = [];
+
+                console.log('🔵 Mode signature:', signatureMode);
+
+                if (canvas &amp;&amp; ctx) {
+                    pdfjsLib.getDocument(pdfUrl).promise.then(function(pdfDoc_) {
+                        pdfDoc = pdfDoc_;
+                        document.getElementById('page-count').textContent = pdfDoc.numPages;
+                        renderPage(pageNum);
+                    }).catch(function(error) {
+                        console.error('Erreur chargement PDF:', error);
+                        document.getElementById('pdf-viewer').innerHTML =
+                            '&lt;div class="alert alert-warning m-3"&gt;Impossible de charger le PDF. &lt;a href="' + pdfUrl + '" target="_blank"&gt;Télécharger&lt;/a&gt;&lt;/div&gt;';
+                    });
+                }
+
+                function renderPage(num) {
+                    if (!pdfDoc) return;
+                    pageRendering = true;
+                    pdfDoc.getPage(num).then(function(page) {
+                        const viewport = page.getViewport({scale: 1.5});
+                        canvas.height = viewport.height;
+                        canvas.width = viewport.width;
+
+                        const renderContext = {
+                            canvasContext: ctx,
+                            viewport: viewport
+                        };
+                        const renderTask = page.render(renderContext);
+
+                        renderTask.promise.then(function() {
+                            pageRendering = false;
+                            if (pageNumPending !== null) {
+                                renderPage(pageNumPending);
+                                pageNumPending = null;
+                            }
+                        });
+                    });
+                    document.getElementById('page-num').textContent = num;
+                }
+
+                function queueRenderPage(num) {
+                    if (pageRendering) {
+                        pageNumPending = num;
+                    } else {
+                        renderPage(num);
+                    }
+                }
+
+                function prevPage() {
+                    if (pageNum &lt;= 1) return;
+                    pageNum--;
+                    queueRenderPage(pageNum);
+                }
+
+                function nextPage() {
+                    if (pdfDoc &amp;&amp; pageNum &gt;= pdfDoc.numPages) return;
+                    pageNum++;
+                    queueRenderPage(pageNum);
+                }
+
+                // Canvas de signature
+                const signatureCanvas = document.getElementById('signature-canvas');
+                const signatureCtx = signatureCanvas ? signatureCanvas.getContext('2d') : null;
+                let isDrawing = false;
+
+                if (signatureCanvas &amp;&amp; signatureCtx) {
+                    signatureCtx.lineWidth = 2;
+                    signatureCtx.lineCap = 'round';
+                    signatureCtx.strokeStyle = '#000';
+
+                    function getMousePos(e) {
+                        const rect = signatureCanvas.getBoundingClientRect();
+                        const scaleX = signatureCanvas.width / rect.width;
+                        const scaleY = signatureCanvas.height / rect.height;
+                        return {
+                            x: (e.clientX - rect.left) * scaleX,
+                            y: (e.clientY - rect.top) * scaleY
+                        };
+                    }
+
+                    function getTouchPos(e) {
+                        const rect = signatureCanvas.getBoundingClientRect();
+                        const scaleX = signatureCanvas.width / rect.width;
+                        const scaleY = signatureCanvas.height / rect.height;
+                        return {
+                            x: (e.touches[0].clientX - rect.left) * scaleX,
+                            y: (e.touches[0].clientY - rect.top) * scaleY
+                        };
+                    }
+
+                    // Souris
+                    signatureCanvas.addEventListener('mousedown', function(e) {
+                        isDrawing = true;
+                        const pos = getMousePos(e);
+                        signatureCtx.beginPath();
+                        signatureCtx.moveTo(pos.x, pos.y);
+                    });
+
+                    signatureCanvas.addEventListener('mousemove', function(e) {
+                        if (!isDrawing) return;
+                        const pos = getMousePos(e);
+                        signatureCtx.lineTo(pos.x, pos.y);
+                        signatureCtx.stroke();
+                    });
+
+                    signatureCanvas.addEventListener('mouseup', function() {
+                        isDrawing = false;
+                    });
+
+                    signatureCanvas.addEventListener('mouseleave', function() {
+                        isDrawing = false;
+                    });
+
+                    // Touch
+                    signatureCanvas.addEventListener('touchstart', function(e) {
+                        e.preventDefault();
+                        isDrawing = true;
+                        const pos = getTouchPos(e);
+                        signatureCtx.beginPath();
+                        signatureCtx.moveTo(pos.x, pos.y);
+                    });
+
+                    signatureCanvas.addEventListener('touchmove', function(e) {
+                        e.preventDefault();
+                        if (!isDrawing) return;
+                        const pos = getTouchPos(e);
+                        signatureCtx.lineTo(pos.x, pos.y);
+                        signatureCtx.stroke();
+                    });
+
+                    signatureCanvas.addEventListener('touchend', function(e) {
+                        e.preventDefault();
+                        isDrawing = false;
+                    });
+                }
+
+                function clearSignature() {
+                    if (signatureCtx) {
+                        signatureCtx.clearRect(0, 0, signatureCanvas.width, signatureCanvas.height);
+                    }
+                }
+
+                // Variables pour la zone cliquée
+                let currentZone = null;
+                let signatureModal = null;
+
+                // Clic direct sur le PDF pour placer la signature
+                if (canvas) {
+                    canvas.addEventListener('click', function(e) {
+                        console.log('🖱️ Clic détecté sur le canvas PDF');
+                        const rect = canvas.getBoundingClientRect();
+                        const x = e.clientX - rect.left;
+                        const y = e.clientY - rect.top;
+
+                        // Calculer position en points PDF (inverser Y car PDF = bottom-up)
+                        const scale = 1.5;
+                        currentZone = {
+                            page: pageNum - 1,
+                            x: x / scale,
+                            y: (canvas.height - y) / scale
+                        };
+
+                        console.log('📍 Zone cliquée:', currentZone);
+                        openSignatureModal();
+                    });
+
+                    // Changer le curseur pour indiquer que c'est cliquable
+                    canvas.style.cursor = 'crosshair';
+                    console.log('✅ Event listener ajouté au canvas PDF');
+                } else {
+                    console.error('❌ Canvas PDF introuvable!');
+                }
+
+                // Ouvrir modal de signature
+                function openSignatureModal() {
+                    console.log('🔓 Ouverture du modal de signature...');
+                    try {
+                        if (typeof bootstrap === 'undefined') {
+                            console.error('❌ Bootstrap JS non chargé!');
+                            alert('Erreur: Bootstrap non chargé. Veuillez recharger la page.');
+                            return;
+                        }
+                        if (!signatureModal) {
+                            signatureModal = new bootstrap.Modal(document.getElementById('signatureModal'));
+                            console.log('✅ Modal Bootstrap initialisé');
+                        }
+                        clearSignature();
+                        signatureModal.show();
+                        console.log('✅ Modal affiché');
+                    } catch (error) {
+                        console.error('❌ Erreur ouverture modal:', error);
+                        alert('Erreur lors de l\'ouverture du modal: ' + error.message);
+                    }
+                }
+
+                // Valider la signature
+                function validateSignature() {
+                    // Vérifier que la signature n'est pas vide
+                    const imageData = signatureCtx.getImageData(0, 0, signatureCanvas.width, signatureCanvas.height);
+                    const pixels = imageData.data;
+                    let isEmpty = true;
+
+                    for (let i = 0; i &lt; pixels.length; i += 4) {
+                        if (pixels[i+3] !== 0) {
+                            isEmpty = false;
+                            break;
+                        }
+                    }
+
+                    if (isEmpty) {
+                        alert('Veuillez dessiner votre signature avant de valider.');
+                        return;
+                    }
+
+                    // Capturer la signature en base64
+                    const signatureData = signatureCanvas.toDataURL('image/png');
+
+                    // MODE: Single signer - Multiple signatures
+                    if (signatureMode === 'single_signer_multiple') {
+                        // Ajouter à l'array
+                        if (currentZone) {
+                            signaturesArray.push({
+                                page: currentZone.page,
+                                x: currentZone.x,
+                                y: currentZone.y,
+                                image: signatureData
+                            });
+
+                            console.log('✅ Signature ajoutée:', signaturesArray.length, 'signature(s)');
+
+                            // Mettre à jour le compteur
+                            document.getElementById('signatures-count').textContent = signaturesArray.length + ' signature(s) ajoutée(s)';
+                            document.getElementById('signatures-status').style.display = 'block';
+
+                            // Fermer modal (NE PAS soumettre)
+                            signatureModal.hide();
+
+                            // Afficher un marqueur visuel sur le PDF
+                            showSignatureMarker(currentZone);
+                        }
+                    }
+                    // MODE: Multiple signers - One signature each
+                    else {
+                        document.getElementById('signature-data').value = signatureData;
+
+                        // Utiliser la position cliquée
+                        if (currentZone) {
+                            document.getElementById('signature-page-input').value = currentZone.page;
+                            document.getElementById('signature-x-input').value = currentZone.x;
+                            document.getElementById('signature-y-input').value = currentZone.y;
+                        }
+
+                        console.log('Signature validée:', currentZone);
+
+                        // Fermer modal et soumettre IMMÉDIATEMENT
+                        signatureModal.hide();
+                        document.getElementById('signature-form').submit();
+                    }
+                }
+
+                // Terminer et envoyer (mode single_signer_multiple)
+                function finishAndSend() {
+                    if (signaturesArray.length === 0) {
+                        alert('Veuillez ajouter au moins une signature avant d\'envoyer.');
+                        return;
+                    }
+
+                    console.log('📤 Envoi de', signaturesArray.length, 'signature(s)...');
+
+                    // Mettre les signatures en JSON
+                    document.getElementById('multiple-signatures-json').value = JSON.stringify(signaturesArray);
+
+                    // Soumettre le formulaire
+                    document.getElementById('signature-form').submit();
+                }
+
+                // Afficher un marqueur visuel sur le PDF
+                function showSignatureMarker(zone) {
+                    // Créer un marqueur visuel
+                    const marker = document.createElement('div');
+                    marker.style.position = 'absolute';
+                    marker.style.left = (zone.x * 1.5) + 'px'; // scale 1.5
+                    marker.style.top = ((canvas.height - zone.y * 1.5)) + 'px';
+                    marker.style.width = '150px';
+                    marker.style.height = '50px';
+                    marker.style.border = '2px solid #28a745';
+                    marker.style.backgroundColor = 'rgba(40, 167, 69, 0.2)';
+                    marker.style.borderRadius = '4px';
+                    marker.style.pointerEvents = 'none';
+                    marker.innerHTML = '&lt;div style="text-align: center; padding-top: 15px; font-size: 12px; color: #28a745; font-weight: bold;"&gt;✓ Signé&lt;/div&gt;';
+
+                    // Ajouter au canvas wrapper
+                    document.querySelector('.pdf-canvas-wrapper').appendChild(marker);
+                }
+
+                function declineDocument() {
+                    if (confirm('Êtes-vous sûr de vouloir refuser de signer ce document ?')) {
+                        const form = document.getElementById('signature-form');
+                        form.querySelector('[name="action"]').value = 'decline';
+                        form.submit();
+                    }
+                }
+            </script>
+        </t>
+    </template>
+
+    <!-- Pages de confirmation (inchangées) -->
+    <template id="public_signature_success" name="Signature Success Page">
+        <t t-call="website.layout">
+            <!-- CSS pour le viewer PDF -->
+            <style>
+                .signed-pdf-viewer {
+                    width: 100%;
+                    height: 600px;
+                    border: 2px solid #28a745;
+                    border-radius: 8px;
+                    margin-bottom: 20px;
+                }
+            </style>
+
+            <div class="container mt-5 mb-5">
+                <div class="row justify-content-center">
+                    <div class="col-lg-10">
+                        <!-- En-tête succès -->
+                        <div class="text-center mb-4">
+                            <div class="mb-4">
+                                <i class="fa fa-check-circle text-success" style="font-size: 72px;"></i>
+                            </div>
+                            <h2 class="mb-3">Document Signé avec Succès!</h2>
+                            <p class="text-muted mb-4">
+                                Merci d'avoir signé le document "<strong t-esc="document.name"/>".
+                                Un email de confirmation vous a été envoyé avec le document signé.
+                            </p>
+                        </div>
+
+                        <!-- Aperçu du PDF signé -->
+                        <div class="card shadow-sm mb-4" t-if="document.signed_file">
+                            <div class="card-header bg-success text-white">
+                                <h5 class="mb-0"><i class="fa fa-file-pdf me-2"></i>Aperçu du Document Signé</h5>
+                            </div>
+                            <div class="card-body p-0">
+                                <iframe
+                                    t-attf-src="/onedesk/document/#{document.id}/signed_pdf?access_token=#{signature.access_token}"
+                                    class="signed-pdf-viewer"
+                                    frameborder="0">
+                                </iframe>
+                            </div>
+                        </div>
+
+                        <!-- Boutons d'action -->
+                        <div class="text-center">
+                            <div class="d-grid gap-2 d-md-block mb-3" t-if="document.signed_file">
+                                <a t-attf-href="/onedesk/document/#{document.id}/signed_pdf?access_token=#{signature.access_token}&amp;download=true"
+                                   class="btn btn-success btn-lg me-md-2">
+                                    <i class="fa fa-download me-2"></i>
+                                    Télécharger le Document Signé
+                                </a>
+                                <a href="/" class="btn btn-outline-primary btn-lg">
+                                    <i class="fa fa-home me-2"></i>
+                                    Retour à l'accueil
+                                </a>
+                            </div>
+                            <div t-else="">
+                                <p class="text-warning mb-3">
+                                    <i class="fa fa-exclamation-triangle me-2"></i>
+                                    Le PDF signé est en cours de génération...
+                                </p>
+                                <a href="/" class="btn btn-primary btn-lg">
+                                    <i class="fa fa-home me-2"></i>
+                                    Retour à l'accueil
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <template id="public_signature_declined" name="Signature Declined Page">
+        <t t-call="website.layout">
+            <div class="container mt-5 mb-5">
+                <div class="row justify-content-center">
+                    <div class="col-lg-6 text-center">
+                        <div class="card shadow-sm border-0">
+                            <div class="card-body p-5">
+                                <div class="mb-4">
+                                    <i class="fa fa-times-circle text-warning" style="font-size: 72px;"></i>
+                                </div>
+                                <h2 class="mb-3">Signature Refusée</h2>
+                                <p class="text-muted mb-4">
+                                    Vous avez refusé de signer le document "<strong t-esc="document.name"/>".
+                                    L'émetteur du document en sera informé.
+                                </p>
+                                <a href="/" class="btn btn-secondary">
+                                    <i class="fa fa-home me-2"></i>
+                                    Retour à l'accueil
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <template id="public_signature_error" name="Signature Error Page">
+        <t t-call="website.layout">
+            <div class="container mt-5 mb-5">
+                <div class="row justify-content-center">
+                    <div class="col-lg-6 text-center">
+                        <div class="card shadow-sm border-0">
+                            <div class="card-body p-5">
+                                <div class="mb-4">
+                                    <i class="fa fa-exclamation-triangle text-danger" style="font-size: 72px;"></i>
+                                </div>
+                                <h2 class="mb-3">Accès Refusé</h2>
+                                <p class="text-muted mb-4">
+                                    <t t-if="error_message">
+                                        <t t-esc="error_message"/>
+                                    </t>
+                                    <t t-else="">
+                                        Le lien de signature est invalide ou a expiré.
+                                        Veuillez contacter l'émetteur du document pour obtenir un nouveau lien.
+                                    </t>
+                                </p>
+                                <a href="/" class="btn btn-secondary">
+                                    <i class="fa fa-home me-2"></i>
+                                    Retour à l'accueil
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+
+</odoo>

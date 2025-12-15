@@ -49,4 +49,21 @@
               groups="group_onedesk_support"
               action="action_onedesk_system_log"
               sequence="1"/>
+
+    <!-- Menu Contact Importer (Marketing) - MASTER ADMIN ONLY -->
+    <menuitem id="menu_contact_importer"
+              name="🚀 Import Conciergeries"
+              parent="menu_onedesk_admin_root"
+              groups="group_onedesk_master_admin"
+              action="onedesk_core.action_contact_importer"
+              sequence="5"/>
+
+    <!-- Menu Contacts Importés (Liste) - MASTER ADMIN ONLY -->
+    <menuitem id="menu_imported_contacts"
+              name="📋 Contacts Importés"
+              parent="menu_onedesk_admin_root"
+              groups="group_onedesk_master_admin"
+              action="onedesk_core.action_imported_contacts_list"
+              sequence="6"/>
+
 </odoo>

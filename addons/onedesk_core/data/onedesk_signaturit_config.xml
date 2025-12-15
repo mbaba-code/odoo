@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ========== ENVIRONMENT SELECTION ========== -->
+    <!-- Choose between 'sandbox' or 'production' -->
+    <record id="signaturit_environment" model="ir.config_parameter">
+        <field name="key">signaturit.environment</field>
+        <field name="value">sandbox</field>
+    </record>
+
+    <!-- ========== SANDBOX CONFIGURATION ========== -->
+    <!-- Sandbox token for testing -->
+    <record id="signaturit_sandbox_key" model="ir.config_parameter">
+        <field name="key">signaturit.sandbox.api.key</field>
+        <field name="value">TkLwhwoYHkIqXLjZdKOBgmNrTLnZuhoyUxSbbSovDzQqDtBBMeeRLwOcOrxVaUCtsYxETlFkECCvdMMpUIKlEC</field>
+    </record>
+
+    <!-- Sandbox API URL -->
+    <record id="signaturit_sandbox_url" model="ir.config_parameter">
+        <field name="key">signaturit.sandbox.api.url</field>
+        <field name="value">https://sandbox.signaturit.com/api/v3</field>
+    </record>
+
+    <!-- ========== PRODUCTION CONFIGURATION ========== -->
+    <!-- Production token (to be filled in later) -->
+    <record id="signaturit_production_key" model="ir.config_parameter">
+        <field name="key">signaturit.production.api.key</field>
+        <field name="value"></field>
+    </record>
+
+    <!-- Production API URL -->
+    <record id="signaturit_production_url" model="ir.config_parameter">
+        <field name="key">signaturit.production.api.url</field>
+        <field name="value">https://api.signaturit.com/v3</field>
+    </record>
+
+</odoo>

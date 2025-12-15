@@ -1,0 +1,87 @@
+/* Document Form - Force Vertical Layout for Chatter */
+
+/* Override Odoo's default behavior of putting chatter on the side */
+.o_form_document_wrapper {
+    display: flex !important;
+    flex-direction: column !important;
+    width: 100% !important;
+}
+
+/* Make sure the form sheet background is full width and flex column */
+.o_form_document_wrapper .o_form_sheet_bg {
+    display: flex !important;
+    flex-direction: column !important;
+    width: 100% !important;
+    max-width: 100% !important;
+}
+
+/* Ensure sheet content doesn't flex sideways */
+.o_form_document_wrapper .o_form_sheet_bg > div {
+    width: 100% !important;
+    flex: none !important;
+    margin-right: 0 !important;
+}
+
+.o_form_document_wrapper .o_form_sheet_bg .o_document_sheet {
+    width: 100% !important;
+    margin-right: 0 !important;
+}
+
+/* Force chatter to be below sheet, never beside it */
+.o_form_document_wrapper .o_form_sheet_bg .oe_chatter,
+.o_form_document_wrapper .o_chatter_bottom {
+    width: 100% !important;
+    flex-basis: 100% !important;
+    margin-left: 0 !important;
+    margin-top: 30px !important;
+    padding-left: 0 !important;
+    clear: both !important;
+}
+
+/* For newer Odoo versions where chatter might be in a separate container */
+.o_form_document_wrapper .o_chatter_bottom {
+    display: block !important;
+    margin-top: 30px !important;
+}
+
+/* Prevent any flex wrapping that could put chatter on side */
+@media (min-width: 500px) {
+    .o_form_document_wrapper .o_form_sheet_bg {
+        flex-wrap: nowrap !important;
+        justify-content: flex-start !important;
+    }
+
+    .o_form_document_wrapper .o_form_sheet_bg > * {
+        min-width: 0 !important;
+    }
+}
+
+/* Very important: override any default side-by-side layout on large screens */
+@media (min-width: 768px) {
+    .o_form_document_wrapper {
+        flex-direction: column !important;
+    }
+
+    .o_form_document_wrapper .o_form_sheet_bg {
+        flex-direction: column !important;
+        width: 100% !important;
+    }
+
+    .o_form_document_wrapper .o_form_sheet_bg .oe_chatter {
+        width: 100% !important;
+        margin-left: 0 !important;
+    }
+
+    .o_form_document_wrapper .o_chatter_bottom {
+        width: 100% !important;
+    }
+}
+
+/* Ensure no float-based layouts interfere */
+.o_form_document_wrapper .o_form_sheet_bg > * {
+    float: none !important;
+}
+
+.o_form_document_wrapper .oe_chatter {
+    float: none !important;
+}

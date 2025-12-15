@@ -7,6 +7,187 @@ from dateutil.relativedelta import relativedelta
 class OnedeskDashboardController(http.Controller):
     """Handle Dashboard API endpoints for charts and metrics"""
 
+    @http.route('/onedesk/dashboard/main/data', type='jsonrpc', auth='user', methods=['POST'])
+    def get_main_dashboard_data(self):
+        """
+        Route principale: retourne toutes les données du Dashboard Principal en une seule requête
+        Pour ApexCharts - Odoo 19
+        """
+        try:
+            dashboard = request.env['onedesk.dashboard'].search([
+                ('user_id', '=', request.env.user.id),
+                ('company_id', '=', request.env.company.id)
+            ], limit=1)
+
+            if not dashboard:
+                # Créer le dashboard s'il n'existe pas
+                dashboard = request.env['onedesk.dashboard'].create({
+                    'user_id': request.env.user.id,
+                    'company_id': request.env.company.id,
+                })
+
+            company_ids = dashboard._get_accessible_companies()
+            properties = request.env['onedesk.property'].sudo().search([('company_id', 'in', company_ids)])
+            units = request.env['onedesk.unit'].sudo().search([('property_id', 'in', properties.ids)])
+
+            # 1. Données pour graphique revenus (12 derniers mois)
+            revenue_data = self._get_revenue_12_months(units)
+
+            # 2. Données pour graphique réservations par statut
+            reservations_data = self._get_reservations_by_status(units)
+
+            # 3. Taux d'occupation global
+            occupancy_rate = self._get_occupancy_rate(units)
+
+            # 4. Distribution des propriétés par ville
+            properties_by_city = self._get_properties_by_city(properties)
+
+            # 5. Calcul du revenu du mois (en temps réel)
+            revenue_this_month = self._get_revenue_this_month(units)
+
+            # 6. KPIs principaux
+            kpis = {
+                'total_properties': len(properties),
+                'total_units': len(units),
+                'active_properties': len(properties.filtered('active')),
+                'available_units': len(units.filtered('available')),
+                'revenue_this_month': revenue_this_month,
+                'reservations_confirmed_month': dashboard.reservations_confirmed_month,
+            }
+
+            return {
+                'status': 'success',
+                'data': {
+                    'revenue_12_months': revenue_data,
+                    'reservations_by_status': reservations_data,
+                    'occupancy_rate': occupancy_rate,
+                    'properties_by_city': properties_by_city,
+                    'kpis': kpis,
+                }
+            }
+
+        except Exception as e:
+            return {
+                'status': 'error',
+                'message': str(e)
+            }
+
+    def _get_revenue_12_months(self, units):
+        """Revenus des 12 derniers mois (année actuelle vs année précédente)"""
+        today = datetime.now()
+        current_year = []
+        previous_year = []
+        months = []
+
+        for i in range(11, -1, -1):
+            month_date = today - relativedelta(months=i)
+            month_start = month_date.replace(day=1)
+            month_end = (month_start + relativedelta(months=1)) - timedelta(days=1)
+
+            # Année actuelle - Inclut paid, checked_in, completed
+            current_revenue = sum(request.env['onedesk.reservation'].sudo().search([
+                ('unit_id', 'in', units.ids),
+                ('status', 'in', ['paid', 'checked_in', 'completed']),
+                ('end_date', '>=', month_start),
+                ('end_date', '<=', month_end)
+            ]).mapped('total_price'))
+            current_year.append(round(current_revenue, 2))
+
+            # Année précédente (même mois)
+            prev_month_start = month_start - relativedelta(years=1)
+            prev_month_end = month_end - relativedelta(years=1)
+            previous_revenue = sum(request.env['onedesk.reservation'].sudo().search([
+                ('unit_id', 'in', units.ids),
+                ('status', 'in', ['paid', 'checked_in', 'completed']),
+                ('end_date', '>=', prev_month_start),
+                ('end_date', '<=', prev_month_end)
+            ]).mapped('total_price'))
+            previous_year.append(round(previous_revenue, 2))
+
+            months.append(month_date.strftime('%b'))
+
+        return {
+            'months': months,
+            'current_year': current_year,
+            'previous_year': previous_year
+        }
+
+    def _get_reservations_by_status(self, units):
+        """Nombre de réservations par statut"""
+        statuses = ['draft', 'paid', 'checked_in', 'completed', 'cancelled']
+        status_labels = ['Brouillon', 'Payée', 'Enregistré', 'Complétée', 'Annulée']
+        counts = []
+
+        for status in statuses:
+            count = request.env['onedesk.reservation'].sudo().search_count([
+                ('unit_id', 'in', units.ids),
+                ('status', '=', status)
+            ])
+            counts.append(count)
+
+        return {
+            'statuses': status_labels,
+            'counts': counts
+        }
+
+    def _get_occupancy_rate(self, units):
+        """Taux d'occupation global actuel"""
+        if not units:
+            return 0
+
+        today = datetime.now().date()
+        occupied = 0
+
+        for unit in units:
+            reservation_count = request.env['onedesk.reservation'].sudo().search_count([
+                ('unit_id', '=', unit.id),
+                ('status', 'in', ['paid', 'checked_in']),
+                ('start_date', '<=', today),
+                ('end_date', '>=', today)
+            ])
+            if reservation_count > 0:
+                occupied += 1
+
+        return round((occupied / len(units)) * 100, 1)
+
+    def _get_properties_by_city(self, properties):
+        """Distribution des propriétés par type"""
+        type_data = {}
+
+        # Mapping des types pour affichage
+        type_labels = {
+            'house': 'Maison',
+            'apartment': 'Appartement',
+            'villa': 'Villa',
+            'studio': 'Studio',
+            'cottage': 'Chalet',
+            'townhouse': 'Maison de ville',
+            'other': 'Autre',
+        }
+
+        for prop in properties:
+            prop_type = prop.property_type or 'other'
+            label = type_labels.get(prop_type, prop_type.capitalize())
+            type_data[label] = type_data.get(label, 0) + 1
+
+        return {
+            'cities': list(type_data.keys()),  # Gardé comme 'cities' pour compatibilité avec le frontend
+            'counts': list(type_data.values())
+        }
+
+    def _get_revenue_this_month(self, units):
+        """Calcul du revenu du mois en cours (en temps réel)"""
+        today = datetime.now()
+        month_start = today.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+
+        reservations = request.env['onedesk.reservation'].sudo().search([
+            ('unit_id', 'in', units.ids),
+            ('status', 'in', ['paid', 'checked_in', 'completed']),
+            ('end_date', '>=', month_start)
+        ])
+
+        return sum(reservations.mapped('total_price'))
+
     def _get_date_range(self, dashboard_rec):
         """Get date range based on selected period"""
         today = datetime.now().date()
@@ -135,7 +316,7 @@ class OnedeskDashboardController(http.Controller):
             for unit in units:
                 reservations_count = request.env['onedesk.reservation'].search_count([
                     ('unit_id', '=', unit.id),
-                    ('status', 'in', ['confirmed', 'checked_in']),
+                    ('status', 'in', ['paid', 'checked_in']),
                     ('start_date', '<=', date_to),
                     ('end_date', '>=', date_from)
                 ])
@@ -168,8 +349,8 @@ class OnedeskDashboardController(http.Controller):
         properties = request.env['onedesk.property'].search([('company_id', 'in', company_ids)])
         units = request.env['onedesk.unit'].search([('property_id', 'in', properties.ids)])
 
-        statuses = ['draft', 'confirmed', 'checked_in', 'completed', 'cancelled']
-        labels = ['Pending', 'Confirmed', 'Checked In', 'Completed', 'Cancelled']
+        statuses = ['draft', 'paid', 'checked_in', 'completed', 'cancelled']
+        labels = ['Brouillon', 'Payée', 'Enregistré', 'Complétée', 'Annulée']
         data = []
 
         for status in statuses:
@@ -297,14 +478,14 @@ class OnedeskDashboardController(http.Controller):
         elif metric == 'reservations':
             current = request.env['onedesk.reservation'].search_count([
                 ('unit_id', 'in', units.ids),
-                ('status', 'in', ['confirmed', 'checked_in', 'completed']),
+                ('status', 'in', ['paid', 'checked_in', 'completed']),
                 ('start_date', '>=', date_from),
                 ('start_date', '<=', date_to)
             ])
 
             previous = request.env['onedesk.reservation'].search_count([
                 ('unit_id', 'in', units.ids),
-                ('status', 'in', ['confirmed', 'checked_in', 'completed']),
+                ('status', 'in', ['paid', 'checked_in', 'completed']),
                 ('start_date', '>=', prev_date_from),
                 ('start_date', '<=', prev_date_to)
             ])
@@ -314,7 +495,7 @@ class OnedeskDashboardController(http.Controller):
             for unit in units:
                 if request.env['onedesk.reservation'].search_count([
                     ('unit_id', '=', unit.id),
-                    ('status', 'in', ['confirmed', 'checked_in']),
+                    ('status', 'in', ['paid', 'checked_in']),
                     ('start_date', '<=', date_to),
                     ('end_date', '>=', date_from)
                 ]):
@@ -325,7 +506,7 @@ class OnedeskDashboardController(http.Controller):
             for unit in units:
                 if request.env['onedesk.reservation'].search_count([
                     ('unit_id', '=', unit.id),
-                    ('status', 'in', ['confirmed', 'checked_in']),
+                    ('status', 'in', ['paid', 'checked_in']),
                     ('start_date', '<=', prev_date_to),
                     ('end_date', '>=', prev_date_from)
                 ]):
@@ -362,3 +543,650 @@ class OnedeskDashboardController(http.Controller):
             'trend_class': trend_class,
             'period_length': period_length
         }
+
+    @http.route('/onedesk/dashboard/export/excel', type='jsonrpc', auth='user', methods=['POST'])
+    def export_dashboard_excel(self):
+        """
+        Exporter les données du dashboard en Excel
+        """
+        try:
+            import io
+            import base64
+            import xlsxwriter
+            from datetime import datetime
+
+            dashboard = request.env['onedesk.dashboard'].search([
+                ('user_id', '=', request.env.user.id),
+                ('company_id', '=', request.env.company.id)
+            ], limit=1)
+
+            if not dashboard:
+                return {'status': 'error', 'message': 'Dashboard non trouvé'}
+
+            company_ids = dashboard._get_accessible_companies()
+            properties = request.env['onedesk.property'].sudo().search([('company_id', 'in', company_ids)])
+            units = request.env['onedesk.unit'].sudo().search([('property_id', 'in', properties.ids)])
+
+            # Créer le fichier Excel en mémoire
+            output = io.BytesIO()
+            workbook = xlsxwriter.Workbook(output, {'in_memory': True})
+
+            # Formats
+            header_format = workbook.add_format({
+                'bold': True,
+                'bg_color': '#667eea',
+                'font_color': 'white',
+                'align': 'center',
+                'border': 1
+            })
+            cell_format = workbook.add_format({'border': 1})
+            currency_format = workbook.add_format({'num_format': '#,##0.00 €', 'border': 1})
+
+            # Feuille 1: KPIs
+            ws_kpis = workbook.add_worksheet('KPIs')
+            ws_kpis.write(0, 0, 'Indicateur', header_format)
+            ws_kpis.write(0, 1, 'Valeur', header_format)
+
+            kpis_data = [
+                ('Total Propriétés', len(properties)),
+                ('Propriétés Actives', len(properties.filtered('active'))),
+                ('Total Unités', len(units)),
+                ('Unités Disponibles', len(units.filtered('available'))),
+                ('Revenu du Mois', dashboard.revenue_this_month),
+                ('Taux d\'Occupation (%)', self._get_occupancy_rate(units)),
+                ('Réservations Confirmées', dashboard.reservations_confirmed_month),
+            ]
+
+            for idx, (label, value) in enumerate(kpis_data, start=1):
+                ws_kpis.write(idx, 0, label, cell_format)
+                if 'Revenu' in label:
+                    ws_kpis.write(idx, 1, value, currency_format)
+                else:
+                    ws_kpis.write(idx, 1, value, cell_format)
+
+            ws_kpis.set_column(0, 0, 30)
+            ws_kpis.set_column(1, 1, 15)
+
+            # Feuille 2: Revenus 12 mois
+            revenue_data = self._get_revenue_12_months(units)
+            ws_revenue = workbook.add_worksheet('Revenus 12 mois')
+
+            ws_revenue.write(0, 0, 'Mois', header_format)
+            ws_revenue.write(0, 1, 'Année Actuelle', header_format)
+            ws_revenue.write(0, 2, 'Année Précédente', header_format)
+
+            for idx, month in enumerate(revenue_data['months'], start=1):
+                ws_revenue.write(idx, 0, month, cell_format)
+                ws_revenue.write(idx, 1, revenue_data['current_year'][idx-1], currency_format)
+                ws_revenue.write(idx, 2, revenue_data['previous_year'][idx-1], currency_format)
+
+            ws_revenue.set_column(0, 0, 12)
+            ws_revenue.set_column(1, 2, 18)
+
+            # Feuille 3: Réservations par Statut
+            reservations_data = self._get_reservations_by_status(units)
+            ws_reservations = workbook.add_worksheet('Réservations')
+
+            ws_reservations.write(0, 0, 'Statut', header_format)
+            ws_reservations.write(0, 1, 'Nombre', header_format)
+
+            for idx, (status, count) in enumerate(zip(reservations_data['statuses'], reservations_data['counts']), start=1):
+                ws_reservations.write(idx, 0, status, cell_format)
+                ws_reservations.write(idx, 1, count, cell_format)
+
+            ws_reservations.set_column(0, 0, 20)
+            ws_reservations.set_column(1, 1, 15)
+
+            # Feuille 4: Propriétés par Ville
+            properties_data = self._get_properties_by_city(properties)
+            ws_properties = workbook.add_worksheet('Propriétés par Ville')
+
+            ws_properties.write(0, 0, 'Ville', header_format)
+            ws_properties.write(0, 1, 'Nombre', header_format)
+
+            for idx, (city, count) in enumerate(zip(properties_data['cities'], properties_data['counts']), start=1):
+                ws_properties.write(idx, 0, city, cell_format)
+                ws_properties.write(idx, 1, count, cell_format)
+
+            ws_properties.set_column(0, 0, 25)
+            ws_properties.set_column(1, 1, 15)
+
+            workbook.close()
+
+            # Créer l'attachement
+            output.seek(0)
+            excel_data = output.read()
+            excel_b64 = base64.b64encode(excel_data)
+            filename = f"Dashboard_OneDesk_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
+
+            attachment = request.env['ir.attachment'].sudo().create({
+                'name': filename,
+                'type': 'binary',
+                'datas': excel_b64,
+                'mimetype': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                'public': True,
+            })
+
+            return {
+                'status': 'success',
+                'file_url': f'/web/content/{attachment.id}?download=true'
+            }
+
+        except Exception as e:
+            return {
+                'status': 'error',
+                'message': str(e)
+            }
+
+    @http.route('/onedesk/dashboard/export/pdf', type='jsonrpc', auth='user', methods=['POST'])
+    def export_dashboard_pdf(self):
+        """
+        Exporter le dashboard en PDF
+        """
+        try:
+            import base64
+            from datetime import datetime
+
+            dashboard = request.env['onedesk.dashboard'].search([
+                ('user_id', '=', request.env.user.id),
+                ('company_id', '=', request.env.company.id)
+            ], limit=1)
+
+            if not dashboard:
+                return {'status': 'error', 'message': 'Dashboard non trouvé'}
+
+            company_ids = dashboard._get_accessible_companies()
+            properties = request.env['onedesk.property'].sudo().search([('company_id', 'in', company_ids)])
+            units = request.env['onedesk.unit'].sudo().search([('property_id', 'in', properties.ids)])
+
+            # Préparer les données
+            revenue_data = self._get_revenue_12_months(units)
+            reservations_data = self._get_reservations_by_status(units)
+            occupancy_rate = self._get_occupancy_rate(units)
+            properties_data = self._get_properties_by_city(properties)
+
+            # Générer le HTML pour le PDF
+            html_content = f"""
+            <html>
+            <head>
+                <meta charset="utf-8"/>
+                <style>
+                    body {{ font-family: Arial, sans-serif; margin: 20px; }}
+                    h1 {{ color: #667eea; text-align: center; }}
+                    h2 {{ color: #333; border-bottom: 2px solid #667eea; padding-bottom: 5px; }}
+                    table {{ width: 100%; border-collapse: collapse; margin: 20px 0; }}
+                    th {{ background-color: #667eea; color: white; padding: 10px; text-align: left; }}
+                    td {{ border: 1px solid #ddd; padding: 8px; }}
+                    tr:nth-child(even) {{ background-color: #f2f2f2; }}
+                    .kpi-grid {{ display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin: 20px 0; }}
+                    .kpi-card {{ background: #f8f9fa; padding: 15px; border-left: 4px solid #667eea; }}
+                    .kpi-value {{ font-size: 24px; font-weight: bold; color: #333; }}
+                    .kpi-label {{ color: #666; margin-top: 5px; }}
+                </style>
+            </head>
+            <body>
+                <h1>📊 Dashboard OneDesk</h1>
+                <p style="text-align: center; color: #666;">Généré le {datetime.now().strftime('%d/%m/%Y à %H:%M')}</p>
+
+                <h2>Indicateurs Clés</h2>
+                <div class="kpi-grid">
+                    <div class="kpi-card">
+                        <div class="kpi-value">{len(properties)}</div>
+                        <div class="kpi-label">Total Propriétés</div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-value">{len(units)}</div>
+                        <div class="kpi-label">Total Unités</div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-value">{occupancy_rate}%</div>
+                        <div class="kpi-label">Taux d'Occupation</div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-value">{dashboard.revenue_this_month:,.2f} €</div>
+                        <div class="kpi-label">Revenu du Mois</div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-value">{dashboard.reservations_confirmed_month}</div>
+                        <div class="kpi-label">Réservations Confirmées</div>
+                    </div>
+                </div>
+
+                <h2>Revenus (12 derniers mois)</h2>
+                <table>
+                    <tr>
+                        <th>Mois</th>
+                        <th>Année Actuelle</th>
+                        <th>Année Précédente</th>
+                    </tr>
+                    {''.join([f'<tr><td>{month}</td><td>{current:,.2f} €</td><td>{prev:,.2f} €</td></tr>'
+                              for month, current, prev in zip(revenue_data['months'],
+                                                             revenue_data['current_year'],
+                                                             revenue_data['previous_year'])])}
+                </table>
+
+                <h2>Réservations par Statut</h2>
+                <table>
+                    <tr>
+                        <th>Statut</th>
+                        <th>Nombre</th>
+                    </tr>
+                    {''.join([f'<tr><td>{status}</td><td>{count}</td></tr>'
+                              for status, count in zip(reservations_data['statuses'],
+                                                      reservations_data['counts'])])}
+                </table>
+
+                <h2>Propriétés par Ville</h2>
+                <table>
+                    <tr>
+                        <th>Ville</th>
+                        <th>Nombre de Propriétés</th>
+                    </tr>
+                    {''.join([f'<tr><td>{city}</td><td>{count}</td></tr>'
+                              for city, count in zip(properties_data['cities'],
+                                                    properties_data['counts'])])}
+                </table>
+            </body>
+            </html>
+            """
+
+            # Générer le PDF avec wkhtmltopdf (Odoo natif)
+            # Utiliser _run_wkhtmltopdf avec le bon format pour Odoo 17
+            IrActionsReport = request.env['ir.actions.report']
+
+            # Créer un rapport temporaire
+            pdf_content, _ = IrActionsReport._run_wkhtmltopdf(
+                bodies=[html_content],
+                landscape=False,
+                specific_paperformat_args={
+                    'data-report-margin-top': 10,
+                    'data-report-header-spacing': 10
+                }
+            )
+
+            # Encoder en base64
+            pdf_b64 = base64.b64encode(pdf_content)
+
+            # Créer l'attachement
+            filename = f"Dashboard_OneDesk_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
+
+            attachment = request.env['ir.attachment'].sudo().create({
+                'name': filename,
+                'type': 'binary',
+                'datas': pdf_b64,
+                'mimetype': 'application/pdf',
+                'public': True,
+            })
+
+            return {
+                'status': 'success',
+                'file_url': f'/web/content/{attachment.id}?download=true'
+            }
+
+        except Exception as e:
+            return {
+                'status': 'error',
+                'message': str(e)
+            }
+
+    # ==================== Dashboard Admin Master Routes ====================
+
+    @http.route('/onedesk/dashboard/admin/data', type='jsonrpc', auth='user', methods=['POST'])
+    def get_admin_dashboard_data(self):
+        """
+        Route Dashboard Admin Master: Vue globale multi-tenant
+        Accessible uniquement par Master Admin
+        """
+        try:
+            # Vérifier que l'utilisateur est Master Admin
+            if not request.env.user.has_group('onedesk_core.group_onedesk_master_admin'):
+                return {
+                    'status': 'error',
+                    'message': 'Accès refusé. Vous devez être Master Admin.'
+                }
+
+            # 1. KPIs globaux (toutes companies)
+            all_companies = request.env['res.company'].sudo().search([])
+            active_companies = all_companies.filtered(lambda c: c.active if hasattr(c, 'active') else True)
+
+            all_properties = request.env['onedesk.property'].sudo().search([])
+            all_units = request.env['onedesk.unit'].sudo().search([])
+
+            # Réservations actives (paid, checked_in, completed)
+            active_reservations = request.env['onedesk.reservation'].sudo().search([
+                ('status', 'in', ['paid', 'checked_in', 'completed'])
+            ])
+
+            # Revenu global du mois en cours
+            today = datetime.now()
+            month_start = today.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+
+            reservations_this_month = request.env['onedesk.reservation'].sudo().search([
+                ('status', 'in', ['paid', 'checked_in', 'completed']),
+                ('end_date', '>=', month_start)
+            ])
+            global_revenue_month = sum(reservations_this_month.mapped('total_price'))
+
+            kpis = {
+                'total_companies': len(all_companies),
+                'active_companies': len(active_companies),
+                'total_properties': len(all_properties),
+                'total_units': len(all_units),
+                'active_reservations': len(active_reservations),
+                'global_revenue_month': global_revenue_month,
+            }
+
+            # 2. Revenus par Company
+            revenue_by_company_data = self._get_revenue_by_company(all_companies)
+
+            # 3. Companies par statut
+            companies_status_data = self._get_companies_status(all_companies)
+
+            # 4. Évolution revenus globaux 12 mois
+            global_revenue_12_months = self._get_global_revenue_12_months()
+
+            # 5. Réservations actives par company
+            reservations_by_company_data = self._get_reservations_by_company(all_companies)
+
+            return {
+                'status': 'success',
+                'data': {
+                    'kpis': kpis,
+                    'revenue_by_company': revenue_by_company_data,
+                    'companies_status': companies_status_data,
+                    'global_revenue_12_months': global_revenue_12_months,
+                    'reservations_by_company': reservations_by_company_data,
+                }
+            }
+
+        except Exception as e:
+            return {
+                'status': 'error',
+                'message': str(e)
+            }
+
+    def _get_revenue_by_company(self, companies):
+        """Revenus par company (toutes les réservations actives)"""
+        company_names = []
+        revenues = []
+
+        for company in companies:
+            units = request.env['onedesk.unit'].sudo().search([
+                ('property_id.company_id', '=', company.id)
+            ])
+
+            if units:
+                reservations = request.env['onedesk.reservation'].sudo().search([
+                    ('unit_id', 'in', units.ids),
+                    ('status', 'in', ['paid', 'checked_in', 'completed'])
+                ])
+                revenue = sum(reservations.mapped('total_price'))
+
+                if revenue > 0:  # N'afficher que les companies avec revenu
+                    company_names.append(company.name)
+                    revenues.append(round(revenue, 2))
+
+        return {
+            'companies': company_names,
+            'revenues': revenues
+        }
+
+    def _get_companies_status(self, companies):
+        """Statut des companies (actives/inactives)"""
+        active_count = len(companies.filtered(lambda c: c.active if hasattr(c, 'active') else True))
+        inactive_count = len(companies) - active_count
+
+        return {
+            'labels': ['Actives', 'Inactives'],
+            'counts': [active_count, inactive_count]
+        }
+
+    def _get_global_revenue_12_months(self):
+        """Évolution des revenus globaux sur 12 mois (toutes companies)"""
+        today = datetime.now()
+        current_year = []
+        previous_year = []
+        months = []
+
+        for i in range(11, -1, -1):
+            month_date = today - relativedelta(months=i)
+            month_start = month_date.replace(day=1)
+            month_end = (month_start + relativedelta(months=1)) - timedelta(days=1)
+
+            # Année actuelle
+            current_revenue = sum(request.env['onedesk.reservation'].sudo().search([
+                ('status', 'in', ['paid', 'checked_in', 'completed']),
+                ('end_date', '>=', month_start),
+                ('end_date', '<=', month_end)
+            ]).mapped('total_price'))
+            current_year.append(round(current_revenue, 2))
+
+            # Année précédente
+            prev_month_start = month_start - relativedelta(years=1)
+            prev_month_end = month_end - relativedelta(years=1)
+            prev_revenue = sum(request.env['onedesk.reservation'].sudo().search([
+                ('status', 'in', ['paid', 'checked_in', 'completed']),
+                ('end_date', '>=', prev_month_start),
+                ('end_date', '<=', prev_month_end)
+            ]).mapped('total_price'))
+            previous_year.append(round(prev_revenue, 2))
+
+            # Labels des mois
+            months.append(month_date.strftime('%b %Y'))
+
+        return {
+            'months': months,
+            'current_year': current_year,
+            'previous_year': previous_year
+        }
+
+    def _get_reservations_by_company(self, companies):
+        """Nombre de réservations actives par company"""
+        company_names = []
+        counts = []
+
+        for company in companies:
+            units = request.env['onedesk.unit'].sudo().search([
+                ('property_id.company_id', '=', company.id)
+            ])
+
+            if units:
+                reservations_count = request.env['onedesk.reservation'].sudo().search_count([
+                    ('unit_id', 'in', units.ids),
+                    ('status', 'in', ['paid', 'checked_in', 'completed'])
+                ])
+
+                if reservations_count > 0:  # N'afficher que les companies avec réservations
+                    company_names.append(company.name)
+                    counts.append(reservations_count)
+
+        return {
+            'companies': company_names,
+            'counts': counts
+        }
+
+    @http.route('/onedesk/dashboard/admin/export/excel', type='jsonrpc', auth='user', methods=['POST'])
+    def export_admin_dashboard_excel(self):
+        """Export Excel du Dashboard Admin Master"""
+        try:
+            # Vérifier que l'utilisateur est Master Admin
+            if not request.env.user.has_group('onedesk_core.group_onedesk_master_admin'):
+                return {
+                    'status': 'error',
+                    'message': 'Accès refusé. Vous devez être Master Admin.'
+                }
+
+            import io
+            import base64
+            from openpyxl import Workbook
+            from openpyxl.styles import Font, Alignment, PatternFill
+
+            # Créer le workbook
+            wb = Workbook()
+            ws = wb.active
+            ws.title = "Dashboard Admin Master"
+
+            # En-tête
+            ws['A1'] = 'Dashboard Admin Master - Vue Globale'
+            ws['A1'].font = Font(size=16, bold=True)
+            ws['A1'].alignment = Alignment(horizontal='center')
+            ws.merge_cells('A1:D1')
+
+            ws['A2'] = f'Généré le {datetime.now().strftime("%d/%m/%Y %H:%M")}'
+            ws['A2'].alignment = Alignment(horizontal='center')
+            ws.merge_cells('A2:D2')
+
+            # KPIs
+            ws['A4'] = 'Indicateurs Clés'
+            ws['A4'].font = Font(bold=True, size=12)
+            ws['A4'].fill = PatternFill(start_color='7c3aed', end_color='7c3aed', fill_type='solid')
+
+            all_companies = request.env['res.company'].sudo().search([])
+            all_properties = request.env['onedesk.property'].sudo().search([])
+            all_units = request.env['onedesk.unit'].sudo().search([])
+
+            # Calcul revenu global mois
+            today = datetime.now()
+            month_start = today.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+            reservations_this_month = request.env['onedesk.reservation'].sudo().search([
+                ('status', 'in', ['paid', 'checked_in', 'completed']),
+                ('end_date', '>=', month_start)
+            ])
+            global_revenue = sum(reservations_this_month.mapped('total_price'))
+
+            ws['A5'] = 'Total Companies'
+            ws['B5'] = len(all_companies)
+            ws['A6'] = 'Total Propriétés'
+            ws['B6'] = len(all_properties)
+            ws['A7'] = 'Total Unités'
+            ws['B7'] = len(all_units)
+            ws['A8'] = 'Revenu Global Mois'
+            ws['B8'] = f"{global_revenue:.2f} €"
+
+            # Sauvegarder dans un buffer
+            output = io.BytesIO()
+            wb.save(output)
+            output.seek(0)
+
+            # Créer l'attachment
+            excel_data = output.read()
+            excel_b64 = base64.b64encode(excel_data)
+
+            attachment = request.env['ir.attachment'].sudo().create({
+                'name': f'Dashboard_Admin_Master_{datetime.now().strftime("%Y%m%d_%H%M%S")}.xlsx',
+                'type': 'binary',
+                'datas': excel_b64,
+                'mimetype': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                'public': False,
+            })
+
+            return {
+                'status': 'success',
+                'attachment_id': attachment.id,
+                'filename': attachment.name
+            }
+
+        except Exception as e:
+            return {
+                'status': 'error',
+                'message': str(e)
+            }
+
+    @http.route('/onedesk/dashboard/admin/export/pdf', type='jsonrpc', auth='user', methods=['POST'])
+    def export_admin_dashboard_pdf(self):
+        """Export PDF du Dashboard Admin Master"""
+        try:
+            # Vérifier que l'utilisateur est Master Admin
+            if not request.env.user.has_group('onedesk_core.group_onedesk_master_admin'):
+                return {
+                    'status': 'error',
+                    'message': 'Accès refusé. Vous devez être Master Admin.'
+                }
+
+            import base64
+
+            # Récupérer les données
+            all_companies = request.env['res.company'].sudo().search([])
+            all_properties = request.env['onedesk.property'].sudo().search([])
+            all_units = request.env['onedesk.unit'].sudo().search([])
+
+            today = datetime.now()
+            month_start = today.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+            reservations_this_month = request.env['onedesk.reservation'].sudo().search([
+                ('status', 'in', ['paid', 'checked_in', 'completed']),
+                ('end_date', '>=', month_start)
+            ])
+            global_revenue = sum(reservations_this_month.mapped('total_price'))
+
+            # Générer HTML
+            html_content = f"""
+            <html>
+            <head>
+                <style>
+                    body {{ font-family: Arial, sans-serif; margin: 40px; }}
+                    h1 {{ color: #7c3aed; text-align: center; }}
+                    .kpi-box {{
+                        border: 2px solid #7c3aed;
+                        padding: 15px;
+                        margin: 10px 0;
+                        background: #f8fafc;
+                    }}
+                    .kpi-label {{ font-weight: bold; color: #333; }}
+                    .kpi-value {{ font-size: 24px; color: #7c3aed; }}
+                </style>
+            </head>
+            <body>
+                <h1>Dashboard Admin Master</h1>
+                <p style="text-align: center;">Généré le {datetime.now().strftime('%d/%m/%Y à %H:%M')}</p>
+
+                <div class="kpi-box">
+                    <span class="kpi-label">Total Companies:</span>
+                    <span class="kpi-value">{len(all_companies)}</span>
+                </div>
+
+                <div class="kpi-box">
+                    <span class="kpi-label">Total Propriétés:</span>
+                    <span class="kpi-value">{len(all_properties)}</span>
+                </div>
+
+                <div class="kpi-box">
+                    <span class="kpi-label">Total Unités:</span>
+                    <span class="kpi-value">{len(all_units)}</span>
+                </div>
+
+                <div class="kpi-box">
+                    <span class="kpi-label">Revenu Global du Mois:</span>
+                    <span class="kpi-value">{global_revenue:.2f} €</span>
+                </div>
+            </body>
+            </html>
+            """
+
+            # Générer PDF avec wkhtmltopdf
+            IrActionsReport = request.env['ir.actions.report'].sudo()
+            pdf_content, _ = IrActionsReport._run_wkhtmltopdf(
+                bodies=[html_content],
+                landscape=False,
+            )
+
+            # Créer l'attachment
+            pdf_b64 = base64.b64encode(pdf_content)
+            attachment = request.env['ir.attachment'].sudo().create({
+                'name': f'Dashboard_Admin_Master_{datetime.now().strftime("%Y%m%d_%H%M%S")}.pdf',
+                'type': 'binary',
+                'datas': pdf_b64,
+                'mimetype': 'application/pdf',
+                'public': False,
+            })
+
+            return {
+                'status': 'success',
+                'attachment_id': attachment.id,
+                'filename': attachment.name
+            }
+
+        except Exception as e:
+            return {
+                'status': 'error',
+                'message': str(e)
+            }

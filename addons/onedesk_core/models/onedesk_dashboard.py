@@ -87,16 +87,16 @@ class OnedeaskDashboard(models.Model):
             else:
                 dashboard.properties_occupancy_rate = 0
 
-            # Revenue this month
+            # Revenue this month - Inclut paid, checked_in, completed
             today = datetime.now()
             month_start = today.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
             units = self.env['onedesk.unit'].search([('property_id', 'in', properties.ids)])
-            completed_reservations = self.env['onedesk.reservation'].search([
+            active_reservations = self.env['onedesk.reservation'].search([
                 ('unit_id', 'in', units.ids),
-                ('status', '=', 'completed'),
+                ('status', 'in', ['paid', 'checked_in', 'completed']),  # Toutes réservations actives
                 ('end_date', '>=', month_start)
             ])
-            dashboard.revenue_this_month = sum(completed_reservations.mapped('total_price'))
+            dashboard.revenue_this_month = sum(active_reservations.mapped('total_price'))
 
     # ==================== UNITS METRICS ====================
     total_units = fields.Integer(string="Total Units", compute='_compute_units_metrics')

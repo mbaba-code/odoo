@@ -31,10 +31,13 @@
         <field name="name">OneDesk / Support Team</field>
         <field name="comment">Équipe support OneDesk - Accès aux logs et support clients</field>
     </record>
+<<<<<<< HEAD
+=======
 
     <!-- Group: OneDesk Premium Manager (Sub-admin with full Odoo access, isolated by company) -->
     <record id="group_onedesk_premium_manager" model="res.groups">
         <field name="name">OneDesk / Premium Manager</field>
         <field name="comment">Gestionnaire Premium OneDesk - Accès complet à Odoo (CRM, Site web, Comptabilité, Paramètres) avec isolation multi-tenant stricte par company_id.</field>
     </record>
+>>>>>>> 3e55d22cdc5e8207ec13690ca33b5b329d25d765
 </odoo>

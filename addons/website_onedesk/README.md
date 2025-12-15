@@ -42,53 +42,58 @@ This module creates a professional property rental website integrated with OneDe
 - Interactive date picker
 - Real-time availability checking
 - Instant price calculation (with cleaning fees)
-- Booking request form with:
-  - Guest name, email, phone
-  - Arrival/departure dates
-  - Special requests field
+- Booking request form with guest name, email, phone
+- Arrival/departure dates selector
+- Special requests field
 - Responsive design for mobile and desktop
 
 ### AJAX Endpoints
 
 #### Check Availability
-```
-POST /unit/<unit_id>/availability
-{
-  "start_date": "2024-12-20",
-  "end_date": "2024-12-25"
-}
 
-Response:
-{
-  "available": true,
-  "nights": 5,
-  "price_per_night": 150.00,
-  "total_price": 750.00,
-  "cleaning_fee": 50.00,
-  "total_with_cleaning": 800.00
-}
-```
+Endpoint::
+
+    POST /unit/<unit_id>/availability
+
+    Request body:
+    {
+      "start_date": "2024-12-20",
+      "end_date": "2024-12-25"
+    }
+
+    Response:
+    {
+      "available": true,
+      "nights": 5,
+      "price_per_night": 150.00,
+      "total_price": 750.00,
+      "cleaning_fee": 50.00,
+      "total_with_cleaning": 800.00
+    }
 
 #### Create Booking Request
-```
-POST /property/booking
-{
-  "unit_id": 123,
-  "name": "John Doe",
-  "email": "john@example.com",
-  "phone": "+33612345678",
-  "start_date": "2024-12-20",
-  "end_date": "2024-12-25",
-  "message": "Need a crib for baby"
-}
 
-Response:
-{
-  "status": "success",
-  "message": "Demande de réservation créée! ID: 456",
-  "reservation_id": 456
-}
-```
+Endpoint::
+
+    POST /property/booking
+
+    Request body:
+    {
+      "unit_id": 123,
+      "name": "John Doe",
+      "email": "john@example.com",
+      "phone": "+33612345678",
+      "start_date": "2024-12-20",
+      "end_date": "2024-12-25",
+      "message": "Need a crib for baby"
+    }
+
+    Response:
+    {
+      "status": "success",
+      "message": "Demande de réservation créée! ID: 456",
+      "reservation_id": 456
+    }
 
 ## Configuration
 
@@ -101,16 +106,14 @@ Response:
 ### Customization
 
 #### Change Colors
-Edit `static/css/website_onedesk.css`:
+Edit static/css/website_onedesk.css::
 
-```css
-:root {
-    --primary-color: #667eea;      /* Main purple */
-    --secondary-color: #764ba2;    /* Dark purple */
-    --success-color: #48c774;      /* Green */
-    --danger-color: #f14668;       /* Red */
-}
-```
+    :root {
+        --primary-color: #667eea;      /* Main purple */
+        --secondary-color: #764ba2;    /* Dark purple */
+        --success-color: #48c774;      /* Green */
+        --danger-color: #f14668;       /* Red */
+    }
 
 #### Add Logo
 Replace `/static/images/logo.png` and update the template in `templates/pages.xml`.
@@ -194,23 +197,21 @@ Interactive booking page with:
 
 ### Adding a New Page
 
-1. Add route to `controllers/main.py`:
-```python
-@http.route('/my-page', type='http', auth='public', website=True)
-def my_page(self, **kw):
-    return request.render('website_onedesk.my_page_template', {
-        'my_data': 'value',
-    })
-```
+1. Add route to controllers/main.py::
 
-2. Add template to `templates/pages.xml`:
-```xml
-<template id="my_page_template" name="My Page">
-    <t t-call="website.layout">
-        <!-- Your content here -->
-    </t>
-</template>
-```
+    @http.route('/my-page', type='http', auth='public', website=True)
+    def my_page(self, **kw):
+        return request.render('website_onedesk.my_page_template', {
+            'my_data': 'value',
+        })
+
+2. Add template to templates/pages.xml::
+
+    <template id="my_page_template" name="My Page">
+        <t t-call="website.layout">
+            <!-- Your content here -->
+        </t>
+    </template>
 
 ### Modifying Templates
 All templates inherit from `website.layout` which provides:

@@ -116,8 +116,13 @@
 
                             <!-- Action Buttons -->
                             <div class="d-flex gap-2 mb-4">
-                                <button type="submit" class="btn btn-primary btn-lg flex-grow-1">
-                                    <i class="fa fa-check"></i> Confirmer la souscription
+                                <button type="submit" id="submit-btn" class="btn btn-primary btn-lg flex-grow-1">
+                                    <span id="btn-text">
+                                        <i class="fa fa-check"></i> Confirmer la souscription
+                                    </span>
+                                    <span id="btn-loading" style="display: none;">
+                                        <i class="fa fa-spinner fa-spin"></i> Traitement en cours...
+                                    </span>
                                 </button>
                                 <a href="/onedesk/subscription" class="btn btn-outline-secondary btn-lg">
                                     <i class="fa fa-arrow-left"></i> Retour
@@ -132,6 +137,15 @@
             <script>
                 document.getElementById(&apos;subscription_form&apos;).addEventListener(&apos;submit&apos;, function(e) {
                     e.preventDefault();
+
+                    // Afficher le spinner et désactiver le bouton
+                    const submitBtn = document.getElementById(&apos;submit-btn&apos;);
+                    const btnText = document.getElementById(&apos;btn-text&apos;);
+                    const btnLoading = document.getElementById(&apos;btn-loading&apos;);
+
+                    submitBtn.disabled = true;
+                    btnText.style.display = &apos;none&apos;;
+                    btnLoading.style.display = &apos;inline&apos;;
 
                     const formData = new FormData(this);
                     const data = {
@@ -159,14 +173,35 @@
 
                         if (response.status === &apos;success&apos;) {
                             alert(response.message);
-                            window.location.href = &apos;/onedesk/subscription&apos;;
+
+                            // ✅ CORRECTION: Rediriger selon le type de réponse
+                            if (response.requires_payment &amp;&amp; response.payment_url) {
+                                // Plan payant - rediriger vers page de paiement
+                                console.log(&apos;💳 Redirecting to payment:&apos;, response.payment_url);
+                                window.location.href = response.payment_url;
+                            } else if (response.redirect_url) {
+                                // Redirection vers invitation (plans gratuits ou après paiement)
+                                console.log(&apos;✉️ Redirecting to invitation:&apos;, response.redirect_url);
+                                window.location.href = response.redirect_url;
+                            } else {
+                                // Par défaut - rediriger vers liste des plans
+                                window.location.href = &apos;/onedesk/subscription&apos;;
+                            }
                         } else {
                             alert(&apos;❌ &apos; + (response.message || &apos;Une erreur est survenue&apos;));
+                            // Réactiver le bouton en cas d&apos;erreur
+                            submitBtn.disabled = false;
+                            btnText.style.display = &apos;inline&apos;;
+                            btnLoading.style.display = &apos;none&apos;;
                         }
                     })
                     .catch(error => {
                         console.error(&apos;Error:&apos;, error);
                         alert(&apos;Erreur lors de la souscription: &apos; + error.message);
+                        // Réactiver le bouton en cas d&apos;erreur
+                        submitBtn.disabled = false;
+                        btnText.style.display = &apos;inline&apos;;
+                        btnLoading.style.display = &apos;none&apos;;
                     });
                 });
             </script>
@@ -192,21 +227,23 @@
     <!-- EMAIL TEMPLATES -->
     <!-- ========================= -->
 
-    <!-- Email de confirmation au client -->
-    <record id="email_subscription_confirmation" model="mail.template">
-        <field name="name">Subscription Confirmation - Client</field>
-        <field name="model_id" ref="onedesk_core.model_onedesk_subscription"/>
-        <field name="subject">Bienvenue sur OneDesk - Votre souscription a été enregistrée</field>
-        <field name="email_from">noreply@onedesk.com</field>
-        <field name="auto_delete">True</field>
-        <field name="body_html"><![CDATA[
+    <!-- Mail templates - noupdate removed temporarily to force update of existing templates -->
+    <data>
+        <!-- Email de confirmation au client -->
+        <record id="email_subscription_confirmation" model="mail.template">
+            <field name="name">Subscription Confirmation - Client</field>
+            <field name="model_id" ref="onedesk_core.model_onedesk_subscription"/>
+            <field name="subject">Bienvenue sur OneDesk - Votre souscription a été enregistrée</field>
+            <field name="email_from">{{ (object.company_id.email or user.email or 'noreply@example.com') }}</field>
+            <field name="auto_delete" eval="True"/>
+            <field name="body_html" type="html">
             <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
                 <div style="background-color: #f8f9fa; padding: 20px; text-align: center; margin-bottom: 20px;">
                     <h1 style="color: #007bff; margin: 0;">✅ Souscription confirmée!</h1>
                 </div>
 
                 <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
-                    <p>Bonjour <strong>${object.billing_contact_id.name}</strong>,</p>
+                    <p>Bonjour <strong><t t-out="object.billing_contact_id.name or ''">Contact</t></strong>,</p>
 
                     <p>Nous vous remercions d&apos;avoir choisi OneDesk! Votre souscription a été enregistrée avec succès.</p>
 
@@ -217,34 +254,41 @@
                     <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
                         <tr style="background-color: #f8f9fa;">
                             <td style="padding: 10px; border: 1px solid #ddd;"><strong>Numéro de souscription</strong></td>
-                            <td style="padding: 10px; border: 1px solid #ddd;">${object.subscription_id}</td>
+                            <td style="padding: 10px; border: 1px solid #ddd;"><t t-out="object.subscription_id or ''">SUB-001</t></td>
                         </tr>
                         <tr>
                             <td style="padding: 10px; border: 1px solid #ddd;"><strong>Entreprise</strong></td>
-                            <td style="padding: 10px; border: 1px solid #ddd;">${object.company_id.name}</td>
+                            <td style="padding: 10px; border: 1px solid #ddd;"><t t-out="object.company_id.name or ''">Entreprise</t></td>
                         </tr>
                         <tr style="background-color: #f8f9fa;">
                             <td style="padding: 10px; border: 1px solid #ddd;"><strong>Plan choisi</strong></td>
-                            <td style="padding: 10px; border: 1px solid #ddd;">${object.plan_id.name}</td>
+                            <td style="padding: 10px; border: 1px solid #ddd;"><t t-out="object.plan_id.name or ''">Plan</t></td>
                         </tr>
                         <tr>
                             <td style="padding: 10px; border: 1px solid #ddd;"><strong>Date de début</strong></td>
-                            <td style="padding: 10px; border: 1px solid #ddd;">${object.start_date.strftime('%d/%m/%Y')}</td>
+                            <td style="padding: 10px; border: 1px solid #ddd;">
+                                <t t-if="object.start_date">
+                                    <t t-out="object.start_date"/>
+                                </t>
+                                <t t-else="">
+                                    Sera définie après validation du paiement
+                                </t>
+                            </td>
                         </tr>
                     </table>
 
                     <h3 style="color: #007bff;">💰 Détails de facturation</h3>
 
-                    <t t-if="object.plan_id.billing_model == &apos;per_unit&apos;">
+                    <t t-if="object.plan_id.billing_model == 'per_unit'">
                         <p>
-                            <strong>Tarif:</strong> ${object.plan_id.price_per_unit}€ par unité/mois<br/>
-                            <strong>Frais de setup:</strong> ${object.plan_id.setup_fee}€
+                            <strong>Tarif:</strong> <t t-out="object.plan_id.price_per_unit or 0">0</t>€ par unité/mois<br/>
+                            <strong>Frais de setup:</strong> <t t-out="object.plan_id.setup_fee or 0">0</t>€
                         </p>
                     </t>
                     <t t-else="">
                         <p>
-                            <strong>Commission:</strong> ${object.plan_id.commission_percentage}%<br/>
-                            <strong>Période:</strong> ${dict(object.plan_id._fields[&apos;commission_period&apos;].selection).get(object.plan_id.commission_period, &apos;N/A&apos;)}
+                            <strong>Commission:</strong> <t t-out="object.plan_id.commission_percentage or 0">0</t>%<br/>
+                            <strong>Période:</strong> <t t-out="dict(object.plan_id._fields['commission_period'].selection).get(object.plan_id.commission_period, 'N/A')">Mensuelle</t>
                         </p>
                     </t>
 
@@ -268,17 +312,17 @@
                     </p>
                 </div>
             </div>
-        ]]></field>
-    </record>
+            </field>
+        </record>
 
-    <!-- Email de notification à l&apos;admin -->
-    <record id="email_subscription_admin_notification" model="mail.template">
-        <field name="name">Subscription Notification - Admin</field>
-        <field name="model_id" ref="onedesk_core.model_onedesk_subscription"/>
-        <field name="subject">🔔 Nouvelle souscription OneDesk - Action requise</field>
-        <field name="email_from">noreply@onedesk.com</field>
-        <field name="auto_delete">True</field>
-        <field name="body_html"><![CDATA[
+        <!-- Email de notification à l&apos;admin -->
+        <record id="email_subscription_admin_notification" model="mail.template">
+            <field name="name">Subscription Notification - Admin</field>
+            <field name="model_id" ref="onedesk_core.model_onedesk_subscription"/>
+            <field name="subject">🔔 Nouvelle souscription OneDesk - Action requise</field>
+            <field name="email_from">{{ (object.company_id.email or user.email or 'noreply@example.com') }}</field>
+            <field name="auto_delete" eval="True"/>
+            <field name="body_html" type="html">
             <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
                 <div style="background-color: #28a745; color: white; padding: 20px; text-align: center; margin-bottom: 20px;">
                     <h1 style="margin: 0;">🔔 Nouvelle souscription en attente</h1>
@@ -294,30 +338,37 @@
                     <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
                         <tr style="background-color: #f8f9fa;">
                             <td style="padding: 10px; border: 1px solid #ddd;"><strong>Numéro</strong></td>
-                            <td style="padding: 10px; border: 1px solid #ddd;">${object.subscription_id}</td>
+                            <td style="padding: 10px; border: 1px solid #ddd;"><t t-out="object.subscription_id or ''">SUB-001</t></td>
                         </tr>
                         <tr>
                             <td style="padding: 10px; border: 1px solid #ddd;"><strong>Entreprise</strong></td>
-                            <td style="padding: 10px; border: 1px solid #ddd;">${object.company_id.name}</td>
+                            <td style="padding: 10px; border: 1px solid #ddd;"><t t-out="object.company_id.name or ''">Entreprise</t></td>
                         </tr>
                         <tr style="background-color: #f8f9fa;">
                             <td style="padding: 10px; border: 1px solid #ddd;"><strong>Contact</strong></td>
                             <td style="padding: 10px; border: 1px solid #ddd;">
-                                ${object.billing_contact_id.name}<br/>
-                                <a href="mailto:${object.billing_contact_id.email}">${object.billing_contact_id.email}</a>
+                                <t t-out="object.billing_contact_id.name or ''">Contact</t><br/>
+                                <a t-attf-href="mailto:{{object.billing_contact_id.email}}"><t t-out="object.billing_contact_id.email or ''">email@example.com</t></a>
                             </td>
                         </tr>
                         <tr>
                             <td style="padding: 10px; border: 1px solid #ddd;"><strong>Téléphone</strong></td>
-                            <td style="padding: 10px; border: 1px solid #ddd;">${object.billing_contact_id.phone or &apos;N/A&apos;}</td>
+                            <td style="padding: 10px; border: 1px solid #ddd;"><t t-out="object.billing_contact_id.phone or 'N/A'">N/A</t></td>
                         </tr>
                         <tr style="background-color: #f8f9fa;">
                             <td style="padding: 10px; border: 1px solid #ddd;"><strong>Plan</strong></td>
-                            <td style="padding: 10px; border: 1px solid #ddd;">${object.plan_id.name}</td>
+                            <td style="padding: 10px; border: 1px solid #ddd;"><t t-out="object.plan_id.name or ''">Plan</t></td>
                         </tr>
                         <tr>
                             <td style="padding: 10px; border: 1px solid #ddd;"><strong>Date souscription</strong></td>
-                            <td style="padding: 10px; border: 1px solid #ddd;">${object.start_date.strftime(&apos;%d/%m/%Y à %H:%M&apos;)}</td>
+                            <td style="padding: 10px; border: 1px solid #ddd;">
+                                <t t-if="object.start_date">
+                                    <t t-out="object.start_date"/>
+                                </t>
+                                <t t-else="">
+                                    <t t-out="object.create_date"/>
+                                </t>
+                            </td>
                         </tr>
                     </table>
 
@@ -339,7 +390,7 @@
                     <hr style="border: none; border-top: 1px solid #ddd; margin: 20px 0;"/>
 
                     <p style="color: #666; font-size: 14px;">
-                        <a href="${object.get_access_url()}" style="background-color: #28a745; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px; display: inline-block;">
+                        <a t-attf-href="{{object.get_base_url()}}/web#id={{object.id}}&amp;model=onedesk.subscription&amp;view_type=form" style="background-color: #28a745; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px; display: inline-block;">
                             ➜ Voir la souscription
                         </a>
                     </p>
@@ -349,7 +400,9 @@
                     </p>
                 </div>
             </div>
-        ]]></field>
-    </record>
+            </field>
+        </record>
+
+    </data>
 
 </odoo>

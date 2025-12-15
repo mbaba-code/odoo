@@ -3,6 +3,10 @@ from odoo.exceptions import ValidationError
 from odoo.fields import Command
 from datetime import datetime
 from odoo.tools import format_datetime
+from markupsafe import escape
+import logging
+
+_logger = logging.getLogger(__name__)
 
 class OneDeskReservation(models.Model):
     _name = 'onedesk.reservation'
@@ -62,7 +66,7 @@ class OneDeskReservation(models.Model):
         ('checked_in', 'Client arrivé'),
         ('completed', 'Terminée'),
         ('cancelled', 'Annulée'),
-    ], string='Statut réservation', default='draft', tracking=True, readonly=False)
+    ], string='Statut réservation', default='draft', tracking=True, readonly=False, index=True)  # Index for fast filtering
 
     # ========== PAIEMENT ==========
     payment_status = fields.Selection([
@@ -284,6 +288,37 @@ class OneDeskReservation(models.Model):
                     message_type='comment'
                 )
 
+            # ========== CREATE PAYMENT RETRY TRACKER (Odoo 19) ==========
+            # This will automatically track payment reminders (Day 1, Day 3, Auto-cancel Day 7)
+            try:
+                self.env['onedesk.payment.retry'].create({
+                    'reservation_id': reservation.id,
+                })
+                reservation.message_post(
+                    body="💳 Suivi de paiement créé - Rappels automatiques activés",
+                    message_type='comment'
+                )
+            except Exception as e:
+                reservation.message_post(
+                    body=f"⚠️ Erreur création suivi paiement: {str(e)}",
+                    message_type='comment'
+                )
+
+            # ========== CREATE AUTOMATIC TASKS (Check-in + Ménage) ==========
+            # Crée automatiquement les tâches liées à la réservation
+            try:
+                tasks = self.env['onedesk.task'].create_task_from_reservation(reservation)
+                task_names = ', '.join([t.name for t in tasks])
+                reservation.message_post(
+                    body=f"✅ Tâches créées automatiquement: {task_names}",
+                    message_type='comment'
+                )
+            except Exception as e:
+                reservation.message_post(
+                    body=f"⚠️ Erreur création tâches automatiques: {str(e)}",
+                    message_type='comment'
+                )
+
         return reservations
 
     def _copy_images_from_unit(self):
@@ -329,10 +364,15 @@ class OneDeskReservation(models.Model):
             }
         }
 
-    # Mise à jour automatique de l'événement si la réservation change
+    # Mise à jour automatique de l'événement et triggers d'email
     def write(self, vals):
+        # Track les anciens statuts avant la mise à jour
+        old_statuses = {rec.id: rec.status for rec in self}
+
         res = super().write(vals)
+
         for reservation in self:
+            # ========== UPDATE CALENDAR EVENT ==========
             if reservation.calendar_event_id:
                 # Accès aux données du partenaire avec sudo() pour contourner les ir.rules
                 partner_name = reservation.sudo().partner_id.name if reservation.partner_id else 'N/A'
@@ -343,6 +383,31 @@ class OneDeskReservation(models.Model):
                     'description': f"Client: {partner_name}\nUnité: {reservation.unit_id.name}",
                     'location': reservation.unit_id.name,
                 })
+
+            # ========== EMAIL TRIGGERS (Odoo 19 multi-tenant) ==========
+            old_status = old_statuses.get(reservation.id)
+            new_status = reservation.status
+
+            # Trigger: Email quand la réservation passe à "paid"
+            if old_status != 'paid' and new_status == 'paid':
+                try:
+                    template = self.env['mail.template'].search([
+                        ('id', '=', self.env.ref('onedesk_core.email_template_booking_confirmation').id)
+                    ], limit=1)
+                    if template:
+                        template.send_mail(reservation.id, force_send=True)
+                        reservation.message_post(body="📧 Email de confirmation envoyé au client", message_type='comment')
+                except Exception as e:
+                    reservation.message_post(body=f"⚠️ Erreur email paid: {str(e)}", message_type='comment')
+
+            # ========== INVALIDATE AVAILABILITY CACHE (Odoo 19 C2) ==========
+            # When a reservation changes, invalidate cached availability for that unit
+            if reservation.unit_id:
+                try:
+                    self.env['onedesk.availability.cache'].invalidate_cache_for_unit(reservation.unit_id.id)
+                except Exception as e:
+                    _logger.warning(f"Cache invalidation failed: {str(e)}")
+
         return res
 
     # Suppression automatique de l'événement si la réservation est supprimée
@@ -426,118 +491,94 @@ class OneDeskReservation(models.Model):
     def _send_confirmation_email(self):
         """
         Envoie un email de confirmation de réservation au client
+        Utilise le template mail.template pour respecter la structure multi-tenant Odoo 19
         """
         self.ensure_one()
 
         # Vérifie que le client a un email
         if not self.partner_id.email:
+            self.message_post(body="⚠️ Impossible d'envoyer l'email de confirmation: client sans email", message_type='comment')
             return False
 
-        # Prépare le contenu de l'email
-        subject = f"Confirmation de réservation - {self.name}"
+        try:
+            # Cherche le template de confirmation
+            template = self.env['mail.template'].search([
+                ('id', '=', self.env.ref('onedesk_core.email_template_booking_confirmation').id)
+            ], limit=1)
 
-        # Corps de l'email en HTML
-        body_html = f"""
-        <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-            <h2>Bonjour {self.partner_id.name},</h2>
+            if template:
+                # Envoie l'email via le template (multi-tenant friendly)
+                template.send_mail(self.id, force_send=True)
+                self.message_post(
+                    body=f"📧 Email de confirmation envoyé à {self.partner_id.email}",
+                    message_type='comment'
+                )
+            else:
+                # Fallback sur l'email manuel si template non trouvé
+                self._send_confirmation_email_fallback()
 
-            <p>Merci d'avoir choisi notre propriété! Votre réservation a bien été confirmée. Veuillez trouver les détails ci-dessous:</p>
+            return True
 
-            <h3>📋 Détails de votre réservation:</h3>
-            <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
-                <tr style="background-color: #f9f9f9;">
-                    <td style="padding: 10px; border: 1px solid #ddd;"><strong>Référence:</strong></td>
-                    <td style="padding: 10px; border: 1px solid #ddd;">{self.name}</td>
-                </tr>
-                <tr>
-                    <td style="padding: 10px; border: 1px solid #ddd;"><strong>Propriété:</strong></td>
-                    <td style="padding: 10px; border: 1px solid #ddd;">{self.unit_id.property_id.name if self.unit_id.property_id else 'N/A'}</td>
-                </tr>
-                <tr style="background-color: #f9f9f9;">
-                    <td style="padding: 10px; border: 1px solid #ddd;"><strong>Unité:</strong></td>
-                    <td style="padding: 10px; border: 1px solid #ddd;">{self.unit_id.name}</td>
-                </tr>
-                <tr>
-                    <td style="padding: 10px; border: 1px solid #ddd;"><strong>📅 Date d'arrivée:</strong></td>
-                    <td style="padding: 10px; border: 1px solid #ddd;"><strong>{self.start_date.strftime('%d/%m/%Y à %H:%M')}</strong></td>
-                </tr>
-                <tr style="background-color: #f9f9f9;">
-                    <td style="padding: 10px; border: 1px solid #ddd;"><strong>📅 Date de départ:</strong></td>
-                    <td style="padding: 10px; border: 1px solid #ddd;"><strong>{self.end_date.strftime('%d/%m/%Y à %H:%M')}</strong></td>
-                </tr>
-                <tr>
-                    <td style="padding: 10px; border: 1px solid #ddd;"><strong>🌙 Nombre de nuits:</strong></td>
-                    <td style="padding: 10px; border: 1px solid #ddd;">{self.number_of_nights}</td>
-                </tr>
-                <tr style="background-color: #f0f0f0;">
-                    <td style="padding: 10px; border: 1px solid #ddd;"><strong>💰 Prix total:</strong></td>
-                    <td style="padding: 10px; border: 1px solid #ddd; font-size: 18px; font-weight: bold; color: #28a745;">{self.total_price}€</td>
-                </tr>
-            </table>
+        except Exception as e:
+            # Log l'erreur mais ne bloque pas
+            self.message_post(
+                body=f"⚠️ Erreur envoi email confirmation: {str(e)}",
+                message_type='comment'
+            )
+            return False
 
-            <h3>🏠 Informations sur la propriété:</h3>
-            <div style="background-color: #f5f5f5; padding: 15px; border-radius: 5px; margin: 20px 0;">
-                <p><strong>Adresse:</strong> {self.unit_id.property_id.address if self.unit_id.property_id else 'N/A'}</p>
-                <p><strong>Capacité:</strong> {self.unit_id.capacity} personnes</p>
-                <p><strong>Chambres:</strong> {self.unit_id.bedrooms} | <strong>Salles de bain:</strong> {self.unit_id.bathrooms}</p>
-                <p><strong>Équipements:</strong> {self.unit_id.property_id.amenities or 'Voir la liste complète sur notre site'}</p>
-            </div>
-
-            <h3>📝 Prochaines étapes:</h3>
-            <ol style="margin: 20px 0;">
-                <li><strong>Paiement:</strong> Un lien de paiement vous sera envoyé sous peu. Veuillez finaliser le paiement avant votre arrivée.</li>
-                <li><strong>Instructions d'accès:</strong> Vous recevrez les instructions d'accès 24 heures avant votre arrivée.</li>
-                <li><strong>Contact:</strong> En cas de question, contactez-nous à {self.env.company.email or 'support@example.com'}</li>
-            </ol>
-
-            <p style="color: #666; font-size: 12px; margin-top: 30px; border-top: 1px solid #ddd; padding-top: 15px;">
-                Bon séjour!<br/>
-                L'équipe de {self.env.company.name}
-            </p>
-        </div>
+    def _send_confirmation_email_fallback(self):
         """
+        Fallback: Envoie un email simple sans template
+        """
+        self.ensure_one()
 
-        # Crée et envoie l'email
+        if not self.partner_id.email:
+            return False
+
         mail_values = {
-            'subject': subject,
-            'body_html': body_html,
+            'subject': f"Confirmation de réservation - {self.name}",
+            'body_html': f"<p>Bonjour {self.partner_id.name},</p><p>Votre réservation {self.name} a bien été confirmée pour du {self.start_date.strftime('%d/%m/%Y')} au {self.end_date.strftime('%d/%m/%Y')} au prix de {self.total_price}€</p>",
             'email_to': self.partner_id.email,
-            'email_from': self.env.company.email or self.env.user.email,
+            'email_from': self.company_id.email or self.env.user.email,
+            'company_id': self.company_id.id,  # Multi-tenant
         }
 
-        mail = self.env['mail.mail'].create(mail_values)
+        mail = self.env['mail.mail'].sudo().create(mail_values)
         mail.send()
-
-        # Log l'action
-        self.message_post(
-            body=f"📧 Email de confirmation envoyé à {self.partner_id.email}",
-            message_type='comment'
-        )
-
         return True
 
     def _send_payment_link_email(self):
         """
         Envoie le lien de paiement par email au client
+
+        SECURITY: Tous les contenus HTML sont échappés pour prévenir XSS
         """
         self.ensure_one()
 
         # Vérifie que le client a un email
         if not self.partner_id.email:
-            raise ValueError(f"Le client {self.partner_id.name} n'a pas d'adresse email")
+            raise ValueError(f"Le client {escape(self.partner_id.name)} n'a pas d'adresse email")
+
+        # SECURITY: Échapper tous les contenus pour prévenir XSS
+        partner_name = escape(self.partner_id.name)
+        unit_name = escape(self.unit_id.name)
+        reservation_name = escape(self.name)
+        company_name = escape(self.env.company.name)
+        payment_link = escape(self.payment_link)
 
         # Prépare le contenu de l'email
-        subject = f"Lien de paiement - Réservation {self.name}"
+        subject = f"Lien de paiement - Réservation {reservation_name}"
 
-        # Corps de l'email en HTML (simplifié pour MVP)
+        # Corps de l'email en HTML (SÉCURISÉ avec échappement)
         body_html = f"""
         <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-            <h2>Bonjour {self.partner_id.name},</h2>
+            <h2>Bonjour {partner_name},</h2>
 
             <p>Nous vous remercions de votre réservation! Veuillez finaliser votre paiement en cliquant sur le lien ci-dessous:</p>
 
             <div style="margin: 20px 0;">
-                <a href="{self.payment_link}" style="background-color: #007bff; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block; font-weight: bold;">
+                <a href="{payment_link}" style="background-color: #007bff; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block; font-weight: bold;">
                     💳 Payer maintenant
                 </a>
             </div>
@@ -546,7 +587,7 @@ class OneDeskReservation(models.Model):
             <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
                 <tr style="background-color: #f9f9f9;">
                     <td style="padding: 10px; border: 1px solid #ddd;"><strong>Unité:</strong></td>
-                    <td style="padding: 10px; border: 1px solid #ddd;">{self.unit_id.name}</td>
+                    <td style="padding: 10px; border: 1px solid #ddd;">{unit_name}</td>
                 </tr>
                 <tr>
                     <td style="padding: 10px; border: 1px solid #ddd;"><strong>Arrivée:</strong></td>
@@ -572,7 +613,7 @@ class OneDeskReservation(models.Model):
 
             <p style="color: #666;">
                 Cordialement,<br/>
-                <strong>{self.env.company.name}</strong>
+                <strong>{company_name}</strong>
             </p>
         </div>
         """

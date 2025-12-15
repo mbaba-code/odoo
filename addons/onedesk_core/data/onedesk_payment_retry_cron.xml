@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Cron Job: Daily Payment Retry Processing -->
+    <record id="ir_cron_payment_retry" model="ir.cron">
+        <field name="name">OneDesk - Payment Retry Cron (Daily)</field>
+        <field name="model_id" ref="model_onedesk_payment_retry"/>
+        <field name="state">code</field>
+        <field name="code">model.run_payment_retry_cron()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">days</field>
+        <field name="active" eval="True"/>
+        <field name="nextcall">2025-11-23 02:00:00</field>
+        <field name="user_id" ref="base.user_admin"/>
+    </record>
+
+    <!-- Cron Job: Clean Expired Cache (Daily) -->
+    <record id="ir_cron_cache_cleanup_expired" model="ir.cron">
+        <field name="name">OneDesk - Clean Expired Cache (Daily)</field>
+        <field name="model_id" ref="model_onedesk_availability_cache"/>
+        <field name="state">code</field>
+        <field name="code">model.invalidate_expired_cache()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">days</field>
+        <field name="active" eval="True"/>
+        <field name="nextcall">2025-11-23 03:00:00</field>
+        <field name="user_id" ref="base.user_admin"/>
+    </record>
+
+    <!-- Cron Job: Clean Invalid Cache (Hourly) -->
+    <record id="ir_cron_cache_cleanup_invalid" model="ir.cron">
+        <field name="name">OneDesk - Clean Invalid Cache (Hourly)</field>
+        <field name="model_id" ref="model_onedesk_availability_cache"/>
+        <field name="state">code</field>
+        <field name="code">model.cleanup_invalid_cache()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">hours</field>
+        <field name="active" eval="True"/>
+        <field name="nextcall">2025-11-22 23:00:00</field>
+        <field name="user_id" ref="base.user_admin"/>
+    </record>
+
+</odoo>

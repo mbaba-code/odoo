@@ -4,6 +4,7 @@ class OnedeskTask(models.Model):
     _name = 'onedesk.task'
     _description = 'Tâches du personnel'
     _rec_name = 'name'
+    _inherit = ['mail.thread']  # Enable chatter & message_post()
 
     # ========== ARCHIVE ==========
     active = fields.Boolean(default=True)
@@ -14,15 +15,15 @@ class OnedeskTask(models.Model):
         ('checkout', 'Check-out'),
         ('menage', 'Ménage'),
         ('maintenance', 'Maintenance')],
-        string='Type de tâche', required=True)
-    assigned_to = fields.Many2one('res.users', string='Assigné à')
-    date_start = fields.Datetime(string='Date début', required=True)
+        string='Type de tâche', required=True, index=True)
+    assigned_to = fields.Many2one('res.users', string='Assigné à', index=True)
+    date_start = fields.Datetime(string='Date début', required=True, index=True)
     date_end = fields.Datetime(string='Date fin')
     status = fields.Selection([
         ('todo', 'À faire'),
         ('in_progress', 'En cours'),
         ('done', 'Terminée')],
-        string='Statut', default='todo', tracking=True)
+        string='Statut', default='todo', tracking=True, index=True)  # Fast filtering by status
 
     # ========== PRIORITY & IMPORTANCE ==========
     priority = fields.Selection([
@@ -118,6 +119,27 @@ class OnedeskTask(models.Model):
             event = self.env['calendar.event'].sudo().create(event_vals)
             # Assignement avec sudo() pour contourner les ir.rules
             task.sudo().write({'calendar_event_id': event.id})
+
+            # ========== EMAIL TRIGGER: Task Assignment ==========
+            if task.assigned_to and task.assigned_to.email:
+                try:
+                    # Get the property/unit company for multi-tenant
+                    company_id = task.reservation_id.company_id if task.reservation_id else self.env.company
+
+                    # Create email via mail.mail (simple approach for Odoo 19)
+                    mail_values = {
+                        'subject': f"📋 Nouvelle tâche: {task.name}",
+                        'body_html': f"<p>Bonjour {task.assigned_to.name},</p><p>Une nouvelle tâche vous a été assignée: <strong>{task.name}</strong> ({task.get_task_type_display()})</p><p>Date: {task.date_start.strftime('%d/%m/%Y %H:%M')}</p><p>Durée estimée: {task.estimated_hours}h</p>",
+                        'email_to': task.assigned_to.email,
+                        'email_from': company_id.email or self.env.user.email,
+                        'company_id': company_id.id,
+                    }
+                    mail = self.env['mail.mail'].sudo().create(mail_values)
+                    mail.send()
+                    task.message_post(body=f"📧 Email d'assignation envoyé à {task.assigned_to.name}", message_type='comment')
+                except Exception as e:
+                    task.message_post(body=f"⚠️ Erreur envoi email assignation: {str(e)}", message_type='comment')
+
         return tasks
 
     def write(self, vals):

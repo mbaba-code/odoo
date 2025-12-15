@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ========== SIGNATURIT CONFIGURATION ========== -->
+
+    <!-- Custom Settings Form View -->
+    <record id="view_signaturit_settings_form" model="ir.ui.view">
+        <field name="name">signaturit.settings.form</field>
+        <field name="model">ir.config_parameter</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <!-- Environment Selection -->
+                    <div class="alert alert-info" role="alert">
+                        <p><strong>⚙️ Configuration SignaturIT</strong></p>
+                        <p>Gérez vos jetons API pour sandbox et production</p>
+                    </div>
+
+                    <!-- Environment Selector -->
+                    <group string="🌍 Environnement">
+                        <field name="key" readonly="1" invisible="key != 'signaturit.environment'"/>
+                        <field name="value"
+                               invisible="key != 'signaturit.environment'"
+                               widget="selection"
+                               options="{'horizontal': true}"/>
+                    </group>
+
+                    <!-- Sandbox Configuration -->
+                    <group string="🟡 Configuration Sandbox (Test)">
+                        <group col="1">
+                            <label for="value" string="Jeton API Sandbox"/>
+                            <field name="key" readonly="1" invisible="key != 'signaturit.sandbox.api.key'"/>
+                            <field name="value"
+                                   invisible="key != 'signaturit.sandbox.api.key'"
+                                   widget="textarea"
+                                   class="o_monospace"
+                                   placeholder="Collez votre jeton sandbox ici..."/>
+                        </group>
+
+                        <group col="1">
+                            <label for="value" string="URL API Sandbox"/>
+                            <field name="key" readonly="1" invisible="key != 'signaturit.sandbox.api.url'"/>
+                            <field name="value"
+                                   invisible="key != 'signaturit.sandbox.api.url'"
+                                   readonly="1"/>
+                        </group>
+                    </group>
+
+                    <!-- Production Configuration -->
+                    <group string="🔴 Configuration Production (Réel)">
+                        <group col="1">
+                            <label for="value" string="Jeton API Production"/>
+                            <field name="key" readonly="1" invisible="key != 'signaturit.production.api.key'"/>
+                            <field name="value"
+                                   invisible="key != 'signaturit.production.api.key'"
+                                   widget="textarea"
+                                   class="o_monospace"
+                                   placeholder="Collez votre jeton production ici une fois reçu..."/>
+                            <small class="text-muted">⚠️ N'oublie pas de changer l'environnement à 'production' une fois configuré!</small>
+                        </group>
+
+                        <group col="1">
+                            <label for="value" string="URL API Production"/>
+                            <field name="key" readonly="1" invisible="key != 'signaturit.production.api.url'"/>
+                            <field name="value"
+                                   invisible="key != 'signaturit.production.api.url'"
+                                   readonly="1"/>
+                        </group>
+                    </group>
+
+                    <!-- Instructions -->
+                    <div class="alert alert-warning" role="alert">
+                        <p><strong>📋 Instructions:</strong></p>
+                        <ol>
+                            <li>Vérifiez que vous utilisez actuellement l'environnement <strong>🟡 SANDBOX</strong> pour les tests</li>
+                            <li>Une fois que vous avez un jeton production, collez-le ci-dessus</li>
+                            <li>Changez l'environnement à <strong>🔴 PRODUCTION</strong></li>
+                            <li>Les requêtes de signature utiliseront automatiquement le bon endpoint</li>
+                        </ol>
+                    </div>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Settings List View -->
+    <record id="view_signaturit_settings_list" model="ir.ui.view">
+        <field name="name">signaturit.settings.list</field>
+        <field name="model">ir.config_parameter</field>
+        <field name="arch" type="xml">
+            <list decoration-danger="key in ('signaturit.production.api.key',) and not value">
+                <field name="key"/>
+                <field name="value" widget="handle"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Settings Search View -->
+    <record id="view_signaturit_settings_search" model="ir.ui.view">
+        <field name="name">signaturit.settings.search</field>
+        <field name="model">ir.config_parameter</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="key"/>
+                <separator/>
+                <filter name="filter_signaturit" string="SignaturIT" domain="[('key', 'ilike', 'signaturit')]"/>
+                <filter name="filter_sandbox" string="Sandbox" domain="[('key', 'ilike', 'sandbox')]"/>
+                <filter name="filter_production" string="Production" domain="[('key', 'ilike', 'production')]"/>
+            </search>
+        </field>
+    </record>
+
+    <!-- Settings Action -->
+    <record id="action_signaturit_settings" model="ir.actions.act_window">
+        <field name="name">Configuration SignaturIT</field>
+        <field name="res_model">ir.config_parameter</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('key', 'ilike', 'signaturit')]</field>
+        <field name="context">{
+            'search_default_filter_signaturit': 1
+        }</field>
+    </record>
+
+    <!-- Menu Item -->
+    <menuitem id="menu_signaturit_settings"
+              name="⚙️ Configuration SignaturIT"
+              parent="onedesk_core.menu_onedesk_root"
+              action="action_signaturit_settings"
+              groups="onedesk_core.group_onedesk_master_admin"
+              sequence="99"/>
+
+</odoo>

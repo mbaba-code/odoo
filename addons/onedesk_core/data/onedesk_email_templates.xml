@@ -1,15 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <!-- EMAIL TEMPLATES FOR ONEDESK -->
+    <data noupdate="1">
 
     <!-- Welcome Email Template -->
     <record id="email_template_welcome" model="mail.template">
         <field name="name">OneDesk - Email de bienvenue</field>
-        <field name="email_from">${object.company_id.email or 'noreply@onedesk.io'}</field>
-        <field name="email_to">${object.email}</field>
+        <field name="email_from">{{ (object.company_id.email or 'noreply@onedesk.io') }}</field>
+        <field name="email_to">{{ (object.email or '') }}</field>
         <field name="subject">Bienvenue sur OneDesk! 🎉</field>
         <field name="model_id" ref="base.model_res_users"/>
-        <field name="body_html"><![CDATA[
+        <field name="body_html" type="html">
 <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #f5f5f5; padding: 20px;">
     <div style="background-color: white; border-radius: 8px; padding: 30px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
 
@@ -21,7 +22,7 @@
 
         <!-- Main Content -->
         <div style="margin-bottom: 30px;">
-            <p style="color: #333; font-size: 16px;">Bonjour <strong>${object.name}</strong>,</p>
+            <p style="color: #333; font-size: 16px;">Bonjour <strong><t t-out="object.name or ''">Utilisateur</t></strong>,</p>
 
             <p style="color: #666; line-height: 1.6;">
                 Bienvenue sur <strong>OneDesk</strong>! Nous sommes ravis de vous avoir comme client.
@@ -31,13 +32,13 @@
             <!-- Login Info -->
             <div style="background-color: #f9f9f9; border-left: 4px solid #1f77d2; padding: 15px; margin: 20px 0;">
                 <p style="margin: 0; color: #333;"><strong>Informations de connexion:</strong></p>
-                <p style="margin: 5px 0; color: #666;">Email: <code style="background-color: #f0f0f0; padding: 2px 6px;">${object.email}</code></p>
+                <p style="margin: 5px 0; color: #666;">Email: <code style="background-color: #f0f0f0; padding: 2px 6px;"><t t-out="object.email or ''">user@example.com</t></code></p>
                 <p style="margin: 5px 0; color: #666;">Vous avez défini votre mot de passe lors de l'inscription</p>
             </div>
 
             <!-- CTA Button -->
             <div style="text-align: center; margin: 30px 0;">
-                <a href="${env['ir.config_parameter'].sudo().get_param('web.base.url')}/web/login?login=${object.login}"
+                <a t-attf-href="{{ env['ir.config_parameter'].sudo().get_param('web.base.url') }}/web/login?login={{ object.login }}"
                    style="display: inline-block; background-color: #1f77d2; color: white; padding: 12px 30px; border-radius: 5px; text-decoration: none; font-weight: bold;">
                     Se connecter à mon compte
                 </a>
@@ -56,7 +57,7 @@
             <div style="background-color: #f0f8ff; border-radius: 5px; padding: 15px; margin-top: 30px;">
                 <p style="margin: 0; color: #1f77d2; font-weight: bold;">Besoin d'aide?</p>
                 <p style="margin: 5px 0; color: #666;">
-                    Consultez notre <a href="${env['ir.config_parameter'].sudo().get_param('web.base.url')}/help" style="color: #1f77d2; text-decoration: none;">centre d'aide</a>
+                    Consultez notre <a t-attf-href="{{ env['ir.config_parameter'].sudo().get_param('web.base.url') }}/help" style="color: #1f77d2; text-decoration: none;">centre d'aide</a>
                     ou contactez notre équipe support à <a href="mailto:support@onedesk.io" style="color: #1f77d2; text-decoration: none;">support@onedesk.io</a>
                 </p>
             </div>
@@ -69,39 +70,39 @@
         </div>
     </div>
 </div>
-        ]]></field>
+        </field>
     </record>
 
     <!-- Invoice Email Template -->
     <record id="email_template_invoice" model="mail.template">
         <field name="name">OneDesk - Facture</field>
-        <field name="email_from">${object.company_id.email or 'billing@onedesk.io'}</field>
-        <field name="email_to">${object.partner_id.email}</field>
-        <field name="subject">Facture OneDesk - ${object.name}</field>
+        <field name="email_from">{{ (object.company_id.email or 'billing@onedesk.io') }}</field>
+        <field name="email_to">{{ (object.partner_id.email or '') }}</field>
+        <field name="subject">Facture OneDesk - {{ object.name or 'n/a' }}</field>
         <field name="model_id" ref="account.model_account_move"/>
-        <field name="body_html"><![CDATA[
+        <field name="body_html" type="html">
 <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
     <p>Bonjour,</p>
     <p>Veuillez trouver ci-joint votre facture OneDesk.</p>
     <p>
-        <strong>Numéro:</strong> ${object.name}<br/>
-        <strong>Montant:</strong> ${object.amount_total} ${object.currency_id.symbol}<br/>
-        <strong>Date:</strong> ${object.invoice_date}
+        <strong>Numéro:</strong> <t t-out="object.name or ''">INV-001</t><br/>
+        <strong>Montant:</strong> <t t-out="format_amount(object.amount_total, object.currency_id) or ''">0.00 €</t><br/>
+        <strong>Date:</strong> <t t-out="object.invoice_date or ''">01/01/2024</t>
     </p>
     <p>Merci pour votre confiance!</p>
     <p>Équipe OneDesk</p>
 </div>
-        ]]></field>
+        </field>
     </record>
 
     <!-- Invitation Email Template -->
     <record id="email_template_invitation" model="mail.template">
         <field name="name">OneDesk - Invitation utilisateur</field>
-        <field name="email_from">${object.client_id.company_id.email or 'noreply@onedesk.io'}</field>
-        <field name="email_to">${object.email}</field>
-        <field name="subject">Invitation OneDesk - Rejoignez ${object.client_id.company_id.name}</field>
+        <field name="email_from">{{ (object.client_id.company_id.email or 'noreply@onedesk.io') }}</field>
+        <field name="email_to">{{ (object.email or '') }}</field>
+        <field name="subject">Invitation OneDesk - Rejoignez {{ object.client_id.company_id.name or 'notre équipe' }}</field>
         <field name="model_id" ref="model_onedesk_client_invitation"/>
-        <field name="body_html"><![CDATA[
+        <field name="body_html" type="html">
 <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #f5f5f5; padding: 20px;">
     <div style="background-color: white; border-radius: 8px; padding: 30px;">
         <h2 style="color: #1f77d2;">Vous avez été invité!</h2>
@@ -109,20 +110,20 @@
         <p>Bonjour,</p>
 
         <p>
-            Vous avez été invité à rejoindre <strong>${object.client_id.company_id.name}</strong>
-            sur OneDesk en tant que <strong>${dict(object._fields['role'].selection).get(object.role)}</strong>.
+            Vous avez été invité à rejoindre <strong><t t-out="object.client_id.company_id.name or ''">Entreprise</t></strong>
+            sur OneDesk en tant que <strong><t t-out="dict(object._fields['role'].selection).get(object.role) or ''">Utilisateur</t></strong>.
         </p>
 
         <div style="background-color: #f9f9f9; border-left: 4px solid #1f77d2; padding: 15px; margin: 20px 0;">
             <p style="margin: 0;"><strong>Accepter l'invitation:</strong></p>
             <p style="margin-top: 10px;">
-                <a href="${env['ir.config_parameter'].sudo().get_param('web.base.url')}/onedesk/invite/accept/${object.invitation_token}"
+                <a t-attf-href="{{ env['ir.config_parameter'].sudo().get_param('web.base.url') }}/onedesk/invite/accept/{{ object.invitation_token }}"
                    style="display: inline-block; background-color: #1f77d2; color: white; padding: 10px 20px; border-radius: 5px; text-decoration: none; font-weight: bold;">
                     Accepter l'invitation
                 </a>
             </p>
             <p style="color: #999; font-size: 12px; margin-top: 10px;">
-                Ce lien expire le ${object.expires_date.strftime('%d/%m/%Y à %H:%M')}
+                Ce lien expire le <t t-out="object.expires_date.strftime('%d/%m/%Y à %H:%M') if object.expires_date else ''">31/12/2024 à 23:59</t>
             </p>
         </div>
 
@@ -131,25 +132,399 @@
         </p>
     </div>
 </div>
-        ]]></field>
+        </field>
     </record>
 
     <!-- Subscription Expiration Warning -->
     <record id="email_template_subscription_expiring" model="mail.template">
         <field name="name">OneDesk - Abonnement expire bientôt</field>
         <field name="email_from">billing@onedesk.io</field>
-        <field name="email_to">${object.company_id.onedesk_notification_email or object.company_id.partner_id.email}</field>
+        <field name="email_to">{{ (object.company_id.onedesk_notification_email or object.company_id.partner_id.email) }}</field>
         <field name="subject">Votre abonnement OneDesk expire bientôt</field>
         <field name="model_id" ref="model_onedesk_subscription"/>
-        <field name="body_html"><![CDATA[
+        <field name="body_html" type="html">
 <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
     <p>Bonjour,</p>
-    <p>Votre abonnement OneDesk expire le <strong>${object.end_date.strftime('%d/%m/%Y')}</strong>.</p>
+    <p>Votre abonnement OneDesk expire le <strong><t t-out="object.end_date.strftime('%d/%m/%Y') if object.end_date else ''">31/12/2024</t></strong>.</p>
     <p>Pour continuer à utiliser OneDesk sans interruption, veuillez renouveler votre abonnement.</p>
-    <p><a href="${env['ir.config_parameter'].sudo().get_param('web.base.url')}/onedesk/portal/account" style="color: #1f77d2;">Gérer mon abonnement</a></p>
+    <p><a t-attf-href="{{ env['ir.config_parameter'].sudo().get_param('web.base.url') }}/onedesk/portal/account" style="color: #1f77d2;">Gérer mon abonnement</a></p>
     <p>Merci!</p>
 </div>
-        ]]></field>
+        </field>
     </record>
 
+    <!-- Booking Confirmation Email Template -->
+    <record id="email_template_booking_confirmation" model="mail.template">
+        <field name="name">OneDesk - Confirmation de réservation</field>
+        <field name="email_from">{{ (object.company_id.email or 'reservations@onedesk.io') }}</field>
+        <field name="email_to">{{ (object.partner_id.email or '') }}</field>
+        <field name="subject">Votre réservation est confirmée - {{ object.unit_id.property_id.name or 'Propriété' }} 🎉</field>
+        <field name="model_id" ref="model_onedesk_reservation"/>
+        <field name="body_html" type="html">
+<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #f5f5f5; padding: 20px;">
+    <div style="background-color: white; border-radius: 8px; padding: 30px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+
+        <!-- Header -->
+        <div style="text-align: center; margin-bottom: 30px;">
+            <h1 style="color: #1f77d2; margin: 0;">✅ Réservation Confirmée</h1>
+            <p style="color: #666; margin-top: 10px;">Votre séjour est réservé!</p>
+        </div>
+
+        <!-- Booking Details -->
+        <div style="background-color: #f9f9f9; border-left: 4px solid #1f77d2; padding: 20px; margin: 20px 0; border-radius: 5px;">
+            <h3 style="color: #333; margin-top: 0;">📋 Détails de votre réservation</h3>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                <div>
+                    <p style="margin: 0; color: #999; font-size: 12px;">UNITÉ</p>
+                    <p style="margin: 5px 0; color: #333; font-weight: bold;"><t t-out="object.unit_id.name or ''">Unité</t></p>
+                </div>
+                <div>
+                    <p style="margin: 0; color: #999; font-size: 12px;">NUMÉRO DE RÉSERVATION</p>
+                    <p style="margin: 5px 0; color: #333; font-weight: bold;"><t t-out="object.name or ''">RES-001</t></p>
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                <div>
+                    <p style="margin: 0; color: #999; font-size: 12px;">ARRIVÉE</p>
+                    <p style="margin: 5px 0; color: #333; font-weight: bold;"><t t-out="object.start_date.strftime('%d/%m/%Y') if object.start_date else ''">01/01/2024</t></p>
+                </div>
+                <div>
+                    <p style="margin: 0; color: #999; font-size: 12px;">DÉPART</p>
+                    <p style="margin: 5px 0; color: #333; font-weight: bold;"><t t-out="object.end_date.strftime('%d/%m/%Y') if object.end_date else ''">07/01/2024</t></p>
+                </div>
+            </div>
+
+            <div style="border-top: 1px solid #ddd; padding-top: 15px;">
+                <p style="margin: 0; color: #999; font-size: 12px;">MONTANT TOTAL</p>
+                <p style="margin: 5px 0; color: #1f77d2; font-weight: bold; font-size: 18px;"><t t-out="format_amount(object.total_price, object.company_id.currency_id) if object.total_price else ''">0.00 €</t></p>
+            </div>
+        </div>
+
+        <!-- Guest Notes -->
+        <t t-if="object.guest_notes">
+        <div style="background-color: #f0f8ff; border-radius: 5px; padding: 15px; margin: 20px 0;">
+            <p style="margin: 0; color: #333; font-weight: bold;">📝 Vos notes spéciales:</p>
+            <p style="margin: 10px 0; color: #666;"><t t-out="object.guest_notes or ''">Notes</t></p>
+        </div>
+        </t>
+
+        <!-- Check-in Info -->
+        <div style="margin: 30px 0;">
+            <h3 style="color: #333; margin-top: 0;">🔑 Informations d'arrivée</h3>
+            <p style="color: #666; line-height: 1.6;">
+                Vous recevrez un email avec les instructions d'accès 24 heures avant votre arrivée.
+            </p>
+            <ul style="color: #666; line-height: 1.8;">
+                <li>Instructions d'accès et codes</li>
+                <li>Détails du parking</li>
+                <li>Horaires d'arrivée/départ</li>
+                <li>Contact d'urgence</li>
+            </ul>
+        </div>
+
+        <!-- CTA Button -->
+        <div style="text-align: center; margin: 30px 0;">
+            <a t-attf-href="{{ env['ir.config_parameter'].sudo().get_param('web.base.url') }}/onedesk/booking/{{ object.id }}"
+               style="display: inline-block; background-color: #1f77d2; color: white; padding: 12px 30px; border-radius: 5px; text-decoration: none; font-weight: bold;">
+                Voir mes détails de réservation
+            </a>
+        </div>
+
+        <!-- Support -->
+        <div style="background-color: #f5f5f5; border-radius: 5px; padding: 15px; margin-top: 30px;">
+            <p style="margin: 0; color: #666; font-size: 13px;">
+                Des questions? Contactez notre équipe support:<br/>
+                📧 <a href="mailto:support@onedesk.io" style="color: #1f77d2; text-decoration: none;">support@onedesk.io</a>
+            </p>
+        </div>
+
+        <!-- Footer -->
+        <div style="border-top: 1px solid #eee; padding-top: 20px; margin-top: 30px; color: #999; font-size: 12px; text-align: center;">
+            <p style="margin: 0;">© 2024 OneDesk - Gestion immobilière SaaS</p>
+        </div>
+    </div>
+</div>
+        </field>
+    </record>
+
+    <!-- Task Assignment Email Template -->
+    <record id="email_template_task_assigned" model="mail.template">
+        <field name="name">OneDesk - Tâche assignée</field>
+        <field name="email_from">{{ (object.unit_id.company_id.email or 'tasks@onedesk.io') }}</field>
+        <field name="email_to">{{ (object.assigned_to.email or '') }}</field>
+        <field name="subject">📋 Nouvelle tâche: {{ object.task_type or 'Tâche' }} - {{ object.unit_id.name or 'Unité' }}</field>
+        <field name="model_id" ref="model_onedesk_task"/>
+        <field name="body_html" type="html">
+<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #f5f5f5; padding: 20px;">
+    <div style="background-color: white; border-radius: 8px; padding: 30px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+
+        <!-- Header -->
+        <div style="text-align: center; margin-bottom: 30px;">
+            <h1 style="color: #1f77d2; margin: 0;">📋 Nouvelle Tâche</h1>
+            <p style="color: #666; margin-top: 10px;">Vous avez une nouvelle tâche à accomplir</p>
+        </div>
+
+        <!-- Task Type Badge -->
+        <div style="text-align: center; margin-bottom: 20px;">
+            <t t-if="object.task_type == 'check_in'">
+                <span style="display: inline-block; background-color: #d4edda; color: #155724; padding: 8px 15px; border-radius: 20px; font-weight: bold;">✅ CHECK-IN</span>
+            </t>
+            <t t-elif="object.task_type == 'check_out'">
+                <span style="display: inline-block; background-color: #fff3cd; color: #856404; padding: 8px 15px; border-radius: 20px; font-weight: bold;">🚪 CHECK-OUT</span>
+            </t>
+            <t t-elif="object.task_type == 'cleaning'">
+                <span style="display: inline-block; background-color: #cfe2ff; color: #084298; padding: 8px 15px; border-radius: 20px; font-weight: bold;">🧹 NETTOYAGE</span>
+            </t>
+            <t t-elif="object.task_type == 'maintenance'">
+                <span style="display: inline-block; background-color: #f8d7da; color: #721c24; padding: 8px 15px; border-radius: 20px; font-weight: bold;">🔧 MAINTENANCE</span>
+            </t>
+        </div>
+
+        <!-- Task Details -->
+        <div style="background-color: #f9f9f9; border-left: 4px solid #1f77d2; padding: 20px; margin: 20px 0; border-radius: 5px;">
+            <h3 style="color: #333; margin-top: 0;">📌 Détails de la tâche</h3>
+
+            <div style="margin-bottom: 15px;">
+                <p style="margin: 0; color: #999; font-size: 12px;">UNITÉ</p>
+                <p style="margin: 5px 0; color: #333; font-weight: bold; font-size: 16px;"><t t-out="object.unit_id.name or ''">Unité</t></p>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                <div>
+                    <p style="margin: 0; color: #999; font-size: 12px;">DATE PRÉVUE</p>
+                    <p style="margin: 5px 0; color: #333; font-weight: bold;"><t t-out="object.date_start.strftime('%d/%m/%Y %H:%M') if object.date_start else ''">01/01/2024 10:00</t></p>
+                </div>
+                <div>
+                    <p style="margin: 0; color: #999; font-size: 12px;">DURÉE ESTIMÉE</p>
+                    <p style="margin: 5px 0; color: #333; font-weight: bold;"><t t-out="object.estimated_hours or 0">0</t>h</p>
+                </div>
+            </div>
+
+            <t t-if="object.description">
+            <div style="border-top: 1px solid #ddd; padding-top: 15px;">
+                <p style="margin: 0; color: #999; font-size: 12px;">DESCRIPTION</p>
+                <p style="margin: 10px 0; color: #333;"><t t-out="object.description or ''">Description</t></p>
+            </div>
+            </t>
+        </div>
+
+        <!-- Priority Badge -->
+        <t t-if="object.priority in ('high', '2')">
+        <div style="background-color: #f8d7da; border-left: 4px solid #f5c6cb; padding: 12px; margin: 15px 0; border-radius: 5px;">
+            <p style="margin: 0; color: #721c24; font-weight: bold;">⚠️ Priorité haute - À traiter dès que possible!</p>
+        </div>
+        </t>
+
+        <!-- CTA Button -->
+        <div style="text-align: center; margin: 30px 0;">
+            <a t-attf-href="{{ env['ir.config_parameter'].sudo().get_param('web.base.url') }}/onedesk/task/{{ object.id }}"
+               style="display: inline-block; background-color: #1f77d2; color: white; padding: 12px 30px; border-radius: 5px; text-decoration: none; font-weight: bold;">
+                Voir et mettre à jour la tâche
+            </a>
+        </div>
+
+        <!-- Checklist -->
+        <div style="background-color: #f0f8ff; border-radius: 5px; padding: 15px; margin-top: 20px;">
+            <p style="margin: 0; color: #084298; font-weight: bold;">📋 À vérifier:</p>
+            <ul style="margin: 10px 0; color: #333; line-height: 1.8; padding-left: 20px;">
+                <li>Confirmez la date/heure avec le client si nécessaire</li>
+                <li>Prenez des photos avant/après</li>
+                <li>Signalez tout problème à l'administration</li>
+            </ul>
+        </div>
+
+        <!-- Footer -->
+        <div style="border-top: 1px solid #eee; padding-top: 20px; margin-top: 30px; color: #999; font-size: 12px; text-align: center;">
+            <p style="margin: 0;">© 2024 OneDesk - Gestion immobilière SaaS</p>
+        </div>
+    </div>
+</div>
+        </field>
+    </record>
+
+    <!-- Signature Request Email Template -->
+    <record id="email_template_signature_request" model="mail.template">
+        <field name="name">OneDesk - Demande de signature</field>
+        <field name="email_from">kokouignace.baba@prefecto-etranger-aide.com</field>
+        <field name="email_to">{{ (object.signer_email or '') }}</field>
+        <field name="subject">📄 Signature requise: {{ object.document_id.name or 'Document' }}</field>
+        <field name="model_id" ref="model_onedesk_document_signature"/>
+        <field name="body_html" type="html">
+<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #f5f5f5; padding: 20px;">
+    <div style="background-color: white; border-radius: 8px; padding: 30px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+
+        <!-- Header -->
+        <div style="text-align: center; margin-bottom: 30px;">
+            <h1 style="color: #1f77d2; margin: 0;">✍️ Signature Requise</h1>
+            <p style="color: #666; margin-top: 10px;">Un document vous attend pour signature</p>
+        </div>
+
+        <!-- Document Info -->
+        <div style="background-color: #f9f9f9; border-left: 4px solid #1f77d2; padding: 20px; margin: 20px 0; border-radius: 5px;">
+            <h3 style="color: #333; margin-top: 0;">📄 Document à signer</h3>
+
+            <div style="margin-bottom: 15px;">
+                <p style="margin: 0; color: #999; font-size: 12px;">TITRE DU DOCUMENT</p>
+                <p style="margin: 5px 0; color: #333; font-weight: bold; font-size: 16px;"><t t-out="object.document_id.name or ''">Document</t></p>
+            </div>
+
+            <div style="margin-bottom: 15px;">
+                <p style="margin: 0; color: #999; font-size: 12px;">TYPE</p>
+                <p style="margin: 5px 0; color: #333;"><t t-out="object.document_id.document_type or ''">Contrat</t></p>
+            </div>
+
+            <t t-if="object.document_id.notes">
+            <div style="border-top: 1px solid #ddd; padding-top: 15px;">
+                <p style="margin: 0; color: #999; font-size: 12px;">REMARQUES</p>
+                <p style="margin: 10px 0; color: #666;"><t t-out="object.document_id.notes or ''">Remarques</t></p>
+            </div>
+            </t>
+        </div>
+
+        <!-- Important Info -->
+        <div style="background-color: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; margin: 20px 0; border-radius: 5px;">
+            <p style="margin: 0; color: #856404; font-weight: bold;">⏰ Important</p>
+            <p style="margin: 10px 0; color: #856404; font-size: 14px;">
+                Veuillez signer ce document dès que possible. Vous avez reçu cet email de la plateforme OneDesk.
+            </p>
+        </div>
+
+        <!-- CTA Button -->
+        <div style="text-align: center; margin: 30px 0;">
+            <a t-attf-href="{{ env['ir.config_parameter'].sudo().get_param('web.base.url') }}/onedesk/document/{{ object.document_id.id }}/sign?access_token={{ object.access_token }}"
+               style="display: inline-block; background-color: #28a745; color: white; padding: 14px 35px; border-radius: 5px; text-decoration: none; font-weight: bold; font-size: 16px;">
+                ✍️ Signer le Document
+            </a>
+        </div>
+
+        <!-- What Happens Next -->
+        <div style="background-color: #e7f3ff; border-radius: 5px; padding: 15px; margin-top: 20px;">
+            <p style="margin: 0; color: #0056b3; font-weight: bold;">📝 Prochaines étapes:</p>
+            <ol style="margin: 10px 0; color: #333; line-height: 1.8; padding-left: 20px;">
+                <li>Cliquez sur le bouton "Signer le Document" ci-dessus</li>
+                <li>Suivez les instructions pour signer le document</li>
+                <li>Une confirmation vous sera envoyée une fois signé</li>
+                <li>Le document signé sera disponible pour téléchargement</li>
+            </ol>
+        </div>
+
+        <!-- Questions -->
+        <div style="background-color: #f5f5f5; border-radius: 5px; padding: 15px; margin-top: 20px;">
+            <p style="margin: 0; color: #666; font-size: 13px;">
+                Des questions sur ce document?<br/>
+                📧 <a href="mailto:support@onedesk.io" style="color: #1f77d2; text-decoration: none;">support@onedesk.io</a>
+            </p>
+        </div>
+
+        <!-- Footer -->
+        <div style="border-top: 1px solid #eee; padding-top: 20px; margin-top: 30px; color: #999; font-size: 12px; text-align: center;">
+            <p style="margin: 0;">© 2024 OneDesk - Gestion immobilière SaaS</p>
+            <p style="margin: 5px 0;">Vous avez reçu cet email car vous avez été ajouté comme signataire</p>
+        </div>
+    </div>
+</div>
+        </field>
+    </record>
+
+    <!-- Email de confirmation après signature -->
+    <record id="email_template_signature_confirmation" model="mail.template">
+        <field name="name">OneDesk - Confirmation de Signature</field>
+        <field name="email_from">kokouignace.baba@prefecto-etranger-aide.com</field>
+        <field name="email_to">{{ object.signer_email or '' }}</field>
+        <field name="subject">✅ Confirmation: Document "{{ object.document_id.name or 'Document' }}" signé</field>
+        <field name="model_id" ref="model_onedesk_document_signature"/>
+        <field name="body_html" type="html">
+<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #f5f5f5; padding: 20px;">
+    <div style="background-color: white; border-radius: 8px; padding: 30px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+
+        <!-- Header Success -->
+        <div style="text-align: center; margin-bottom: 30px;">
+            <div style="background-color: #28a745; width: 80px; height: 80px; border-radius: 50%; margin: 0 auto 20px; display: flex; align-items: center; justify-content: center;">
+                <span style="font-size: 48px; color: white;">✓</span>
+            </div>
+            <h1 style="color: #28a745; margin: 0;">Document Signé avec Succès!</h1>
+            <p style="color: #666; margin-top: 10px;">Votre signature a été enregistrée</p>
+        </div>
+
+        <!-- Informations document -->
+        <div style="background-color: #f9f9f9; border-left: 4px solid #28a745; padding: 20px; margin: 20px 0; border-radius: 5px;">
+            <h3 style="color: #333; margin-top: 0;">📄 Document signé</h3>
+
+            <div style="margin-bottom: 15px;">
+                <p style="margin: 0; color: #999; font-size: 12px;">TITRE</p>
+                <p style="margin: 5px 0; color: #333; font-weight: bold; font-size: 16px;">
+                    <t t-out="object.document_id.name or 'Document'">Document</t>
+                </p>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                <div>
+                    <p style="margin: 0; color: #999; font-size: 12px;">SIGNATAIRE</p>
+                    <p style="margin: 5px 0; color: #333; font-weight: bold;">
+                        <t t-out="object.signer_name or 'N/A'">Signataire</t>
+                    </p>
+                </div>
+                <div>
+                    <p style="margin: 0; color: #999; font-size: 12px;">DATE DE SIGNATURE</p>
+                    <p style="margin: 5px 0; color: #333; font-weight: bold;">
+                        <t t-out="object.signature_date or ''">01/01/2024</t>
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Télécharger le document -->
+        <div style="background-color: #d4edda; border-left: 4px solid #28a745; padding: 20px; margin: 20px 0; border-radius: 5px;">
+            <h3 style="color: #155724; margin-top: 0;">📎 Document joint</h3>
+            <p style="margin: 10px 0; color: #155724;">
+                Le document PDF que vous avez signé est joint à cet email. Vous pouvez également le télécharger via le lien ci-dessous :
+            </p>
+            <div style="text-align: center; margin-top: 15px;">
+                <a t-attf-href="{{ env['ir.config_parameter'].sudo().get_param('web.base.url') }}/onedesk/document/{{ object.document_id.id }}/signed_pdf?access_token={{ object.access_token }}&amp;download=1"
+                   style="display: inline-block; background-color: #28a745; color: white; padding: 10px 25px; border-radius: 5px; text-decoration: none; font-weight: bold;">
+                    📥 Télécharger le document signé
+                </a>
+            </div>
+        </div>
+
+        <!-- Informations importantes -->
+        <div style="background-color: #e7f3ff; border-radius: 5px; padding: 15px; margin: 20px 0;">
+            <p style="margin: 0; color: #0056b3; font-weight: bold;">📌 À savoir:</p>
+            <ul style="margin: 10px 0; color: #333; line-height: 1.8; padding-left: 20px;">
+                <li>Votre signature a été enregistrée de manière sécurisée</li>
+                <li>Le document PDF est joint à cet email et téléchargeable via le lien ci-dessus</li>
+                <li>Tous les signataires recevront une copie une fois le document entièrement signé</li>
+                <li>Conservez ce document pour vos archives</li>
+            </ul>
+        </div>
+
+        <!-- CTA - Accès au portail -->
+        <div style="text-align: center; margin: 30px 0;">
+            <a t-attf-href="{{ env['ir.config_parameter'].sudo().get_param('web.base.url') }}/web"
+               style="display: inline-block; background-color: #1f77d2; color: white; padding: 12px 30px; border-radius: 5px; text-decoration: none; font-weight: bold;">
+                📁 Accéder à mon portail OneDesk
+            </a>
+        </div>
+
+        <!-- Support -->
+        <div style="background-color: #f5f5f5; border-radius: 5px; padding: 15px; margin-top: 20px;">
+            <p style="margin: 0; color: #666; font-size: 13px;">
+                Des questions?<br/>
+                📧 <a href="mailto:support@onedesk.io" style="color: #1f77d2; text-decoration: none;">support@onedesk.io</a>
+            </p>
+        </div>
+
+        <!-- Footer -->
+        <div style="border-top: 1px solid #eee; padding-top: 20px; margin-top: 30px; color: #999; font-size: 12px; text-align: center;">
+            <p style="margin: 0;">© 2024 OneDesk - Gestion immobilière SaaS</p>
+            <p style="margin: 5px 0;">Merci d'avoir utilisé OneDesk pour la signature électronique</p>
+        </div>
+    </div>
+</div>
+        </field>
+    </record>
+
+    </data>
 </odoo>

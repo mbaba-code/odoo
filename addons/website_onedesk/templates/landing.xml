@@ -1,0 +1,832 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Landing Page OneDesk - Style PayFit moderne avec couleurs vives -->
+    <template id="landing_page" name="OneDesk Landing Page">
+        <t t-call="website.layout">
+            <!-- SEO Meta Tags -->
+            <t t-set="head">
+                <meta name="description" content="OneDesk simplifie la gestion de vos locations courte durée. Réservations automatiques, analytics en temps réel, synchronisation iCal, signature électronique. Essai gratuit."/>
+                <meta name="keywords" content="gestion locative, location courte durée, conciergerie, airbnb, booking, gestion propriété, réservation, calendrier"/>
+
+                <!-- Open Graph / Facebook -->
+                <meta property="og:type" content="website"/>
+                <meta property="og:url" content="https://onedesk.app/"/>
+                <meta property="og:title" content="OneDesk - Gérez vos propriétés comme un pro"/>
+                <meta property="og:description" content="Simplifiez la gestion de vos locations courte durée. Réservations, tâches automatiques, analytics en temps réel. Installation en 5 min."/>
+                <meta property="og:image" content="https://onedesk.app/web/image/website/1/logo"/>
+
+                <!-- Twitter Card -->
+                <meta name="twitter:card" content="summary_large_image"/>
+                <meta name="twitter:url" content="https://onedesk.app/"/>
+                <meta name="twitter:title" content="OneDesk - Gérez vos propriétés comme un pro"/>
+                <meta name="twitter:description" content="Simplifiez la gestion de vos locations courte durée. Réservations, tâches automatiques, analytics en temps réel."/>
+                <meta name="twitter:image" content="https://onedesk.app/web/image/website/1/logo"/>
+
+                <!-- Additional SEO -->
+                <meta name="robots" content="index, follow"/>
+                <meta name="author" content="OneDesk"/>
+                <link rel="canonical" href="https://onedesk.app/onedesk"/>
+
+                <!-- Schema.org Structured Data -->
+                <script type="application/ld+json">
+                {
+                    "@context": "https://schema.org",
+                    "@type": "SoftwareApplication",
+                    "name": "OneDesk",
+                    "applicationCategory": "BusinessApplication",
+                    "offers": {
+                        "@type": "Offer",
+                        "price": "0",
+                        "priceCurrency": "EUR"
+                    },
+                    "operatingSystem": "Web",
+                    "description": "OneDesk simplifie la gestion de vos locations courte durée. Réservations automatiques, analytics en temps réel, synchronisation iCal, signature électronique.",
+                    "screenshot": "https://onedesk.app/web/image/website/1/logo",
+                    "featureList": [
+                        "Dashboard Analytics en temps réel",
+                        "Gestion centralisée des propriétés",
+                        "Calendrier intelligent de réservations",
+                        "Synchronisation iCal automatique",
+                        "Signature électronique conforme eIDAS",
+                        "Tâches automatiques",
+                        "Stockage documentaire illimité",
+                        "Création automatique des contacts",
+                        "Intégrations sur mesure"
+                    ],
+                    "aggregateRating": {
+                        "@type": "AggregateRating",
+                        "ratingValue": "4.8",
+                        "ratingCount": "127"
+                    }
+                }
+                </script>
+                <script type="application/ld+json">
+                {
+                    "@context": "https://schema.org",
+                    "@type": "Organization",
+                    "name": "OneDesk",
+                    "url": "https://onedesk.app",
+                    "logo": "https://onedesk.app/web/image/website/1/logo",
+                    "description": "Solution de gestion pour locations courte durée et conciergeries",
+                    "sameAs": []
+                }
+                </script>
+            </t>
+
+            <!-- Link to external CSS for better performance -->
+            <link rel="stylesheet" href="/website_onedesk/static/css/landing.css"/>
+
+            <div id="wrap" class="oe_structure oe_empty">
+
+                <!-- Hero Section Moderne -->
+                <section class="hero-modern">
+                    <div class="container">
+                        <div class="hero-content">
+                            <div class="hero-text">
+                                <h1>Gérez vos propriétés comme un pro</h1>
+                                <p class="subtitle">
+                                    OneDesk simplifie la gestion de vos locations courte durée.
+                                    Réservations, tâches automatiques, et analytics en temps réel.
+                                </p>
+                                <div class="hero-cta">
+                                    <a href="/onedesk/subscription" class="btn-primary-modern">
+                                        🚀 Démarrer gratuitement
+                                    </a>
+                                    <a href="#demo" class="btn-secondary-modern">
+                                        📹 Voir une démo
+                                    </a>
+                                </div>
+                                <p style="margin-top: 24px; color: var(--text-gray); font-size: 0.95rem; font-weight: 600;">
+                                    ✓ Aucune carte bancaire · ✓ Installation en 5 min · ✓ Support 24/7
+                                </p>
+                            </div>
+
+                            <div class="hero-screenshot">
+                                <div class="screenshot-container">
+                                    <div class="screenshot-header">
+                                        <div class="screenshot-dot"></div>
+                                        <div class="screenshot-dot"></div>
+                                        <div class="screenshot-dot"></div>
+                                    </div>
+                                    <div class="screenshot-body">
+                                        <div class="kpi-grid-mock">
+                                            <div class="kpi-card-mock purple">
+                                                <div class="kpi-label">Companies</div>
+                                                <div class="kpi-value">12</div>
+                                            </div>
+                                            <div class="kpi-card-mock green">
+                                                <div class="kpi-label">Revenus</div>
+                                                <div class="kpi-value">125K€</div>
+                                            </div>
+                                            <div class="kpi-card-mock">
+                                                <div class="kpi-label">Propriétés</div>
+                                                <div class="kpi-value">45</div>
+                                            </div>
+                                            <div class="kpi-card-mock orange">
+                                                <div class="kpi-label">Réservations</div>
+                                                <div class="kpi-value">187</div>
+                                            </div>
+                                        </div>
+                                        <div class="chart-mock">
+                                            <div class="bar-mock" style="height: 60%;"></div>
+                                            <div class="bar-mock" style="height: 85%;"></div>
+                                            <div class="bar-mock" style="height: 70%;"></div>
+                                            <div class="bar-mock" style="height: 95%;"></div>
+                                            <div class="bar-mock" style="height: 80%;"></div>
+                                            <div class="bar-mock" style="height: 65%;"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Social Proof -->
+                <section class="social-proof">
+                    <div class="container">
+                        <h3>✨ Ils nous font confiance</h3>
+                        <div class="logos-grid">
+                            <div class="logo-item">🏨 Hôtel Luxe</div>
+                            <div class="logo-item">🏠 Résidence Paris</div>
+                            <div class="logo-item">🏢 Conciergerie Pro</div>
+                            <div class="logo-item">🏘️ Urban Stay</div>
+                            <div class="logo-item">⭐ Premium Lodges</div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Feature 1: Dashboard Analytics -->
+                <section class="feature-section" id="demo">
+                    <div class="container">
+                        <div class="feature-row">
+                            <div class="feature-text">
+                                <span class="feature-tag">📊 ANALYTICS</span>
+                                <h2>Pilotez votre activité en temps réel</h2>
+                                <p>
+                                    Visualisez vos KPIs essentiels d'un coup d'œil. Revenus, taux d'occupation,
+                                    réservations à venir - tout est centralisé dans un dashboard intuitif et moderne.
+                                </p>
+                                <ul class="feature-list">
+                                    <li>Dashboard multi-tenant pour gérer plusieurs sociétés</li>
+                                    <li>KPIs en temps réel (revenus, occupation, performance)</li>
+                                    <li>Graphiques interactifs et exportables (Excel, PDF)</li>
+                                    <li>Filtres par période, propriété, ou unité</li>
+                                </ul>
+                                <a href="/onedesk/subscription" class="btn-primary-modern">
+                                    ✨ Essayer maintenant
+                                </a>
+                            </div>
+                            <div class="feature-visual">
+                                <div class="screenshot-container">
+                                    <div class="screenshot-header">
+                                        <div class="screenshot-dot"></div>
+                                        <div class="screenshot-dot"></div>
+                                        <div class="screenshot-dot"></div>
+                                    </div>
+                                    <div class="screenshot-body">
+                                        <div style="background: white; padding: 24px; border-radius: 12px; margin-bottom: 16px; box-shadow: var(--shadow-sm);">
+                                            <h4 style="margin: 0 0 20px 0; color: var(--primary-blue); font-weight: 800; font-size: 1.2rem;">📈 Performance Mensuelle</h4>
+                                            <div class="chart-mock" style="height: 180px;">
+                                                <div class="bar-mock" style="height: 50%;"></div>
+                                                <div class="bar-mock" style="height: 70%;"></div>
+                                                <div class="bar-mock" style="height: 60%;"></div>
+                                                <div class="bar-mock" style="height: 85%;"></div>
+                                                <div class="bar-mock" style="height: 75%;"></div>
+                                                <div class="bar-mock" style="height: 90%;"></div>
+                                                <div class="bar-mock" style="height: 80%;"></div>
+                                            </div>
+                                        </div>
+                                        <div class="kpi-grid-mock">
+                                            <div class="kpi-card-mock">
+                                                <div class="kpi-label">Taux occupation</div>
+                                                <div class="kpi-value" style="font-size: 1.8rem;">87%</div>
+                                            </div>
+                                            <div class="kpi-card-mock green">
+                                                <div class="kpi-label">CA ce mois</div>
+                                                <div class="kpi-value" style="font-size: 1.8rem;">45K€</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Feature 2: Gestion Propriétés -->
+                <section class="feature-section">
+                    <div class="container">
+                        <div class="feature-row reverse">
+                            <div class="feature-text">
+                                <span class="feature-tag orange">🏢 PROPRIÉTÉS</span>
+                                <h2>Centralisez vos propriétés</h2>
+                                <p>
+                                    Gérez tous vos biens immobiliers en un seul endroit. Photos HD, équipements,
+                                    documents légaux, tarifs - tout est organisé et accessible en un clic.
+                                </p>
+                                <ul class="feature-list">
+                                    <li>Galerie photos illimitée avec photos de couverture</li>
+                                    <li>Gestion des équipements et services par propriété</li>
+                                    <li>Documents centralisés (contrats, assurances, diagnostics)</li>
+                                    <li>Stats de performance par propriété en temps réel</li>
+                                </ul>
+                                <a href="/onedesk/subscription" class="btn-primary-modern">
+                                    🏢 Gérer mes propriétés
+                                </a>
+                            </div>
+                            <div class="feature-visual">
+                                <div class="properties-mockup">
+                                    <div class="property-item">
+                                        <div class="property-icon">🏨</div>
+                                        <div class="property-info">
+                                            <div class="property-name">Résidence Le Parc</div>
+                                            <div class="property-stats">📍 Paris 15ème · 12 unités · 94% occupation</div>
+                                        </div>
+                                        <div style="color: var(--success-green); font-weight: 800; font-size: 1.3rem;">
+                                            ↗ 15%
+                                        </div>
+                                    </div>
+                                    <div class="property-item">
+                                        <div class="property-icon">🏠</div>
+                                        <div class="property-info">
+                                            <div class="property-name">Villa Méditerranée</div>
+                                            <div class="property-stats">📍 Nice · 8 unités · 88% occupation</div>
+                                        </div>
+                                        <div style="color: var(--success-green); font-weight: 800; font-size: 1.3rem;">
+                                            ↗ 8%
+                                        </div>
+                                    </div>
+                                    <div class="property-item">
+                                        <div class="property-icon">🏘️</div>
+                                        <div class="property-info">
+                                            <div class="property-name">Appart'City Lyon</div>
+                                            <div class="property-stats">📍 Lyon 6ème · 20 unités · 91% occupation</div>
+                                        </div>
+                                        <div style="color: var(--success-green); font-weight: 800; font-size: 1.3rem;">
+                                            ↗ 12%
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Feature 3: Réservations -->
+                <section class="feature-section">
+                    <div class="container">
+                        <div class="feature-row">
+                            <div class="feature-text">
+                                <span class="feature-tag">📅 RÉSERVATIONS</span>
+                                <h2>Calendrier intelligent</h2>
+                                <p>
+                                    Gérez vos réservations avec un calendrier visuel ultra-moderne. Vérification automatique
+                                    de disponibilité, gestion des arrivées/départs, et synchronisation temps réel.
+                                </p>
+                                <ul class="feature-list">
+                                    <li>Calendrier visuel avec code couleur (disponible/réservé)</li>
+                                    <li>Vérification automatique des conflits de dates</li>
+                                    <li>Notifications par email client et équipe</li>
+                                    <li>Export des réservations et facturation automatique</li>
+                                </ul>
+                                <a href="/onedesk/subscription" class="btn-primary-modern">
+                                    📅 Découvrir le calendrier
+                                </a>
+                            </div>
+                            <div class="feature-visual">
+                                <div class="screenshot-calendar">
+                                    <div class="calendar-header">
+                                        <div class="calendar-title">📅 Janvier 2025</div>
+                                        <div style="display: flex; gap: 8px;">
+                                            <button style="background: linear-gradient(135deg, var(--primary-blue), var(--primary-dark)); color: white; border: none; border-radius: 8px; padding: 8px 16px; cursor: pointer; font-weight: 700;">←</button>
+                                            <button style="background: linear-gradient(135deg, var(--primary-blue), var(--primary-dark)); color: white; border: none; border-radius: 8px; padding: 8px 16px; cursor: pointer; font-weight: 700;">→</button>
+                                        </div>
+                                    </div>
+                                    <div class="calendar-grid">
+                                        <div class="calendar-day" style="font-weight: 800; border: none; color: var(--primary-blue);">L</div>
+                                        <div class="calendar-day" style="font-weight: 800; border: none; color: var(--primary-blue);">M</div>
+                                        <div class="calendar-day" style="font-weight: 800; border: none; color: var(--primary-blue);">M</div>
+                                        <div class="calendar-day" style="font-weight: 800; border: none; color: var(--primary-blue);">J</div>
+                                        <div class="calendar-day" style="font-weight: 800; border: none; color: var(--primary-blue);">V</div>
+                                        <div class="calendar-day" style="font-weight: 800; border: none; color: var(--primary-blue);">S</div>
+                                        <div class="calendar-day" style="font-weight: 800; border: none; color: var(--primary-blue);">D</div>
+
+                                        <div class="calendar-day">1</div>
+                                        <div class="calendar-day">2</div>
+                                        <div class="calendar-day booked">3</div>
+                                        <div class="calendar-day booked">4</div>
+                                        <div class="calendar-day booked">5</div>
+                                        <div class="calendar-day available">6</div>
+                                        <div class="calendar-day available">7</div>
+                                        <div class="calendar-day available">8</div>
+                                        <div class="calendar-day available">9</div>
+                                        <div class="calendar-day">10</div>
+                                        <div class="calendar-day">11</div>
+                                        <div class="calendar-day booked">12</div>
+                                        <div class="calendar-day booked">13</div>
+                                        <div class="calendar-day booked">14</div>
+                                        <div class="calendar-day available">15</div>
+                                        <div class="calendar-day available">16</div>
+                                        <div class="calendar-day available">17</div>
+                                        <div class="calendar-day">18</div>
+                                        <div class="calendar-day booked">19</div>
+                                        <div class="calendar-day booked">20</div>
+                                    </div>
+                                    <div style="margin-top: 24px; display: flex; gap: 24px; font-size: 0.95rem; font-weight: 700;">
+                                        <div style="display: flex; align-items: center; gap: 10px;">
+                                            <div style="width: 24px; height: 24px; background: linear-gradient(135deg, var(--primary-blue), var(--primary-dark)); border-radius: 6px;"></div>
+                                            <span>Réservé</span>
+                                        </div>
+                                        <div style="display: flex; align-items: center; gap: 10px;">
+                                            <div style="width: 24px; height: 24px; background: linear-gradient(135deg, var(--success-green), var(--success-dark)); border-radius: 6px;"></div>
+                                            <span>Disponible</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Feature 4: Synchronisation iCal -->
+                <section class="feature-section">
+                    <div class="container">
+                        <div class="feature-row reverse">
+                            <div class="feature-text">
+                                <span class="feature-tag green">🔄 SYNCHRONISATION</span>
+                                <h2>Sync iCal automatique</h2>
+                                <p>
+                                    Synchronisez automatiquement vos réservations avec Google Calendar, Airbnb, Booking.com
+                                    et tous les outils compatibles iCal. Fini les doubles réservations !
+                                </p>
+                                <ul class="feature-list">
+                                    <li>Synchronisation bidirectionnelle en temps réel</li>
+                                    <li>Compatible avec tous les calendriers (Google, Outlook, Apple)</li>
+                                    <li>Import/Export iCal pour chaque unité</li>
+                                    <li>Mise à jour automatique des disponibilités</li>
+                                </ul>
+                                <a href="/onedesk/subscription" class="btn-primary-modern">
+                                    🔄 Activer la sync
+                                </a>
+                            </div>
+                            <div class="feature-visual">
+                                <div class="ical-mockup">
+                                    <div class="ical-header">
+                                        <div class="ical-icon">📅</div>
+                                        <div style="flex: 1;">
+                                            <div class="ical-title">Synchronisation iCal</div>
+                                            <div style="color: var(--success-green); font-weight: 700; margin-top: 4px;">✓ Actif - Sync toutes les 5 min</div>
+                                        </div>
+                                    </div>
+                                    <div style="background: linear-gradient(135deg, #ECFDF5, #D1FAE5); border: 2px solid var(--success-green); border-radius: 12px; padding: 20px; margin-bottom: 20px;">
+                                        <div style="font-weight: 800; color: var(--success-dark); margin-bottom: 8px;">📊 OneDesk Calendar</div>
+                                        <div style="font-size: 0.9rem; color: var(--text-gray);">https://onedesk.app/ical/abc123...</div>
+                                    </div>
+                                    <div class="sync-arrow">⬇️ ⬆️</div>
+                                    <div class="calendar-badges">
+                                        <div class="calendar-badge">📱 Google Calendar</div>
+                                        <div class="calendar-badge">🏠 Airbnb</div>
+                                        <div class="calendar-badge">🏨 Booking.com</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Feature 5: Signature Électronique -->
+                <section class="feature-section">
+                    <div class="container">
+                        <div class="feature-row">
+                            <div class="feature-text">
+                                <span class="feature-tag purple">✍️ SIGNATURE</span>
+                                <h2>Signature électronique</h2>
+                                <p>
+                                    Faites signer vos contrats de location en ligne. Rapide, légal, et entièrement
+                                    sécurisé. Plus besoin d'imprimer, scanner ou poster !
+                                </p>
+                                <ul class="feature-list">
+                                    <li>Signature électronique conforme eIDAS</li>
+                                    <li>Envoi automatique par email aux locataires</li>
+                                    <li>Notifications de signature en temps réel</li>
+                                    <li>Stockage sécurisé et archivage légal</li>
+                                </ul>
+                                <a href="/onedesk/subscription" class="btn-primary-modern">
+                                    ✍️ Signer en ligne
+                                </a>
+                            </div>
+                            <div class="feature-visual">
+                                <div class="signature-mockup">
+                                    <div class="signature-header">
+                                        <div class="signature-title">📄 Contrat de Location</div>
+                                        <div class="signature-badge">✓ Signé</div>
+                                    </div>
+                                    <div class="signature-doc">
+                                        <div style="font-weight: 800; color: var(--text-dark); margin-bottom: 12px;">CONTRAT DE LOCATION MEUBLÉE</div>
+                                        <div class="signature-line"></div>
+                                        <div class="signature-line"></div>
+                                        <div class="signature-line"></div>
+                                        <div style="height: 16px;"></div>
+                                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 20px;">
+                                            <div class="signature-field" style="border-color: var(--success-green); color: var(--success-dark);">
+                                                ✓ Signature Propriétaire
+                                                <div style="font-size: 0.8rem; margin-top: 4px;">Jean Dupont · 05/12/2025</div>
+                                            </div>
+                                            <div class="signature-field">
+                                                ✍️ En attente Locataire
+                                                <div style="font-size: 0.8rem; margin-top: 4px;">Email envoyé</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div style="text-align: center; color: var(--text-gray); font-size: 0.85rem; margin-top: 16px;">
+                                        🔒 Signature conforme eIDAS · Valeur légale
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Feature 6: Tâches Automatiques -->
+                <section class="feature-section">
+                    <div class="container">
+                        <div class="feature-row reverse">
+                            <div class="feature-text">
+                                <span class="feature-tag">✅ AUTOMATISATION</span>
+                                <h2>Tâches automatiques</h2>
+                                <p>
+                                    Créez automatiquement vos tâches de ménage et check-in/out lors de chaque
+                                    réservation. Assignez, suivez et optimisez le travail de votre équipe.
+                                </p>
+                                <ul class="feature-list">
+                                    <li>Création automatique des tâches à chaque réservation</li>
+                                    <li>Assignation aux membres de l'équipe avec notification</li>
+                                    <li>Tableau Kanban (À faire / En cours / Terminé)</li>
+                                    <li>Historique complet et rapports de productivité</li>
+                                </ul>
+                                <a href="/onedesk/subscription" class="btn-primary-modern">
+                                    ✅ Automatiser mes tâches
+                                </a>
+                            </div>
+                            <div class="feature-visual">
+                                <div class="task-board">
+                                    <h4 style="margin: 0 0 24px 0; color: var(--primary-blue); font-weight: 800; font-size: 1.3rem;">📋 Tableau des Tâches</h4>
+                                    <div class="task-columns">
+                                        <div class="task-column">
+                                            <div class="task-column-title">⏳ À FAIRE</div>
+                                            <div class="task-card high">
+                                                <div style="font-weight: 700; margin-bottom: 6px;">Check-in - Apt 205</div>
+                                                <div style="font-size: 0.85rem; color: var(--text-gray);">🕐 Aujourd'hui 14h</div>
+                                            </div>
+                                            <div class="task-card">
+                                                <div style="font-weight: 700; margin-bottom: 6px;">Ménage - Studio 12</div>
+                                                <div style="font-size: 0.85rem; color: var(--text-gray);">🕐 Demain 10h</div>
+                                            </div>
+                                        </div>
+                                        <div class="task-column">
+                                            <div class="task-column-title">⚡ EN COURS</div>
+                                            <div class="task-card medium">
+                                                <div style="font-weight: 700; margin-bottom: 6px;">Ménage - Apt 103</div>
+                                                <div style="font-size: 0.85rem; color: var(--text-gray);">👤 Marie · 2h restantes</div>
+                                            </div>
+                                        </div>
+                                        <div class="task-column">
+                                            <div class="task-column-title">✅ TERMINÉ</div>
+                                            <div class="task-card">
+                                                <div style="font-weight: 700; margin-bottom: 6px;">Check-out - Villa 8</div>
+                                                <div style="font-size: 0.85rem; color: var(--success-green);">✓ Terminé</div>
+                                            </div>
+                                            <div class="task-card">
+                                                <div style="font-weight: 700; margin-bottom: 6px;">Inventaire - Apt 201</div>
+                                                <div style="font-size: 0.85rem; color: var(--success-green);">✓ Terminé</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Testimonials -->
+                <section class="testimonials">
+                    <div class="container">
+                        <div class="section-header">
+                            <h2>Ce que disent nos clients</h2>
+                            <p>Plus de 100 gestionnaires nous font confiance pour optimiser leurs opérations</p>
+                        </div>
+                        <div class="testimonials-grid">
+                            <div class="testimonial-card">
+                                <div class="testimonial-text">
+                                    "OneDesk a transformé notre façon de gérer nos 25 appartements.
+                                    Tout est automatisé, nos équipes sont plus efficaces et nos clients ravis."
+                                </div>
+                                <div class="testimonial-author">
+                                    <div class="author-avatar">MR</div>
+                                    <div class="author-info">
+                                        <h4>Marie Rousseau</h4>
+                                        <p>Directrice, Conciergerie Prestige</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="testimonial-card">
+                                <div class="testimonial-text">
+                                    "Le dashboard analytics nous a permis d'augmenter notre taux d'occupation de 15%.
+                                    On voit enfin où on en est en temps réel !"
+                                </div>
+                                <div class="testimonial-author">
+                                    <div class="author-avatar">JD</div>
+                                    <div class="author-info">
+                                        <h4>Jean Dupont</h4>
+                                        <p>Gérant, Urban Stay Paris</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="testimonial-card">
+                                <div class="testimonial-text">
+                                    "Installation en 10 minutes, prise en main immédiate.
+                                    Le meilleur outil de gestion que nous ayons testé."
+                                </div>
+                                <div class="testimonial-author">
+                                    <div class="author-avatar">SL</div>
+                                    <div class="author-info">
+                                        <h4>Sophie Laurent</h4>
+                                        <p>Fondatrice, Premium Lodges</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Feature 7: Gestion Documentaire -->
+                <section class="feature-section">
+                    <div class="container">
+                        <div class="feature-row">
+                            <div class="feature-text">
+                                <span class="feature-tag" style="background: linear-gradient(135deg, #EF4444, #DC2626); box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);">📄 DOCUMENTS</span>
+                                <h2>Stockage documentaire illimité</h2>
+                                <p>
+                                    Centralisez tous vos documents importants : contrats, factures, diagnostics, inventaires.
+                                    Recherche rapide, catégorisation automatique, et accès sécurisé depuis n'importe où.
+                                </p>
+                                <ul class="feature-list">
+                                    <li>Stockage illimité de tous types de fichiers (PDF, images, Excel...)</li>
+                                    <li>Catégories personnalisables par propriété, unité ou client</li>
+                                    <li>Recherche instantanée par nom, date, catégorie ou tags</li>
+                                    <li>Partage sécurisé avec liens temporaires et contrôle d'accès</li>
+                                </ul>
+                                <a href="/onedesk/subscription" class="btn-primary-modern">
+                                    📄 Gérer mes documents
+                                </a>
+                            </div>
+                            <div class="feature-visual">
+                                <div style="background: white; border-radius: 16px; box-shadow: 0 20px 60px rgba(239, 68, 68, 0.2); padding: 28px; border: 2px solid #FCA5A5;">
+                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; padding-bottom: 20px; border-bottom: 3px solid #EF4444;">
+                                        <div style="font-size: 1.5rem; font-weight: 800; color: #EF4444;">📁 Mes Documents</div>
+                                        <button style="background: linear-gradient(135deg, #EF4444, #DC2626); color: white; border: none; border-radius: 8px; padding: 10px 20px; cursor: pointer; font-weight: 700;">+ Uploader</button>
+                                    </div>
+                                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;">
+                                        <div style="background: linear-gradient(135deg, #FFFFFF, #FEF2F2); border: 2px solid #EF4444; border-radius: 12px; padding: 16px; transition: all 0.3s;">
+                                            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+                                                <div style="width: 48px; height: 48px; background: linear-gradient(135deg, #EF4444, #DC2626); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.5rem;">📄</div>
+                                                <div style="flex: 1;">
+                                                    <div style="font-weight: 800; font-size: 0.95rem; color: var(--text-dark);">Contrats</div>
+                                                    <div style="font-size: 0.85rem; color: var(--text-gray);">24 fichiers</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div style="background: linear-gradient(135deg, #FFFFFF, #FFFBEB); border: 2px solid #F59E0B; border-radius: 12px; padding: 16px; transition: all 0.3s;">
+                                            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+                                                <div style="width: 48px; height: 48px; background: linear-gradient(135deg, #F59E0B, #D97706); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.5rem;">💰</div>
+                                                <div style="flex: 1;">
+                                                    <div style="font-weight: 800; font-size: 0.95rem; color: var(--text-dark);">Factures</div>
+                                                    <div style="font-size: 0.85rem; color: var(--text-gray);">156 fichiers</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div style="background: linear-gradient(135deg, #FFFFFF, #EFF6FF); border: 2px solid #3B82F6; border-radius: 12px; padding: 16px; transition: all 0.3s;">
+                                            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+                                                <div style="width: 48px; height: 48px; background: linear-gradient(135deg, #3B82F6, #2563EB); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.5rem;">🔍</div>
+                                                <div style="flex: 1;">
+                                                    <div style="font-weight: 800; font-size: 0.95rem; color: var(--text-dark);">Diagnostics</div>
+                                                    <div style="font-size: 0.85rem; color: var(--text-gray);">18 fichiers</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div style="background: linear-gradient(135deg, #FFFFFF, #ECFDF5); border: 2px solid #10B981; border-radius: 12px; padding: 16px; transition: all 0.3s;">
+                                            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+                                                <div style="width: 48px; height: 48px; background: linear-gradient(135deg, #10B981, #059669); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.5rem;">📋</div>
+                                                <div style="flex: 1;">
+                                                    <div style="font-weight: 800; font-size: 0.95rem; color: var(--text-dark);">Inventaires</div>
+                                                    <div style="font-size: 0.85rem; color: var(--text-gray);">42 fichiers</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div style="margin-top: 20px; background: linear-gradient(135deg, #F9FAFB, #F3F4F6); border-radius: 8px; padding: 16px;">
+                                        <div style="font-size: 0.9rem; color: var(--text-gray); margin-bottom: 8px;">📊 Stockage utilisé</div>
+                                        <div style="background: #E5E7EB; height: 8px; border-radius: 4px; overflow: hidden;">
+                                            <div style="background: linear-gradient(90deg, #EF4444, #F59E0B); height: 100%; width: 65%; border-radius: 4px;"></div>
+                                        </div>
+                                        <div style="font-size: 0.85rem; color: var(--text-gray); margin-top: 4px;">6.5 GB / 10 GB</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Feature 8: Création Auto Contacts -->
+                <section class="feature-section">
+                    <div class="container">
+                        <div class="feature-row reverse">
+                            <div class="feature-text">
+                                <span class="feature-tag" style="background: linear-gradient(135deg, #EC4899, #DB2777); box-shadow: 0 4px 12px rgba(236, 72, 153, 0.3);">👥 CONTACTS AUTO</span>
+                                <h2>Création automatique des contacts</h2>
+                                <p>
+                                    Chaque réservation crée automatiquement une fiche contact complète. Historique détaillé,
+                                    préférences, notes personnalisées - construisez votre base client sans effort.
+                                </p>
+                                <ul class="feature-list">
+                                    <li>Contact créé automatiquement à chaque nouvelle réservation</li>
+                                    <li>Historique complet : réservations, paiements, communications</li>
+                                    <li>Segmentation automatique (VIP, réguliers, première visite...)</li>
+                                    <li>Export pour campagnes marketing et fidélisation</li>
+                                </ul>
+                                <a href="/onedesk/subscription" class="btn-primary-modern">
+                                    👥 Gérer mes contacts
+                                </a>
+                            </div>
+                            <div class="feature-visual">
+                                <div style="background: white; border-radius: 16px; box-shadow: 0 20px 60px rgba(236, 72, 153, 0.2); padding: 28px; border: 2px solid #F9A8D4;">
+                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; padding-bottom: 20px; border-bottom: 3px solid #EC4899;">
+                                        <div style="font-size: 1.5rem; font-weight: 800; color: #EC4899;">👥 Contacts Clients</div>
+                                        <div style="background: linear-gradient(135deg, #ECFDF5, #D1FAE5); border: 2px solid #10B981; color: #059669; padding: 6px 16px; border-radius: 20px; font-weight: 700; font-size: 0.85rem;">+245 ce mois</div>
+                                    </div>
+                                    <div style="margin-bottom: 16px;">
+                                        <div style="background: linear-gradient(135deg, #FFFFFF, #FCE7F3); border: 2px solid #EC4899; border-radius: 12px; padding: 20px; margin-bottom: 12px;">
+                                            <div style="display: flex; align-items: center; gap: 16px;">
+                                                <div style="width: 56px; height: 56px; background: linear-gradient(135deg, #EC4899, #DB2777); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 800; font-size: 1.3rem; box-shadow: 0 4px 12px rgba(236, 72, 153, 0.3);">MR</div>
+                                                <div style="flex: 1;">
+                                                    <div style="font-weight: 800; font-size: 1.1rem; color: var(--text-dark);">Marie Rousseau</div>
+                                                    <div style="font-size: 0.9rem; color: var(--text-gray);">📧 marie.rousseau@email.com · 📱 +33 6 12 34 56 78</div>
+                                                    <div style="margin-top: 8px; display: flex; gap: 8px;">
+                                                        <span style="background: linear-gradient(135deg, #F59E0B, #D97706); color: white; padding: 4px 12px; border-radius: 12px; font-size: 0.75rem; font-weight: 700;">⭐ VIP</span>
+                                                        <span style="background: linear-gradient(135deg, #3B82F6, #2563EB); color: white; padding: 4px 12px; border-radius: 12px; font-size: 0.75rem; font-weight: 700;">12 séjours</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid #F9A8D4;">
+                                                <div style="font-size: 0.85rem; color: var(--text-gray); margin-bottom: 4px;">📅 Dernier séjour : Studio 12 · 15-18 Nov 2024</div>
+                                                <div style="font-size: 0.85rem; color: var(--text-gray);">💰 CA total : 4 580€</div>
+                                            </div>
+                                        </div>
+                                        <div style="background: linear-gradient(135deg, #FFFFFF, #FCE7F3); border: 2px solid #F9A8D4; border-radius: 12px; padding: 20px;">
+                                            <div style="display: flex; align-items: center; gap: 16px;">
+                                                <div style="width: 56px; height: 56px; background: linear-gradient(135deg, #8B5CF6, #7C3AED); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 800; font-size: 1.3rem; box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);">JD</div>
+                                                <div style="flex: 1;">
+                                                    <div style="font-weight: 800; font-size: 1.1rem; color: var(--text-dark);">Jean Dupont</div>
+                                                    <div style="font-size: 0.9rem; color: var(--text-gray);">📧 jean.dupont@email.com · 📱 +33 6 98 76 54 32</div>
+                                                    <div style="margin-top: 8px; display: flex; gap: 8px;">
+                                                        <span style="background: linear-gradient(135deg, #10B981, #059669); color: white; padding: 4px 12px; border-radius: 12px; font-size: 0.75rem; font-weight: 700;">🆕 Nouveau</span>
+                                                        <span style="background: linear-gradient(135deg, #3B82F6, #2563EB); color: white; padding: 4px 12px; border-radius: 12px; font-size: 0.75rem; font-weight: 700;">1 séjour</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid #F9A8D4;">
+                                                <div style="font-size: 0.85rem; color: var(--text-gray); margin-bottom: 4px;">📅 Prochain séjour : Apt 205 · 20-25 Déc 2024</div>
+                                                <div style="font-size: 0.85rem; color: var(--text-gray);">💰 CA total : 890€</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Feature 9: Intégrations & Prestations -->
+                <section class="feature-section">
+                    <div class="container">
+                        <div class="feature-row">
+                            <div class="feature-text">
+                                <span class="feature-tag green">🔌 INTÉGRATIONS</span>
+                                <h2>Intégrations illimitées sur mesure</h2>
+                                <p>
+                                    Connectez OneDesk à TOUS vos outils existants. Notre équipe technique prend en charge
+                                    toute intégration dont vous avez besoin : votre site web, CRM, comptabilité, et bien plus.
+                                </p>
+                                <ul class="feature-list">
+                                    <li>Intégration de votre site web existant (widget booking, calendrier...)</li>
+                                    <li>Connexion à votre CRM (Salesforce, HubSpot, Zoho...)</li>
+                                    <li>Synchronisation comptabilité (QuickBooks, Sage, Cegid...)</li>
+                                    <li>Création d'API personnalisées pour vos besoins spécifiques</li>
+                                </ul>
+                                <a href="/onedesk/subscription" class="btn-primary-modern">
+                                    🔌 Découvrir nos prestations
+                                </a>
+                            </div>
+                            <div class="feature-visual">
+                                <div style="background: white; border-radius: 16px; box-shadow: 0 20px 60px rgba(16, 185, 129, 0.2); padding: 28px; border: 2px solid #6EE7B7;">
+                                    <div style="text-align: center; margin-bottom: 32px;">
+                                        <div style="font-size: 1.5rem; font-weight: 800; color: var(--success-green); margin-bottom: 8px;">🔌 Intégrations Disponibles</div>
+                                        <div style="font-size: 0.95rem; color: var(--text-gray);">Nous connectons OneDesk à tous vos outils</div>
+                                    </div>
+
+                                    <!-- Grid intégrations -->
+                                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 28px;">
+                                        <div style="background: linear-gradient(135deg, #ECFDF5, #D1FAE5); border: 2px solid #10B981; border-radius: 12px; padding: 16px; text-align: center;">
+                                            <div style="font-size: 2rem; margin-bottom: 8px;">🌐</div>
+                                            <div style="font-weight: 700; font-size: 0.9rem; color: var(--text-dark);">Votre Site Web</div>
+                                        </div>
+                                        <div style="background: linear-gradient(135deg, #EFF6FF, #DBEAFE); border: 2px solid #3B82F6; border-radius: 12px; padding: 16px; text-align: center;">
+                                            <div style="font-size: 2rem; margin-bottom: 8px;">💼</div>
+                                            <div style="font-weight: 700; font-size: 0.9rem; color: var(--text-dark);">CRM</div>
+                                        </div>
+                                        <div style="background: linear-gradient(135deg, #FFFBEB, #FEF3C7); border: 2px solid #F59E0B; border-radius: 12px; padding: 16px; text-align: center;">
+                                            <div style="font-size: 2rem; margin-bottom: 8px;">💳</div>
+                                            <div style="font-weight: 700; font-size: 0.9rem; color: var(--text-dark);">Stripe/PayPal</div>
+                                        </div>
+                                        <div style="background: linear-gradient(135deg, #F5F3FF, #EDE9FE); border: 2px solid #8B5CF6; border-radius: 12px; padding: 16px; text-align: center;">
+                                            <div style="font-size: 2rem; margin-bottom: 8px;">📊</div>
+                                            <div style="font-weight: 700; font-size: 0.9rem; color: var(--text-dark);">Comptabilité</div>
+                                        </div>
+                                        <div style="background: linear-gradient(135deg, #FEF2F2, #FEE2E2); border: 2px solid #EF4444; border-radius: 12px; padding: 16px; text-align: center;">
+                                            <div style="font-size: 2rem; margin-bottom: 8px;">📧</div>
+                                            <div style="font-weight: 700; font-size: 0.9rem; color: var(--text-dark);">Mailchimp</div>
+                                        </div>
+                                        <div style="background: linear-gradient(135deg, #FCE7F3, #FBCFE8); border: 2px solid #EC4899; border-radius: 12px; padding: 16px; text-align: center;">
+                                            <div style="font-size: 2rem; margin-bottom: 8px;">🔧</div>
+                                            <div style="font-weight: 700; font-size: 0.9rem; color: var(--text-dark);">API Custom</div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Prestations -->
+                                    <div style="background: linear-gradient(135deg, #F9FAFB, #F3F4F6); border-radius: 12px; padding: 24px;">
+                                        <div style="font-weight: 800; font-size: 1.1rem; color: var(--success-green); margin-bottom: 16px; text-align: center;">🎯 Nos Prestations sur Mesure</div>
+                                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; font-size: 0.9rem;">
+                                            <div style="display: flex; align-items: center; gap: 8px;">
+                                                <div style="color: var(--success-green); font-weight: 900; font-size: 1.1rem;">✓</div>
+                                                <span>Création de site web</span>
+                                            </div>
+                                            <div style="display: flex; align-items: center; gap: 8px;">
+                                                <div style="color: var(--success-green); font-weight: 900; font-size: 1.1rem;">✓</div>
+                                                <span>Migration de données</span>
+                                            </div>
+                                            <div style="display: flex; align-items: center; gap: 8px;">
+                                                <div style="color: var(--success-green); font-weight: 900; font-size: 1.1rem;">✓</div>
+                                                <span>Formation équipe</span>
+                                            </div>
+                                            <div style="display: flex; align-items: center; gap: 8px;">
+                                                <div style="color: var(--success-green); font-weight: 900; font-size: 1.1rem;">✓</div>
+                                                <span>Support technique dédié</span>
+                                            </div>
+                                            <div style="display: flex; align-items: center; gap: 8px;">
+                                                <div style="color: var(--success-green); font-weight: 900; font-size: 1.1rem;">✓</div>
+                                                <span>Développement sur mesure</span>
+                                            </div>
+                                            <div style="display: flex; align-items: center; gap: 8px;">
+                                                <div style="color: var(--success-green); font-weight: 900; font-size: 1.1rem;">✓</div>
+                                                <span>Maintenance &amp; évolutions</span>
+                                            </div>
+                                        </div>
+
+                                        <!-- Note de transparence sur les délais -->
+                                        <div style="margin-top: 20px; padding: 16px; background: linear-gradient(135deg, #EFF6FF, #DBEAFE); border-left: 4px solid var(--primary-blue); border-radius: 8px;">
+                                            <div style="font-size: 0.85rem; color: var(--text-gray); line-height: 1.6;">
+                                                <strong style="color: var(--primary-blue);">⚡ Disponibilité:</strong>
+                                                La plupart des intégrations sont <strong>prêtes immédiatement</strong>
+                                                (site web, Stripe/PayPal, API custom, export comptable).
+                                                Certaines intégrations spécifiques (CRM externes, API comptabilité)
+                                                peuvent nécessiter <strong>3-7 jours</strong> de configuration.
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- CTA Final -->
+                <section class="cta-final">
+                    <div class="container">
+                        <h2>Prêt à simplifier votre gestion ?</h2>
+                        <p>Rejoignez des centaines de gestionnaires qui optimisent leurs opérations avec OneDesk</p>
+                        <a href="/onedesk/subscription" class="btn-cta-white">
+                            🚀 Commencer gratuitement
+                        </a>
+                        <p style="margin-top: 36px; font-size: 1rem; opacity: 0.9; font-weight: 600;">
+                            ⚡ Installation en 5 minutes · 🎯 Aucun engagement
+                        </p>
+                    </div>
+                </section>
+
+            </div>
+        </t>
+    </template>
+</odoo>

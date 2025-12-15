@@ -1,8 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <!-- DASHBOARD ACTION -->
+    <!-- DASHBOARD ACTIONS -->
+
+    <!-- Action Client pour Dashboard Principal ApexCharts -->
+    <record id="action_onedesk_dashboard_main_apexcharts" model="ir.actions.client">
+        <field name="name">Dashboard Principal</field>
+        <field name="tag">onedesk_dashboard_main</field>
+        <field name="target">current</field>
+    </record>
+
+    <!-- Action Client pour Dashboard Admin Master -->
+    <record id="action_onedesk_dashboard_admin_master" model="ir.actions.client">
+        <field name="name">Dashboard Admin Master</field>
+        <field name="tag">onedesk_dashboard_admin_master</field>
+        <field name="target">current</field>
+    </record>
+
+    <!-- Action ancienne (garde pour compatibilité) -->
     <record id="action_onedesk_dashboard" model="ir.actions.act_window">
-        <field name="name">Tableau de bord</field>
+        <field name="name">Tableau de bord (Ancien)</field>
         <field name="res_model">onedesk.dashboard</field>
         <field name="view_mode">form,list,kanban,pivot</field>
         <field name="context">{'default_user_id': uid}</field>
@@ -76,7 +92,6 @@
         <field name="name">Équipe</field>
         <field name="res_model">res.users</field>
         <field name="view_mode">kanban,list,graph,pivot</field>
-        <field name="domain">[('groups_id.name', 'ilike', 'OneDesk')]</field>
         <field name="help" type="html">
             <p class="oe_view_nocontent">Aucun utilisateur OneDesk</p>
         </field>
@@ -306,13 +321,6 @@
         <field name="context">{'search_default_due_today': 1}</field>
     </record>
 
-    <record id="action_tasks_due_this_week" model="ir.actions.act_window">
-        <field name="name">Due This Week</field>
-        <field name="res_model">onedesk.task</field>
-        <field name="view_mode">list,form,kanban</field>
-        <field name="context">{'search_default_due_week': 1}</field>
-    </record>
-
     <record id="action_tasks_due_this_month" model="ir.actions.act_window">
         <field name="name">Due This Month</field>
         <field name="res_model">onedesk.task</field>
@@ -329,339 +337,326 @@
               sequence="5"/>
 
     <!-- Dashboard Menu Items -->
-    <!-- 1. Réservations -->
-    <menuitem id="menu_dashboard_reservations"
-              name="📋 Réservations"
-              parent="menu_onedesk_dashboards"
-              action="action_reservation_dashboard"
-              sequence="10"/>
 
-    <!-- 2. Propriétés -->
-    <menuitem id="menu_dashboard_properties"
-              name="🏠 Propriétés"
+    <!-- Dashboard Principal ApexCharts -->
+    <menuitem id="menu_dashboard_main_apexcharts"
+              name="📊 Dashboard Principal"
               parent="menu_onedesk_dashboards"
-              action="action_property_dashboard"
-              sequence="20"/>
+              action="action_onedesk_dashboard_main_apexcharts"
+              sequence="1"/>
 
-    <!-- 3. Revenus -->
-    <menuitem id="menu_dashboard_revenues"
-              name="💰 Revenus"
+    <!-- Dashboard Admin Master (Visible uniquement pour Master Admin) -->
+    <menuitem id="menu_dashboard_admin_master"
+              name="👑 Dashboard Admin"
               parent="menu_onedesk_dashboards"
-              action="action_revenue_dashboard"
-              sequence="30"/>
+              action="action_onedesk_dashboard_admin_master"
+              groups="onedesk_core.group_onedesk_master_admin"
+              sequence="2"/>
 
-    <!-- 4. Planning -->
-    <menuitem id="menu_dashboard_planning"
-              name="📅 Planning"
-              parent="menu_onedesk_dashboards"
-              action="action_planning_dashboard"
-              sequence="40"/>
-
-    <!-- 5. Opérations -->
-    <menuitem id="menu_dashboard_operations"
-              name="⚙️ Opérations"
-              parent="menu_onedesk_dashboards"
-              action="action_operation_dashboard"
-              sequence="50"/>
-
-    <!-- 6. Équipe -->
+    <!-- Dashboard Équipe -->
     <menuitem id="menu_dashboard_team"
-              name="👥 Équipe"
+              name="👥 Dashboard Équipe"
               parent="menu_onedesk_dashboards"
-              action="action_team_dashboard"
-              sequence="60"/>
+              action="action_dashboard_users"
+              sequence="3"/>
 
     <!-- PROPERTIES MENU -->
     <menuitem id="menu_onedesk_property"
-              name="🏠 Properties"
+              name="🏠 Propriétés"
               parent="menu_onedesk_root"
               sequence="10"/>
 
     <menuitem id="menu_property_all"
-              name="All Properties"
+              name="Toutes les Propriétés"
               parent="menu_onedesk_property"
               action="action_onedesk_property"
               sequence="10"/>
 
     <menuitem id="menu_property_status"
-              name="By Status"
+              name="Par Statut"
               parent="menu_onedesk_property"
               sequence="20"/>
 
     <menuitem id="menu_property_active"
-              name="Active Properties"
+              name="Actives"
               parent="menu_property_status"
               action="action_properties_active"
               sequence="10"/>
 
     <menuitem id="menu_property_inactive"
-              name="Inactive Properties"
+              name="Inactives"
               parent="menu_property_status"
               action="action_properties_inactive"
               sequence="20"/>
 
     <!-- UNITS MENU -->
     <menuitem id="menu_onedesk_unit"
-              name="🚪 Units"
+              name="🚪 Unités"
               parent="menu_onedesk_root"
               sequence="20"/>
 
     <menuitem id="menu_unit_all"
-              name="All Units"
+              name="Toutes les Unités"
               parent="menu_onedesk_unit"
               action="action_onedesk_unit"
               sequence="10"/>
 
     <menuitem id="menu_unit_organization"
-              name="By Property"
+              name="Par Propriété"
               parent="menu_onedesk_unit"
               sequence="20"/>
 
     <menuitem id="menu_unit_by_property"
-              name="View by Property"
+              name="Vue par Propriété"
               parent="menu_unit_organization"
               action="action_units_by_property"
               sequence="10"/>
 
     <menuitem id="menu_unit_availability"
-              name="Availability"
+              name="Disponibilité"
               parent="menu_onedesk_unit"
               sequence="30"/>
 
     <menuitem id="menu_unit_available"
-              name="Available Now"
+              name="Disponibles Maintenant"
               parent="menu_unit_availability"
               action="action_units_active"
               sequence="10"/>
 
     <menuitem id="menu_unit_status"
-              name="Status"
+              name="Par Statut"
               parent="menu_onedesk_unit"
               sequence="40"/>
 
     <menuitem id="menu_unit_maintenance"
-              name="Maintenance Units"
+              name="En Maintenance"
               parent="menu_unit_status"
               action="action_units_maintenance"
               sequence="10"/>
 
     <menuitem id="menu_unit_inactive"
-              name="Inactive Units"
+              name="Inactives"
               parent="menu_unit_status"
               action="action_units_inactive"
               sequence="20"/>
 
     <!-- RESERVATIONS MENU -->
     <menuitem id="menu_onedesk_reservation"
-              name="📅 Reservations"
+              name="📅 Réservations"
               parent="menu_onedesk_root"
               sequence="30"/>
 
     <menuitem id="menu_reservation_all"
-              name="All Reservations"
+              name="Toutes les Réservations"
               parent="menu_onedesk_reservation"
               action="action_onedesk_reservation"
               sequence="10"/>
 
     <menuitem id="menu_reservation_status"
-              name="By Status"
+              name="Par Statut"
               parent="menu_onedesk_reservation"
               sequence="20"/>
 
     <menuitem id="menu_reservation_pending"
-              name="Pending"
+              name="En Attente"
               parent="menu_reservation_status"
               action="action_reservations_pending"
               sequence="10"/>
 
     <menuitem id="menu_reservation_confirmed"
-              name="Confirmed"
+              name="Confirmées"
               parent="menu_reservation_status"
               action="action_reservations_confirmed"
               sequence="20"/>
 
     <menuitem id="menu_reservation_checkedin"
-              name="Checked In"
+              name="Enregistrées"
               parent="menu_reservation_status"
               action="action_reservations_checkedin"
               sequence="30"/>
 
     <menuitem id="menu_reservation_completed"
-              name="Completed"
+              name="Complétées"
               parent="menu_reservation_status"
               action="action_reservations_completed"
               sequence="40"/>
 
     <menuitem id="menu_reservation_cancelled"
-              name="Cancelled"
+              name="Annulées"
               parent="menu_reservation_status"
               action="action_reservations_cancelled"
               sequence="50"/>
 
     <menuitem id="menu_reservation_timeline"
-              name="Timeline"
+              name="Chronologie"
               parent="menu_onedesk_reservation"
               sequence="30"/>
 
     <menuitem id="menu_reservation_this_week"
-              name="This Week"
+              name="Cette Semaine"
               parent="menu_reservation_timeline"
               action="action_reservations_this_week"
               sequence="10"/>
 
     <menuitem id="menu_reservation_this_month"
-              name="This Month"
+              name="Ce Mois"
               parent="menu_reservation_timeline"
               action="action_reservations_this_month"
               sequence="20"/>
 
     <menuitem id="menu_reservation_upcoming"
-              name="Upcoming"
+              name="À Venir"
               parent="menu_reservation_timeline"
               action="action_reservations_upcoming"
               sequence="30"/>
 
     <menuitem id="menu_reservation_quick"
-              name="Quick Access"
+              name="Accès Rapide"
               parent="menu_onedesk_reservation"
               sequence="40"/>
 
     <menuitem id="menu_reservation_checkin_today"
-              name="Check-in Due Today"
+              name="Arrivées Aujourd'hui"
               parent="menu_reservation_quick"
               action="action_reservations_checkin_today"
               sequence="10"/>
 
     <menuitem id="menu_reservation_checkout_today"
-              name="Check-out Today"
+              name="Départs Aujourd'hui"
               parent="menu_reservation_quick"
               action="action_reservations_checkout_today"
               sequence="20"/>
 
     <!-- TASKS MENU -->
     <menuitem id="menu_onedesk_task"
-              name="✅ Tasks"
+              name="✅ Tâches"
               parent="menu_onedesk_root"
               sequence="40"/>
 
     <menuitem id="menu_task_all"
-              name="All Tasks"
+              name="Toutes les Tâches"
               parent="menu_onedesk_task"
               action="action_onedesk_task"
               sequence="10"/>
 
     <menuitem id="menu_task_status"
-              name="By Status"
+              name="Par Statut"
               parent="menu_onedesk_task"
               sequence="20"/>
 
     <menuitem id="menu_task_todo"
-              name="To Do"
+              name="À Faire"
               parent="menu_task_status"
               action="action_tasks_todo"
               sequence="10"/>
 
     <menuitem id="menu_task_in_progress"
-              name="In Progress"
+              name="En Cours"
               parent="menu_task_status"
               action="action_tasks_in_progress"
               sequence="20"/>
 
     <menuitem id="menu_task_done"
-              name="Done"
+              name="Terminées"
               parent="menu_task_status"
               action="action_tasks_done"
               sequence="30"/>
 
     <menuitem id="menu_task_blocked"
-              name="Blocked"
+              name="Bloquées"
               parent="menu_task_status"
               action="action_tasks_blocked"
               sequence="40"/>
 
     <menuitem id="menu_task_overdue"
-              name="Overdue"
+              name="En Retard"
               parent="menu_task_status"
               action="action_tasks_overdue"
               sequence="50"/>
 
     <menuitem id="menu_task_priority"
-              name="By Priority"
+              name="Par Priorité"
               parent="menu_onedesk_task"
               sequence="30"/>
 
     <menuitem id="menu_task_urgent"
-              name="🔴 Urgent"
+              name="⚠️ Urgentes"
               parent="menu_task_priority"
               action="action_tasks_urgent"
               sequence="10"/>
 
     <menuitem id="menu_task_high"
-              name="🟠 High"
+              name="🔴 Hautes"
               parent="menu_task_priority"
               action="action_tasks_high"
               sequence="20"/>
 
     <menuitem id="menu_task_medium"
-              name="🟡 Medium"
+              name="🟡 Moyennes"
               parent="menu_task_priority"
               action="action_tasks_medium"
               sequence="30"/>
 
     <menuitem id="menu_task_low"
-              name="🟢 Low"
+              name="🟢 Basses"
               parent="menu_task_priority"
               action="action_tasks_low"
               sequence="40"/>
 
     <menuitem id="menu_task_timeline"
-              name="Timeline"
+              name="Chronologie"
               parent="menu_onedesk_task"
               sequence="40"/>
 
     <menuitem id="menu_task_due_today"
-              name="Due Today"
+              name="Aujourd'hui"
               parent="menu_task_timeline"
               action="action_tasks_due_today"
               sequence="10"/>
 
-    <menuitem id="menu_task_due_week"
-              name="Due This Week"
-              parent="menu_task_timeline"
-              action="action_tasks_due_this_week"
-              sequence="20"/>
-
     <menuitem id="menu_task_due_month"
-              name="Due This Month"
+              name="Ce Mois"
               parent="menu_task_timeline"
               action="action_tasks_due_this_month"
-              sequence="30"/>
+              sequence="20"/>
 
-    <!-- INTEGRATION MENU (existing) -->
+    <!-- INTEGRATION MENU -->
     <menuitem id="menu_onedesk_integration"
-              name="🔄 Integration"
+              name="🔄 Intégration"
               parent="menu_onedesk_root"
               sequence="50"/>
 
+    <!-- TEAM MENU -->
+    <menuitem id="menu_onedesk_team"
+              name="👥 Équipe"
+              parent="menu_onedesk_root"
+              sequence="60"/>
+
+    <menuitem id="menu_team_users"
+              name="Utilisateurs"
+              parent="menu_onedesk_team"
+              action="base.action_res_users"
+              sequence="10"/>
+
     <!-- SETTINGS MENU -->
     <menuitem id="menu_onedesk_settings"
-              name="⚙️ Settings"
+              name="⚙️ Paramètres"
               parent="menu_onedesk_root"
               sequence="100"/>
 
     <menuitem id="menu_settings_subscription"
-              name="Subscription Management"
+              name="Gestion Abonnements"
               parent="menu_onedesk_settings"
               action="action_onedesk_subscription_plan"
               sequence="10"/>
 
     <menuitem id="menu_settings_groups"
-              name="Team &amp; Permissions"
+              name="Équipe &amp; Permissions"
               parent="menu_onedesk_settings"
               sequence="20"/>
 
     <menuitem id="menu_settings_audit"
-              name="Audit Logs"
+              name="Logs d'Audit"
               parent="menu_onedesk_settings"
               action="action_onedesk_audit_log"
               sequence="30"/>

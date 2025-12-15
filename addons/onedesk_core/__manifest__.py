@@ -1,6 +1,10 @@
 {
     'name': 'OneDesk Core',
+<<<<<<< HEAD
+    'version': '19.0.1.0.0',
+=======
     'version': '19.0.1.0.1',
+>>>>>>> 3e55d22cdc5e8207ec13690ca33b5b329d25d765
     'summary': 'Core of OneDesk (central hub for property management, tasks, documents, etc.)',
     'author': 'Merveilles',
     'license': 'LGPL-3',
@@ -10,6 +14,8 @@
         'payment',              # NEW - Payment Engine
         'account_payment',      # NEW - Invoice Payment Integration
         'website',              # NEW - Website module for portal/frontend
+        'crm',                  # CRM (for Premium Manager access)
+        'sale',                 # Sales Orders (for Premium Manager access)
     ],
     'data': [
     # Multi-tenant data FIRST - Groupes et séquences doivent exister AVANT ir.model.access.csv
@@ -45,6 +51,24 @@
     'views/oauth_templates.xml',
     'views/public_reservation_templates.xml',
 
+    # Document & Signature views
+    'views/onedesk_document_views.xml',
+    'views/onedesk_document_signature_views.xml',
+    'views/public_signature_templates.xml',  # NEW - Public signature pages
+    'views/invitation_templates.xml',  # NEW - Invitation acceptance pages
+    'views/onedesk_document_recipient_views.xml',
+    'views/onedesk_signaturit_config.xml',
+
+    # Payment Retry & Availability Cache views (Phase C1 + C2)
+    'views/onedesk_payment_retry_views.xml',
+    'views/onedesk_availability_cache_views.xml',
+
+    # Contact Importer (Marketing)
+    'views/contact_importer_views.xml',
+
+    # Website menu override for Premium Manager
+    'views/website_menu_override.xml',
+
     # Multi-tenant views (admin)
     'views/onedesk_plan_views.xml',
     'views/onedesk_client_views.xml',
@@ -54,6 +78,10 @@
     # Données après (quand les models sont chargés)
     'data/integration_providers.xml',
     'data/integration_cron.xml',
+    'data/onedesk_signaturit_config.xml',
+
+    # Payment & Cache (Phase C1 + C2)
+    'data/onedesk_payment_retry_cron.xml',
 
     # Menus APRÈS les vues qui créent les actions (CRITICAL: must be after all view files)
     'views/onedesk_menu_hierarchy.xml',
@@ -68,14 +96,18 @@
     # Assets (CSS, JavaScript)
     'assets': {
         'web.assets_backend': [
-            # Chart.js for graphs
-            'https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js',
+            # ApexCharts for graphs (replacing Chart.js)
+            'https://cdn.jsdelivr.net/npm/apexcharts@3.45.1/dist/apexcharts.min.js',
 
             # OneDesk Dashboard CSS & JS
             'onedesk_core/static/src/css/dashboard.css',
+            'onedesk_core/static/src/css/document_form.css',
+            'onedesk_core/static/src/xml/dashboard_templates.xml',  # NEW: OWL Templates
             'onedesk_core/static/src/js/dashboard_refresh.js',
-            'onedesk_core/static/src/js/dashboard_charts.js',
+            'onedesk_core/static/src/js/dashboard_apexcharts.js',  # NEW: ApexCharts dashboard
+            'onedesk_core/static/src/js/dashboard_admin_master.js',  # NEW: Admin Master dashboard
             'onedesk_core/static/src/js/dashboard_customization.js',
+            'onedesk_core/static/src/js/document_form_layout.js',
         ]
     },
     

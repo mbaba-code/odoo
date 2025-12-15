@@ -1,0 +1,228 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Template pour la page d'acceptation d'invitation -->
+    <template id="invitation_accept_template" name="Accepter l'invitation">
+        <t t-call="website.layout">
+            <div class="container mt-5 mb-5">
+                <div class="row justify-content-center">
+                    <div class="col-lg-6">
+                        <div class="card shadow-sm">
+                            <div class="card-header bg-primary text-white text-center py-4">
+                                <h2 class="mb-0">
+                                    <i class="fa fa-user-plus me-2"></i>
+                                    Activez votre compte OneDesk
+                                </h2>
+                            </div>
+                            <div class="card-body p-5">
+                                <!-- Informations d'invitation -->
+                                <div class="alert alert-info mb-4">
+                                    <p class="mb-2">
+                                        <strong>Bienvenue!</strong> Vous avez été invité à rejoindre OneDesk.
+                                    </p>
+                                    <p class="mb-0">
+                                        <i class="fa fa-envelope me-2"></i>
+                                        <strong>Email:</strong> <t t-esc="invitation.email"/>
+                                    </p>
+                                </div>
+
+                                <!-- Formulaire de définition du mot de passe -->
+                                <form id="invitation-form" class="needs-validation" novalidate="novalidate">
+                                    <input type="hidden" id="invitation-token" t-att-value="token"/>
+
+                                    <!-- Nom complet -->
+                                    <div class="mb-4">
+                                        <label for="full-name" class="form-label">
+                                            <i class="fa fa-user me-2"></i>Nom complet *
+                                        </label>
+                                        <input type="text"
+                                               class="form-control form-control-lg"
+                                               id="full-name"
+                                               placeholder="Votre nom complet"
+                                               required="required"/>
+                                        <div class="invalid-feedback">
+                                            Veuillez entrer votre nom complet
+                                        </div>
+                                    </div>
+
+                                    <!-- Mot de passe -->
+                                    <div class="mb-4">
+                                        <label for="password" class="form-label">
+                                            <i class="fa fa-lock me-2"></i>Mot de passe *
+                                        </label>
+                                        <input type="password"
+                                               class="form-control form-control-lg"
+                                               id="password"
+                                               placeholder="Choisissez un mot de passe sécurisé"
+                                               required="required"
+                                               minlength="8"/>
+                                        <div class="invalid-feedback">
+                                            Le mot de passe doit contenir au moins 8 caractères
+                                        </div>
+                                        <small class="form-text text-muted">
+                                            Minimum 8 caractères
+                                        </small>
+                                    </div>
+
+                                    <!-- Confirmation mot de passe -->
+                                    <div class="mb-4">
+                                        <label for="password-confirm" class="form-label">
+                                            <i class="fa fa-lock me-2"></i>Confirmer le mot de passe *
+                                        </label>
+                                        <input type="password"
+                                               class="form-control form-control-lg"
+                                               id="password-confirm"
+                                               placeholder="Confirmez votre mot de passe"
+                                               required="required"
+                                               minlength="8"/>
+                                        <div class="invalid-feedback">
+                                            Les mots de passe doivent correspondre
+                                        </div>
+                                    </div>
+
+                                    <!-- Message d'erreur -->
+                                    <div id="error-message" class="alert alert-danger" style="display: none;"></div>
+
+                                    <!-- Message de succès -->
+                                    <div id="success-message" class="alert alert-success" style="display: none;"></div>
+
+                                    <!-- Bouton de soumission -->
+                                    <div class="d-grid">
+                                        <button type="submit"
+                                                class="btn btn-primary btn-lg"
+                                                id="submit-btn">
+                                            <i class="fa fa-check me-2"></i>
+                                            Activer mon compte
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- JavaScript pour gérer le formulaire -->
+            <script type="text/javascript">
+                document.addEventListener('DOMContentLoaded', function() {
+                    const form = document.getElementById('invitation-form');
+                    const submitBtn = document.getElementById('submit-btn');
+                    const errorDiv = document.getElementById('error-message');
+                    const successDiv = document.getElementById('success-message');
+                    const passwordInput = document.getElementById('password');
+                    const confirmInput = document.getElementById('password-confirm');
+
+                    // Validation custom pour les mots de passe
+                    confirmInput.addEventListener('input', function() {
+                        if (passwordInput.value !== confirmInput.value) {
+                            confirmInput.setCustomValidity('Les mots de passe ne correspondent pas');
+                        } else {
+                            confirmInput.setCustomValidity('');
+                        }
+                    });
+
+                    form.addEventListener('submit', async function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+
+                        // Validation Bootstrap
+                        if (!form.checkValidity()) {
+                            form.classList.add('was-validated');
+                            return;
+                        }
+
+                        const token = document.getElementById('invitation-token').value;
+                        const fullName = document.getElementById('full-name').value;
+                        const password = passwordInput.value;
+                        const passwordConfirm = confirmInput.value;
+
+                        // Vérifier que les mots de passe correspondent
+                        if (password !== passwordConfirm) {
+                            errorDiv.textContent = 'Les mots de passe ne correspondent pas';
+                            errorDiv.style.display = 'block';
+                            successDiv.style.display = 'none';
+                            return;
+                        }
+
+                        // Désactiver le bouton et afficher un loader
+                        submitBtn.disabled = true;
+                        submitBtn.innerHTML = '<i class="fa fa-spinner fa-spin me-2"></i>Activation en cours...';
+                        errorDiv.style.display = 'none';
+                        successDiv.style.display = 'none';
+
+                        try {
+                            // Appeler l'API d'acceptation d'invitation
+                            const response = await fetch('/onedesk/invite/accept/submit', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                },
+                                body: JSON.stringify({
+                                    jsonrpc: '2.0',
+                                    method: 'call',
+                                    params: {
+                                        token: token,
+                                        name: fullName,
+                                        password: password
+                                    }
+                                })
+                            });
+
+                            const result = await response.json();
+
+                            if (result.error) {
+                                throw new Error(result.error.data.message || result.error.message);
+                            }
+
+                            const data = result.result;
+
+                            if (data.status === 'success') {
+                                successDiv.textContent = data.message;
+                                successDiv.style.display = 'block';
+
+                                // Rediriger vers la page de connexion après 2 secondes
+                                setTimeout(function() {
+                                    window.location.href = '/web/login';
+                                }, 2000);
+                            } else {
+                                throw new Error(data.message || 'Erreur lors de l\'activation du compte');
+                            }
+                        } catch (error) {
+                            console.error('Error:', error);
+                            errorDiv.textContent = error.message || 'Une erreur est survenue. Veuillez réessayer.';
+                            errorDiv.style.display = 'block';
+                            submitBtn.disabled = false;
+                            submitBtn.innerHTML = '<i class="fa fa-check me-2"></i>Activer mon compte';
+                        }
+                    });
+                });
+            </script>
+        </t>
+    </template>
+
+    <!-- Template pour la page d'erreur d'invitation -->
+    <template id="invitation_error_template" name="Erreur d'invitation">
+        <t t-call="website.layout">
+            <div class="container mt-5 mb-5">
+                <div class="row justify-content-center">
+                    <div class="col-lg-6">
+                        <div class="card shadow-sm border-danger">
+                            <div class="card-body p-5 text-center">
+                                <div class="mb-4">
+                                    <i class="fa fa-exclamation-triangle text-danger" style="font-size: 72px;"></i>
+                                </div>
+                                <h2 class="mb-3 text-danger">Invitation Invalide</h2>
+                                <p class="text-muted mb-4">
+                                    <t t-esc="error_message"/>
+                                </p>
+                                <a href="/" class="btn btn-primary">
+                                    <i class="fa fa-home me-2"></i>
+                                    Retour à l'accueil
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+</odoo>

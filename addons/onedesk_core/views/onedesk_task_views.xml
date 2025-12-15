@@ -1,4 +1,40 @@
 <odoo>
+    <!-- Search view for filtering tasks -->
+    <record id="view_onedesk_task_search" model="ir.ui.view">
+        <field name="name">onedesk.task.search</field>
+        <field name="model">onedesk.task</field>
+        <field name="arch" type="xml">
+            <search string="Tâches">
+                <field name="name" string="Tâche"/>
+                <field name="assigned_to" string="Assigné à"/>
+                <field name="task_type" string="Type"/>
+                <field name="status" string="Statut"/>
+                <separator/>
+                <!-- Filtres par Statut -->
+                <filter string="À Faire" name="todo" domain="[('status', '=', 'todo')]"/>
+                <filter string="En Cours" name="in_progress" domain="[('status', '=', 'in_progress')]"/>
+                <filter string="Terminées" name="done" domain="[('status', '=', 'done')]"/>
+                <separator/>
+                <!-- Filtres Chronologie -->
+                <filter string="Aujourd'hui" name="due_today"
+                    domain="[('date_start', '&gt;=', context_today().strftime('%Y-%m-%d')),
+                             ('date_start', '&lt;', (context_today() + datetime.timedelta(days=1)).strftime('%Y-%m-%d'))]"/>
+                <filter string="Cette Semaine" name="due_week"
+                    domain="[('date_start', '&gt;=', (context_today() - datetime.timedelta(days=7)).strftime('%Y-%m-%d')),
+                             ('date_start', '&lt;=', (context_today() + datetime.timedelta(days=7)).strftime('%Y-%m-%d'))]"/>
+                <filter string="Ce Mois" name="due_month"
+                    domain="[('date_start', '&gt;=', (context_today() - datetime.timedelta(days=30)).strftime('%Y-%m-%d')),
+                             ('date_start', '&lt;=', (context_today() + datetime.timedelta(days=30)).strftime('%Y-%m-%d'))]"/>
+                <filter string="À Venir" name="upcoming"
+                    domain="[('date_start', '&gt;=', context_today().strftime('%Y-%m-%d'))]"/>
+                <separator/>
+                <!-- Filtres par Priorité -->
+                <filter string="Haute Priorité" name="high_priority" domain="[('priority', '=', 'high')]"/>
+                <filter string="Urgentes" name="urgent" domain="[('priority', '=', 'urgent')]"/>
+            </search>
+        </field>
+    </record>
+
     <!-- Liste des tâches -->
     <record id="view_onedesk_task_list" model="ir.ui.view">
         <field name="name">onedesk.task.list</field>
@@ -111,6 +147,113 @@
                 <field name="id" type="measure"/>
             </pivot>
         </field>
+    </record>
+
+    <!-- ==================== ACTIONS PAR STATUT ==================== -->
+
+    <!-- Tâches À Faire -->
+    <record id="action_tasks_todo" model="ir.actions.act_window">
+        <field name="name">Tâches À Faire</field>
+        <field name="res_model">onedesk.task</field>
+        <field name="view_mode">kanban,list,form,calendar</field>
+        <field name="domain">[('status', '=', 'todo')]</field>
+        <field name="context">{'default_status': 'todo'}</field>
+    </record>
+
+    <!-- Tâches En Cours -->
+    <record id="action_tasks_in_progress" model="ir.actions.act_window">
+        <field name="name">Tâches En Cours</field>
+        <field name="res_model">onedesk.task</field>
+        <field name="view_mode">kanban,list,form,calendar</field>
+        <field name="domain">[('status', '=', 'in_progress')]</field>
+        <field name="context">{'default_status': 'in_progress'}</field>
+    </record>
+
+    <!-- Tâches Terminées -->
+    <record id="action_tasks_done" model="ir.actions.act_window">
+        <field name="name">Tâches Terminées</field>
+        <field name="res_model">onedesk.task</field>
+        <field name="view_mode">kanban,list,form,calendar</field>
+        <field name="domain">[('status', '=', 'done')]</field>
+        <field name="context">{'default_status': 'done'}</field>
+    </record>
+
+    <!-- Tâches Bloquées (basé sur priorité urgent ou date dépassée) -->
+    <record id="action_tasks_blocked" model="ir.actions.act_window">
+        <field name="name">Tâches Bloquées</field>
+        <field name="res_model">onedesk.task</field>
+        <field name="view_mode">kanban,list,form,calendar</field>
+        <field name="domain">[
+            ('status', '!=', 'done'),
+            ('priority', '=', 'urgent')
+        ]</field>
+    </record>
+
+    <!-- Tâches En Retard -->
+    <record id="action_tasks_overdue" model="ir.actions.act_window">
+        <field name="name">Tâches En Retard</field>
+        <field name="res_model">onedesk.task</field>
+        <field name="view_mode">kanban,list,form,calendar</field>
+        <field name="domain">[
+            ('status', '!=', 'done'),
+            ('date_end', '&lt;', context_today().strftime('%Y-%m-%d'))
+        ]</field>
+    </record>
+
+    <!-- ==================== ACTIONS PAR PRIORITÉ ==================== -->
+
+    <!-- Tâches Urgentes -->
+    <record id="action_tasks_urgent" model="ir.actions.act_window">
+        <field name="name">Tâches Urgentes</field>
+        <field name="res_model">onedesk.task</field>
+        <field name="view_mode">kanban,list,form,calendar</field>
+        <field name="domain">[('priority', '=', 'urgent')]</field>
+        <field name="context">{'default_priority': 'urgent'}</field>
+    </record>
+
+    <!-- Tâches Haute Priorité -->
+    <record id="action_tasks_high" model="ir.actions.act_window">
+        <field name="name">Tâches Haute Priorité</field>
+        <field name="res_model">onedesk.task</field>
+        <field name="view_mode">kanban,list,form,calendar</field>
+        <field name="domain">[('priority', '=', 'high')]</field>
+        <field name="context">{'default_priority': 'high'}</field>
+    </record>
+
+    <!-- Tâches Moyenne Priorité -->
+    <record id="action_tasks_medium" model="ir.actions.act_window">
+        <field name="name">Tâches Moyenne Priorité</field>
+        <field name="res_model">onedesk.task</field>
+        <field name="view_mode">kanban,list,form,calendar</field>
+        <field name="domain">[('priority', '=', 'medium')]</field>
+        <field name="context">{'default_priority': 'medium'}</field>
+    </record>
+
+    <!-- Tâches Basse Priorité -->
+    <record id="action_tasks_low" model="ir.actions.act_window">
+        <field name="name">Tâches Basse Priorité</field>
+        <field name="res_model">onedesk.task</field>
+        <field name="view_mode">kanban,list,form,calendar</field>
+        <field name="domain">[('priority', '=', 'low')]</field>
+        <field name="context">{'default_priority': 'low'}</field>
+    </record>
+
+    <!-- ==================== ACTIONS CHRONOLOGIE ==================== -->
+
+    <!-- Tâches Aujourd'hui -->
+    <record id="action_tasks_due_today" model="ir.actions.act_window">
+        <field name="name">Tâches Aujourd'hui</field>
+        <field name="res_model">onedesk.task</field>
+        <field name="view_mode">kanban,list,form,calendar</field>
+        <field name="domain">[
+            '|',
+            '&amp;',
+            ('date_start', '&gt;=', context_today().strftime('%Y-%m-%d 00:00:00')),
+            ('date_start', '&lt;=', context_today().strftime('%Y-%m-%d 23:59:59')),
+            '&amp;',
+            ('date_end', '&gt;=', context_today().strftime('%Y-%m-%d 00:00:00')),
+            ('date_end', '&lt;=', context_today().strftime('%Y-%m-%d 23:59:59'))
+        ]</field>
     </record>
 
 </odoo>

@@ -1,0 +1,412 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <!-- Dashboard Principal Template avec ApexCharts -->
+    <t t-name="onedesk_core.DashboardMain" owl="1">
+        <div class="onedesk-dashboard-main">
+            <!-- Header avec boutons d'action -->
+            <div class="dashboard-header">
+                <div class="dashboard-header-content">
+                    <div class="dashboard-title">
+                        <h1><i class="fa fa-chart-line"/> Tableau de Bord Principal</h1>
+                        <p style="color: white;">Vue d'ensemble complète de votre activité</p>
+                    </div>
+                    <div class="dashboard-actions">
+                        <button class="btn" style="background-color: #5B9BD5; color: white; border: none;" t-on-click="refreshDashboard" title="Rafraîchir">
+                            <i class="fa fa-sync"/> Actualiser
+                        </button>
+                        <div class="btn-group" role="group">
+                            <button class="btn" style="background-color: #70AD47; color: white; border: none;" t-on-click="exportToExcel" title="Export Excel">
+                                <i class="fa fa-file-excel"/> Excel
+                            </button>
+                            <button class="btn" style="background-color: #E07A7A; color: white; border: none;" t-on-click="exportToPDF" title="Export PDF">
+                                <i class="fa fa-file-pdf"/> PDF
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Loader pendant chargement -->
+            <div t-if="state.loading" class="dashboard-loader">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Chargement...</span>
+                </div>
+                <p>Chargement des données...</p>
+            </div>
+
+            <!-- Message d'erreur -->
+            <div t-if="!state.loading and state.error" class="alert alert-danger m-4" role="alert">
+                <h4 class="alert-heading"><i class="fa fa-exclamation-triangle"/> Erreur de chargement</h4>
+                <p><t t-esc="state.error"/></p>
+                <hr/>
+                <p class="mb-0">Vérifiez la console du navigateur (F12) pour plus de détails.</p>
+            </div>
+
+            <!-- Contenu du dashboard -->
+            <div t-if="!state.loading and !state.error" class="dashboard-content">
+                <!-- Section KPIs Cards -->
+                <div class="dashboard-kpis">
+                    <div class="row g-3">
+                        <div class="col-md-2">
+                            <div class="kpi-card kpi-properties">
+                                <div class="kpi-icon">
+                                    <i class="fa fa-building"/>
+                                </div>
+                                <div class="kpi-details">
+                                    <div class="kpi-value">
+                                        <t t-esc="state.data.kpis?.total_properties || 0"/>
+                                    </div>
+                                    <div class="kpi-label">Propriétés</div>
+                                    <div class="kpi-subtext">
+                                        <span class="badge" style="background-color: #70AD47; color: white;">
+                                            <t t-esc="state.data.kpis?.active_properties || 0"/> actives
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-2">
+                            <div class="kpi-card kpi-units">
+                                <div class="kpi-icon">
+                                    <i class="fa fa-door-open"/>
+                                </div>
+                                <div class="kpi-details">
+                                    <div class="kpi-value">
+                                        <t t-esc="state.data.kpis?.total_units || 0"/>
+                                    </div>
+                                    <div class="kpi-label">Unités</div>
+                                    <div class="kpi-subtext">
+                                        <span class="badge" style="background-color: #5B9BD5; color: white;">
+                                            <t t-esc="state.data.kpis?.available_units || 0"/> disponibles
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-3">
+                            <div class="kpi-card kpi-revenue">
+                                <div class="kpi-icon">
+                                    <i class="fa fa-euro-sign"/>
+                                </div>
+                                <div class="kpi-details">
+                                    <div class="kpi-value currency">
+                                        <t t-esc="(state.data.kpis?.revenue_this_month || 0).toLocaleString('fr-FR', {style: 'currency', currency: 'EUR'})"/>
+                                    </div>
+                                    <div class="kpi-label">Revenu du Mois</div>
+                                    <div class="kpi-subtext">Réservations actives</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-2">
+                            <div class="kpi-card kpi-occupancy">
+                                <div class="kpi-icon">
+                                    <i class="fa fa-chart-pie"/>
+                                </div>
+                                <div class="kpi-details">
+                                    <div class="kpi-value percent">
+                                        <t t-esc="state.data.occupancy_rate || 0"/>%
+                                    </div>
+                                    <div class="kpi-label">Occupation</div>
+                                    <div class="kpi-subtext">Taux actuel</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-3">
+                            <div class="kpi-card kpi-reservations">
+                                <div class="kpi-icon">
+                                    <i class="fa fa-calendar-check"/>
+                                </div>
+                                <div class="kpi-details">
+                                    <div class="kpi-value">
+                                        <t t-esc="state.data.kpis?.reservations_confirmed_month || 0"/>
+                                    </div>
+                                    <div class="kpi-label">Réservations</div>
+                                    <div class="kpi-subtext">Ce mois</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section Graphiques -->
+                <div class="dashboard-charts mt-4">
+                    <div class="row g-4">
+                        <!-- Graphique Revenus (Grande largeur) -->
+                        <div class="col-lg-8">
+                            <div class="chart-card">
+                                <div class="chart-card-header">
+                                    <h5><i class="fa fa-line-chart"/> Évolution des Revenus (12 mois)</h5>
+                                    <button class="btn btn-sm btn-outline-secondary" t-on-click="() => this.downloadChartPNG('revenueChart')">
+                                        <i class="fa fa-download"/> PNG
+                                    </button>
+                                </div>
+                                <div class="chart-card-body">
+                                    <div id="revenue-chart"/>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Graphique Occupation (Jauge) -->
+                        <div class="col-lg-4">
+                            <div class="chart-card">
+                                <div class="chart-card-header">
+                                    <h5><i class="fa fa-tachometer-alt"/> Taux d'Occupation</h5>
+                                    <button class="btn btn-sm btn-outline-secondary" t-on-click="() => this.downloadChartPNG('occupancyGauge')">
+                                        <i class="fa fa-download"/> PNG
+                                    </button>
+                                </div>
+                                <div class="chart-card-body">
+                                    <div id="occupancy-gauge"/>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Graphique Réservations par Statut -->
+                        <div class="col-lg-6">
+                            <div class="chart-card">
+                                <div class="chart-card-header">
+                                    <h5><i class="fa fa-chart-bar"/> Réservations par Statut</h5>
+                                    <button class="btn btn-sm btn-outline-secondary" t-on-click="() => this.downloadChartPNG('reservationsChart')">
+                                        <i class="fa fa-download"/> PNG
+                                    </button>
+                                </div>
+                                <div class="chart-card-body">
+                                    <div id="reservations-chart"/>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Graphique Propriétés par Type -->
+                        <div class="col-lg-6">
+                            <div class="chart-card">
+                                <div class="chart-card-header">
+                                    <h5><i class="fa fa-home"/> Propriétés par Type</h5>
+                                    <button class="btn btn-sm btn-outline-secondary" t-on-click="() => this.downloadChartPNG('propertiesPie')">
+                                        <i class="fa fa-download"/> PNG
+                                    </button>
+                                </div>
+                                <div class="chart-card-body">
+                                    <div id="properties-pie"/>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Auto-refresh indicator -->
+                <div class="dashboard-footer mt-4">
+                    <div class="auto-refresh-status">
+                        <i class="fa fa-clock"/>
+                        <span t-if="state.autoRefresh">
+                            Actualisation automatique activée (toutes les 5 min)
+                        </span>
+                        <span t-else="">
+                            Actualisation automatique désactivée
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </t>
+
+    <!-- Dashboard Admin Master Template -->
+    <t t-name="onedesk_core.DashboardAdminMaster" owl="1">
+        <div class="onedesk-dashboard-main onedesk-dashboard-admin">
+            <!-- Header avec boutons d'action -->
+            <div class="dashboard-header" style="background: linear-gradient(135deg, #5B9BD5 0%, #8FA0B3 100%);">
+                <div class="dashboard-header-content">
+                    <div class="dashboard-title">
+                        <h1><i class="fa fa-crown"/> Dashboard Admin Master</h1>
+                        <p style="color: white;">Vue globale multi-tenant - Toutes les companies</p>
+                    </div>
+                    <div class="dashboard-actions">
+                        <button class="btn btn-light" t-on-click="refreshDashboard" title="Rafraîchir">
+                            <i class="fa fa-sync"/> Actualiser
+                        </button>
+                        <div class="btn-group" role="group">
+                            <button class="btn" style="background-color: #70AD47; color: white; border: none;" t-on-click="exportToExcel" title="Export Excel">
+                                <i class="fa fa-file-excel"/> Excel
+                            </button>
+                            <button class="btn" style="background-color: #E07A7A; color: white; border: none;" t-on-click="exportToPDF" title="Export PDF">
+                                <i class="fa fa-file-pdf"/> PDF
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Loader pendant chargement -->
+            <div t-if="state.loading" class="dashboard-loader">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Chargement...</span>
+                </div>
+                <p>Chargement des données administrateur...</p>
+            </div>
+
+            <!-- Message d'erreur -->
+            <div t-if="!state.loading and state.error" class="alert alert-danger m-4" role="alert">
+                <h4 class="alert-heading"><i class="fa fa-exclamation-triangle"/> Erreur de chargement</h4>
+                <p><t t-esc="state.error"/></p>
+                <hr/>
+                <p class="mb-0">Vérifiez la console du navigateur (F12) pour plus de détails.</p>
+            </div>
+
+            <!-- Contenu du dashboard -->
+            <div t-if="!state.loading and !state.error" class="dashboard-content">
+                <!-- Section KPIs Cards Admin -->
+                <div class="dashboard-kpis">
+                    <div class="row g-3">
+                        <!-- Total Companies -->
+                        <div class="col-md-3">
+                            <div class="kpi-card" style="border-left-color: #9B8FC9;">
+                                <div class="kpi-icon">
+                                    <i class="fa fa-building"/>
+                                </div>
+                                <div class="kpi-details">
+                                    <div class="kpi-value">
+                                        <t t-esc="state.data.kpis?.total_companies || 0"/>
+                                    </div>
+                                    <div class="kpi-label">Companies</div>
+                                    <div class="kpi-subtext">
+                                        <span class="badge" style="background-color: #70AD47; color: white;">
+                                            <t t-esc="state.data.kpis?.active_companies || 0"/> actives
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Revenu Total Global -->
+                        <div class="col-md-3">
+                            <div class="kpi-card" style="border-left-color: #70AD47;">
+                                <div class="kpi-icon">
+                                    <i class="fa fa-euro-sign"/>
+                                </div>
+                                <div class="kpi-details">
+                                    <div class="kpi-value currency">
+                                        <t t-esc="(state.data.kpis?.global_revenue_month || 0).toLocaleString('fr-FR', {style: 'currency', currency: 'EUR'})"/>
+                                    </div>
+                                    <div class="kpi-label">Revenu Global Mois</div>
+                                    <div class="kpi-subtext">Toutes companies</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Total Propriétés -->
+                        <div class="col-md-2">
+                            <div class="kpi-card" style="border-left-color: #5B9BD5;">
+                                <div class="kpi-icon">
+                                    <i class="fa fa-home"/>
+                                </div>
+                                <div class="kpi-details">
+                                    <div class="kpi-value">
+                                        <t t-esc="state.data.kpis?.total_properties || 0"/>
+                                    </div>
+                                    <div class="kpi-label">Propriétés</div>
+                                    <div class="kpi-subtext">Globales</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Total Unités -->
+                        <div class="col-md-2">
+                            <div class="kpi-card" style="border-left-color: #5B9BD5;">
+                                <div class="kpi-icon">
+                                    <i class="fa fa-door-open"/>
+                                </div>
+                                <div class="kpi-details">
+                                    <div class="kpi-value">
+                                        <t t-esc="state.data.kpis?.total_units || 0"/>
+                                    </div>
+                                    <div class="kpi-label">Unités</div>
+                                    <div class="kpi-subtext">Globales</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Réservations Actives -->
+                        <div class="col-md-2">
+                            <div class="kpi-card" style="border-left-color: #E89A6A;">
+                                <div class="kpi-icon">
+                                    <i class="fa fa-calendar-check"/>
+                                </div>
+                                <div class="kpi-details">
+                                    <div class="kpi-value">
+                                        <t t-esc="state.data.kpis?.active_reservations || 0"/>
+                                    </div>
+                                    <div class="kpi-label">Réservations</div>
+                                    <div class="kpi-subtext">Actives</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section Graphiques Admin -->
+                <div class="dashboard-charts mt-4">
+                    <div class="row g-4">
+                        <!-- Revenus par Company -->
+                        <div class="col-lg-6">
+                            <div class="chart-card">
+                                <div class="chart-card-header">
+                                    <h5><i class="fa fa-chart-bar"/> Revenus par Company</h5>
+                                </div>
+                                <div class="chart-card-body">
+                                    <div id="revenue-by-company-chart"/>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Statut des Companies -->
+                        <div class="col-lg-6">
+                            <div class="chart-card">
+                                <div class="chart-card-header">
+                                    <h5><i class="fa fa-building"/> Companies par Statut</h5>
+                                </div>
+                                <div class="chart-card-body">
+                                    <div id="companies-status-chart"/>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Évolution Revenus Globaux (12 mois) -->
+                        <div class="col-lg-8">
+                            <div class="chart-card">
+                                <div class="chart-card-header">
+                                    <h5><i class="fa fa-line-chart"/> Évolution Revenus Globaux (12 mois)</h5>
+                                </div>
+                                <div class="chart-card-body">
+                                    <div id="global-revenue-chart"/>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Réservations Actives par Company -->
+                        <div class="col-lg-4">
+                            <div class="chart-card">
+                                <div class="chart-card-header">
+                                    <h5><i class="fa fa-calendar"/> Réservations par Company</h5>
+                                </div>
+                                <div class="chart-card-body">
+                                    <div id="reservations-by-company-chart"/>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Footer Admin -->
+                <div class="dashboard-footer mt-4">
+                    <div class="auto-refresh-status">
+                        <i class="fa fa-shield-alt"/>
+                        <span>Dashboard Administrateur - Accès restreint Master Admin</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </t>
+</templates>

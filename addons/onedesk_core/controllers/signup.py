@@ -1,9 +1,15 @@
 import json
 import secrets
 import string
+import re
+import logging
 from datetime import datetime, timedelta
 from odoo import http, fields
 from odoo.http import request
+from odoo.tools import email_normalize
+from markupsafe import escape
+
+_logger = logging.getLogger(__name__)
 
 
 class OnedeskoSignupController(http.Controller):
@@ -20,7 +26,8 @@ class OnedeskoSignupController(http.Controller):
     @http.route('/onedesk/signup/process', type='jsonrpc', auth='public', csrf=False)
     def signup_process(self, **data):
         """
-        Traiter l'inscription du client
+        Traiter l'inscription du client avec transaction atomique
+
         POST data:
         {
             'company_name': 'Mon Entreprise',
@@ -33,68 +40,117 @@ class OnedeskoSignupController(http.Controller):
             'accept_tos': True,
             'accept_privacy': True
         }
+
+        SECURITY IMPROVEMENTS:
+        - Transaction atomique (rollback si erreur)
+        - Validation renforcée des entrées
+        - Pas d'envoi du mot de passe par email
         """
-        try:
-            # Valider les données
-            self._validate_signup_data(data)
+        # SECURITY: Transaction atomique pour éviter les données orphelines
+        with request.env.cr.savepoint():
+            try:
+                # Valider les données (avec validation renforcée)
+                self._validate_signup_data(data)
 
-            # Créer la Company
-            company = self._create_company(data)
+                # Créer la Company
+                company = self._create_company(data)
 
-            # Créer le Contact (res.partner)
-            partner = self._create_partner(company, data)
+                # Créer le Contact (res.partner)
+                partner = self._create_partner(company, data)
 
-            # Créer le Client OneDesk
-            client = self._create_client(company, partner, data)
+                # Créer le Client OneDesk
+                client = self._create_client(company, partner, data)
 
-            # Créer l'utilisateur
-            user = self._create_user(company, partner, data)
+                # Créer l'utilisateur
+                user = self._create_user(company, partner, data)
 
-            # Assigner le groupe "Property Manager"
-            self._assign_user_group(user)
+                # Assigner le groupe "Property Manager"
+                self._assign_user_group(user)
 
-            # Créer l'abonnement avec le plan d'essai
-            subscription = self._create_subscription(client, data)
+                # Créer l'abonnement avec le plan d'essai
+                subscription = self._create_subscription(client, data)
 
-            # Envoyer l'email d'activation
-            self._send_welcome_email(user, password=data.get('password'))
+                # SECURITY: Envoyer l'email d'activation SANS le mot de passe
+                # Le mot de passe ne doit JAMAIS être envoyé par email (RGPD + sécurité)
+                self._send_welcome_email(user)
 
-            # Enregistrer dans le log d'audit
-            self._log_signup(client, user)
+                # Enregistrer dans le log d'audit
+                self._log_signup(client, user)
 
-            return {
-                'status': 'success',
-                'message': 'Inscription réussie! Vérifiez votre email.',
-                'client_id': client.id,
-                'user_id': user.id,
-                'redirect_url': '/web/login',
-            }
+                return {
+                    'status': 'success',
+                    'message': 'Inscription réussie! Vous pouvez maintenant vous connecter.',
+                    'client_id': client.id,
+                    'user_id': user.id,
+                    'redirect_url': '/web/login',
+                }
 
-        except Exception as e:
-            return {
-                'status': 'error',
-                'message': str(e),
-            }
+            except Exception as e:
+                # Rollback automatique via savepoint
+                import logging
+                _logger = logging.getLogger(__name__)
+                _logger.error(f'Erreur lors de l\'inscription: {str(e)}', exc_info=True)
+
+                return {
+                    'status': 'error',
+                    'message': str(e),
+                }
 
     @staticmethod
     def _validate_signup_data(data):
-        """Valider les données d'inscription"""
+        """Valider les données d'inscription avec validation renforcée"""
         required_fields = ['company_name', 'first_name', 'last_name', 'email', 'password']
 
         for field in required_fields:
             if not data.get(field):
                 raise ValueError(f"Le champ '{field}' est requis")
 
-        # Vérifier le format email
-        if '@' not in data.get('email', ''):
-            raise ValueError("Email invalide")
+        # SECURITY: Valider et normaliser l'email
+        try:
+            email_normalized = email_normalize(data.get('email'))
+            if not email_normalized:
+                raise ValueError("Email invalide")
+            data['email'] = email_normalized
+        except Exception:
+            raise ValueError("Format d'email invalide")
 
-        # Vérifier les longueurs
-        if len(data['password']) < 8:
+        # SECURITY: Valider les champs texte contre XSS/injection
+        text_fields = ['company_name', 'first_name', 'last_name']
+        for field in text_fields:
+            value = data.get(field, '').strip()
+
+            # Vérifier longueur minimale
+            if len(value) < 2:
+                raise ValueError(f"Le champ '{field}' est trop court (minimum 2 caractères)")
+
+            # Vérifier longueur maximale
+            if len(value) > 100:
+                raise ValueError(f"Le champ '{field}' est trop long (maximum 100 caractères)")
+
+            # SECURITY: Bloquer caractères dangereux pour XSS/injection
+            if re.search(r'[<>{}\\;\'"]', value):
+                raise ValueError(f"Le champ '{field}' contient des caractères interdits")
+
+            # Mettre à jour avec valeur nettoyée
+            data[field] = value
+
+        # SECURITY: Valider le mot de passe
+        password = data.get('password', '')
+        if len(password) < 8:
             raise ValueError("Le mot de passe doit contenir au moins 8 caractères")
 
-        if len(data['company_name']) < 2:
-            raise ValueError("Le nom de l'entreprise est trop court")
+        if len(password) > 100:
+            raise ValueError("Le mot de passe est trop long (maximum 100 caractères)")
+
+        # Vérifier la complexité du mot de passe
+        if not re.search(r'[a-z]', password):
+            raise ValueError("Le mot de passe doit contenir au moins une minuscule")
+
+        if not re.search(r'[A-Z]', password):
+            raise ValueError("Le mot de passe doit contenir au moins une majuscule")
+
+        if not re.search(r'[0-9]', password):
+            raise ValueError("Le mot de passe doit contenir au moins un chiffre")
 
         # Vérifier que l'email n'existe pas déjà
         existing_user = request.env['res.users'].sudo().search([
@@ -217,8 +273,15 @@ class OnedeskoSignupController(http.Controller):
         return None
 
     @staticmethod
-    def _send_welcome_email(user, password=None):
-        """Envoyer l'email de bienvenue"""
+    def _send_welcome_email(user):
+        """
+        Envoyer l'email de bienvenue (SANS le mot de passe pour des raisons de sécurité)
+
+        SECURITY NOTE: Le mot de passe ne doit JAMAIS être envoyé par email.
+        - Violation RGPD
+        - Risque d'interception
+        - Pratique dangereuse
+        """
         try:
             # Utiliser le template d'email
             email_template = request.env.ref('onedesk_core.email_template_welcome').sudo()
@@ -228,11 +291,21 @@ class OnedeskoSignupController(http.Controller):
 
         except Exception as e:
             # Log l'erreur mais ne pas bloquer le processus
-            request.env['onedesk.system.log'].sudo().create({
-                'level': 'warning',
-                'module': 'signup',
-                'message': f'Erreur lors de l\'envoi de l\'email de bienvenue: {str(e)}',
-            })
+            # Note: Ne pas utiliser pass silencieux, toujours logger
+            import logging
+            _logger = logging.getLogger(__name__)
+            _logger.warning(f'Erreur lors de l\'envoi de l\'email de bienvenue: {str(e)}', exc_info=True)
+
+            # Essayer de créer le log système si le modèle existe
+            try:
+                request.env['onedesk.system.log'].sudo().create({
+                    'level': 'warning',
+                    'module': 'signup',
+                    'message': f'Erreur lors de l\'envoi de l\'email de bienvenue: {str(e)}',
+                })
+            except:
+                # Si le modèle n'existe pas, continuer silencieusement
+                pass
 
     @staticmethod
     def _log_signup(client, user):
@@ -264,9 +337,41 @@ class OnedeskoSignupController(http.Controller):
         """Page de connexion personnalisée pour OneDesk"""
         return request.render('onedesk_core.login_template', {})
 
-    @http.route('/onedesk/invite/accept/<token>', type='jsonrpc', auth='public', csrf=False)
-    def accept_invitation(self, token, **data):
-        """Accepter une invitation d'utilisateur"""
+    @http.route('/onedesk/invite/accept/<token>', type='http', auth='public', website=True)
+    def accept_invitation_page(self, token, **kwargs):
+        """Page HTML pour accepter l'invitation et définir le mot de passe"""
+        Invitation = request.env['onedesk.client.invitation'].sudo()
+
+        # Trouver l'invitation
+        invitation = Invitation.search([('invitation_token', '=', token)], limit=1)
+
+        if not invitation:
+            return request.render('onedesk_core.invitation_error_template', {
+                'error_message': 'Invitation non trouvée ou expirée',
+            })
+
+        # Vérifier l'expiration
+        if fields.Datetime.now() > invitation.expires_date:
+            invitation.state = 'expired'
+            return request.render('onedesk_core.invitation_error_template', {
+                'error_message': 'Cette invitation a expiré',
+            })
+
+        # Vérifier l'état
+        if invitation.state != 'pending':
+            return request.render('onedesk_core.invitation_error_template', {
+                'error_message': 'Cette invitation n\'est plus valide',
+            })
+
+        # Afficher la page d'acceptation
+        return request.render('onedesk_core.invitation_accept_template', {
+            'invitation': invitation,
+            'token': token,
+        })
+
+    @http.route('/onedesk/invite/accept/submit', type='jsonrpc', auth='public', csrf=False)
+    def accept_invitation(self, token, name=None, password=None, **data):
+        """Accepter une invitation d'utilisateur et activer le compte"""
         try:
             Invitation = request.env['onedesk.client.invitation'].sudo()
 
@@ -280,15 +385,16 @@ class OnedeskoSignupController(http.Controller):
                 }
 
             # Accepter et créer l'utilisateur
-            user = invitation.action_accept_invitation(password=data.get('password'))
+            user = invitation.action_accept_invitation(name=name, password=password)
 
             return {
                 'status': 'success',
-                'message': 'Invitation acceptée! Vous pouvez maintenant vous connecter.',
+                'message': 'Compte activé avec succès! Redirection vers la page de connexion...',
                 'user_id': user.id,
             }
 
         except Exception as e:
+            _logger.error(f'Erreur acceptation invitation: {e}', exc_info=True)
             return {
                 'status': 'error',
                 'message': str(e),

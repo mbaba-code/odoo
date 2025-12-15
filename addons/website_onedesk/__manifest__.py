@@ -10,8 +10,10 @@
         'onedesk_core',
     ],
     'data': [
+        'templates/landing.xml',
         'templates/pages.xml',
         'templates/subscription.xml',
+        'templates/payment.xml',
     ],
     'external_dependencies': {
         'python': [],
@@ -19,6 +21,7 @@
     'assets': {
         'web.assets_frontend': [
             'website_onedesk/static/css/website_onedesk.css',
+            'website_onedesk/static/css/payment.css',
         ],
     },
     'installable': True,

@@ -36,7 +36,7 @@ class UsersDashboardController(http.Controller):
         return user.company_ids or user.company_id
 
     # ==================== USER ACTIVITY ====================
-    @http.route('/onedesk/dashboard/users/activity-by-user', type='json', auth='user')
+    @http.route('/onedesk/dashboard/users/activity-by-user', type='jsonrpc', auth='user')
     def activity_by_user(self, period_type='month', date_from=None, date_to=None, limit=15, **kwargs):
         """Activity metrics for each user"""
         try:
@@ -95,7 +95,7 @@ class UsersDashboardController(http.Controller):
                 'message': str(e)
             }
 
-    @http.route('/onedesk/dashboard/users/productivity-score', type='json', auth='user')
+    @http.route('/onedesk/dashboard/users/productivity-score', type='jsonrpc', auth='user')
     def productivity_score(self, **kwargs):
         """Overall team productivity score"""
         try:
@@ -140,7 +140,7 @@ class UsersDashboardController(http.Controller):
                 'message': str(e)
             }
 
-    @http.route('/onedesk/dashboard/users/task-status-distribution', type='json', auth='user')
+    @http.route('/onedesk/dashboard/users/task-status-distribution', type='jsonrpc', auth='user')
     def task_status_distribution(self, **kwargs):
         """Distribution of tasks by status"""
         try:
@@ -172,7 +172,7 @@ class UsersDashboardController(http.Controller):
                 'message': str(e)
             }
 
-    @http.route('/onedesk/dashboard/users/team-performance', type='json', auth='user')
+    @http.route('/onedesk/dashboard/users/team-performance', type='jsonrpc', auth='user')
     def team_performance(self, limit=10, **kwargs):
         """Top performing users"""
         try:

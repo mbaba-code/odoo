@@ -52,6 +52,7 @@ class OnedeskoClient(models.Model):
     # Status
     state = fields.Selection([
         ('pending_setup', 'En attente de configuration'),
+        ('pending_payment', '💳 En attente de paiement'),
         ('active', 'Actif'),
         ('suspended', 'Suspendu'),
         ('cancelled', 'Annulé'),
@@ -260,8 +261,8 @@ class OnedeskoClient(models.Model):
         staff_group = self.env.ref('onedesk_core.group_onedesk_staff')
         viewer_group = self.env.ref('onedesk_core.group_onedesk_viewer')
 
-        # 3.1. Créer le Property Manager
-        pm_user = self.env['res.users'].create({
+        # 3.1. Créer le Property Manager avec sudo et bon contexte company
+        pm_user = self.env['res.users'].sudo().with_company(company).create({
             'name': f'{client_name} - Property Manager',
             'login': f'pm_{client.client_code}@onedesk.local'.lower(),
             'email': client.owner_partner_id.email if client.owner_partner_id else f'pm_{client.client_code}@onedesk.local',
@@ -269,11 +270,11 @@ class OnedeskoClient(models.Model):
             'company_ids': [(6, 0, [company.id])],
             'state': 'new',
         })
-        # Ajouter le groupe après création
-        pm_user.write({'group_ids': [(4, manager_group.id)]})
+        # Ajouter le groupe après création avec sudo
+        pm_user.sudo().write({'group_ids': [(4, manager_group.id)]})
 
-        # 3.2. Créer le Staff
-        staff_user = self.env['res.users'].create({
+        # 3.2. Créer le Staff avec sudo et bon contexte company
+        staff_user = self.env['res.users'].sudo().with_company(company).create({
             'name': f'{client_name} - Staff Member',
             'login': f'staff_{client.client_code}@onedesk.local'.lower(),
             'email': f'staff_{client.client_code}@onedesk.local',
@@ -281,11 +282,11 @@ class OnedeskoClient(models.Model):
             'company_ids': [(6, 0, [company.id])],
             'state': 'new',
         })
-        # Ajouter le groupe après création
-        staff_user.write({'group_ids': [(4, staff_group.id)]})
+        # Ajouter le groupe après création avec sudo
+        staff_user.sudo().write({'group_ids': [(4, staff_group.id)]})
 
-        # 3.3. Créer le Viewer
-        viewer_user = self.env['res.users'].create({
+        # 3.3. Créer le Viewer avec sudo et bon contexte company
+        viewer_user = self.env['res.users'].sudo().with_company(company).create({
             'name': f'{client_name} - Viewer',
             'login': f'viewer_{client.client_code}@onedesk.local'.lower(),
             'email': f'viewer_{client.client_code}@onedesk.local',
@@ -293,8 +294,8 @@ class OnedeskoClient(models.Model):
             'company_ids': [(6, 0, [company.id])],
             'state': 'new',
         })
-        # Ajouter le groupe après création
-        viewer_user.write({'group_ids': [(4, viewer_group.id)]})
+        # Ajouter le groupe après création avec sudo
+        viewer_user.sudo().write({'group_ids': [(4, viewer_group.id)]})
 
     @staticmethod
     def _generate_client_code():
@@ -517,8 +518,8 @@ class OnedeskoClientInvitation(models.Model):
         # À implémenter avec le système d'email
         self.sent_date = fields.Datetime.now()
 
-    def action_accept_invitation(self, password=None):
-        """Accepter l'invitation et créer un utilisateur"""
+    def action_accept_invitation(self, name=None, password=None):
+        """Accepter l'invitation, créer un utilisateur et envoyer les emails"""
         self.ensure_one()
 
         if self.state != 'pending':
@@ -529,21 +530,62 @@ class OnedeskoClientInvitation(models.Model):
             self.state = 'expired'
             raise ValidationError("L'invitation a expiré")
 
-        # Créer l'utilisateur
-        user = self.env['res.users'].create({
-            'name': self.email.split('@')[0],
+        # Créer l'utilisateur avec sudo() et le contexte de la bonne company
+        user = self.env['res.users'].sudo().with_company(self.client_id.company_id).create({
+            'name': name or self.email.split('@')[0],
             'email': self.email,
             'login': self.email,
             'company_id': self.client_id.company_id.id,
             'company_ids': [(4, self.client_id.company_id.id)],
-            'groups_id': [(4, self._get_group_id())],
         })
 
+        # Assigner le groupe après création (directement via SQL pour contourner les restrictions)
+        group_id = self._get_group_id()
+        if group_id:
+            # Utiliser la méthode SQL directe pour insérer dans la table de liaison Many2many
+            self.env.cr.execute("""
+                INSERT INTO res_groups_users_rel (gid, uid)
+                VALUES (%s, %s)
+                ON CONFLICT DO NOTHING
+            """, (group_id, user.id))
+            _logger.info(f'✅ Groupe property_manager (ID: {group_id}) assigné à l\'utilisateur {user.login}')
+
         if password:
-            user.password = password
+            # Définir le mot de passe avec sudo() pour éviter les erreurs d'accès
+            user.sudo().password = password
 
         self.state = 'accepted'
         self.accepted_date = fields.Datetime.now()
+
+        # Envoyer l'email de bienvenue
+        try:
+            welcome_template = self.env.ref('onedesk_core.email_template_welcome')
+            if welcome_template:
+                welcome_template.sudo().send_mail(user.id, force_send=True)
+                _logger.info(f'✅ Email de bienvenue envoyé à {self.email}')
+        except Exception as e:
+            _logger.warning(f'⚠️ Erreur envoi email de bienvenue: {e}')
+
+        # Envoyer l'email de confirmation de souscription
+        try:
+            # Récupérer la souscription du client
+            subscription = self.env['onedesk.subscription'].sudo().search([
+                ('company_id', '=', self.client_id.company_id.id),
+                ('state', '=', 'active'),
+            ], limit=1, order='id desc')
+
+            if subscription:
+                subscription_template = self.env.ref('website_onedesk.email_subscription_confirmation')
+                if subscription_template:
+                    # Forcer le contexte de la company pour éviter les erreurs d'accès multi-tenant
+                    subscription_template.sudo().with_company(subscription.company_id).send_mail(
+                        subscription.id,
+                        force_send=True,
+                        email_values={'email_to': self.email}
+                    )
+                    _logger.info(f'✅ Email de confirmation de souscription envoyé à {self.email}')
+        except Exception as e:
+            _logger.warning(f'⚠️ Erreur envoi email de souscription: {e}')
 
         return user
 

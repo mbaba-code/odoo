@@ -36,7 +36,7 @@ class PropertiesDashboardController(http.Controller):
         return user.company_ids or user.company_id
 
     # ==================== PROPERTY RANKING ====================
-    @http.route('/onedesk/dashboard/properties/ranking', type='json', auth='user')
+    @http.route('/onedesk/dashboard/properties/ranking', type='jsonrpc', auth='user')
     def property_ranking(self, period_type='month', date_from=None, date_to=None, order_by='revenue', limit=15, **kwargs):
         """Property ranking by revenue, occupancy, or reservations"""
         try:
@@ -111,7 +111,7 @@ class PropertiesDashboardController(http.Controller):
                 'message': str(e)
             }
 
-    @http.route('/onedesk/dashboard/properties/revenue-by-property', type='json', auth='user')
+    @http.route('/onedesk/dashboard/properties/revenue-by-property', type='jsonrpc', auth='user')
     def revenue_by_property(self, period_type='month', date_from=None, date_to=None, limit=10, **kwargs):
         """Revenue distributed by property"""
         try:
@@ -157,7 +157,7 @@ class PropertiesDashboardController(http.Controller):
                 'message': str(e)
             }
 
-    @http.route('/onedesk/dashboard/properties/portfolio-status', type='json', auth='user')
+    @http.route('/onedesk/dashboard/properties/portfolio-status', type='jsonrpc', auth='user')
     def portfolio_status(self, **kwargs):
         """Portfolio status: active, inactive, maintenance"""
         try:

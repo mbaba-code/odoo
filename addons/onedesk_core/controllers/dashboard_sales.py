@@ -43,7 +43,7 @@ class SalesDashboardController(http.Controller):
         return user.company_ids or user.company_id
 
     # ==================== REVENUE ANALYTICS ====================
-    @http.route('/onedesk/dashboard/sales/revenue-trend', type='json', auth='user')
+    @http.route('/onedesk/dashboard/sales/revenue-trend', type='jsonrpc', auth='user')
     def revenue_trend(self, period_type='month', date_from=None, date_to=None, **kwargs):
         """Revenue trend data grouped by week or day"""
         try:
@@ -85,7 +85,7 @@ class SalesDashboardController(http.Controller):
                 'message': str(e)
             }
 
-    @http.route('/onedesk/dashboard/sales/top-properties', type='json', auth='user')
+    @http.route('/onedesk/dashboard/sales/top-properties', type='jsonrpc', auth='user')
     def top_properties(self, period_type='month', date_from=None, date_to=None, limit=10, **kwargs):
         """Top properties by revenue"""
         try:
@@ -134,7 +134,7 @@ class SalesDashboardController(http.Controller):
                 'message': str(e)
             }
 
-    @http.route('/onedesk/dashboard/sales/period-comparison', type='json', auth='user')
+    @http.route('/onedesk/dashboard/sales/period-comparison', type='jsonrpc', auth='user')
     def period_comparison(self, period_type='month', date_from=None, date_to=None, **kwargs):
         """Compare current period with previous period"""
         try:

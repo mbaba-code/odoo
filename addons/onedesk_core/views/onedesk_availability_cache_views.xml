@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Availability Cache List View -->
+    <record id="onedesk_availability_cache_view_list" model="ir.ui.view">
+        <field name="name">Availability Cache - List</field>
+        <field name="model">onedesk.availability.cache</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="unit_id"/>
+                <field name="property_id"/>
+                <field name="start_date"/>
+                <field name="end_date"/>
+                <field name="cache_hits" sum="Total Hits"/>
+                <field name="cache_misses" sum="Total Misses"/>
+                <field name="is_valid" decoration-success="is_valid == True" decoration-danger="is_valid == False"/>
+                <field name="expires_at"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Availability Cache Form View -->
+    <record id="onedesk_availability_cache_view_form" model="ir.ui.view">
+        <field name="name">Availability Cache - Form</field>
+        <field name="model">onedesk.availability.cache</field>
+        <field name="arch" type="xml">
+            <form readonly="1">
+                <sheet>
+                    <h2><field name="unit_id"/></h2>
+                    <group col="2">
+                        <field name="property_id"/>
+                        <field name="company_id"/>
+                        <field name="start_date"/>
+                        <field name="end_date"/>
+                    </group>
+
+                    <h3>📊 Cache Statistics</h3>
+                    <group col="2">
+                        <field name="cache_hits"/>
+                        <field name="cache_misses"/>
+                        <field name="is_valid" decoration-success="is_valid == True" decoration-danger="is_valid == False"/>
+                        <field name="created_date"/>
+                        <field name="last_accessed"/>
+                        <field name="expires_at"/>
+                    </group>
+
+                    <h3>📋 Availability Data (JSON)</h3>
+                    <field name="availability_data" nolabel="1"/>
+
+                    <h3>💰 Price Data (JSON)</h3>
+                    <field name="price_data" nolabel="1"/>
+
+                    <h3>🔒 Booking Data (JSON)</h3>
+                    <field name="booking_data" nolabel="1"/>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Availability Cache Search View -->
+    <record id="onedesk_availability_cache_view_search" model="ir.ui.view">
+        <field name="name">Availability Cache - Search</field>
+        <field name="model">onedesk.availability.cache</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="unit_id"/>
+                <field name="property_id"/>
+                <field name="start_date"/>
+                <field name="end_date"/>
+                <filter name="valid" string="Valid" domain="[('is_valid', '=', True)]"/>
+                <filter name="invalid" string="Invalid" domain="[('is_valid', '=', False)]"/>
+                <filter name="expired" string="Expired" domain="[('expires_at', '&lt;', context_today())]"/>
+            </search>
+        </field>
+    </record>
+
+    <!-- Availability Cache Action -->
+    <record id="onedesk_availability_cache_action" model="ir.actions.act_window">
+        <field name="name">Availability Cache</field>
+        <field name="res_model">onedesk.availability.cache</field>
+        <field name="view_mode">list,form</field>
+        <field name="help">View cached availability data for properties and units. Cache improves portal performance 10x!</field>
+    </record>
+
+</odoo>

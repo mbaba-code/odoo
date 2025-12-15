@@ -12,6 +12,26 @@
                 <separator/>
                 <filter string="Active" name="active" domain="[('active', '=', True)]"/>
                 <filter string="Archived" name="archived" domain="[('active', '=', False)]"/>
+                <separator/>
+                <!-- Filtres Chronologie -->
+                <filter string="Cette Semaine" name="week"
+                    domain="[('start_date', '&gt;=', (context_today() - datetime.timedelta(days=7)).strftime('%Y-%m-%d')),
+                             ('start_date', '&lt;=', (context_today() + datetime.timedelta(days=7)).strftime('%Y-%m-%d'))]"/>
+                <filter string="Ce Mois" name="month"
+                    domain="[('start_date', '&gt;=', (context_today() - datetime.timedelta(days=30)).strftime('%Y-%m-%d')),
+                             ('start_date', '&lt;=', (context_today() + datetime.timedelta(days=30)).strftime('%Y-%m-%d'))]"/>
+                <filter string="À Venir" name="upcoming"
+                    domain="[('start_date', '&gt;=', context_today().strftime('%Y-%m-%d'))]"/>
+                <separator/>
+                <!-- Filtres Accès Rapide -->
+                <filter string="Arrivées Aujourd'hui" name="checkin_today"
+                    domain="[('start_date', '&gt;=', context_today().strftime('%Y-%m-%d')),
+                             ('start_date', '&lt;', (context_today() + datetime.timedelta(days=1)).strftime('%Y-%m-%d')),
+                             ('status', 'in', ['paid', 'checked_in'])]"/>
+                <filter string="Départs Aujourd'hui" name="checkout_today"
+                    domain="[('end_date', '&gt;=', context_today().strftime('%Y-%m-%d')),
+                             ('end_date', '&lt;', (context_today() + datetime.timedelta(days=1)).strftime('%Y-%m-%d')),
+                             ('status', 'in', ['checked_in', 'completed'])]"/>
             </search>
         </field>
     </record>
@@ -372,6 +392,53 @@
                 <field name="total_price" type="measure"/>
             </pivot>
         </field>
+    </record>
+
+    <!-- ==================== ACTIONS PAR STATUT ==================== -->
+
+    <!-- Réservations En Attente -->
+    <record id="action_reservations_pending" model="ir.actions.act_window">
+        <field name="name">Réservations En Attente</field>
+        <field name="res_model">onedesk.reservation</field>
+        <field name="view_mode">kanban,list,form,calendar</field>
+        <field name="domain">[('status', '=', 'pending_payment')]</field>
+        <field name="context">{'default_status': 'pending_payment'}</field>
+    </record>
+
+    <!-- Réservations Confirmées -->
+    <record id="action_reservations_confirmed" model="ir.actions.act_window">
+        <field name="name">Réservations Confirmées</field>
+        <field name="res_model">onedesk.reservation</field>
+        <field name="view_mode">kanban,list,form,calendar</field>
+        <field name="domain">[('status', '=', 'paid')]</field>
+        <field name="context">{'default_status': 'paid'}</field>
+    </record>
+
+    <!-- Réservations Enregistrées (Check-in) -->
+    <record id="action_reservations_checkedin" model="ir.actions.act_window">
+        <field name="name">Réservations Enregistrées</field>
+        <field name="res_model">onedesk.reservation</field>
+        <field name="view_mode">kanban,list,form,calendar</field>
+        <field name="domain">[('status', '=', 'checked_in')]</field>
+        <field name="context">{'default_status': 'checked_in'}</field>
+    </record>
+
+    <!-- Réservations Complétées -->
+    <record id="action_reservations_completed" model="ir.actions.act_window">
+        <field name="name">Réservations Complétées</field>
+        <field name="res_model">onedesk.reservation</field>
+        <field name="view_mode">kanban,list,form,calendar</field>
+        <field name="domain">[('status', '=', 'completed')]</field>
+        <field name="context">{'default_status': 'completed'}</field>
+    </record>
+
+    <!-- Réservations Annulées -->
+    <record id="action_reservations_cancelled" model="ir.actions.act_window">
+        <field name="name">Réservations Annulées</field>
+        <field name="res_model">onedesk.reservation</field>
+        <field name="view_mode">kanban,list,form,calendar</field>
+        <field name="domain">[('status', '=', 'cancelled')]</field>
+        <field name="context">{'default_status': 'cancelled'}</field>
     </record>
 
 </odoo>
