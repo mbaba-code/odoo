@@ -1,10 +1,6 @@
 {
     'name': 'OneDesk Core',
-<<<<<<< HEAD
-    'version': '19.0.1.0.0',
-=======
     'version': '19.0.1.0.1',
->>>>>>> 3e55d22cdc5e8207ec13690ca33b5b329d25d765
     'summary': 'Core of OneDesk (central hub for property management, tasks, documents, etc.)',
     'author': 'Merveilles',
     'license': 'LGPL-3',
