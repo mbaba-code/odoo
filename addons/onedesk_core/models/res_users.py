@@ -8,6 +8,25 @@ _logger = logging.getLogger(__name__)
 class ResUsers(models.Model):
     _inherit = 'res.users'
 
+    @api.model_create_multi
+    def create(self, vals_list):
+        """Override create to ensure partner has correct company_id"""
+        users = super(ResUsers, self).create(vals_list)
+
+        for user in users:
+            # Fix partner company_id immediately after creation
+            if user.partner_id and user.company_id:
+                if user.partner_id.company_id != user.company_id:
+                    user.partner_id.sudo().write({
+                        'company_id': user.company_id.id
+                    })
+                    _logger.info(f"✅ Created user {user.name}: partner company_id set to {user.company_id.name}")
+
+            # Auto-configure Premium Manager if needed
+            self._auto_configure_premium_manager(user)
+
+        return users
+
     def write(self, vals):
         """
         Override write to automatically configure Premium Manager when assigned.
@@ -94,7 +113,21 @@ class ResUsers(models.Model):
                 })
                 _logger.info(f"  ✅ Restricted access to ONLY company: {user.company_id.name}")
 
-        # 3. Create website for the company if needed
+        # 3. FIX PARTNER COMPANY_ID - CRITIQUE pour multi-tenant!
+        if user.partner_id and user.company_id:
+            # Le partner de l'utilisateur DOIT avoir la même company que l'utilisateur
+            if user.partner_id.company_id != user.company_id:
+                _logger.info(f"  🔧 Fixing partner company_id mismatch:")
+                _logger.info(f"     Partner: {user.partner_id.name} (ID: {user.partner_id.id})")
+                _logger.info(f"     Old company: {user.partner_id.company_id.name if user.partner_id.company_id else 'None'}")
+                _logger.info(f"     New company: {user.company_id.name}")
+
+                user.partner_id.sudo().write({
+                    'company_id': user.company_id.id
+                })
+                _logger.info(f"  ✅ Partner company_id aligned with user company")
+
+        # 4. Create website for the company if needed
         if user.company_id:
             existing_website = self.env['website'].sudo().search([
                 ('company_id', '=', user.company_id.id)
