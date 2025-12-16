@@ -10,7 +10,7 @@
     -->
 
     <!-- Override login layout pour meilleure responsivité -->
-    <template id="web.login_layout" inherit_id="web.login_layout" name="OneDesk - Login Layout Responsive">
+    <template id="onedesk_core.login_layout_responsive" inherit_id="web.login_layout" name="OneDesk - Login Layout Responsive">
         <!-- Remplacer le container avec des styles responsifs -->
         <xpath expr="//div[@class='container py-5']" position="replace">
             <div class="container py-3 py-md-5 px-2 px-md-3">
