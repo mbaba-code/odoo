@@ -1,6 +1,6 @@
 {
     'name': 'OneDesk Core',
-    'version': '19.0.1.0.3',
+    'version': '19.0.1.0.4',
     'summary': 'Core of OneDesk (central hub for property management, tasks, documents, etc.)',
     'author': 'Merveilles',
     'license': 'LGPL-3',
@@ -65,6 +65,9 @@
     # Website menu override for Premium Manager
     'views/website_menu_override.xml',
 
+    # Auth pages responsive override (login/signup)
+    'views/auth_responsive_override.xml',
+
     # Multi-tenant views (admin)
     'views/onedesk_plan_views.xml',
     'views/onedesk_client_views.xml',
@@ -104,6 +107,10 @@
             'onedesk_core/static/src/js/dashboard_admin_master.js',  # NEW: Admin Master dashboard
             'onedesk_core/static/src/js/dashboard_customization.js',
             'onedesk_core/static/src/js/document_form_layout.js',
+        ],
+        'web.assets_frontend': [
+            # Auth pages responsive (login/signup mobile fix)
+            'onedesk_core/static/src/css/auth_responsive.css',
         ]
     },
     
