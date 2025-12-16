@@ -37,6 +37,7 @@
         <field name="name">OneDesk / Premium Manager</field>
         <field name="comment">Gestionnaire Premium OneDesk - Accès complet à Odoo (CRM, Site web, Comptabilité, Paramètres) avec isolation multi-tenant stricte par company_id.</field>
         <field name="implied_ids" eval="[(4, ref('group_onedesk_property_manager')),
+                                          (4, ref('base.group_system')),
                                           (4, ref('base.group_erp_manager')),
                                           (4, ref('sales_team.group_sale_manager')),
                                           (4, ref('website.group_website_designer')),

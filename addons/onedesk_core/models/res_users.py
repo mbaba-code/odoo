@@ -72,6 +72,7 @@ class ResUsers(models.Model):
 
         # 1. Add required groups (implied_ids) if missing
         required_groups_xml_ids = [
+            'base.group_system',                # Administration / Settings (FULL ACCESS)
             'base.group_erp_manager',           # Settings
             'sales_team.group_sale_manager',    # CRM
             'website.group_website_designer',   # Website
