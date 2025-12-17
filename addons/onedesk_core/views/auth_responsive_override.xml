@@ -12,13 +12,6 @@
         pour éviter conflits avec le website builder qui parse les box-shadows
     -->
 
-    <!-- Charger le CSS responsive uniquement sur pages de login -->
-    <template id="onedesk_core.login_assets" inherit_id="web.login_layout" name="OneDesk - Login Assets">
-        <xpath expr="//head" position="inside">
-            <link rel="stylesheet" type="text/css" href="/onedesk_core/static/src/css/auth_responsive.css"/>
-        </xpath>
-    </template>
-
     <!-- Override login layout pour meilleure responsivité -->
     <template id="onedesk_core.login_layout_responsive" inherit_id="web.login_layout" name="OneDesk - Login Layout Responsive">
         <!-- Remplacer le container avec des styles responsifs -->
