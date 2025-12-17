@@ -1,6 +1,6 @@
 {
     'name': 'OneDesk Core',
-    'version': '19.0.2.0.0',  # Nouvelle feature majeure: SaaS Multi-Database
+    'version': '19.0.1.0.5',
     'summary': 'Core of OneDesk (central hub for property management, tasks, documents, etc.)',
     'author': 'Merveilles',
     'license': 'LGPL-3',
