@@ -1,6 +1,6 @@
 {
     'name': 'OneDesk Core',
-    'version': '19.0.1.0.4',
+    'version': '19.0.1.0.5',
     'summary': 'Core of OneDesk (central hub for property management, tasks, documents, etc.)',
     'author': 'Merveilles',
     'license': 'LGPL-3',
@@ -108,10 +108,8 @@
             'onedesk_core/static/src/js/dashboard_customization.js',
             'onedesk_core/static/src/js/document_form_layout.js',
         ],
-        'web.assets_frontend': [
-            # Auth pages responsive (login/signup mobile fix)
-            'onedesk_core/static/src/css/auth_responsive.css',
-        ]
+        # Auth responsive CSS chargé directement dans le template (pas dans assets_frontend)
+        # pour éviter conflits avec website builder
     },
     
     # ← NOUVEAU : Dépendances Python

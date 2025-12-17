@@ -7,7 +7,17 @@
         - Padding container trop grand sur mobile
         - Carte trop petite (300px) sur mobile
         - Texte et boutons mal dimensionnés
+
+        NOTE: Le CSS est chargé directement ici (pas dans assets_frontend)
+        pour éviter conflits avec le website builder qui parse les box-shadows
     -->
+
+    <!-- Charger le CSS responsive uniquement sur pages de login -->
+    <template id="onedesk_core.login_assets" inherit_id="web.login_layout" name="OneDesk - Login Assets">
+        <xpath expr="//head" position="inside">
+            <link rel="stylesheet" type="text/css" href="/onedesk_core/static/src/css/auth_responsive.css"/>
+        </xpath>
+    </template>
 
     <!-- Override login layout pour meilleure responsivité -->
     <template id="onedesk_core.login_layout_responsive" inherit_id="web.login_layout" name="OneDesk - Login Layout Responsive">
