@@ -21,7 +21,7 @@
         <field name="name">saas.database.form</field>
         <field name="model">saas.database</field>
         <field name="arch" type="xml">
-            <form>
+            <form class="o_form_saas_wrapper">
                 <header>
                     <field name="state" widget="statusbar" statusbar_visible="active,suspended,terminated"/>
                 </header>

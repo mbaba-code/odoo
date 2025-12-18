@@ -31,7 +31,7 @@
         <field name="name">saas.alert.form</field>
         <field name="model">saas.alert</field>
         <field name="arch" type="xml">
-            <form string="Alerte SaaS">
+            <form string="Alerte SaaS" class="o_form_saas_wrapper">
                 <header>
                     <button name="action_resolve" type="object" string="Marquer comme Résolu"
                             class="oe_highlight" invisible="resolved"/>
