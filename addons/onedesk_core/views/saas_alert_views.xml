@@ -5,7 +5,7 @@
         <field name="name">saas.alert.tree</field>
         <field name="model">saas.alert</field>
         <field name="arch" type="xml">
-            <tree string="Alertes SaaS" decoration-muted="resolved==True"
+            <list string="Alertes SaaS" decoration-muted="resolved==True"
                   decoration-warning="severity=='warning' and resolved==False"
                   decoration-danger="severity in ['error', 'critical'] and resolved==False">
                 <field name="created_at"/>
@@ -22,7 +22,7 @@
                         attrs="{'invisible': [('resolved', '=', True)]}"/>
                 <button name="action_send_notification" type="object" string="Notifier" icon="fa-envelope"
                         attrs="{'invisible': [('notification_sent', '=', True)]}"/>
-            </tree>
+            </list>
         </field>
     </record>
 
@@ -158,7 +158,7 @@
     <record id="action_saas_alert" model="ir.actions.act_window">
         <field name="name">Alertes</field>
         <field name="res_model">saas.alert</field>
-        <field name="view_mode">kanban,tree,form</field>
+        <field name="view_mode">kanban,list,form</field>
         <field name="context">{'search_default_unresolved': 1}</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">
