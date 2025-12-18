@@ -1,5 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
+    <!-- Action pour voir les clients d'un plan (défini avant les vues pour référence) -->
+    <record id="action_saas_client_from_plan" model="ir.actions.act_window">
+        <field name="name">Clients</field>
+        <field name="res_model">saas.client</field>
+        <field name="view_mode">list,kanban,form</field>
+        <field name="domain">[('plan_id', '=', active_id)]</field>
+        <field name="context">{'default_plan_id': active_id}</field>
+    </record>
+
     <!-- Vue Liste Plans SaaS -->
     <record id="view_saas_plan_tree" model="ir.ui.view">
         <field name="name">saas.plan.tree</field>
@@ -161,15 +170,6 @@
                 Définissez les plans d'abonnement (Starter, Pro, Enterprise) avec leurs limites et tarifs.
             </p>
         </field>
-    </record>
-
-    <!-- Action pour voir les clients d'un plan -->
-    <record id="action_saas_client_from_plan" model="ir.actions.act_window">
-        <field name="name">Clients</field>
-        <field name="res_model">saas.client</field>
-        <field name="view_mode">list,kanban,form</field>
-        <field name="domain">[('plan_id', '=', active_id)]</field>
-        <field name="context">{'default_plan_id': active_id}</field>
     </record>
 
 </odoo>
