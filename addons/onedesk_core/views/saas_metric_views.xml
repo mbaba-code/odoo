@@ -60,7 +60,7 @@
                         domain="[('recorded_at', '&gt;=', (context_today() - relativedelta(weeks=1)).strftime('%Y-%m-%d 00:00:00'))]"/>
                 <filter string="Ce Mois" name="this_month"
                         domain="[('recorded_at', '&gt;=', (context_today() - relativedelta(months=1)).strftime('%Y-%m-%d 00:00:00'))]"/>
-                <group expand="0" string="Grouper par">
+                <group string="Grouper par">
                     <filter string="Client" name="group_client" context="{'group_by': 'client_id'}"/>
                     <filter string="Type de Métrique" name="group_type" context="{'group_by': 'metric_type'}"/>
                     <filter string="Date" name="group_date" context="{'group_by': 'recorded_at:day'}"/>

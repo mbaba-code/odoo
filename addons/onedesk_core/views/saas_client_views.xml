@@ -242,14 +242,14 @@
                                 </span>
                             </div>
                             <div class="o_kanban_record_body">
-                                <div><i class="fa fa-cube"/> <field name="plan_id"/></div>
-                                <div><i class="fa fa-users"/> <field name="nb_users"/> utilisateurs</div>
-                                <div><i class="fa fa-database"/> <field name="storage_used_gb"/> GB</div>
+                                <div><i class="fa fa-cube" title="Plan"/> <field name="plan_id"/></div>
+                                <div><i class="fa fa-users" title="Utilisateurs"/> <field name="nb_users"/> utilisateurs</div>
+                                <div><i class="fa fa-database" title="Stockage"/> <field name="storage_used_gb"/> GB</div>
                                 <div t-if="record.url.raw_value">
-                                    <i class="fa fa-external-link"/> <field name="url" widget="url"/>
+                                    <i class="fa fa-external-link" title="URL"/> <field name="url" widget="url"/>
                                 </div>
                                 <div t-if="record.quota_users_exceeded.raw_value or record.quota_storage_exceeded.raw_value" class="text-danger mt-2">
-                                    <i class="fa fa-exclamation-triangle"/> Quotas dépassés
+                                    <i class="fa fa-exclamation-triangle" title="Attention"/> Quotas dépassés
                                 </div>
                             </div>
                         </div>
@@ -278,7 +278,7 @@
                         domain="['|', '|', ('quota_users_exceeded', '=', True), ('quota_storage_exceeded', '=', True), ('quota_api_exceeded', '=', True)]"/>
                 <separator/>
                 <filter string="Archivés" name="inactive" domain="[('active', '=', False)]"/>
-                <group expand="0" string="Grouper par">
+                <group string="Grouper par">
                     <filter string="Plan" name="group_plan" context="{'group_by': 'plan_id'}"/>
                     <filter string="État Base" name="group_db_state" context="{'group_by': 'database_state'}"/>
                     <filter string="État Abonnement" name="group_sub_state" context="{'group_by': 'subscription_state'}"/>
