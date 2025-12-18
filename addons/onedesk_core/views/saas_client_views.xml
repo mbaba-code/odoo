@@ -1,5 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
+    <!-- Actions pour métriques et alertes (définies avant les vues qui les référencent) -->
+    <record id="action_saas_metric_from_client" model="ir.actions.act_window">
+        <field name="name">Métriques</field>
+        <field name="res_model">saas.metric</field>
+        <field name="view_mode">graph,list</field>
+        <field name="domain">[('client_id', '=', active_id)]</field>
+        <field name="context">{'default_client_id': active_id}</field>
+    </record>
+
+    <record id="action_saas_alert_from_client" model="ir.actions.act_window">
+        <field name="name">Alertes</field>
+        <field name="res_model">saas.alert</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('client_id', '=', active_id)]</field>
+        <field name="context">{'default_client_id': active_id}</field>
+    </record>
+
     <!-- Vue Liste Clients SaaS -->
     <record id="view_saas_client_tree" model="ir.ui.view">
         <field name="name">saas.client.tree</field>
@@ -285,24 +302,6 @@
                 Les clients SaaS disposent chacun de leur propre base de données Odoo indépendante.
             </p>
         </field>
-    </record>
-
-    <!-- Action pour voir les métriques d'un client -->
-    <record id="action_saas_metric_from_client" model="ir.actions.act_window">
-        <field name="name">Métriques</field>
-        <field name="res_model">saas.metric</field>
-        <field name="view_mode">graph,list</field>
-        <field name="domain">[('client_id', '=', active_id)]</field>
-        <field name="context">{'default_client_id': active_id}</field>
-    </record>
-
-    <!-- Action pour voir les alertes d'un client -->
-    <record id="action_saas_alert_from_client" model="ir.actions.act_window">
-        <field name="name">Alertes</field>
-        <field name="res_model">saas.alert</field>
-        <field name="view_mode">list,form</field>
-        <field name="domain">[('client_id', '=', active_id)]</field>
-        <field name="context">{'default_client_id': active_id}</field>
     </record>
 
 </odoo>
