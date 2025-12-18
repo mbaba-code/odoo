@@ -17,8 +17,6 @@ class SaasClient(models.Model):
     _order = 'create_date desc, id desc'
 
     # Informations client
-    active = fields.Boolean('Actif', default=True, tracking=True,
-                           help="Désarchiver pour réactiver le client")
     name = fields.Char('Nom du Contact', required=True, tracking=True)
     email = fields.Char('Email Admin', required=True, tracking=True)
     company_name = fields.Char('Nom de la Société', required=True, tracking=True)
@@ -57,8 +55,6 @@ class SaasClient(models.Model):
     custom_domain = fields.Char('Domaine Personnalisé', tracking=True,
                                  help="Ex: app.monclient.com (nécessite plan Pro ou Enterprise)")
     url = fields.Char('URL d\'Accès', compute='_compute_url', store=True)
-    domain_ssl_active = fields.Boolean('SSL Actif', default=False, readonly=True,
-                                      help="Indique si le certificat SSL est actif pour le domaine personnalisé")
 
     # Credentials admin client (temporaire)
     admin_login = fields.Char('Login Admin', readonly=True, copy=False)
@@ -103,21 +99,14 @@ class SaasClient(models.Model):
         ('database_name_unique', 'UNIQUE(database_name)', 'Ce nom de base de données est déjà utilisé'),
     ]
 
-    @api.depends('database_name', 'admin_login', 'custom_domain')
+    @api.depends('subdomain', 'custom_domain')
     def _compute_url(self):
-        """Génère l'URL d'accès à la base de données client avec login"""
-        base_url = self.env['ir.config_parameter'].sudo().get_param('web.base.url', 'http://localhost:8069')
+        base_domain = self.env['ir.config_parameter'].sudo().get_param('saas.base_domain', 'onedesk.com')
         for client in self:
-            # Priorité: domaine personnalisé > URL avec paramètre DB
             if client.custom_domain:
-                # URL simple avec domaine personnalisé (Nginx gère le routing)
                 client.url = f'https://{client.custom_domain}'
-            elif client.database_name:
-                # URL avec sélection de la base + login pré-rempli
-                if client.admin_login:
-                    client.url = f'{base_url}/web/login?db={client.database_name}&login={client.admin_login}'
-                else:
-                    client.url = f'{base_url}/web?db={client.database_name}'
+            elif client.subdomain:
+                client.url = f'https://{client.subdomain}.{base_domain}'
             else:
                 client.url = False
 
@@ -187,28 +176,25 @@ class SaasClient(models.Model):
                         "chiffres et tirets, et ne peut pas commencer ou finir par un tiret"
                     )
 
-    @api.model_create_multi
-    def create(self, vals_list):
-        # Traiter chaque dictionnaire de valeurs
-        for vals in vals_list:
-            # Générer database_name si manquant
-            if not vals.get('database_name'):
-                vals['database_name'] = self._generate_database_name(vals.get('company_name', 'client'))
+    @api.model
+    def create(self, vals):
+        # Générer database_name si manquant
+        if not vals.get('database_name'):
+            vals['database_name'] = self._generate_database_name(vals.get('company_name', 'client'))
 
-            # Générer subdomain si manquant
-            if not vals.get('subdomain'):
-                vals['subdomain'] = self._slugify(vals.get('company_name', 'client'))
+        # Générer subdomain si manquant
+        if not vals.get('subdomain'):
+            vals['subdomain'] = self._slugify(vals.get('company_name', 'client'))
 
-        # Créer les clients
-        clients = super().create(vals_list)
+        # Créer le client
+        client = super().create(vals)
 
-        # Message de bienvenue dans le chatter pour chaque client
-        for client in clients:
-            client.message_post(
-                body=f"Client créé - Plan: {client.plan_id.name} - État: {dict(client._fields['subscription_state'].selection).get(client.subscription_state)}"
-            )
+        # Message de bienvenue dans le chatter
+        client.message_post(
+            body=f"Client créé - Plan: {client.plan_id.name} - État: {dict(client._fields['subscription_state'].selection).get(client.subscription_state)}"
+        )
 
-        return clients
+        return client
 
     def action_provision_database(self):
         """Provisionner la base de données client (appelé manuellement ou automatiquement)"""
@@ -227,20 +213,22 @@ class SaasClient(models.Model):
 
             _logger.info(f"[SAAS] Début provisioning client {self.name} (DB: {self.database_name})")
 
-            # 1. Initialiser Odoo (crée la base PostgreSQL + initialise Odoo)
-            #    exp_create_database() gère les deux en une seule étape
+            # 1. Créer la base PostgreSQL
+            self._create_postgresql_database()
+
+            # 2. Initialiser Odoo
             self._initialize_odoo_database()
 
-            # 2. Créer l'admin client
+            # 3. Créer l'admin client
             admin_password = self._create_client_admin()
 
-            # 3. Configurer la company
+            # 4. Configurer la company
             self._configure_client_company()
 
-            # 4. Enregistrer l'instance de base
+            # 5. Enregistrer l'instance de base
             self._register_database()
 
-            # 5. Envoyer email de bienvenue
+            # 6. Envoyer email de bienvenue
             self._send_welcome_email(admin_password)
 
             # État: active
@@ -291,51 +279,8 @@ class SaasClient(models.Model):
         text = re.sub(r'[^a-z0-9]+', '_', text)
         return text.strip('_')[:50]
 
-    def _is_database_initialized(self):
-        """Vérifie si la base de données est déjà initialisée avec Odoo"""
-        self.ensure_one()
-
-        db_host = self.env['ir.config_parameter'].sudo().get_param('db_host', 'localhost')
-        db_port = int(self.env['ir.config_parameter'].sudo().get_param('db_port', '5432'))
-        db_user = self.env['ir.config_parameter'].sudo().get_param('db_user', 'odoo')
-        db_password = self.env['ir.config_parameter'].sudo().get_param('db_password', '')
-
-        try:
-            # Connexion à la base client
-            conn = psycopg2.connect(
-                host=db_host,
-                port=db_port,
-                user=db_user,
-                password=db_password,
-                database=self.database_name,
-            )
-            cursor = conn.cursor()
-
-            try:
-                # Vérifier si la table ir_module_module existe (signe d'une base Odoo initialisée)
-                cursor.execute("""
-                    SELECT EXISTS (
-                        SELECT FROM information_schema.tables
-                        WHERE table_schema = 'public'
-                        AND table_name = 'ir_module_module'
-                    )
-                """)
-                exists = cursor.fetchone()[0]
-                return exists
-
-            finally:
-                cursor.close()
-                conn.close()
-
-        except psycopg2.OperationalError:
-            # La base n'existe pas ou n'est pas accessible
-            return False
-        except Exception as e:
-            _logger.error(f"[SAAS] Erreur vérification initialisation {self.database_name}: {str(e)}")
-            return False
-
     def _create_postgresql_database(self):
-        """Crée la base PostgreSQL (skip si existe déjà)"""
+        """Crée la base PostgreSQL"""
         self.ensure_one()
 
         _logger.info(f"[SAAS] Création base PostgreSQL: {self.database_name}")
@@ -364,8 +309,7 @@ class SaasClient(models.Model):
                 (self.database_name,)
             )
             if cursor.fetchone():
-                _logger.warning(f"[SAAS] Base PostgreSQL {self.database_name} existe déjà, skip création")
-                return  # Skip si existe déjà
+                raise UserError(f"La base {self.database_name} existe déjà")
 
             # Créer la base
             cursor.execute(f'CREATE DATABASE "{self.database_name}" ENCODING \'UTF8\'')
@@ -376,18 +320,13 @@ class SaasClient(models.Model):
             conn.close()
 
     def _initialize_odoo_database(self):
-        """Initialise la base Odoo avec les modules de base (skip si déjà initialisée)"""
+        """Initialise la base Odoo avec les modules de base"""
         self.ensure_one()
 
         _logger.info(f"[SAAS] Initialisation Odoo pour {self.database_name}")
 
         import odoo
         from odoo import sql_db
-
-        # Vérifier si la base est déjà initialisée
-        if self._is_database_initialized():
-            _logger.warning(f"[SAAS] Base {self.database_name} déjà initialisée, skip initialisation")
-            return
 
         # Modules à installer selon le plan
         modules_to_install = ['base', 'web', 'mail', 'contacts']
@@ -539,85 +478,6 @@ class SaasClient(models.Model):
             })
             client.message_post(body="⚠️ Base de données terminée - Backup final créé")
 
-    def action_reset_and_reprovision(self):
-        """Nettoyer complètement et recommencer le provisioning (DANGER!)"""
-        self.ensure_one()
-
-        if self.database_state not in ['draft', 'error']:
-            raise UserError(
-                "Le reprovisioning n'est autorisé que pour les états 'draft' ou 'error'. "
-                "Pour une base active, utilisez d'abord action_terminate."
-            )
-
-        _logger.warning(f"[SAAS] RESET complet demandé pour {self.name} (DB: {self.database_name})")
-
-        # Connexion PostgreSQL
-        db_host = self.env['ir.config_parameter'].sudo().get_param('db_host', 'localhost')
-        db_port = int(self.env['ir.config_parameter'].sudo().get_param('db_port', '5432'))
-        db_user = self.env['ir.config_parameter'].sudo().get_param('db_user', 'odoo')
-        db_password = self.env['ir.config_parameter'].sudo().get_param('db_password', '')
-
-        try:
-            # 1. Supprimer le filestore
-            import shutil
-            import os
-            from pathlib import Path
-            from odoo.tools import config
-
-            filestore_path = Path(config.filestore(self.database_name))
-            if filestore_path.exists():
-                shutil.rmtree(filestore_path)
-                _logger.info(f"[SAAS] Filestore supprimé: {filestore_path}")
-
-            # 2. Supprimer la base PostgreSQL
-            conn = psycopg2.connect(
-                host=db_host,
-                port=db_port,
-                user=db_user,
-                password=db_password,
-                database='postgres',
-            )
-            conn.autocommit = True
-            cursor = conn.cursor()
-
-            try:
-                # Terminer toutes les connexions à la base
-                cursor.execute(f"""
-                    SELECT pg_terminate_backend(pg_stat_activity.pid)
-                    FROM pg_stat_activity
-                    WHERE pg_stat_activity.datname = %s
-                      AND pid <> pg_backend_pid()
-                """, (self.database_name,))
-
-                # Supprimer la base
-                cursor.execute(f'DROP DATABASE IF EXISTS "{self.database_name}"')
-                _logger.info(f"[SAAS] Base PostgreSQL supprimée: {self.database_name}")
-
-            finally:
-                cursor.close()
-                conn.close()
-
-            # 3. Supprimer le saas.database lié si existant
-            if self.database_id:
-                self.database_id.unlink()
-
-            # 4. Réinitialiser les champs
-            self.write({
-                'database_state': 'draft',
-                'database_error': False,
-                'database_id': False,
-                'admin_login': False,
-                'admin_password_temp': False,
-            })
-
-            self.message_post(body="✅ Nettoyage complet effectué - Prêt pour reprovisioning")
-
-            _logger.info(f"[SAAS] Reset terminé pour {self.name}")
-
-        except Exception as e:
-            _logger.error(f"[SAAS] Erreur lors du reset de {self.name}: {str(e)}", exc_info=True)
-            raise UserError(f"Erreur lors du reset: {str(e)}")
-
     def cron_collect_metrics(self):
         """Cron: Collecter les métriques de tous les clients actifs"""
         active_clients = self.search([('database_state', '=', 'active')])
@@ -673,288 +533,3 @@ class SaasClient(models.Model):
                 ])
         except Exception as e:
             _logger.error(f"[SAAS] Erreur collecte métriques pour {self.name}: {str(e)}")
-
-    # ============================================================
-    # GESTION DOMAINE PERSONNALISÉ
-    # ============================================================
-
-    def action_debug_sudo(self):
-        """DEBUG: Tester la configuration sudo depuis Odoo"""
-        import os
-        import subprocess
-        import pwd
-
-        # Récupérer l'utilisateur
-        uid = os.getuid()
-        try:
-            user_info = pwd.getpwuid(uid)
-            username = user_info.pw_name
-        except:
-            username = "unknown"
-
-        # Tester sudo
-        try:
-            result = subprocess.run(
-                ['sudo', '-n', 'whoami'],
-                capture_output=True,
-                text=True,
-                timeout=5
-            )
-            sudo_works = result.returncode == 0
-            sudo_user = result.stdout.strip() if sudo_works else "FAILED"
-            sudo_error = result.stderr if not sudo_works else ""
-        except Exception as e:
-            sudo_works = False
-            sudo_user = "EXCEPTION"
-            sudo_error = str(e)
-
-        # Message
-        msg = (f"🔍 DEBUG SUDO<br/><br/>"
-              f"<strong>Utilisateur Odoo:</strong> {username} (UID: {uid})<br/>"
-              f"<strong>Sudo fonctionne:</strong> {'✅ OUI' if sudo_works else '❌ NON'}<br/>"
-              f"<strong>Sudo user:</strong> {sudo_user}<br/>")
-
-        if not sudo_works:
-            msg += f"<strong>Erreur sudo:</strong> {sudo_error}<br/>"
-
-        msg += "<br/><strong>Action requise:</strong><br/>"
-        if not sudo_works:
-            msg += f"Ajouter dans /etc/sudoers.d/odoo-saas:<br/>"
-            msg += f"<code>{username} ALL=(ALL) NOPASSWD: /home/user/odoo/addons/onedesk_core/scripts/*</code>"
-        else:
-            msg += "✅ Configuration OK!"
-
-        self.message_post(body=msg)
-
-        return {
-            'type': 'ir.actions.client',
-            'tag': 'display_notification',
-            'params': {
-                'title': 'Debug Sudo',
-                'message': f'User: {username} | Sudo: {"OK" if sudo_works else "FAILED"}',
-                'type': 'success' if sudo_works else 'danger',
-                'sticky': True,
-            }
-        }
-
-    def action_setup_custom_domain(self, test_mode=False):
-        """Configure automatiquement Nginx + SSL pour le domaine personnalisé
-
-        Args:
-            test_mode (bool): Si True, utilise le script de test (HTTP only, pas de SSL)
-        """
-        self.ensure_one()
-
-        if not self.custom_domain:
-            raise UserError("Veuillez d'abord saisir un domaine personnalisé")
-
-        if not self.database_name:
-            raise UserError("La base de données doit être provisionnée avant de configurer le domaine")
-
-        if self.database_state != 'active':
-            raise UserError("La base de données doit être active pour configurer le domaine")
-
-        # Validation du domaine
-        if not self._validate_domain_format(self.custom_domain):
-            raise ValidationError(
-                f"Format de domaine invalide: {self.custom_domain}\n"
-                "Format attendu: exemple.com (sans http/https)"
-            )
-
-        try:
-            mode = "TEST (sans SSL)" if test_mode else "PRODUCTION (avec SSL)"
-            _logger.info(f"[SAAS] Configuration domaine {mode}: {self.custom_domain} pour {self.name}")
-
-            # Chemin du script
-            import os
-            import subprocess
-            import shutil
-
-            # Détecter si Nginx est installé
-            nginx_available = shutil.which('nginx') is not None
-
-            if nginx_available:
-                # Environnement complet avec Nginx
-                script_name = 'test_client_domain_local.sh' if test_mode else 'setup_client_domain.sh'
-                _logger.info(f"[SAAS] Nginx détecté - Utilisation du script: {script_name}")
-            else:
-                # Environnement de développement sans Nginx - Mode simulation
-                script_name = 'simulate_domain_setup.sh'
-                _logger.warning(f"[SAAS] Nginx NON détecté - Mode SIMULATION (pour test intégration seulement)")
-
-            script_path = os.path.join(
-                os.path.dirname(os.path.dirname(__file__)),
-                'scripts',
-                script_name
-            )
-
-            if not os.path.exists(script_path):
-                raise UserError(f"Script introuvable: {script_path}")
-
-            # Rendre le script exécutable
-            os.chmod(script_path, 0o755)
-
-            # Exécuter le script avec sudo (non-interactif)
-            cmd = [
-                'sudo',
-                '-n',  # Non-interactive: fail if password required
-                script_path,
-                self.custom_domain,
-                self.database_name
-            ]
-
-            _logger.info(f"[SAAS] Exécution: {' '.join(cmd)}")
-
-            result = subprocess.run(
-                cmd,
-                capture_output=True,
-                text=True,
-                timeout=300  # 5 minutes max
-            )
-
-            if result.returncode != 0:
-                error_msg = result.stderr or result.stdout
-                _logger.error(f"[SAAS] Erreur configuration domaine: {error_msg}")
-                raise UserError(
-                    f"Erreur lors de la configuration du domaine:\n\n{error_msg}\n\n"
-                    "Vérifiez que:\n"
-                    "- Le DNS pointe vers ce serveur\n"
-                    "- Le port 80/443 est ouvert\n"
-                    "- sudo est configuré pour odoo"
-                )
-
-            # Succès - logger le résultat
-            _logger.info(f"[SAAS] Configuration réussie: {result.stdout}")
-
-            # Mettre à jour SSL status
-            self.write({'domain_ssl_active': not test_mode and nginx_available})
-
-            # Mettre à jour l'URL
-            self._compute_url()
-
-            # Message de succès
-            if not nginx_available:
-                msg = (f"🧪 Domaine configuré en MODE SIMULATION!<br/>"
-                      f"<strong>Domaine:</strong> {self.custom_domain}<br/>"
-                      f"<strong>Mode:</strong> SIMULATION (Nginx non installé)<br/>"
-                      f"<strong>⚠️ Attention:</strong> Aucune configuration réelle créée<br/>"
-                      f"<strong>Action:</strong> Installez Nginx pour production réelle<br/>"
-                      f"<strong>Logs:</strong> /var/log/onedesk/domain_setup.log")
-            elif test_mode:
-                msg = (f"✅ Domaine configuré en mode TEST!<br/>"
-                      f"<strong>Domaine:</strong> {self.custom_domain}<br/>"
-                      f"<strong>Mode:</strong> TEST (HTTP seulement, pas de SSL)<br/>"
-                      f"<strong>Test:</strong> Ajoutez '127.0.0.1 {self.custom_domain}' dans /etc/hosts<br/>"
-                      f"<strong>URL:</strong> <a href='http://{self.custom_domain}'>http://{self.custom_domain}</a>")
-            else:
-                msg = (f"✅ Domaine personnalisé configuré avec succès!<br/>"
-                      f"<strong>Domaine:</strong> {self.custom_domain}<br/>"
-                      f"<strong>SSL:</strong> Actif (Let's Encrypt)<br/>"
-                      f"<strong>URL:</strong> <a href='https://{self.custom_domain}'>https://{self.custom_domain}</a>")
-
-            self.message_post(body=msg)
-
-            notification_type = 'warning' if not nginx_available else 'success'
-            notification_title = 'Simulation' if not nginx_available else ('Succès!' if not test_mode else 'Test configuré!')
-            notification_msg = (
-                f'Mode SIMULATION - Nginx non installé' if not nginx_available
-                else f'Le domaine {self.custom_domain} a été configuré {"en mode TEST" if test_mode else "avec succès"}!'
-            )
-
-            return {
-                'type': 'ir.actions.client',
-                'tag': 'display_notification',
-                'params': {
-                    'title': notification_title,
-                    'message': notification_msg,
-                    'type': notification_type,
-                    'sticky': not nginx_available,  # Sticky if simulation
-                }
-            }
-
-        except subprocess.TimeoutExpired:
-            raise UserError("La configuration a pris trop de temps (timeout 5 min)")
-        except Exception as e:
-            _logger.error(f"[SAAS] Erreur configuration domaine: {str(e)}", exc_info=True)
-            raise UserError(f"Erreur inattendue: {str(e)}")
-
-    def action_setup_custom_domain_test(self):
-        """Configure le domaine en mode TEST (sans SSL)"""
-        return self.action_setup_custom_domain(test_mode=True)
-
-    def action_remove_custom_domain(self):
-        """Supprime la configuration Nginx + SSL du domaine personnalisé"""
-        self.ensure_one()
-
-        if not self.custom_domain:
-            raise UserError("Aucun domaine personnalisé à supprimer")
-
-        try:
-            _logger.info(f"[SAAS] Suppression domaine {self.custom_domain} pour {self.name}")
-
-            import subprocess
-            domain = self.custom_domain
-
-            # Supprimer la configuration Nginx
-            subprocess.run([
-                'sudo', '-n', 'rm', '-f',
-                f'/etc/nginx/sites-enabled/{domain}',
-                f'/etc/nginx/sites-available/{domain}'
-            ], check=True)
-
-            # Reload Nginx
-            subprocess.run(['sudo', '-n', 'systemctl', 'reload', 'nginx'], check=True)
-
-            # Note: On garde les certificats SSL (ils peuvent être réutilisés)
-            _logger.info(f"[SAAS] Domaine {domain} supprimé avec succès")
-
-            # Réinitialiser le champ
-            self.write({'custom_domain': False})
-
-            self.message_post(body=f"🗑️ Domaine personnalisé {domain} supprimé")
-
-            return {
-                'type': 'ir.actions.client',
-                'tag': 'display_notification',
-                'params': {
-                    'title': 'Supprimé',
-                    'message': f'Le domaine {domain} a été supprimé',
-                    'type': 'info',
-                }
-            }
-
-        except Exception as e:
-            _logger.error(f"[SAAS] Erreur suppression domaine: {str(e)}", exc_info=True)
-            raise UserError(f"Erreur lors de la suppression: {str(e)}")
-
-    def _validate_domain_format(self, domain):
-        """Valide le format du domaine"""
-        if not domain:
-            return False
-
-        # Pattern pour valider un nom de domaine
-        pattern = r'^(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}$'
-
-        return bool(re.match(pattern, domain))
-
-    @api.constrains('custom_domain')
-    def _check_custom_domain(self):
-        """Vérifie que le domaine personnalisé n'est pas déjà utilisé"""
-        for client in self:
-            if client.custom_domain:
-                # Validation format
-                if not self._validate_domain_format(client.custom_domain):
-                    raise ValidationError(
-                        f"Format de domaine invalide: {client.custom_domain}\n"
-                        "Exemple valide: monentreprise.com"
-                    )
-
-                # Vérifier unicité
-                duplicate = self.search([
-                    ('id', '!=', client.id),
-                    ('custom_domain', '=', client.custom_domain)
-                ])
-                if duplicate:
-                    raise ValidationError(
-                        f"Le domaine {client.custom_domain} est déjà utilisé par {duplicate.name}"
-                    )

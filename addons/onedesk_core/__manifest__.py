@@ -1,6 +1,6 @@
 {
     'name': 'OneDesk Core',
-    'version': '19.0.1.0.7',
+    'version': '19.0.2.0.0',  # Nouvelle feature majeure: SaaS Multi-Database
     'summary': 'Core of OneDesk (central hub for property management, tasks, documents, etc.)',
     'author': 'Merveilles',
     'license': 'LGPL-3',
@@ -92,16 +92,7 @@
     'data/onedesk_security_premium.xml',  # Premium Manager security rules
     'data/onedesk_email_templates.xml',
 
-    # SaaS Multi-Database Views (NEW - Premium/Enterprise)
-    'views/saas_plan_views.xml',  # Plans SaaS (Starter, Pro, Enterprise)
-    'views/saas_client_views.xml',  # Clients SaaS avec actions de provisioning
-    'views/saas_database_views.xml',  # Bases de données clients
-    'views/saas_metric_views.xml',  # Métriques et graphiques
-    'views/saas_alert_views.xml',  # Alertes et notifications
-    'views/saas_dashboard.xml',  # Dashboard SaaS avec KPIs
-    'views/saas_menu.xml',  # Menu SaaS Manager
-
-    # SaaS Multi-Database Data (NEW - Premium/Enterprise)
+    # SaaS Multi-Database (NEW - Premium/Enterprise)
     'data/saas_plans_data.xml',  # Plans SaaS (Starter, Pro, Enterprise)
     'data/saas_cron.xml',  # Cron jobs for metrics & monitoring
     ],

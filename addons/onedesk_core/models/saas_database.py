@@ -17,9 +17,9 @@ class SaasDatabase(models.Model):
     ], string='État', default='active', required=True, tracking=True)
 
     # Informations techniques
-    postgresql_size_bytes = fields.Integer('Taille PostgreSQL (bytes)', readonly=True)
+    postgresql_size_bytes = fields.BigInteger('Taille PostgreSQL (bytes)', readonly=True)
     postgresql_size_mb = fields.Float('Taille PostgreSQL (MB)', compute='_compute_postgresql_size_mb', store=True)
-    filestore_size_bytes = fields.Integer('Taille Filestore (bytes)', readonly=True)
+    filestore_size_bytes = fields.BigInteger('Taille Filestore (bytes)', readonly=True)
     filestore_size_mb = fields.Float('Taille Filestore (MB)', compute='_compute_filestore_size_mb', store=True)
 
     total_size_gb = fields.Float('Taille Totale (GB)', compute='_compute_total_size_gb', store=True)
