@@ -5,14 +5,12 @@
         <field name="name">saas.database.tree</field>
         <field name="model">saas.database</field>
         <field name="arch" type="xml">
-            <list string="Bases de Données SaaS" decoration-success="state=='active'"
-                  decoration-warning="state=='maintenance'" decoration-muted="state=='terminated'">
+            <list decoration-success="state=='active'" decoration-muted="state=='terminated'">
                 <field name="name"/>
                 <field name="client_id"/>
                 <field name="plan_id"/>
-                <field name="state" widget="badge" decoration-success="state=='active'"/>
-                <field name="total_size_gb" widget="float"/>
-                <field name="created_at"/>
+                <field name="state" widget="badge"/>
+                <field name="total_size_gb"/>
                 <field name="last_backup_date"/>
             </list>
         </field>
@@ -23,34 +21,34 @@
         <field name="name">saas.database.form</field>
         <field name="model">saas.database</field>
         <field name="arch" type="xml">
-            <form string="Base de Données SaaS">
+            <form>
                 <header>
-                    <field name="state" widget="statusbar" statusbar_visible="active,maintenance,terminated"/>
+                    <field name="state" widget="statusbar" statusbar_visible="active,suspended,terminated"/>
                 </header>
                 <sheet>
                     <div class="oe_title">
-                        <label for="name" class="oe_edit_only"/>
                         <h1><field name="name" readonly="1"/></h1>
                     </div>
                     <group>
                         <group string="Informations">
                             <field name="client_id" readonly="1"/>
                             <field name="plan_id" readonly="1"/>
-                            <field name="created_at" readonly="1"/>
                         </group>
                         <group string="Stockage">
-                            <field name="postgresql_size_bytes" readonly="1"/>
-                            <field name="filestore_size_bytes" readonly="1"/>
-                            <field name="total_size_gb" readonly="1" widget="float"/>
+                            <field name="total_size_gb" readonly="1"/>
+                            <field name="postgresql_size_mb" readonly="1"/>
+                            <field name="filestore_size_mb" readonly="1"/>
                         </group>
                     </group>
                     <group>
-                        <group string="Sauvegarde">
+                        <group string="Activité">
                             <field name="last_backup_date" readonly="1"/>
-                            <field name="last_backup_path" readonly="1"/>
-                            <field name="backup_enabled"/>
-                            <field name="backup_frequency_days"/>
-                            <field name="backup_retention_days"/>
+                            <field name="last_update_date" readonly="1"/>
+                            <field name="last_connection_date" readonly="1"/>
+                        </group>
+                        <group string="Statistiques">
+                            <field name="nb_tables" readonly="1"/>
+                            <field name="nb_records_total" readonly="1"/>
                         </group>
                     </group>
                 </sheet>
