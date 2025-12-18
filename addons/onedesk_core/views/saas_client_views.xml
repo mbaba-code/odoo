@@ -269,7 +269,6 @@
                 <field name="company_name"/>
                 <field name="email"/>
                 <field name="plan_id"/>
-                <separator/>
                 <filter string="Actifs" name="active_db" domain="[('database_state', '=', 'active')]"/>
                 <filter string="En Erreur" name="error" domain="[('database_state', '=', 'error')]"/>
                 <filter string="Suspendus" name="suspended" domain="[('database_state', '=', 'suspended')]"/>
