@@ -19,9 +19,9 @@
                 <field name="resolved" widget="boolean_toggle"/>
                 <field name="notification_sent" widget="boolean_toggle"/>
                 <button name="action_resolve" type="object" string="Résoudre" icon="fa-check"
-                        attrs="{'invisible': [('resolved', '=', True)]}"/>
+                        invisible="resolved"/>
                 <button name="action_send_notification" type="object" string="Notifier" icon="fa-envelope"
-                        attrs="{'invisible': [('notification_sent', '=', True)]}"/>
+                        invisible="notification_sent"/>
             </list>
         </field>
     </record>
@@ -34,9 +34,9 @@
             <form string="Alerte SaaS">
                 <header>
                     <button name="action_resolve" type="object" string="Marquer comme Résolu"
-                            class="oe_highlight" attrs="{'invisible': [('resolved', '=', True)]}"/>
+                            class="oe_highlight" invisible="resolved"/>
                     <button name="action_send_notification" type="object" string="Envoyer Notification"
-                            attrs="{'invisible': [('notification_sent', '=', True)]}"/>
+                            invisible="notification_sent"/>
                     <field name="severity" widget="statusbar"/>
                 </header>
                 <sheet>
@@ -52,7 +52,7 @@
                         </group>
                         <group string="Notification">
                             <field name="notification_sent" readonly="1"/>
-                            <field name="notification_sent_at" readonly="1" attrs="{'invisible': [('notification_sent', '=', False)]}"/>
+                            <field name="notification_sent_at" readonly="1" invisible="not notification_sent"/>
                         </group>
                     </group>
                     <group string="Message">
@@ -61,7 +61,7 @@
                     <group string="Détails">
                         <field name="details" nolabel="1"/>
                     </group>
-                    <group attrs="{'invisible': [('resolved', '=', False)]}">
+                    <group invisible="not resolved">
                         <group string="Résolution">
                             <field name="resolved_by" readonly="1"/>
                             <field name="resolved_at" readonly="1"/>
