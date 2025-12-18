@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Dashboard SaaS - Vue Kanban personnalisée -->
+    <record id="view_saas_dashboard_kanban" model="ir.ui.view">
+        <field name="name">saas.dashboard.kanban</field>
+        <field name="model">saas.client</field>
+        <field name="arch" type="xml">
+            <kanban class="o_saas_dashboard" create="false" edit="false">
+                <field name="id"/>
+                <field name="database_state"/>
+                <field name="subscription_state"/>
+                <templates>
+                    <t t-name="kanban-box">
+                        <div class="container o_saas_dashboard">
+                            <!-- Row 1: KPIs Principaux -->
+                            <div class="row">
+                                <div class="col-lg-3 col-md-6 col-sm-12">
+                                    <div class="card bg-primary text-white mb-3">
+                                        <div class="card-body">
+                                            <h6 class="card-title">
+                                                <i class="fa fa-users"/> Clients Actifs
+                                            </h6>
+                                            <h2 class="mb-0">
+                                                <t t-esc="record.__count"/>
+                                            </h2>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-lg-3 col-md-6 col-sm-12">
+                                    <div class="card bg-success text-white mb-3">
+                                        <div class="card-body">
+                                            <h6 class="card-title">
+                                                <i class="fa fa-database"/> Bases Actives
+                                            </h6>
+                                            <h2 class="mb-0">
+                                                <t t-esc="record.__count"/>
+                                            </h2>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-lg-3 col-md-6 col-sm-12">
+                                    <div class="card bg-info text-white mb-3">
+                                        <div class="card-body">
+                                            <h6 class="card-title">
+                                                <i class="fa fa-clock-o"/> Essais en Cours
+                                            </h6>
+                                            <h2 class="mb-0">-</h2>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-lg-3 col-md-6 col-sm-12">
+                                    <div class="card bg-warning text-white mb-3">
+                                        <div class="card-body">
+                                            <h6 class="card-title">
+                                                <i class="fa fa-exclamation-triangle"/> Alertes
+                                            </h6>
+                                            <h2 class="mb-0">-</h2>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Row 2: Actions Rapides -->
+                            <div class="row">
+                                <div class="col-12">
+                                    <div class="card mb-3">
+                                        <div class="card-header">
+                                            <h5><i class="fa fa-bolt"/> Actions Rapides</h5>
+                                        </div>
+                                        <div class="card-body">
+                                            <a role="button" class="btn btn-primary mr-2"
+                                               name="%(action_saas_client)d" type="action">
+                                                <i class="fa fa-plus"/> Nouveau Client
+                                            </a>
+                                            <a role="button" class="btn btn-info mr-2"
+                                               name="%(action_saas_plan)d" type="action">
+                                                <i class="fa fa-cube"/> Gérer les Plans
+                                            </a>
+                                            <a role="button" class="btn btn-warning mr-2"
+                                               name="%(action_saas_alert)d" type="action">
+                                                <i class="fa fa-bell"/> Voir les Alertes
+                                            </a>
+                                            <a role="button" class="btn btn-success"
+                                               name="%(action_saas_metric)d" type="action">
+                                                <i class="fa fa-line-chart"/> Métriques
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Row 3: Alertes Récentes -->
+                            <div class="row">
+                                <div class="col-lg-6 col-md-12">
+                                    <div class="card mb-3">
+                                        <div class="card-header">
+                                            <h5><i class="fa fa-exclamation-circle"/> Alertes Non Résolues</h5>
+                                        </div>
+                                        <div class="card-body">
+                                            <p class="text-muted">Cliquez sur "Voir les Alertes" pour gérer les alertes</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-lg-6 col-md-12">
+                                    <div class="card mb-3">
+                                        <div class="card-header">
+                                            <h5><i class="fa fa-clock-o"/> Essais Arrivant à Expiration</h5>
+                                        </div>
+                                        <div class="card-body">
+                                            <p class="text-muted">Cliquez sur "En Essai" dans le menu pour voir les clients en période d'essai</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Row 4: Statistiques Plans -->
+                            <div class="row">
+                                <div class="col-12">
+                                    <div class="card mb-3">
+                                        <div class="card-header">
+                                            <h5><i class="fa fa-pie-chart"/> Répartition par Plan</h5>
+                                        </div>
+                                        <div class="card-body">
+                                            <p class="text-muted">Consultez les Plans SaaS pour voir la répartition détaillée</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- Action Dashboard -->
+    <record id="action_saas_dashboard" model="ir.actions.act_window">
+        <field name="name">Dashboard SaaS</field>
+        <field name="res_model">saas.client</field>
+        <field name="view_mode">kanban</field>
+        <field name="view_id" ref="view_saas_dashboard_kanban"/>
+        <field name="domain">[('database_state', '=', 'active')]</field>
+        <field name="context">{}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Bienvenue dans le SaaS Manager!
+            </p>
+            <p>
+                Gérez vos clients SaaS, plans, métriques et alertes depuis ce dashboard.
+            </p>
+        </field>
+    </record>
+
+</odoo>
