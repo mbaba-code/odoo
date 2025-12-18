@@ -10,11 +10,11 @@
                 <field name="name"/>
                 <field name="max_users"/>
                 <field name="max_storage_gb"/>
-                <field name="price_monthly" widget="monetary"/>
-                <field name="price_yearly" widget="monetary"/>
+                <field name="price_monthly" widget="float" string="Prix Mensuel (€)"/>
+                <field name="price_yearly" widget="float" string="Prix Annuel (€)"/>
                 <field name="client_count"/>
-                <field name="revenue_monthly" widget="monetary" sum="Total Mensuel"/>
-                <field name="revenue_yearly" widget="monetary" sum="Total Annuel"/>
+                <field name="revenue_monthly" widget="float" sum="Total Mensuel" string="Revenu Mensuel (€)"/>
+                <field name="revenue_yearly" widget="float" sum="Total Annuel" string="Revenu Annuel (€)"/>
                 <field name="active" widget="boolean_toggle"/>
             </list>
         </field>
@@ -35,8 +35,8 @@
                             <field name="client_count" widget="statinfo" string="Clients"/>
                         </button>
                     </div>
-                    <widget name="web_ribbon" title="Archived" bg_color="bg-danger"
-                            attrs="{'invisible': [('active', '=', True)]}"/>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger"
+                            invisible="active"/>
                     <div class="oe_title">
                         <label for="name" class="oe_edit_only"/>
                         <h1><field name="name" placeholder="ex: Starter, Pro, Enterprise"/></h1>
@@ -49,10 +49,10 @@
                             <field name="support_level"/>
                         </group>
                         <group string="Tarification">
-                            <field name="price_monthly" widget="monetary"/>
-                            <field name="price_yearly" widget="monetary"/>
-                            <field name="revenue_monthly" widget="monetary"/>
-                            <field name="revenue_yearly" widget="monetary"/>
+                            <field name="price_monthly" widget="float" string="Prix Mensuel (€)"/>
+                            <field name="price_yearly" widget="float" string="Prix Annuel (€)"/>
+                            <field name="revenue_monthly" widget="float" string="Revenu Mensuel (€)"/>
+                            <field name="revenue_yearly" widget="float" string="Revenu Annuel (€)"/>
                         </group>
                     </group>
                     <notebook>

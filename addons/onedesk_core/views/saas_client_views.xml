@@ -158,7 +158,7 @@
                         </page>
                         <page string="Facturation">
                             <group>
-                                <field name="total_revenue" widget="monetary"/>
+                                <field name="total_revenue" widget="float" string="Revenu Total (€)"/>
                             </group>
                         </page>
                         <page string="Historique Métriques" name="metrics">
