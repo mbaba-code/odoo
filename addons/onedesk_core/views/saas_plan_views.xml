@@ -1,31 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <!-- Action pour voir les clients d'un plan (défini avant les vues pour référence) -->
-    <record id="action_saas_client_from_plan" model="ir.actions.act_window">
-        <field name="name">Clients</field>
-        <field name="res_model">saas.client</field>
-        <field name="view_mode">list,kanban,form</field>
-        <field name="domain">[('plan_id', '=', active_id)]</field>
-        <field name="context">{'default_plan_id': active_id}</field>
-    </record>
-
     <!-- Vue Liste Plans SaaS -->
     <record id="view_saas_plan_tree" model="ir.ui.view">
         <field name="name">saas.plan.tree</field>
         <field name="model">saas.plan</field>
         <field name="arch" type="xml">
-            <list string="Plans SaaS">
+            <tree string="Plans SaaS">
                 <field name="sequence" widget="handle"/>
                 <field name="name"/>
                 <field name="max_users"/>
                 <field name="max_storage_gb"/>
-                <field name="price_monthly" widget="float" string="Prix Mensuel (€)"/>
-                <field name="price_yearly" widget="float" string="Prix Annuel (€)"/>
+                <field name="price_monthly" widget="monetary"/>
+                <field name="price_yearly" widget="monetary"/>
                 <field name="client_count"/>
-                <field name="revenue_monthly" widget="float" sum="Total Mensuel" string="Revenu Mensuel (€)"/>
-                <field name="revenue_yearly" widget="float" sum="Total Annuel" string="Revenu Annuel (€)"/>
+                <field name="revenue_monthly" widget="monetary" sum="Total Mensuel"/>
+                <field name="revenue_yearly" widget="monetary" sum="Total Annuel"/>
                 <field name="active" widget="boolean_toggle"/>
-            </list>
+            </tree>
         </field>
     </record>
 
@@ -34,7 +25,7 @@
         <field name="name">saas.plan.form</field>
         <field name="model">saas.plan</field>
         <field name="arch" type="xml">
-            <form string="Plan SaaS" class="o_form_saas_wrapper">
+            <form string="Plan SaaS">
                 <sheet>
                     <div class="oe_button_box" name="button_box">
                         <button name="%(action_saas_client_from_plan)d"
@@ -44,8 +35,8 @@
                             <field name="client_count" widget="statinfo" string="Clients"/>
                         </button>
                     </div>
-                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger"
-                            invisible="active"/>
+                    <widget name="web_ribbon" title="Archived" bg_color="bg-danger"
+                            attrs="{'invisible': [('active', '=', True)]}"/>
                     <div class="oe_title">
                         <label for="name" class="oe_edit_only"/>
                         <h1><field name="name" placeholder="ex: Starter, Pro, Enterprise"/></h1>
@@ -58,10 +49,10 @@
                             <field name="support_level"/>
                         </group>
                         <group string="Tarification">
-                            <field name="price_monthly" widget="float" string="Prix Mensuel (€)"/>
-                            <field name="price_yearly" widget="float" string="Prix Annuel (€)"/>
-                            <field name="revenue_monthly" widget="float" string="Revenu Mensuel (€)"/>
-                            <field name="revenue_yearly" widget="float" string="Revenu Annuel (€)"/>
+                            <field name="price_monthly" widget="monetary"/>
+                            <field name="price_yearly" widget="monetary"/>
+                            <field name="revenue_monthly" widget="monetary"/>
+                            <field name="revenue_yearly" widget="monetary"/>
                         </group>
                     </group>
                     <notebook>
@@ -88,25 +79,25 @@
                         </page>
                         <page string="Modules Autorisés">
                             <field name="allowed_module_ids">
-                                <list>
+                                <tree>
                                     <field name="name"/>
                                     <field name="state"/>
                                     <field name="summary"/>
-                                </list>
+                                </tree>
                             </field>
                         </page>
                         <page string="Description">
                             <field name="description" placeholder="Description du plan pour les clients..."/>
                         </page>
-                        <page string="Clients" invisible="client_count == 0">
+                        <page string="Clients" attrs="{'invisible': [('client_count', '=', 0)]}">
                             <field name="client_ids">
-                                <list>
+                                <tree>
                                     <field name="name"/>
                                     <field name="company_name"/>
                                     <field name="subscription_state"/>
                                     <field name="database_state"/>
                                     <field name="url" widget="url"/>
-                                </list>
+                                </tree>
                             </field>
                         </page>
                     </notebook>
@@ -128,7 +119,7 @@
                 <field name="max_users"/>
                 <field name="max_storage_gb"/>
                 <templates>
-                    <t t-name="card">
+                    <t t-name="kanban-box">
                         <div class="oe_kanban_global_click">
                             <div class="o_kanban_record_top">
                                 <div class="o_kanban_record_headings">
@@ -140,13 +131,13 @@
                             </div>
                             <div class="o_kanban_record_body">
                                 <div>
-                                    <i class="fa fa-users" title="Utilisateurs"/> <field name="max_users"/> utilisateurs
+                                    <i class="fa fa-users"/> <field name="max_users"/> utilisateurs
                                 </div>
                                 <div>
-                                    <i class="fa fa-database" title="Stockage"/> <field name="max_storage_gb"/> GB
+                                    <i class="fa fa-database"/> <field name="max_storage_gb"/> GB
                                 </div>
                                 <div class="text-muted">
-                                    <i class="fa fa-eur" title="Prix"/> <field name="price_monthly"/>€/mois |
+                                    <i class="fa fa-eur"/> <field name="price_monthly"/>€/mois |
                                     <field name="price_yearly"/>€/an
                                 </div>
                             </div>
@@ -161,7 +152,7 @@
     <record id="action_saas_plan" model="ir.actions.act_window">
         <field name="name">Plans SaaS</field>
         <field name="res_model">saas.plan</field>
-        <field name="view_mode">list,kanban,form</field>
+        <field name="view_mode">tree,kanban,form</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">
                 Créez votre premier plan SaaS!
@@ -170,6 +161,13 @@
                 Définissez les plans d'abonnement (Starter, Pro, Enterprise) avec leurs limites et tarifs.
             </p>
         </field>
+    </record>
+
+    <!-- Action pour voir les clients d'un plan -->
+    <record id="action_saas_client_from_plan" model="ir.actions.act_window">
+        <field name="view_mode">tree,kanban,form</field>
+        <field name="domain">[('plan_id', '=', active_id)]</field>
+        <field name="context">{'default_plan_id': active_id}</field>
     </record>
 
 </odoo>

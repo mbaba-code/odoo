@@ -1,28 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <!-- Actions pour métriques et alertes (définies avant les vues qui les référencent) -->
-    <record id="action_saas_metric_from_client" model="ir.actions.act_window">
-        <field name="name">Métriques</field>
-        <field name="res_model">saas.metric</field>
-        <field name="view_mode">graph,list</field>
-        <field name="domain">[('client_id', '=', active_id)]</field>
-        <field name="context">{'default_client_id': active_id}</field>
-    </record>
-
-    <record id="action_saas_alert_from_client" model="ir.actions.act_window">
-        <field name="name">Alertes</field>
-        <field name="res_model">saas.alert</field>
-        <field name="view_mode">list,form</field>
-        <field name="domain">[('client_id', '=', active_id)]</field>
-        <field name="context">{'default_client_id': active_id}</field>
-    </record>
-
     <!-- Vue Liste Clients SaaS -->
     <record id="view_saas_client_tree" model="ir.ui.view">
         <field name="name">saas.client.tree</field>
         <field name="model">saas.client</field>
         <field name="arch" type="xml">
-            <list string="Clients SaaS" decoration-success="database_state=='active'"
+            <tree string="Clients SaaS" decoration-success="database_state=='active'"
                   decoration-danger="database_state=='error'" decoration-warning="database_state=='suspended'"
                   decoration-muted="database_state=='terminated'">
                 <field name="name"/>
@@ -43,7 +26,7 @@
                 <field name="storage_used_gb" widget="float"/>
                 <field name="trial_end_date"/>
                 <field name="created_date"/>
-            </list>
+            </tree>
         </field>
     </record>
 
@@ -52,21 +35,21 @@
         <field name="name">saas.client.form</field>
         <field name="model">saas.client</field>
         <field name="arch" type="xml">
-            <form string="Client SaaS" class="o_form_saas_wrapper">
+            <form string="Client SaaS">
                 <header>
                     <!-- Boutons d'action selon l'état -->
                     <button name="action_provision_database" type="object" string="Provisionner"
-                            class="oe_highlight" invisible="database_state != 'draft'"/>
+                            class="oe_highlight" attrs="{'invisible': [('database_state', '!=', 'draft')]}"/>
                     <button name="action_suspend" type="object" string="Suspendre"
-                            invisible="database_state not in ['active']"/>
+                            attrs="{'invisible': [('database_state', 'not in', ['active'])]}"/>
                     <button name="action_activate" type="object" string="Réactiver"
-                            invisible="database_state != 'suspended'"/>
+                            attrs="{'invisible': [('database_state', '!=', 'suspended')]}"/>
                     <button name="action_reset_and_reprovision" type="object" string="Reset &amp; Reprovisionner"
                             confirm="ATTENTION: Cette action va supprimer complètement la base de données et recommencer. Continuer?"
-                            invisible="database_state not in ['draft', 'error']"/>
+                            attrs="{'invisible': [('database_state', 'not in', ['draft', 'error'])]}"/>
                     <button name="action_terminate" type="object" string="Terminer"
                             confirm="ATTENTION: Cette action est irréversible. La base sera terminée. Continuer?"
-                            invisible="database_state in ['draft', 'terminated']"/>
+                            attrs="{'invisible': [('database_state', 'in', ['draft', 'terminated'])]}"/>
 
                     <field name="database_state" widget="statusbar"
                            statusbar_visible="draft,provisioning,active"/>
@@ -84,29 +67,29 @@
                         </button>
                         <button name="%(action_saas_alert_from_client)d" type="action"
                                 class="oe_stat_button" icon="fa-exclamation-triangle"
-                                invisible="not alert_ids">
+                                attrs="{'invisible': [('alert_ids', '=', [])]}">
                             <field name="alert_ids" widget="statinfo" string="Alertes"/>
                         </button>
                     </div>
 
                     <!-- Afficher erreur si existe -->
-                    <div class="alert alert-danger" role="alert" invisible="not database_error">
+                    <div class="alert alert-danger" role="alert" attrs="{'invisible': [('database_error', '=', False)]}">
                         <strong>Erreur de provisioning:</strong>
                         <field name="database_error"/>
                     </div>
 
                     <!-- Afficher quotas dépassés -->
                     <div class="alert alert-warning" role="alert"
-                         invisible="not quota_users_exceeded and not quota_storage_exceeded and not quota_api_exceeded">
+                         attrs="{'invisible': [('quota_users_exceeded', '=', False), ('quota_storage_exceeded', '=', False), ('quota_api_exceeded', '=', False)]}">
                         <strong>⚠️ Quotas dépassés:</strong>
                         <ul class="mb-0">
-                            <li invisible="not quota_users_exceeded">
+                            <li attrs="{'invisible': [('quota_users_exceeded', '=', False)]}">
                                 Utilisateurs: <field name="nb_users"/> / <field name="plan_id" readonly="1" string=""/> max
                             </li>
-                            <li invisible="not quota_storage_exceeded">
+                            <li attrs="{'invisible': [('quota_storage_exceeded', '=', False)]}">
                                 Stockage: <field name="storage_used_gb"/> GB utilisés
                             </li>
-                            <li invisible="not quota_api_exceeded">
+                            <li attrs="{'invisible': [('quota_api_exceeded', '=', False)]}">
                                 API Calls: <field name="api_calls_today"/> appels aujourd'hui
                             </li>
                         </ul>
@@ -128,12 +111,12 @@
                         <group string="État &amp; Abonnement">
                             <field name="subscription_state"/>
                             <field name="is_trial" invisible="1"/>
-                            <field name="trial_start_date" invisible="not is_trial"/>
-                            <field name="trial_end_date" invisible="not is_trial"/>
-                            <field name="days_until_trial_end" invisible="not is_trial"/>
-                            <field name="subscription_start_date" invisible="subscription_state not in ['active', 'past_due']"/>
-                            <field name="next_billing_date" invisible="subscription_state not in ['active', 'past_due']"/>
-                            <field name="cancelled_date" invisible="subscription_state != 'cancelled'"/>
+                            <field name="trial_start_date" attrs="{'invisible': [('is_trial', '=', False)]}"/>
+                            <field name="trial_end_date" attrs="{'invisible': [('is_trial', '=', False)]}"/>
+                            <field name="days_until_trial_end" attrs="{'invisible': [('is_trial', '=', False)]}"/>
+                            <field name="subscription_start_date" attrs="{'invisible': [('subscription_state', 'not in', ['active', 'past_due'])]}"/>
+                            <field name="next_billing_date" attrs="{'invisible': [('subscription_state', 'not in', ['active', 'past_due'])]}"/>
+                            <field name="cancelled_date" attrs="{'invisible': [('subscription_state', '!=', 'cancelled')]}"/>
                         </group>
                     </group>
 
@@ -142,52 +125,13 @@
                             <field name="database_name" readonly="1"/>
                             <field name="database_id" readonly="1"/>
                             <field name="subdomain"/>
+                            <field name="custom_domain"/>
                             <field name="url" widget="url"/>
                         </group>
                         <group string="Accès Admin Client">
                             <field name="admin_login" readonly="1"/>
                             <field name="admin_password_temp" password="True" readonly="1"
-                                   invisible="not admin_password_temp"/>
-                        </group>
-                    </group>
-
-                    <!-- Configuration Domaine Personnalisé (ADMIN SEULEMENT) -->
-                    <group string="🔐 Domaine Personnalisé (Admin Seulement)">
-                        <group>
-                            <field name="custom_domain" placeholder="exemple.com"/>
-                            <field name="domain_ssl_active" widget="boolean_toggle" readonly="1"/>
-                            <div class="alert alert-warning" role="alert" style="margin: 10px 0;">
-                                <strong>⚠️ INTERFACE ADMIN SEULEMENT</strong><br/>
-                                <br/>
-                                <strong>Test Local (développement):</strong><br/>
-                                → Cliquez "🧪 Test Local" pour tester sans SSL<br/>
-                                <br/>
-                                <strong>Production:</strong><br/>
-                                1. Le client configure son DNS A Record<br/>
-                                2. Vous cliquez "🔧 PROD: Configurer + SSL"<br/>
-                                3. Le système obtient le certificat SSL automatiquement<br/>
-                                <br/>
-                                <strong>Note:</strong> Les clients NE voient PAS cette interface.<br/>
-                                Ils verront leur domaine dans leur portail OneDesk.
-                            </div>
-                        </group>
-                        <group>
-                            <button name="action_debug_sudo" type="object"
-                                    string="🔍 DEBUG: Tester Sudo"
-                                    help="Vérifier quel utilisateur exécute Odoo et si sudo fonctionne"/>
-                            <button name="action_setup_custom_domain_test" type="object"
-                                    string="🧪 Test Local (sans SSL)"
-                                    invisible="not custom_domain or not database_name"
-                                    help="Configure en HTTP pour tester localement sans SSL"/>
-                            <button name="action_setup_custom_domain" type="object"
-                                    string="🔧 PROD: Configurer + SSL"
-                                    class="oe_highlight"
-                                    invisible="not custom_domain or not database_name"
-                                    confirm="⚠️ PRODUCTION: Certbot obtiendra un vrai certificat. Le DNS doit pointer ici. Continuer?"/>
-                            <button name="action_remove_custom_domain" type="object"
-                                    string="🗑️ Supprimer Domaine"
-                                    invisible="not custom_domain"
-                                    confirm="Supprimer la configuration du domaine personnalisé?"/>
+                                   attrs="{'invisible': [('admin_password_temp', '=', False)]}"/>
                         </group>
                     </group>
 
@@ -214,39 +158,37 @@
                         </page>
                         <page string="Facturation">
                             <group>
-                                <field name="total_revenue" widget="float" string="Revenu Total (€)"/>
+                                <field name="total_revenue" widget="monetary"/>
                             </group>
                         </page>
                         <page string="Historique Métriques" name="metrics">
                             <field name="metric_ids">
-                                <list>
+                                <tree>
                                     <field name="recorded_at"/>
                                     <field name="metric_type"/>
                                     <field name="value"/>
                                     <field name="unit"/>
-                                </list>
+                                </tree>
                             </field>
                         </page>
-                        <page string="Alertes" name="alerts" invisible="not alert_ids">
+                        <page string="Alertes" name="alerts" attrs="{'invisible': [('alert_ids', '=', [])]}">
                             <field name="alert_ids">
-                                <list decoration-warning="severity=='warning'" decoration-danger="severity in ['error', 'critical']">
+                                <tree decoration-warning="severity=='warning'" decoration-danger="severity in ['error', 'critical']">
                                     <field name="created_at"/>
                                     <field name="alert_type"/>
                                     <field name="severity" widget="badge"/>
                                     <field name="message"/>
                                     <field name="resolved" widget="boolean_toggle"/>
-                                </list>
+                                </tree>
                             </field>
                         </page>
                     </notebook>
-
-                    <!-- Chatter -->
-                    <div class="oe_chatter o_chatter_bottom w-100" style="margin-top: 40px; border-top: 2px solid #ddd; padding-top: 20px;">
-                        <field name="message_follower_ids"/>
-                        <field name="activity_ids"/>
-                        <field name="message_ids"/>
-                    </div>
                 </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids"/>
+                    <field name="activity_ids"/>
+                    <field name="message_ids"/>
+                </div>
             </form>
         </field>
     </record>
@@ -269,7 +211,7 @@
                 <field name="quota_storage_exceeded"/>
                 <progressbar field="database_state" colors='{"active": "success", "error": "danger", "suspended": "warning", "provisioning": "info"}'/>
                 <templates>
-                    <t t-name="card">
+                    <t t-name="kanban-box">
                         <div class="oe_kanban_global_click">
                             <div class="o_kanban_record_top mb-2">
                                 <div class="o_kanban_record_headings">
@@ -283,14 +225,14 @@
                                 </span>
                             </div>
                             <div class="o_kanban_record_body">
-                                <div><i class="fa fa-cube" title="Plan"/> <field name="plan_id"/></div>
-                                <div><i class="fa fa-users" title="Utilisateurs"/> <field name="nb_users"/> utilisateurs</div>
-                                <div><i class="fa fa-database" title="Stockage"/> <field name="storage_used_gb"/> GB</div>
+                                <div><i class="fa fa-cube"/> <field name="plan_id"/></div>
+                                <div><i class="fa fa-users"/> <field name="nb_users"/> utilisateurs</div>
+                                <div><i class="fa fa-database"/> <field name="storage_used_gb"/> GB</div>
                                 <div t-if="record.url.raw_value">
-                                    <i class="fa fa-external-link" title="URL"/> <field name="url" widget="url"/>
+                                    <i class="fa fa-external-link"/> <field name="url" widget="url"/>
                                 </div>
                                 <div t-if="record.quota_users_exceeded.raw_value or record.quota_storage_exceeded.raw_value" class="text-danger mt-2">
-                                    <i class="fa fa-exclamation-triangle" title="Attention"/> Quotas dépassés
+                                    <i class="fa fa-exclamation-triangle"/> Quotas dépassés
                                 </div>
                             </div>
                         </div>
@@ -305,10 +247,26 @@
         <field name="name">saas.client.search</field>
         <field name="model">saas.client</field>
         <field name="arch" type="xml">
-            <search>
+            <search string="Clients SaaS">
                 <field name="name"/>
                 <field name="company_name"/>
                 <field name="email"/>
+                <field name="plan_id"/>
+                <separator/>
+                <filter string="Actifs" name="active_db" domain="[('database_state', '=', 'active')]"/>
+                <filter string="En Erreur" name="error" domain="[('database_state', '=', 'error')]"/>
+                <filter string="Suspendus" name="suspended" domain="[('database_state', '=', 'suspended')]"/>
+                <filter string="En Essai" name="trial" domain="[('subscription_state', '=', 'trial')]"/>
+                <filter string="Quotas Dépassés" name="quota_exceeded"
+                        domain="['|', '|', ('quota_users_exceeded', '=', True), ('quota_storage_exceeded', '=', True), ('quota_api_exceeded', '=', True)]"/>
+                <separator/>
+                <filter string="Archivés" name="inactive" domain="[('active', '=', False)]"/>
+                <group expand="0" string="Grouper par">
+                    <filter string="Plan" name="group_plan" context="{'group_by': 'plan_id'}"/>
+                    <filter string="État Base" name="group_db_state" context="{'group_by': 'database_state'}"/>
+                    <filter string="État Abonnement" name="group_sub_state" context="{'group_by': 'subscription_state'}"/>
+                    <filter string="Facturation" name="group_billing" context="{'group_by': 'subscription_billing'}"/>
+                </group>
             </search>
         </field>
     </record>
@@ -317,7 +275,7 @@
     <record id="action_saas_client" model="ir.actions.act_window">
         <field name="name">Clients SaaS</field>
         <field name="res_model">saas.client</field>
-        <field name="view_mode">kanban,list,form</field>
+        <field name="view_mode">kanban,tree,form</field>
         <field name="context">{'search_default_active_db': 1}</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">
@@ -327,6 +285,24 @@
                 Les clients SaaS disposent chacun de leur propre base de données Odoo indépendante.
             </p>
         </field>
+    </record>
+
+    <!-- Action pour voir les métriques d'un client -->
+    <record id="action_saas_metric_from_client" model="ir.actions.act_window">
+        <field name="name">Métriques</field>
+        <field name="res_model">saas.metric</field>
+        <field name="view_mode">graph,tree</field>
+        <field name="domain">[('client_id', '=', active_id)]</field>
+        <field name="context">{'default_client_id': active_id}</field>
+    </record>
+
+    <!-- Action pour voir les alertes d'un client -->
+    <record id="action_saas_alert_from_client" model="ir.actions.act_window">
+        <field name="name">Alertes</field>
+        <field name="res_model">saas.alert</field>
+        <field name="view_mode">tree,form</field>
+        <field name="domain">[('client_id', '=', active_id)]</field>
+        <field name="context">{'default_client_id': active_id}</field>
     </record>
 
 </odoo>

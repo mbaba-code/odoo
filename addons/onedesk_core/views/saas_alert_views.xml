@@ -5,7 +5,7 @@
         <field name="name">saas.alert.tree</field>
         <field name="model">saas.alert</field>
         <field name="arch" type="xml">
-            <list string="Alertes SaaS" decoration-muted="resolved==True"
+            <tree string="Alertes SaaS" decoration-muted="resolved==True"
                   decoration-warning="severity=='warning' and resolved==False"
                   decoration-danger="severity in ['error', 'critical'] and resolved==False">
                 <field name="created_at"/>
@@ -19,10 +19,10 @@
                 <field name="resolved" widget="boolean_toggle"/>
                 <field name="notification_sent" widget="boolean_toggle"/>
                 <button name="action_resolve" type="object" string="Résoudre" icon="fa-check"
-                        invisible="resolved"/>
+                        attrs="{'invisible': [('resolved', '=', True)]}"/>
                 <button name="action_send_notification" type="object" string="Notifier" icon="fa-envelope"
-                        invisible="notification_sent"/>
-            </list>
+                        attrs="{'invisible': [('notification_sent', '=', True)]}"/>
+            </tree>
         </field>
     </record>
 
@@ -31,12 +31,12 @@
         <field name="name">saas.alert.form</field>
         <field name="model">saas.alert</field>
         <field name="arch" type="xml">
-            <form string="Alerte SaaS" class="o_form_saas_wrapper">
+            <form string="Alerte SaaS">
                 <header>
                     <button name="action_resolve" type="object" string="Marquer comme Résolu"
-                            class="oe_highlight" invisible="resolved"/>
+                            class="oe_highlight" attrs="{'invisible': [('resolved', '=', True)]}"/>
                     <button name="action_send_notification" type="object" string="Envoyer Notification"
-                            invisible="notification_sent"/>
+                            attrs="{'invisible': [('notification_sent', '=', True)]}"/>
                     <field name="severity" widget="statusbar"/>
                 </header>
                 <sheet>
@@ -52,7 +52,7 @@
                         </group>
                         <group string="Notification">
                             <field name="notification_sent" readonly="1"/>
-                            <field name="notification_sent_at" readonly="1" invisible="not notification_sent"/>
+                            <field name="notification_sent_at" readonly="1" attrs="{'invisible': [('notification_sent', '=', False)]}"/>
                         </group>
                     </group>
                     <group string="Message">
@@ -61,20 +61,18 @@
                     <group string="Détails">
                         <field name="details" nolabel="1"/>
                     </group>
-                    <group invisible="not resolved">
+                    <group attrs="{'invisible': [('resolved', '=', False)]}">
                         <group string="Résolution">
                             <field name="resolved_by" readonly="1"/>
                             <field name="resolved_at" readonly="1"/>
                         </group>
                     </group>
                     <field name="resolution_notes" placeholder="Notes sur la résolution de l'alerte..."/>
-
-                    <!-- Chatter -->
-                    <div class="oe_chatter o_chatter_bottom w-100" style="margin-top: 40px; border-top: 2px solid #ddd; padding-top: 20px;">
-                        <field name="message_follower_ids"/>
-                        <field name="message_ids"/>
-                    </div>
                 </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids"/>
+                    <field name="message_ids"/>
+                </div>
             </form>
         </field>
     </record>
@@ -91,7 +89,7 @@
                 <field name="resolved"/>
                 <field name="client_id"/>
                 <templates>
-                    <t t-name="card">
+                    <t t-name="kanban-box">
                         <div class="oe_kanban_global_click"
                              t-att-class="record.resolved.raw_value ? 'text-muted' : ''">
                             <div class="o_kanban_record_top mb-2">
@@ -108,7 +106,7 @@
                             <div class="o_kanban_record_body">
                                 <field name="message"/>
                                 <div class="text-muted mt-2">
-                                    <i class="fa fa-clock-o" title="Date"/> <field name="created_at"/>
+                                    <i class="fa fa-clock-o"/> <field name="created_at"/>
                                 </div>
                             </div>
                             <div class="o_kanban_record_bottom mt-2">
@@ -132,10 +130,26 @@
         <field name="name">saas.alert.search</field>
         <field name="model">saas.alert</field>
         <field name="arch" type="xml">
-            <search>
+            <search string="Alertes">
                 <field name="client_id"/>
                 <field name="alert_type"/>
                 <filter string="Non Résolues" name="unresolved" domain="[('resolved', '=', False)]"/>
+                <filter string="Résolues" name="resolved" domain="[('resolved', '=', True)]"/>
+                <separator/>
+                <filter string="Critique" name="critical" domain="[('severity', '=', 'critical')]"/>
+                <filter string="Erreur" name="error" domain="[('severity', '=', 'error')]"/>
+                <filter string="Avertissement" name="warning" domain="[('severity', '=', 'warning')]"/>
+                <separator/>
+                <filter string="Quotas" name="quota" domain="[('alert_type', 'in', ['quota_users_exceeded', 'quota_storage_exceeded', 'quota_api_exceeded'])]"/>
+                <filter string="Essai" name="trial" domain="[('alert_type', 'in', ['trial_ending_soon', 'trial_expired'])]"/>
+                <separator/>
+                <filter string="Notification Envoyée" name="notified" domain="[('notification_sent', '=', True)]"/>
+                <group expand="0" string="Grouper par">
+                    <filter string="Client" name="group_client" context="{'group_by': 'client_id'}"/>
+                    <filter string="Type d'Alerte" name="group_type" context="{'group_by': 'alert_type'}"/>
+                    <filter string="Sévérité" name="group_severity" context="{'group_by': 'severity'}"/>
+                    <filter string="État" name="group_resolved" context="{'group_by': 'resolved'}"/>
+                </group>
             </search>
         </field>
     </record>
@@ -144,7 +158,7 @@
     <record id="action_saas_alert" model="ir.actions.act_window">
         <field name="name">Alertes</field>
         <field name="res_model">saas.alert</field>
-        <field name="view_mode">kanban,list,form</field>
+        <field name="view_mode">kanban,tree,form</field>
         <field name="context">{'search_default_unresolved': 1}</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">

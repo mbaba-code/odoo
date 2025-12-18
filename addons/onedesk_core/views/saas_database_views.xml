@@ -5,14 +5,16 @@
         <field name="name">saas.database.tree</field>
         <field name="model">saas.database</field>
         <field name="arch" type="xml">
-            <list decoration-success="state=='active'" decoration-muted="state=='terminated'">
+            <tree string="Bases de Données SaaS" decoration-success="state=='active'"
+                  decoration-warning="state=='maintenance'" decoration-muted="state=='terminated'">
                 <field name="name"/>
                 <field name="client_id"/>
                 <field name="plan_id"/>
-                <field name="state" widget="badge"/>
-                <field name="total_size_gb"/>
+                <field name="state" widget="badge" decoration-success="state=='active'"/>
+                <field name="total_size_gb" widget="float"/>
+                <field name="created_at"/>
                 <field name="last_backup_date"/>
-            </list>
+            </tree>
         </field>
     </record>
 
@@ -21,34 +23,34 @@
         <field name="name">saas.database.form</field>
         <field name="model">saas.database</field>
         <field name="arch" type="xml">
-            <form class="o_form_saas_wrapper">
+            <form string="Base de Données SaaS">
                 <header>
-                    <field name="state" widget="statusbar" statusbar_visible="active,suspended,terminated"/>
+                    <field name="state" widget="statusbar" statusbar_visible="active,maintenance,terminated"/>
                 </header>
                 <sheet>
                     <div class="oe_title">
+                        <label for="name" class="oe_edit_only"/>
                         <h1><field name="name" readonly="1"/></h1>
                     </div>
                     <group>
                         <group string="Informations">
                             <field name="client_id" readonly="1"/>
                             <field name="plan_id" readonly="1"/>
+                            <field name="created_at" readonly="1"/>
                         </group>
                         <group string="Stockage">
-                            <field name="total_size_gb" readonly="1"/>
-                            <field name="postgresql_size_mb" readonly="1"/>
-                            <field name="filestore_size_mb" readonly="1"/>
+                            <field name="postgresql_size_bytes" readonly="1"/>
+                            <field name="filestore_size_bytes" readonly="1"/>
+                            <field name="total_size_gb" readonly="1" widget="float"/>
                         </group>
                     </group>
                     <group>
-                        <group string="Activité">
+                        <group string="Sauvegarde">
                             <field name="last_backup_date" readonly="1"/>
-                            <field name="last_update_date" readonly="1"/>
-                            <field name="last_connection_date" readonly="1"/>
-                        </group>
-                        <group string="Statistiques">
-                            <field name="nb_tables" readonly="1"/>
-                            <field name="nb_records_total" readonly="1"/>
+                            <field name="last_backup_path" readonly="1"/>
+                            <field name="backup_enabled"/>
+                            <field name="backup_frequency_days"/>
+                            <field name="backup_retention_days"/>
                         </group>
                     </group>
                 </sheet>
@@ -60,7 +62,7 @@
     <record id="action_saas_database" model="ir.actions.act_window">
         <field name="name">Bases de Données</field>
         <field name="res_model">saas.database</field>
-        <field name="view_mode">list,form</field>
+        <field name="view_mode">tree,form</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">
                 Aucune base de données provisionnée

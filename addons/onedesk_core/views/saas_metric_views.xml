@@ -31,14 +31,14 @@
         <field name="name">saas.metric.tree</field>
         <field name="model">saas.metric</field>
         <field name="arch" type="xml">
-            <list string="Métriques SaaS">
+            <tree string="Métriques SaaS">
                 <field name="recorded_at"/>
                 <field name="client_id"/>
                 <field name="database_id"/>
                 <field name="metric_type"/>
                 <field name="value"/>
                 <field name="unit"/>
-            </list>
+            </tree>
         </field>
     </record>
 
@@ -47,9 +47,24 @@
         <field name="name">saas.metric.search</field>
         <field name="model">saas.metric</field>
         <field name="arch" type="xml">
-            <search>
+            <search string="Métriques">
                 <field name="client_id"/>
                 <field name="metric_type"/>
+                <filter string="Utilisateurs Actifs" name="users_active" domain="[('metric_type', '=', 'users_active')]"/>
+                <filter string="Stockage" name="storage" domain="[('metric_type', '=', 'storage_used')]"/>
+                <filter string="API Calls" name="api" domain="[('metric_type', '=', 'api_calls')]"/>
+                <separator/>
+                <filter string="Aujourd'hui" name="today"
+                        domain="[('recorded_at', '&gt;=', (context_today()).strftime('%Y-%m-%d 00:00:00'))]"/>
+                <filter string="Cette Semaine" name="this_week"
+                        domain="[('recorded_at', '&gt;=', (context_today() - relativedelta(weeks=1)).strftime('%Y-%m-%d 00:00:00'))]"/>
+                <filter string="Ce Mois" name="this_month"
+                        domain="[('recorded_at', '&gt;=', (context_today() - relativedelta(months=1)).strftime('%Y-%m-%d 00:00:00'))]"/>
+                <group expand="0" string="Grouper par">
+                    <filter string="Client" name="group_client" context="{'group_by': 'client_id'}"/>
+                    <filter string="Type de Métrique" name="group_type" context="{'group_by': 'metric_type'}"/>
+                    <filter string="Date" name="group_date" context="{'group_by': 'recorded_at:day'}"/>
+                </group>
             </search>
         </field>
     </record>
@@ -58,8 +73,8 @@
     <record id="action_saas_metric" model="ir.actions.act_window">
         <field name="name">Métriques</field>
         <field name="res_model">saas.metric</field>
-        <field name="view_mode">graph,pivot,list</field>
-        <field name="context">{}</field>
+        <field name="view_mode">graph,pivot,tree</field>
+        <field name="context">{'search_default_this_month': 1}</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_empty_folder">
                 Aucune métrique enregistrée
