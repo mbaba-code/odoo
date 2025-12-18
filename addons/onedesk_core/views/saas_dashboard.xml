@@ -18,7 +18,7 @@
                                     <div class="card bg-primary text-white mb-3">
                                         <div class="card-body">
                                             <h6 class="card-title">
-                                                <i class="fa fa-users"/> Clients Actifs
+                                                <i class="fa fa-users" title="Clients"/> Clients Actifs
                                             </h6>
                                             <h2 class="mb-0">
                                                 <t t-esc="record.__count"/>
@@ -30,7 +30,7 @@
                                     <div class="card bg-success text-white mb-3">
                                         <div class="card-body">
                                             <h6 class="card-title">
-                                                <i class="fa fa-database"/> Bases Actives
+                                                <i class="fa fa-database" title="Bases de données"/> Bases Actives
                                             </h6>
                                             <h2 class="mb-0">
                                                 <t t-esc="record.__count"/>
@@ -42,7 +42,7 @@
                                     <div class="card bg-info text-white mb-3">
                                         <div class="card-body">
                                             <h6 class="card-title">
-                                                <i class="fa fa-clock-o"/> Essais en Cours
+                                                <i class="fa fa-clock-o" title="Date"/> Essais en Cours
                                             </h6>
                                             <h2 class="mb-0">-</h2>
                                         </div>
@@ -52,7 +52,7 @@
                                     <div class="card bg-warning text-white mb-3">
                                         <div class="card-body">
                                             <h6 class="card-title">
-                                                <i class="fa fa-exclamation-triangle"/> Alertes
+                                                <i class="fa fa-exclamation-triangle" title="Alertes"/> Alertes
                                             </h6>
                                             <h2 class="mb-0">-</h2>
                                         </div>
@@ -65,24 +65,24 @@
                                 <div class="col-12">
                                     <div class="card mb-3">
                                         <div class="card-header">
-                                            <h5><i class="fa fa-bolt"/> Actions Rapides</h5>
+                                            <h5><i class="fa fa-bolt" title="Actions"/> Actions Rapides</h5>
                                         </div>
                                         <div class="card-body">
                                             <a role="button" class="btn btn-primary mr-2"
                                                name="%(action_saas_client)d" type="action">
-                                                <i class="fa fa-plus"/> Nouveau Client
+                                                <i class="fa fa-plus" title="Créer"/> Nouveau Client
                                             </a>
                                             <a role="button" class="btn btn-info mr-2"
                                                name="%(action_saas_plan)d" type="action">
-                                                <i class="fa fa-cube"/> Gérer les Plans
+                                                <i class="fa fa-cube" title="Plans"/> Gérer les Plans
                                             </a>
                                             <a role="button" class="btn btn-warning mr-2"
                                                name="%(action_saas_alert)d" type="action">
-                                                <i class="fa fa-bell"/> Voir les Alertes
+                                                <i class="fa fa-bell" title="Notifications"/> Voir les Alertes
                                             </a>
                                             <a role="button" class="btn btn-success"
                                                name="%(action_saas_metric)d" type="action">
-                                                <i class="fa fa-line-chart"/> Métriques
+                                                <i class="fa fa-line-chart" title="Graphiques"/> Métriques
                                             </a>
                                         </div>
                                     </div>
@@ -94,7 +94,7 @@
                                 <div class="col-lg-6 col-md-12">
                                     <div class="card mb-3">
                                         <div class="card-header">
-                                            <h5><i class="fa fa-exclamation-circle"/> Alertes Non Résolues</h5>
+                                            <h5><i class="fa fa-exclamation-circle" title="Alertes"/> Alertes Non Résolues</h5>
                                         </div>
                                         <div class="card-body">
                                             <p class="text-muted">Cliquez sur "Voir les Alertes" pour gérer les alertes</p>
@@ -104,7 +104,7 @@
                                 <div class="col-lg-6 col-md-12">
                                     <div class="card mb-3">
                                         <div class="card-header">
-                                            <h5><i class="fa fa-clock-o"/> Essais Arrivant à Expiration</h5>
+                                            <h5><i class="fa fa-clock-o" title="Date"/> Essais Arrivant à Expiration</h5>
                                         </div>
                                         <div class="card-body">
                                             <p class="text-muted">Cliquez sur "En Essai" dans le menu pour voir les clients en période d'essai</p>
@@ -118,7 +118,7 @@
                                 <div class="col-12">
                                     <div class="card mb-3">
                                         <div class="card-header">
-                                            <h5><i class="fa fa-pie-chart"/> Répartition par Plan</h5>
+                                            <h5><i class="fa fa-pie-chart" title="Statistiques"/> Répartition par Plan</h5>
                                         </div>
                                         <div class="card-body">
                                             <p class="text-muted">Consultez les Plans SaaS pour voir la répartition détaillée</p>
