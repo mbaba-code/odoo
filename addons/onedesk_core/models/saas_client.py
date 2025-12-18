@@ -282,8 +282,51 @@ class SaasClient(models.Model):
         text = re.sub(r'[^a-z0-9]+', '_', text)
         return text.strip('_')[:50]
 
+    def _is_database_initialized(self):
+        """Vérifie si la base de données est déjà initialisée avec Odoo"""
+        self.ensure_one()
+
+        db_host = self.env['ir.config_parameter'].sudo().get_param('db_host', 'localhost')
+        db_port = int(self.env['ir.config_parameter'].sudo().get_param('db_port', '5432'))
+        db_user = self.env['ir.config_parameter'].sudo().get_param('db_user', 'odoo')
+        db_password = self.env['ir.config_parameter'].sudo().get_param('db_password', '')
+
+        try:
+            # Connexion à la base client
+            conn = psycopg2.connect(
+                host=db_host,
+                port=db_port,
+                user=db_user,
+                password=db_password,
+                database=self.database_name,
+            )
+            cursor = conn.cursor()
+
+            try:
+                # Vérifier si la table ir_module_module existe (signe d'une base Odoo initialisée)
+                cursor.execute("""
+                    SELECT EXISTS (
+                        SELECT FROM information_schema.tables
+                        WHERE table_schema = 'public'
+                        AND table_name = 'ir_module_module'
+                    )
+                """)
+                exists = cursor.fetchone()[0]
+                return exists
+
+            finally:
+                cursor.close()
+                conn.close()
+
+        except psycopg2.OperationalError:
+            # La base n'existe pas ou n'est pas accessible
+            return False
+        except Exception as e:
+            _logger.error(f"[SAAS] Erreur vérification initialisation {self.database_name}: {str(e)}")
+            return False
+
     def _create_postgresql_database(self):
-        """Crée la base PostgreSQL"""
+        """Crée la base PostgreSQL (skip si existe déjà)"""
         self.ensure_one()
 
         _logger.info(f"[SAAS] Création base PostgreSQL: {self.database_name}")
@@ -312,7 +355,8 @@ class SaasClient(models.Model):
                 (self.database_name,)
             )
             if cursor.fetchone():
-                raise UserError(f"La base {self.database_name} existe déjà")
+                _logger.warning(f"[SAAS] Base PostgreSQL {self.database_name} existe déjà, skip création")
+                return  # Skip si existe déjà
 
             # Créer la base
             cursor.execute(f'CREATE DATABASE "{self.database_name}" ENCODING \'UTF8\'')
@@ -323,13 +367,18 @@ class SaasClient(models.Model):
             conn.close()
 
     def _initialize_odoo_database(self):
-        """Initialise la base Odoo avec les modules de base"""
+        """Initialise la base Odoo avec les modules de base (skip si déjà initialisée)"""
         self.ensure_one()
 
         _logger.info(f"[SAAS] Initialisation Odoo pour {self.database_name}")
 
         import odoo
         from odoo import sql_db
+
+        # Vérifier si la base est déjà initialisée
+        if self._is_database_initialized():
+            _logger.warning(f"[SAAS] Base {self.database_name} déjà initialisée, skip initialisation")
+            return
 
         # Modules à installer selon le plan
         modules_to_install = ['base', 'web', 'mail', 'contacts']
@@ -480,6 +529,85 @@ class SaasClient(models.Model):
                 'cancelled_date': fields.Date.today(),
             })
             client.message_post(body="⚠️ Base de données terminée - Backup final créé")
+
+    def action_reset_and_reprovision(self):
+        """Nettoyer complètement et recommencer le provisioning (DANGER!)"""
+        self.ensure_one()
+
+        if self.database_state not in ['draft', 'error']:
+            raise UserError(
+                "Le reprovisioning n'est autorisé que pour les états 'draft' ou 'error'. "
+                "Pour une base active, utilisez d'abord action_terminate."
+            )
+
+        _logger.warning(f"[SAAS] RESET complet demandé pour {self.name} (DB: {self.database_name})")
+
+        # Connexion PostgreSQL
+        db_host = self.env['ir.config_parameter'].sudo().get_param('db_host', 'localhost')
+        db_port = int(self.env['ir.config_parameter'].sudo().get_param('db_port', '5432'))
+        db_user = self.env['ir.config_parameter'].sudo().get_param('db_user', 'odoo')
+        db_password = self.env['ir.config_parameter'].sudo().get_param('db_password', '')
+
+        try:
+            # 1. Supprimer le filestore
+            import shutil
+            import os
+            from pathlib import Path
+            from odoo.tools import config
+
+            filestore_path = Path(config.filestore(self.database_name))
+            if filestore_path.exists():
+                shutil.rmtree(filestore_path)
+                _logger.info(f"[SAAS] Filestore supprimé: {filestore_path}")
+
+            # 2. Supprimer la base PostgreSQL
+            conn = psycopg2.connect(
+                host=db_host,
+                port=db_port,
+                user=db_user,
+                password=db_password,
+                database='postgres',
+            )
+            conn.autocommit = True
+            cursor = conn.cursor()
+
+            try:
+                # Terminer toutes les connexions à la base
+                cursor.execute(f"""
+                    SELECT pg_terminate_backend(pg_stat_activity.pid)
+                    FROM pg_stat_activity
+                    WHERE pg_stat_activity.datname = %s
+                      AND pid <> pg_backend_pid()
+                """, (self.database_name,))
+
+                # Supprimer la base
+                cursor.execute(f'DROP DATABASE IF EXISTS "{self.database_name}"')
+                _logger.info(f"[SAAS] Base PostgreSQL supprimée: {self.database_name}")
+
+            finally:
+                cursor.close()
+                conn.close()
+
+            # 3. Supprimer le saas.database lié si existant
+            if self.database_id:
+                self.database_id.unlink()
+
+            # 4. Réinitialiser les champs
+            self.write({
+                'database_state': 'draft',
+                'database_error': False,
+                'database_id': False,
+                'admin_login': False,
+                'admin_password_temp': False,
+            })
+
+            self.message_post(body="✅ Nettoyage complet effectué - Prêt pour reprovisioning")
+
+            _logger.info(f"[SAAS] Reset terminé pour {self.name}")
+
+        except Exception as e:
+            _logger.error(f"[SAAS] Erreur lors du reset de {self.name}: {str(e)}", exc_info=True)
+            raise UserError(f"Erreur lors du reset: {str(e)}")
 
     def cron_collect_metrics(self):
         """Cron: Collecter les métriques de tous les clients actifs"""
