@@ -216,22 +216,20 @@ class SaasClient(models.Model):
 
             _logger.info(f"[SAAS] Début provisioning client {self.name} (DB: {self.database_name})")
 
-            # 1. Créer la base PostgreSQL
-            self._create_postgresql_database()
-
-            # 2. Initialiser Odoo
+            # 1. Initialiser Odoo (crée la base PostgreSQL + initialise Odoo)
+            #    exp_create_database() gère les deux en une seule étape
             self._initialize_odoo_database()
 
-            # 3. Créer l'admin client
+            # 2. Créer l'admin client
             admin_password = self._create_client_admin()
 
-            # 4. Configurer la company
+            # 3. Configurer la company
             self._configure_client_company()
 
-            # 5. Enregistrer l'instance de base
+            # 4. Enregistrer l'instance de base
             self._register_database()
 
-            # 6. Envoyer email de bienvenue
+            # 5. Envoyer email de bienvenue
             self._send_welcome_email(admin_password)
 
             # État: active
