@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <!-- Dashboard SaaS - Vue Kanban personnalisée -->
     <record id="view_saas_dashboard_kanban" model="ir.ui.view">
         <field name="name">saas.dashboard.kanban</field>
         <field name="model">saas.client</field>
@@ -11,13 +10,13 @@
                 <field name="subscription_state"/>
                 <templates>
                     <t t-name="card">
-                        <div class="container o_saas_dashboard">
-                            <!-- Row 1: KPIs Principaux -->
-                            <div class="row">
-                                <div class="col-lg-3 col-md-6 col-sm-12">
-                                    <div class="card bg-primary text-white mb-3">
-                                        <div class="card-body">
-                                            <h6 class="card-title">
+                        <div class="container-fluid o_saas_dashboard">
+                            
+                            <div class="row d-flex align-items-stretch">
+                                <div class="col-3 mb-3 d-flex align-items-stretch px-1">
+                                    <div class="card bg-primary text-white w-100 h-100">
+                                        <div class="card-body p-2">
+                                            <h6 class="card-title" style="white-space: normal; word-wrap: break-word; word-break: break-word; font-size: 0.9em;">
                                                 <i class="fa fa-users" title="Clients"/> Clients Actifs
                                             </h6>
                                             <h2 class="mb-0">
@@ -26,10 +25,10 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div class="col-lg-3 col-md-6 col-sm-12">
-                                    <div class="card bg-success text-white mb-3">
-                                        <div class="card-body">
-                                            <h6 class="card-title">
+                                <div class="col-3 mb-3 d-flex align-items-stretch px-1">
+                                    <div class="card bg-success text-white w-100 h-100">
+                                        <div class="card-body p-2">
+                                            <h6 class="card-title" style="white-space: normal; word-wrap: break-word; word-break: break-word; font-size: 0.9em;">
                                                 <i class="fa fa-database" title="Bases de données"/> Bases Actives
                                             </h6>
                                             <h2 class="mb-0">
@@ -38,20 +37,20 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div class="col-lg-3 col-md-6 col-sm-12">
-                                    <div class="card bg-info text-white mb-3">
-                                        <div class="card-body">
-                                            <h6 class="card-title">
+                                <div class="col-3 mb-3 d-flex align-items-stretch px-1">
+                                    <div class="card bg-info text-white w-100 h-100">
+                                        <div class="card-body p-2">
+                                            <h6 class="card-title" style="white-space: normal; word-wrap: break-word; word-break: break-word; font-size: 0.9em;">
                                                 <i class="fa fa-clock-o" title="Date"/> Essais en Cours
                                             </h6>
                                             <h2 class="mb-0">-</h2>
                                         </div>
                                     </div>
                                 </div>
-                                <div class="col-lg-3 col-md-6 col-sm-12">
-                                    <div class="card bg-warning text-white mb-3">
-                                        <div class="card-body">
-                                            <h6 class="card-title">
+                                <div class="col-3 mb-3 d-flex align-items-stretch px-1">
+                                    <div class="card bg-warning text-white w-100 h-100">
+                                        <div class="card-body p-2">
+                                            <h6 class="card-title" style="white-space: normal; word-wrap: break-word; word-break: break-word; font-size: 0.9em;">
                                                 <i class="fa fa-exclamation-triangle" title="Alertes"/> Alertes
                                             </h6>
                                             <h2 class="mb-0">-</h2>
@@ -60,68 +59,75 @@
                                 </div>
                             </div>
 
-                            <!-- Row 2: Actions Rapides -->
                             <div class="row">
-                                <div class="col-12">
-                                    <div class="card mb-3">
+                                <div class="col-12 mb-3">
+                                    <div class="card h-100">
                                         <div class="card-header">
-                                            <h5><i class="fa fa-bolt" title="Actions"/> Actions Rapides</h5>
+                                            <h5 style="white-space: normal; word-break: break-word;">
+                                                <i class="fa fa-bolt" title="Actions"/> Actions Rapides
+                                            </h5>
                                         </div>
                                         <div class="card-body">
-                                            <a role="button" class="btn btn-primary mr-2"
-                                               name="%(action_saas_client)d" type="action">
-                                                <i class="fa fa-plus" title="Créer"/> Nouveau Client
-                                            </a>
-                                            <a role="button" class="btn btn-info mr-2"
-                                               name="%(action_saas_plan)d" type="action">
-                                                <i class="fa fa-cube" title="Plans"/> Gérer les Plans
-                                            </a>
-                                            <a role="button" class="btn btn-warning mr-2"
-                                               name="%(action_saas_alert)d" type="action">
-                                                <i class="fa fa-bell" title="Notifications"/> Voir les Alertes
-                                            </a>
-                                            <a role="button" class="btn btn-success"
-                                               name="%(action_saas_metric)d" type="action">
-                                                <i class="fa fa-line-chart" title="Graphiques"/> Métriques
-                                            </a>
+                                            <div class="d-flex flex-wrap">
+                                                <a role="button" class="btn btn-primary mr-2 mb-2"
+                                                   name="%(action_saas_client)d" type="action" style="white-space: normal;">
+                                                    <i class="fa fa-plus" title="Créer"/> Nouveau Client
+                                                </a>
+                                                <a role="button" class="btn btn-info mr-2 mb-2"
+                                                   name="%(action_saas_plan)d" type="action" style="white-space: normal;">
+                                                    <i class="fa fa-cube" title="Plans"/> Gérer les Plans
+                                                </a>
+                                                <a role="button" class="btn btn-warning mr-2 mb-2"
+                                                   name="%(action_saas_alert)d" type="action" style="white-space: normal;">
+                                                    <i class="fa fa-bell" title="Notifications"/> Voir les Alertes
+                                                </a>
+                                                <a role="button" class="btn btn-success mb-2"
+                                                   name="%(action_saas_metric)d" type="action" style="white-space: normal;">
+                                                    <i class="fa fa-line-chart" title="Graphiques"/> Métriques
+                                                </a>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
 
-                            <!-- Row 3: Alertes Récentes -->
-                            <div class="row">
-                                <div class="col-lg-6 col-md-12">
-                                    <div class="card mb-3">
+                            <div class="row d-flex align-items-stretch">
+                                <div class="col-6 mb-3 d-flex align-items-stretch">
+                                    <div class="card w-100 h-100">
                                         <div class="card-header">
-                                            <h5><i class="fa fa-exclamation-circle" title="Alertes"/> Alertes Non Résolues</h5>
+                                            <h5 style="white-space: normal; word-wrap: break-word; word-break: break-word; line-height: 1.3;">
+                                                <i class="fa fa-exclamation-circle" title="Alertes"/> Alertes Non Résolues
+                                            </h5>
                                         </div>
                                         <div class="card-body">
-                                            <p class="text-muted">Cliquez sur "Voir les Alertes" pour gérer les alertes</p>
+                                            <p class="text-muted" style="white-space: normal; word-break: break-word;">Cliquez sur "Voir les Alertes" pour gérer les alertes</p>
                                         </div>
                                     </div>
                                 </div>
-                                <div class="col-lg-6 col-md-12">
-                                    <div class="card mb-3">
+                                <div class="col-6 mb-3 d-flex align-items-stretch">
+                                    <div class="card w-100 h-100">
                                         <div class="card-header">
-                                            <h5><i class="fa fa-clock-o" title="Date"/> Essais Arrivant à Expiration</h5>
+                                            <h5 style="white-space: normal; word-wrap: break-word; word-break: break-word; line-height: 1.3;">
+                                                <i class="fa fa-clock-o" title="Date"/> Essais Arrivant à Expiration
+                                            </h5>
                                         </div>
                                         <div class="card-body">
-                                            <p class="text-muted">Cliquez sur "En Essai" dans le menu pour voir les clients en période d'essai</p>
+                                            <p class="text-muted" style="white-space: normal; word-break: break-word;">Cliquez sur "En Essai" dans le menu pour voir les clients en période d'essai</p>
                                         </div>
                                     </div>
                                 </div>
                             </div>
 
-                            <!-- Row 4: Statistiques Plans -->
                             <div class="row">
-                                <div class="col-12">
-                                    <div class="card mb-3">
+                                <div class="col-12 mb-3">
+                                    <div class="card h-100">
                                         <div class="card-header">
-                                            <h5><i class="fa fa-pie-chart" title="Statistiques"/> Répartition par Plan</h5>
+                                            <h5 style="white-space: normal; word-break: break-word;">
+                                                <i class="fa fa-pie-chart" title="Statistiques"/> Répartition par Plan
+                                            </h5>
                                         </div>
                                         <div class="card-body">
-                                            <p class="text-muted">Consultez les Plans SaaS pour voir la répartition détaillée</p>
+                                            <p class="text-muted" style="white-space: normal;">Consultez les Plans SaaS pour voir la répartition détaillée</p>
                                         </div>
                                     </div>
                                 </div>
@@ -133,7 +139,6 @@
         </field>
     </record>
 
-    <!-- Action Dashboard -->
     <record id="action_saas_dashboard" model="ir.actions.act_window">
         <field name="name">Dashboard SaaS</field>
         <field name="res_model">saas.client</field>

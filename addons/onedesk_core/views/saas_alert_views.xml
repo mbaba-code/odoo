@@ -68,11 +68,13 @@
                         </group>
                     </group>
                     <field name="resolution_notes" placeholder="Notes sur la résolution de l'alerte..."/>
+
+                    <!-- Chatter -->
+                    <div class="oe_chatter o_chatter_bottom w-100" style="margin-top: 40px; border-top: 2px solid #ddd; padding-top: 20px;">
+                        <field name="message_follower_ids"/>
+                        <field name="message_ids"/>
+                    </div>
                 </sheet>
-                <div class="oe_chatter">
-                    <field name="message_follower_ids"/>
-                    <field name="message_ids"/>
-                </div>
             </form>
         </field>
     </record>
