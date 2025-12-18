@@ -34,7 +34,7 @@
         <field name="name">saas.plan.form</field>
         <field name="model">saas.plan</field>
         <field name="arch" type="xml">
-            <form string="Plan SaaS">
+            <form string="Plan SaaS" class="o_form_saas_wrapper">
                 <sheet>
                     <div class="oe_button_box" name="button_box">
                         <button name="%(action_saas_client_from_plan)d"

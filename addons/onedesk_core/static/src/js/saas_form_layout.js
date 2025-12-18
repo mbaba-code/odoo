@@ -30,7 +30,7 @@ odoo.define('onedesk_core.saas_form_layout', function (require) {
 
             // Wait for DOM to be ready
             setTimeout(function () {
-                var $form = self.$('.o_form_view');
+                var $form = self.$('.o_form_saas_wrapper');
                 if (!$form.length) {
                     return;
                 }
