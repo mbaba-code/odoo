@@ -52,7 +52,7 @@
         <field name="name">saas.client.form</field>
         <field name="model">saas.client</field>
         <field name="arch" type="xml">
-            <form string="Client SaaS">
+            <form string="Client SaaS" class="o_form_saas_wrapper">
                 <header>
                     <!-- Boutons d'action selon l'état -->
                     <button name="action_provision_database" type="object" string="Provisionner"
