@@ -101,14 +101,17 @@ class SaasClient(models.Model):
         ('database_name_unique', 'UNIQUE(database_name)', 'Ce nom de base de données est déjà utilisé'),
     ]
 
-    @api.depends('subdomain', 'custom_domain')
+    @api.depends('database_name', 'admin_login')
     def _compute_url(self):
-        base_domain = self.env['ir.config_parameter'].sudo().get_param('saas.base_domain', 'onedesk.com')
+        """Génère l'URL d'accès à la base de données client avec login"""
+        base_url = self.env['ir.config_parameter'].sudo().get_param('web.base.url', 'http://localhost:8069')
         for client in self:
-            if client.custom_domain:
-                client.url = f'https://{client.custom_domain}'
-            elif client.subdomain:
-                client.url = f'https://{client.subdomain}.{base_domain}'
+            if client.database_name:
+                # URL avec sélection de la base + login pré-rempli
+                if client.admin_login:
+                    client.url = f'{base_url}/web/login?db={client.database_name}&login={client.admin_login}'
+                else:
+                    client.url = f'{base_url}/web?db={client.database_name}'
             else:
                 client.url = False
 
