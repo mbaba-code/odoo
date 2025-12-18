@@ -140,13 +140,13 @@
                             </div>
                             <div class="o_kanban_record_body">
                                 <div>
-                                    <i class="fa fa-users"/> <field name="max_users"/> utilisateurs
+                                    <i class="fa fa-users" title="Utilisateurs"/> <field name="max_users"/> utilisateurs
                                 </div>
                                 <div>
-                                    <i class="fa fa-database"/> <field name="max_storage_gb"/> GB
+                                    <i class="fa fa-database" title="Stockage"/> <field name="max_storage_gb"/> GB
                                 </div>
                                 <div class="text-muted">
-                                    <i class="fa fa-eur"/> <field name="price_monthly"/>€/mois |
+                                    <i class="fa fa-eur" title="Prix"/> <field name="price_monthly"/>€/mois |
                                     <field name="price_yearly"/>€/an
                                 </div>
                             </div>
