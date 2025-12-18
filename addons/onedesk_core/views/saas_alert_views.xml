@@ -134,16 +134,6 @@
                 <field name="client_id"/>
                 <field name="alert_type"/>
                 <filter string="Non Résolues" name="unresolved" domain="[('resolved', '=', False)]"/>
-                <filter string="Résolues" name="resolved" domain="[('resolved', '=', True)]"/>
-                <separator/>
-                <filter string="Critique" name="critical" domain="[('severity', '=', 'critical')]"/>
-                <filter string="Erreur" name="error" domain="[('severity', '=', 'error')]"/>
-                <filter string="Avertissement" name="warning" domain="[('severity', '=', 'warning')]"/>
-                <group string="Grouper par">
-                    <filter string="Client" name="group_client" context="{'group_by': 'client_id'}"/>
-                    <filter string="Type" name="group_type" context="{'group_by': 'alert_type'}"/>
-                    <filter string="Sévérité" name="group_severity" context="{'group_by': 'severity'}"/>
-                </group>
             </search>
         </field>
     </record>

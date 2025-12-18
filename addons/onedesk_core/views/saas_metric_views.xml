@@ -50,14 +50,6 @@
             <search>
                 <field name="client_id"/>
                 <field name="metric_type"/>
-                <filter string="Utilisateurs Actifs" name="users_active" domain="[('metric_type', '=', 'users_active')]"/>
-                <filter string="Stockage" name="storage" domain="[('metric_type', '=', 'storage_used')]"/>
-                <filter string="API Calls" name="api" domain="[('metric_type', '=', 'api_calls')]"/>
-                <group string="Grouper par">
-                    <filter string="Client" name="group_client" context="{'group_by': 'client_id'}"/>
-                    <filter string="Type de Métrique" name="group_type" context="{'group_by': 'metric_type'}"/>
-                    <filter string="Date" name="group_date" context="{'group_by': 'recorded_at:day'}"/>
-                </group>
             </search>
         </field>
     </record>
