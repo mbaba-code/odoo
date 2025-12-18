@@ -264,24 +264,21 @@
         <field name="name">saas.client.search</field>
         <field name="model">saas.client</field>
         <field name="arch" type="xml">
-            <search string="Clients SaaS">
-                <field name="name"/>
-                <field name="company_name"/>
+            <search>
+                <field name="name" string="Nom"/>
+                <field name="company_name" string="Société"/>
                 <field name="email"/>
                 <field name="plan_id"/>
                 <filter string="Actifs" name="active_db" domain="[('database_state', '=', 'active')]"/>
                 <filter string="En Erreur" name="error" domain="[('database_state', '=', 'error')]"/>
                 <filter string="Suspendus" name="suspended" domain="[('database_state', '=', 'suspended')]"/>
                 <filter string="En Essai" name="trial" domain="[('subscription_state', '=', 'trial')]"/>
-                <filter string="Quotas Dépassés" name="quota_exceeded"
-                        domain="['|', '|', ('quota_users_exceeded', '=', True), ('quota_storage_exceeded', '=', True), ('quota_api_exceeded', '=', True)]"/>
                 <separator/>
                 <filter string="Archivés" name="inactive" domain="[('active', '=', False)]"/>
                 <group string="Grouper par">
                     <filter string="Plan" name="group_plan" context="{'group_by': 'plan_id'}"/>
                     <filter string="État Base" name="group_db_state" context="{'group_by': 'database_state'}"/>
                     <filter string="État Abonnement" name="group_sub_state" context="{'group_by': 'subscription_state'}"/>
-                    <filter string="Facturation" name="group_billing" context="{'group_by': 'subscription_billing'}"/>
                 </group>
             </search>
         </field>
