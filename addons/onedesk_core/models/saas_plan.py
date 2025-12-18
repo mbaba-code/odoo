@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from odoo import models, fields, api
+from odoo.exceptions import ValidationError
 
 class SaasPlan(models.Model):
     _name = 'saas.plan'
@@ -79,11 +80,11 @@ class SaasPlan(models.Model):
     def _check_limits(self):
         for plan in self:
             if plan.max_users < 1:
-                raise models.ValidationError("Le nombre max d'utilisateurs doit être au moins 1")
+                raise ValidationError("Le nombre max d'utilisateurs doit être au moins 1")
             if plan.max_storage_gb < 1:
-                raise models.ValidationError("Le stockage max doit être au moins 1 GB")
+                raise ValidationError("Le stockage max doit être au moins 1 GB")
             if plan.max_api_calls_per_day < 100:
-                raise models.ValidationError("Le nombre d'API calls doit être au moins 100/jour")
+                raise ValidationError("Le nombre d'API calls doit être au moins 100/jour")
 
     def name_get(self):
         result = []

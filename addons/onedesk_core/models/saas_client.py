@@ -176,25 +176,28 @@ class SaasClient(models.Model):
                         "chiffres et tirets, et ne peut pas commencer ou finir par un tiret"
                     )
 
-    @api.model
-    def create(self, vals):
-        # Générer database_name si manquant
-        if not vals.get('database_name'):
-            vals['database_name'] = self._generate_database_name(vals.get('company_name', 'client'))
+    @api.model_create_multi
+    def create(self, vals_list):
+        # Traiter chaque dictionnaire de valeurs
+        for vals in vals_list:
+            # Générer database_name si manquant
+            if not vals.get('database_name'):
+                vals['database_name'] = self._generate_database_name(vals.get('company_name', 'client'))
 
-        # Générer subdomain si manquant
-        if not vals.get('subdomain'):
-            vals['subdomain'] = self._slugify(vals.get('company_name', 'client'))
+            # Générer subdomain si manquant
+            if not vals.get('subdomain'):
+                vals['subdomain'] = self._slugify(vals.get('company_name', 'client'))
 
-        # Créer le client
-        client = super().create(vals)
+        # Créer les clients
+        clients = super().create(vals_list)
 
-        # Message de bienvenue dans le chatter
-        client.message_post(
-            body=f"Client créé - Plan: {client.plan_id.name} - État: {dict(client._fields['subscription_state'].selection).get(client.subscription_state)}"
-        )
+        # Message de bienvenue dans le chatter pour chaque client
+        for client in clients:
+            client.message_post(
+                body=f"Client créé - Plan: {client.plan_id.name} - État: {dict(client._fields['subscription_state'].selection).get(client.subscription_state)}"
+            )
 
-        return client
+        return clients
 
     def action_provision_database(self):
         """Provisionner la base de données client (appelé manuellement ou automatiquement)"""
