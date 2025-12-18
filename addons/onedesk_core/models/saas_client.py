@@ -17,6 +17,8 @@ class SaasClient(models.Model):
     _order = 'create_date desc, id desc'
 
     # Informations client
+    active = fields.Boolean('Actif', default=True, tracking=True,
+                           help="Désarchiver pour réactiver le client")
     name = fields.Char('Nom du Contact', required=True, tracking=True)
     email = fields.Char('Email Admin', required=True, tracking=True)
     company_name = fields.Char('Nom de la Société', required=True, tracking=True)
