@@ -10,7 +10,7 @@
                 <field name="database_state"/>
                 <field name="subscription_state"/>
                 <templates>
-                    <t t-name="kanban-box">
+                    <t t-name="card">
                         <div class="container o_saas_dashboard">
                             <!-- Row 1: KPIs Principaux -->
                             <div class="row">
