@@ -31,14 +31,14 @@
         <field name="name">saas.metric.tree</field>
         <field name="model">saas.metric</field>
         <field name="arch" type="xml">
-            <tree string="Métriques SaaS">
+            <list string="Métriques SaaS">
                 <field name="recorded_at"/>
                 <field name="client_id"/>
                 <field name="database_id"/>
                 <field name="metric_type"/>
                 <field name="value"/>
                 <field name="unit"/>
-            </tree>
+            </list>
         </field>
     </record>
 
@@ -73,7 +73,7 @@
     <record id="action_saas_metric" model="ir.actions.act_window">
         <field name="name">Métriques</field>
         <field name="res_model">saas.metric</field>
-        <field name="view_mode">graph,pivot,tree</field>
+        <field name="view_mode">graph,pivot,list</field>
         <field name="context">{'search_default_this_month': 1}</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_empty_folder">

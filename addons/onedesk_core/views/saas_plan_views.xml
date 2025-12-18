@@ -5,7 +5,7 @@
         <field name="name">saas.plan.tree</field>
         <field name="model">saas.plan</field>
         <field name="arch" type="xml">
-            <tree string="Plans SaaS">
+            <list string="Plans SaaS">
                 <field name="sequence" widget="handle"/>
                 <field name="name"/>
                 <field name="max_users"/>
@@ -16,7 +16,7 @@
                 <field name="revenue_monthly" widget="monetary" sum="Total Mensuel"/>
                 <field name="revenue_yearly" widget="monetary" sum="Total Annuel"/>
                 <field name="active" widget="boolean_toggle"/>
-            </tree>
+            </list>
         </field>
     </record>
 
@@ -79,11 +79,11 @@
                         </page>
                         <page string="Modules Autorisés">
                             <field name="allowed_module_ids">
-                                <tree>
+                                <list>
                                     <field name="name"/>
                                     <field name="state"/>
                                     <field name="summary"/>
-                                </tree>
+                                </list>
                             </field>
                         </page>
                         <page string="Description">
@@ -91,13 +91,13 @@
                         </page>
                         <page string="Clients" attrs="{'invisible': [('client_count', '=', 0)]}">
                             <field name="client_ids">
-                                <tree>
+                                <list>
                                     <field name="name"/>
                                     <field name="company_name"/>
                                     <field name="subscription_state"/>
                                     <field name="database_state"/>
                                     <field name="url" widget="url"/>
-                                </tree>
+                                </list>
                             </field>
                         </page>
                     </notebook>
@@ -152,7 +152,7 @@
     <record id="action_saas_plan" model="ir.actions.act_window">
         <field name="name">Plans SaaS</field>
         <field name="res_model">saas.plan</field>
-        <field name="view_mode">tree,kanban,form</field>
+        <field name="view_mode">list,kanban,form</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">
                 Créez votre premier plan SaaS!
@@ -165,7 +165,9 @@
 
     <!-- Action pour voir les clients d'un plan -->
     <record id="action_saas_client_from_plan" model="ir.actions.act_window">
-        <field name="view_mode">tree,kanban,form</field>
+        <field name="name">Clients</field>
+        <field name="res_model">saas.client</field>
+        <field name="view_mode">list,kanban,form</field>
         <field name="domain">[('plan_id', '=', active_id)]</field>
         <field name="context">{'default_plan_id': active_id}</field>
     </record>
