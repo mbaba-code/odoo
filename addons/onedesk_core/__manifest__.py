@@ -122,6 +122,7 @@
             'onedesk_core/static/src/js/dashboard_admin_master.js',  # NEW: Admin Master dashboard
             'onedesk_core/static/src/js/dashboard_customization.js',
             'onedesk_core/static/src/js/document_form_layout.js',
+            'onedesk_core/static/src/js/saas_form_layout.js',  # Fix chatter position for SaaS forms
         ],
         # Auth responsive CSS chargé directement dans le template (pas dans assets_frontend)
         # pour éviter conflits avec website builder
