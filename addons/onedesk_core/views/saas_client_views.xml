@@ -39,17 +39,17 @@
                 <header>
                     <!-- Boutons d'action selon l'état -->
                     <button name="action_provision_database" type="object" string="Provisionner"
-                            class="oe_highlight" attrs="{'invisible': [('database_state', '!=', 'draft')]}"/>
+                            class="oe_highlight" invisible="database_state != 'draft'"/>
                     <button name="action_suspend" type="object" string="Suspendre"
-                            attrs="{'invisible': [('database_state', 'not in', ['active'])]}"/>
+                            invisible="database_state not in ['active']"/>
                     <button name="action_activate" type="object" string="Réactiver"
-                            attrs="{'invisible': [('database_state', '!=', 'suspended')]}"/>
+                            invisible="database_state != 'suspended'"/>
                     <button name="action_reset_and_reprovision" type="object" string="Reset &amp; Reprovisionner"
                             confirm="ATTENTION: Cette action va supprimer complètement la base de données et recommencer. Continuer?"
-                            attrs="{'invisible': [('database_state', 'not in', ['draft', 'error'])]}"/>
+                            invisible="database_state not in ['draft', 'error']"/>
                     <button name="action_terminate" type="object" string="Terminer"
                             confirm="ATTENTION: Cette action est irréversible. La base sera terminée. Continuer?"
-                            attrs="{'invisible': [('database_state', 'in', ['draft', 'terminated'])]}"/>
+                            invisible="database_state in ['draft', 'terminated']"/>
 
                     <field name="database_state" widget="statusbar"
                            statusbar_visible="draft,provisioning,active"/>
@@ -67,29 +67,29 @@
                         </button>
                         <button name="%(action_saas_alert_from_client)d" type="action"
                                 class="oe_stat_button" icon="fa-exclamation-triangle"
-                                attrs="{'invisible': [('alert_ids', '=', [])]}">
+                                invisible="not alert_ids">
                             <field name="alert_ids" widget="statinfo" string="Alertes"/>
                         </button>
                     </div>
 
                     <!-- Afficher erreur si existe -->
-                    <div class="alert alert-danger" role="alert" attrs="{'invisible': [('database_error', '=', False)]}">
+                    <div class="alert alert-danger" role="alert" invisible="not database_error">
                         <strong>Erreur de provisioning:</strong>
                         <field name="database_error"/>
                     </div>
 
                     <!-- Afficher quotas dépassés -->
                     <div class="alert alert-warning" role="alert"
-                         attrs="{'invisible': [('quota_users_exceeded', '=', False), ('quota_storage_exceeded', '=', False), ('quota_api_exceeded', '=', False)]}">
+                         invisible="not quota_users_exceeded and not quota_storage_exceeded and not quota_api_exceeded">
                         <strong>⚠️ Quotas dépassés:</strong>
                         <ul class="mb-0">
-                            <li attrs="{'invisible': [('quota_users_exceeded', '=', False)]}">
+                            <li invisible="not quota_users_exceeded">
                                 Utilisateurs: <field name="nb_users"/> / <field name="plan_id" readonly="1" string=""/> max
                             </li>
-                            <li attrs="{'invisible': [('quota_storage_exceeded', '=', False)]}">
+                            <li invisible="not quota_storage_exceeded">
                                 Stockage: <field name="storage_used_gb"/> GB utilisés
                             </li>
-                            <li attrs="{'invisible': [('quota_api_exceeded', '=', False)]}">
+                            <li invisible="not quota_api_exceeded">
                                 API Calls: <field name="api_calls_today"/> appels aujourd'hui
                             </li>
                         </ul>
@@ -111,12 +111,12 @@
                         <group string="État &amp; Abonnement">
                             <field name="subscription_state"/>
                             <field name="is_trial" invisible="1"/>
-                            <field name="trial_start_date" attrs="{'invisible': [('is_trial', '=', False)]}"/>
-                            <field name="trial_end_date" attrs="{'invisible': [('is_trial', '=', False)]}"/>
-                            <field name="days_until_trial_end" attrs="{'invisible': [('is_trial', '=', False)]}"/>
-                            <field name="subscription_start_date" attrs="{'invisible': [('subscription_state', 'not in', ['active', 'past_due'])]}"/>
-                            <field name="next_billing_date" attrs="{'invisible': [('subscription_state', 'not in', ['active', 'past_due'])]}"/>
-                            <field name="cancelled_date" attrs="{'invisible': [('subscription_state', '!=', 'cancelled')]}"/>
+                            <field name="trial_start_date" invisible="not is_trial"/>
+                            <field name="trial_end_date" invisible="not is_trial"/>
+                            <field name="days_until_trial_end" invisible="not is_trial"/>
+                            <field name="subscription_start_date" invisible="subscription_state not in ['active', 'past_due']"/>
+                            <field name="next_billing_date" invisible="subscription_state not in ['active', 'past_due']"/>
+                            <field name="cancelled_date" invisible="subscription_state != 'cancelled'"/>
                         </group>
                     </group>
 
@@ -131,7 +131,7 @@
                         <group string="Accès Admin Client">
                             <field name="admin_login" readonly="1"/>
                             <field name="admin_password_temp" password="True" readonly="1"
-                                   attrs="{'invisible': [('admin_password_temp', '=', False)]}"/>
+                                   invisible="not admin_password_temp"/>
                         </group>
                     </group>
 
@@ -171,7 +171,7 @@
                                 </list>
                             </field>
                         </page>
-                        <page string="Alertes" name="alerts" attrs="{'invisible': [('alert_ids', '=', [])]}">
+                        <page string="Alertes" name="alerts" invisible="not alert_ids">
                             <field name="alert_ids">
                                 <list decoration-warning="severity=='warning'" decoration-danger="severity in ['error', 'critical']">
                                     <field name="created_at"/>

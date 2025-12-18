@@ -98,7 +98,7 @@
                         <page string="Description">
                             <field name="description" placeholder="Description du plan pour les clients..."/>
                         </page>
-                        <page string="Clients" attrs="{'invisible': [('client_count', '=', 0)]}">
+                        <page string="Clients" invisible="client_count == 0">
                             <field name="client_ids">
                                 <list>
                                     <field name="name"/>
