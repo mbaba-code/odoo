@@ -11,7 +11,7 @@
         <!-- CRON: Collecte des métriques toutes les 5 minutes -->
         <record id="cron_saas_collect_metrics" model="ir.cron">
             <field name="name">SaaS: Collecte des Métriques Clients</field>
-            <field name="model_id" ref="base.model_saas_client"/>
+            <field name="model">saas.client</field>
             <field name="state">code</field>
             <field name="code">model.cron_collect_metrics()</field>
             <field name="interval_number">5</field>
@@ -25,7 +25,7 @@
         <!-- CRON: Vérification des quotas toutes les heures -->
         <record id="cron_saas_check_quotas" model="ir.cron">
             <field name="name">SaaS: Vérification des Quotas</field>
-            <field name="model_id" ref="base.model_saas_alert"/>
+            <field name="model">saas.alert</field>
             <field name="state">code</field>
             <field name="code">model.cron_check_quotas()</field>
             <field name="interval_number">1</field>
@@ -39,7 +39,7 @@
         <!-- CRON: Vérification expiration essais gratuits quotidien -->
         <record id="cron_saas_check_trial_expiration" model="ir.cron">
             <field name="name">SaaS: Vérification Expiration Essais</field>
-            <field name="model_id" ref="base.model_saas_alert"/>
+            <field name="model">saas.alert</field>
             <field name="state">code</field>
             <field name="code">model.cron_check_trial_expiration()</field>
             <field name="interval_number">1</field>
