@@ -183,3 +183,13 @@ access_premium_res_users,Premium Manager - res.users,base.model_res_users,group_
 access_premium_res_partner,Premium Manager - res.partner,base.model_res_partner,group_onedesk_premium_manager,1,1,1,1
 access_premium_res_company,Premium Manager - res.company,base.model_res_company,group_onedesk_premium_manager,1,1,0,0
 access_premium_ir_sequence,Premium Manager - ir.sequence,base.model_ir_sequence,group_onedesk_premium_manager,1,1,1,1
+access_saas_plan_admin,SaaS Plan Admin,model_saas_plan,onedesk_core.group_onedesk_master_admin,1,1,1,1
+access_saas_plan_support,SaaS Plan Support,model_saas_plan,onedesk_core.group_onedesk_support,1,0,0,0
+access_saas_client_admin,SaaS Client Admin,model_saas_client,onedesk_core.group_onedesk_master_admin,1,1,1,1
+access_saas_client_support,SaaS Client Support,model_saas_client,onedesk_core.group_onedesk_support,1,1,0,0
+access_saas_database_admin,SaaS Database Admin,model_saas_database,onedesk_core.group_onedesk_master_admin,1,1,1,1
+access_saas_database_support,SaaS Database Support,model_saas_database,onedesk_core.group_onedesk_support,1,0,0,0
+access_saas_metric_admin,SaaS Metric Admin,model_saas_metric,onedesk_core.group_onedesk_master_admin,1,1,1,1
+access_saas_metric_support,SaaS Metric Support,model_saas_metric,onedesk_core.group_onedesk_support,1,0,0,0
+access_saas_alert_admin,SaaS Alert Admin,model_saas_alert,onedesk_core.group_onedesk_master_admin,1,1,1,1
+access_saas_alert_support,SaaS Alert Support,model_saas_alert,onedesk_core.group_onedesk_support,1,1,1,0

@@ -43,3 +43,11 @@ from . import onedesk_availability_cache
 
 # ← NOUVEAU : Contact Importer (API Sirene)
 from . import contact_importer
+
+# ← NOUVEAU : SaaS Multi-Database (Premium/Enterprise)
+from . import saas_plan
+from . import saas_client
+from . import saas_database
+from . import saas_metric
+from . import saas_alert
+from . import ir_http_saas
