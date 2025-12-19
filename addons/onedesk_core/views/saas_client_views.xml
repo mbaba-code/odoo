@@ -151,24 +151,36 @@
                         </group>
                     </group>
 
-                    <!-- Configuration Domaine Personnalisé -->
-                    <group string="🌐 Domaine Personnalisé">
+                    <!-- Configuration Domaine Personnalisé (ADMIN SEULEMENT) -->
+                    <group string="🔐 Domaine Personnalisé (Admin Seulement)">
                         <group>
                             <field name="custom_domain" placeholder="exemple.com"/>
-                            <div class="alert alert-info" role="alert" style="margin: 10px 0;">
-                                <strong>Instructions:</strong><br/>
-                                1. Configurez votre DNS A Record vers l'IP de ce serveur<br/>
-                                2. Saisissez le domaine ci-dessus (sans http/https)<br/>
-                                3. Cliquez sur "Configurer Domaine + SSL"<br/>
-                                4. Le système configurera automatiquement Nginx + Let's Encrypt
+                            <field name="domain_ssl_active" widget="boolean_toggle" readonly="1"/>
+                            <div class="alert alert-warning" role="alert" style="margin: 10px 0;">
+                                <strong>⚠️ INTERFACE ADMIN SEULEMENT</strong><br/>
+                                <br/>
+                                <strong>Test Local (développement):</strong><br/>
+                                → Cliquez "🧪 Test Local" pour tester sans SSL<br/>
+                                <br/>
+                                <strong>Production:</strong><br/>
+                                1. Le client configure son DNS A Record<br/>
+                                2. Vous cliquez "🔧 PROD: Configurer + SSL"<br/>
+                                3. Le système obtient le certificat SSL automatiquement<br/>
+                                <br/>
+                                <strong>Note:</strong> Les clients NE voient PAS cette interface.<br/>
+                                Ils verront leur domaine dans leur portail OneDesk.
                             </div>
                         </group>
                         <group>
+                            <button name="action_setup_custom_domain_test" type="object"
+                                    string="🧪 Test Local (sans SSL)"
+                                    invisible="not custom_domain or not database_name"
+                                    help="Configure en HTTP pour tester localement sans SSL"/>
                             <button name="action_setup_custom_domain" type="object"
-                                    string="🔧 Configurer Domaine + SSL"
+                                    string="🔧 PROD: Configurer + SSL"
                                     class="oe_highlight"
                                     invisible="not custom_domain or not database_name"
-                                    confirm="Confirmer la configuration du domaine? Assurez-vous que le DNS pointe bien vers ce serveur."/>
+                                    confirm="⚠️ PRODUCTION: Certbot obtiendra un vrai certificat. Le DNS doit pointer ici. Continuer?"/>
                             <button name="action_remove_custom_domain" type="object"
                                     string="🗑️ Supprimer Domaine"
                                     invisible="not custom_domain"
