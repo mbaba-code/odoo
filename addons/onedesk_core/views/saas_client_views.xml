@@ -142,13 +142,37 @@
                             <field name="database_name" readonly="1"/>
                             <field name="database_id" readonly="1"/>
                             <field name="subdomain"/>
-                            <field name="custom_domain"/>
                             <field name="url" widget="url"/>
                         </group>
                         <group string="Accès Admin Client">
                             <field name="admin_login" readonly="1"/>
                             <field name="admin_password_temp" password="True" readonly="1"
                                    invisible="not admin_password_temp"/>
+                        </group>
+                    </group>
+
+                    <!-- Configuration Domaine Personnalisé -->
+                    <group string="🌐 Domaine Personnalisé">
+                        <group>
+                            <field name="custom_domain" placeholder="exemple.com"/>
+                            <div class="alert alert-info" role="alert" style="margin: 10px 0;">
+                                <strong>Instructions:</strong><br/>
+                                1. Configurez votre DNS A Record vers l'IP de ce serveur<br/>
+                                2. Saisissez le domaine ci-dessus (sans http/https)<br/>
+                                3. Cliquez sur "Configurer Domaine + SSL"<br/>
+                                4. Le système configurera automatiquement Nginx + Let's Encrypt
+                            </div>
+                        </group>
+                        <group>
+                            <button name="action_setup_custom_domain" type="object"
+                                    string="🔧 Configurer Domaine + SSL"
+                                    class="oe_highlight"
+                                    invisible="not custom_domain or not database_name"
+                                    confirm="Confirmer la configuration du domaine? Assurez-vous que le DNS pointe bien vers ce serveur."/>
+                            <button name="action_remove_custom_domain" type="object"
+                                    string="🗑️ Supprimer Domaine"
+                                    invisible="not custom_domain"
+                                    confirm="Supprimer la configuration du domaine personnalisé?"/>
                         </group>
                     </group>
 
