@@ -101,12 +101,16 @@ class SaasClient(models.Model):
         ('database_name_unique', 'UNIQUE(database_name)', 'Ce nom de base de données est déjà utilisé'),
     ]
 
-    @api.depends('database_name', 'admin_login')
+    @api.depends('database_name', 'admin_login', 'custom_domain')
     def _compute_url(self):
         """Génère l'URL d'accès à la base de données client avec login"""
         base_url = self.env['ir.config_parameter'].sudo().get_param('web.base.url', 'http://localhost:8069')
         for client in self:
-            if client.database_name:
+            # Priorité: domaine personnalisé > URL avec paramètre DB
+            if client.custom_domain:
+                # URL simple avec domaine personnalisé (Nginx gère le routing)
+                client.url = f'https://{client.custom_domain}'
+            elif client.database_name:
                 # URL avec sélection de la base + login pré-rempli
                 if client.admin_login:
                     client.url = f'{base_url}/web/login?db={client.database_name}&login={client.admin_login}'
@@ -667,3 +671,181 @@ class SaasClient(models.Model):
                 ])
         except Exception as e:
             _logger.error(f"[SAAS] Erreur collecte métriques pour {self.name}: {str(e)}")
+
+    # ============================================================
+    # GESTION DOMAINE PERSONNALISÉ
+    # ============================================================
+
+    def action_setup_custom_domain(self):
+        """Configure automatiquement Nginx + SSL pour le domaine personnalisé"""
+        self.ensure_one()
+
+        if not self.custom_domain:
+            raise UserError("Veuillez d'abord saisir un domaine personnalisé")
+
+        if not self.database_name:
+            raise UserError("La base de données doit être provisionnée avant de configurer le domaine")
+
+        if self.database_state != 'active':
+            raise UserError("La base de données doit être active pour configurer le domaine")
+
+        # Validation du domaine
+        if not self._validate_domain_format(self.custom_domain):
+            raise ValidationError(
+                f"Format de domaine invalide: {self.custom_domain}\n"
+                "Format attendu: exemple.com (sans http/https)"
+            )
+
+        try:
+            _logger.info(f"[SAAS] Configuration domaine personnalisé {self.custom_domain} pour {self.name}")
+
+            # Chemin du script
+            import os
+            script_path = os.path.join(
+                os.path.dirname(os.path.dirname(__file__)),
+                'scripts',
+                'setup_client_domain.sh'
+            )
+
+            if not os.path.exists(script_path):
+                raise UserError(f"Script introuvable: {script_path}")
+
+            # Rendre le script exécutable
+            os.chmod(script_path, 0o755)
+
+            # Exécuter le script avec sudo
+            import subprocess
+            cmd = [
+                'sudo',
+                script_path,
+                self.custom_domain,
+                self.database_name
+            ]
+
+            _logger.info(f"[SAAS] Exécution: {' '.join(cmd)}")
+
+            result = subprocess.run(
+                cmd,
+                capture_output=True,
+                text=True,
+                timeout=300  # 5 minutes max
+            )
+
+            if result.returncode != 0:
+                error_msg = result.stderr or result.stdout
+                _logger.error(f"[SAAS] Erreur configuration domaine: {error_msg}")
+                raise UserError(
+                    f"Erreur lors de la configuration du domaine:\n\n{error_msg}\n\n"
+                    "Vérifiez que:\n"
+                    "- Le DNS pointe vers ce serveur\n"
+                    "- Le port 80/443 est ouvert\n"
+                    "- sudo est configuré pour odoo"
+                )
+
+            # Succès - logger le résultat
+            _logger.info(f"[SAAS] Configuration réussie: {result.stdout}")
+
+            # Mettre à jour l'URL
+            self._compute_url()
+
+            # Message de succès
+            self.message_post(
+                body=f"✅ Domaine personnalisé configuré avec succès!<br/>"
+                     f"<strong>Domaine:</strong> {self.custom_domain}<br/>"
+                     f"<strong>SSL:</strong> Actif (Let's Encrypt)<br/>"
+                     f"<strong>URL:</strong> <a href='https://{self.custom_domain}'>https://{self.custom_domain}</a>"
+            )
+
+            return {
+                'type': 'ir.actions.client',
+                'tag': 'display_notification',
+                'params': {
+                    'title': 'Succès!',
+                    'message': f'Le domaine {self.custom_domain} a été configuré avec succès!',
+                    'type': 'success',
+                    'sticky': False,
+                }
+            }
+
+        except subprocess.TimeoutExpired:
+            raise UserError("La configuration a pris trop de temps (timeout 5 min)")
+        except Exception as e:
+            _logger.error(f"[SAAS] Erreur configuration domaine: {str(e)}", exc_info=True)
+            raise UserError(f"Erreur inattendue: {str(e)}")
+
+    def action_remove_custom_domain(self):
+        """Supprime la configuration Nginx + SSL du domaine personnalisé"""
+        self.ensure_one()
+
+        if not self.custom_domain:
+            raise UserError("Aucun domaine personnalisé à supprimer")
+
+        try:
+            _logger.info(f"[SAAS] Suppression domaine {self.custom_domain} pour {self.name}")
+
+            import subprocess
+            domain = self.custom_domain
+
+            # Supprimer la configuration Nginx
+            subprocess.run([
+                'sudo', 'rm', '-f',
+                f'/etc/nginx/sites-enabled/{domain}',
+                f'/etc/nginx/sites-available/{domain}'
+            ], check=True)
+
+            # Reload Nginx
+            subprocess.run(['sudo', 'systemctl', 'reload', 'nginx'], check=True)
+
+            # Note: On garde les certificats SSL (ils peuvent être réutilisés)
+            _logger.info(f"[SAAS] Domaine {domain} supprimé avec succès")
+
+            # Réinitialiser le champ
+            self.write({'custom_domain': False})
+
+            self.message_post(body=f"🗑️ Domaine personnalisé {domain} supprimé")
+
+            return {
+                'type': 'ir.actions.client',
+                'tag': 'display_notification',
+                'params': {
+                    'title': 'Supprimé',
+                    'message': f'Le domaine {domain} a été supprimé',
+                    'type': 'info',
+                }
+            }
+
+        except Exception as e:
+            _logger.error(f"[SAAS] Erreur suppression domaine: {str(e)}", exc_info=True)
+            raise UserError(f"Erreur lors de la suppression: {str(e)}")
+
+    def _validate_domain_format(self, domain):
+        """Valide le format du domaine"""
+        if not domain:
+            return False
+
+        # Pattern pour valider un nom de domaine
+        pattern = r'^(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}$'
+
+        return bool(re.match(pattern, domain))
+
+    @api.constrains('custom_domain')
+    def _check_custom_domain(self):
+        """Vérifie que le domaine personnalisé n'est pas déjà utilisé"""
+        for client in self:
+            if client.custom_domain:
+                # Validation format
+                if not self._validate_domain_format(client.custom_domain):
+                    raise ValidationError(
+                        f"Format de domaine invalide: {client.custom_domain}\n"
+                        "Exemple valide: monentreprise.com"
+                    )
+
+                # Vérifier unicité
+                duplicate = self.search([
+                    ('id', '!=', client.id),
+                    ('custom_domain', '=', client.custom_domain)
+                ])
+                if duplicate:
+                    raise ValidationError(
+                        f"Le domaine {client.custom_domain} est déjà utilisé par {duplicate.name}"
+                    )
