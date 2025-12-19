@@ -57,6 +57,8 @@ class SaasClient(models.Model):
     custom_domain = fields.Char('Domaine Personnalisé', tracking=True,
                                  help="Ex: app.monclient.com (nécessite plan Pro ou Enterprise)")
     url = fields.Char('URL d\'Accès', compute='_compute_url', store=True)
+    domain_ssl_active = fields.Boolean('SSL Actif', default=False, readonly=True,
+                                      help="Indique si le certificat SSL est actif pour le domaine personnalisé")
 
     # Credentials admin client (temporaire)
     admin_login = fields.Char('Login Admin', readonly=True, copy=False)
@@ -676,8 +678,12 @@ class SaasClient(models.Model):
     # GESTION DOMAINE PERSONNALISÉ
     # ============================================================
 
-    def action_setup_custom_domain(self):
-        """Configure automatiquement Nginx + SSL pour le domaine personnalisé"""
+    def action_setup_custom_domain(self, test_mode=False):
+        """Configure automatiquement Nginx + SSL pour le domaine personnalisé
+
+        Args:
+            test_mode (bool): Si True, utilise le script de test (HTTP only, pas de SSL)
+        """
         self.ensure_one()
 
         if not self.custom_domain:
@@ -697,14 +703,16 @@ class SaasClient(models.Model):
             )
 
         try:
-            _logger.info(f"[SAAS] Configuration domaine personnalisé {self.custom_domain} pour {self.name}")
+            mode = "TEST (sans SSL)" if test_mode else "PRODUCTION (avec SSL)"
+            _logger.info(f"[SAAS] Configuration domaine {mode}: {self.custom_domain} pour {self.name}")
 
             # Chemin du script
             import os
+            script_name = 'test_client_domain_local.sh' if test_mode else 'setup_client_domain.sh'
             script_path = os.path.join(
                 os.path.dirname(os.path.dirname(__file__)),
                 'scripts',
-                'setup_client_domain.sh'
+                script_name
             )
 
             if not os.path.exists(script_path):
@@ -745,23 +753,33 @@ class SaasClient(models.Model):
             # Succès - logger le résultat
             _logger.info(f"[SAAS] Configuration réussie: {result.stdout}")
 
+            # Mettre à jour SSL status
+            self.write({'domain_ssl_active': not test_mode})
+
             # Mettre à jour l'URL
             self._compute_url()
 
             # Message de succès
-            self.message_post(
-                body=f"✅ Domaine personnalisé configuré avec succès!<br/>"
-                     f"<strong>Domaine:</strong> {self.custom_domain}<br/>"
-                     f"<strong>SSL:</strong> Actif (Let's Encrypt)<br/>"
-                     f"<strong>URL:</strong> <a href='https://{self.custom_domain}'>https://{self.custom_domain}</a>"
-            )
+            if test_mode:
+                msg = (f"✅ Domaine configuré en mode TEST!<br/>"
+                      f"<strong>Domaine:</strong> {self.custom_domain}<br/>"
+                      f"<strong>Mode:</strong> TEST (HTTP seulement, pas de SSL)<br/>"
+                      f"<strong>Test:</strong> Ajoutez '127.0.0.1 {self.custom_domain}' dans /etc/hosts<br/>"
+                      f"<strong>URL:</strong> <a href='http://{self.custom_domain}'>http://{self.custom_domain}</a>")
+            else:
+                msg = (f"✅ Domaine personnalisé configuré avec succès!<br/>"
+                      f"<strong>Domaine:</strong> {self.custom_domain}<br/>"
+                      f"<strong>SSL:</strong> Actif (Let's Encrypt)<br/>"
+                      f"<strong>URL:</strong> <a href='https://{self.custom_domain}'>https://{self.custom_domain}</a>")
+
+            self.message_post(body=msg)
 
             return {
                 'type': 'ir.actions.client',
                 'tag': 'display_notification',
                 'params': {
-                    'title': 'Succès!',
-                    'message': f'Le domaine {self.custom_domain} a été configuré avec succès!',
+                    'title': 'Succès!' if not test_mode else 'Test configuré!',
+                    'message': f'Le domaine {self.custom_domain} a été configuré {"en mode TEST" if test_mode else "avec succès"}!',
                     'type': 'success',
                     'sticky': False,
                 }
@@ -772,6 +790,10 @@ class SaasClient(models.Model):
         except Exception as e:
             _logger.error(f"[SAAS] Erreur configuration domaine: {str(e)}", exc_info=True)
             raise UserError(f"Erreur inattendue: {str(e)}")
+
+    def action_setup_custom_domain_test(self):
+        """Configure le domaine en mode TEST (sans SSL)"""
+        return self.action_setup_custom_domain(test_mode=True)
 
     def action_remove_custom_domain(self):
         """Supprime la configuration Nginx + SSL du domaine personnalisé"""
