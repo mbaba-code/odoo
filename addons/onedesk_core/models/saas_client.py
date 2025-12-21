@@ -721,10 +721,11 @@ class SaasClient(models.Model):
             # Rendre le script exécutable
             os.chmod(script_path, 0o755)
 
-            # Exécuter le script avec sudo
+            # Exécuter le script avec sudo (non-interactif)
             import subprocess
             cmd = [
                 'sudo',
+                '-n',  # Non-interactive: fail if password required
                 script_path,
                 self.custom_domain,
                 self.database_name
@@ -810,13 +811,13 @@ class SaasClient(models.Model):
 
             # Supprimer la configuration Nginx
             subprocess.run([
-                'sudo', 'rm', '-f',
+                'sudo', '-n', 'rm', '-f',
                 f'/etc/nginx/sites-enabled/{domain}',
                 f'/etc/nginx/sites-available/{domain}'
             ], check=True)
 
             # Reload Nginx
-            subprocess.run(['sudo', 'systemctl', 'reload', 'nginx'], check=True)
+            subprocess.run(['sudo', '-n', 'systemctl', 'reload', 'nginx'], check=True)
 
             # Note: On garde les certificats SSL (ils peuvent être réutilisés)
             _logger.info(f"[SAAS] Domaine {domain} supprimé avec succès")
