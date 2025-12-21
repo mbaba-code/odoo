@@ -172,6 +172,9 @@
                             </div>
                         </group>
                         <group>
+                            <button name="action_debug_sudo" type="object"
+                                    string="🔍 DEBUG: Tester Sudo"
+                                    help="Vérifier quel utilisateur exécute Odoo et si sudo fonctionne"/>
                             <button name="action_setup_custom_domain_test" type="object"
                                     string="🧪 Test Local (sans SSL)"
                                     invisible="not custom_domain or not database_name"
