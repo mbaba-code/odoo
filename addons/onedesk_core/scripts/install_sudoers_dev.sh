@@ -1,7 +1,10 @@
 #!/bin/bash
 #
 # Installation Sudoers pour Odoo SaaS - DEV/TEST
+<<<<<<< HEAD
 # Utilisateurs configurés: odoo, baba_odoo, babamerveilles
+=======
+>>>>>>> bf69dd4e6a9 (🚀 SCRIPTS: Installation automatique sudoers (PROD + DEV))
 # Usage: sudo ./install_sudoers_dev.sh
 #
 
@@ -19,6 +22,7 @@ if [ "$EUID" -ne 0 ]; then
     exit 1
 fi
 
+<<<<<<< HEAD
 echo "⚠️  ATTENTION: Configuration DÉVELOPPEMENT/TEST"
 echo "   Cette configuration est plus permissive et N'EST PAS"
 echo "   recommandée pour la production!"
@@ -28,6 +32,12 @@ echo "   • odoo (utilisateur système Odoo)"
 echo "   • baba_odoo (utilisateur admin)"
 echo "   • babamerveilles (développeur MacBook)"
 echo ""
+=======
+echo "⚠️  ATTENTION: Configuration DÉVELOPPEMENT"
+echo "   Cette configuration est plus permissive et N'EST PAS"
+echo "   recommandée pour la production!"
+echo ""
+>>>>>>> bf69dd4e6a9 (🚀 SCRIPTS: Installation automatique sudoers (PROD + DEV))
 read -p "Continuer? (o/N): " CONFIRM
 
 if [ "$CONFIRM" != "o" ] && [ "$CONFIRM" != "O" ]; then
@@ -36,6 +46,7 @@ if [ "$CONFIRM" != "o" ] && [ "$CONFIRM" != "O" ]; then
 fi
 
 echo ""
+<<<<<<< HEAD
 echo "1️⃣ Vérification des utilisateurs..."
 echo ""
 
@@ -63,6 +74,24 @@ if id "babamerveilles" &>/dev/null; then
     USER_BABAMERVEILLES_EXISTS=true
 else
     echo "   ⚠️  Utilisateur 'babamerveilles' n'existe pas (configuré quand même)"
+=======
+echo "1️⃣ Détection des utilisateurs système..."
+echo ""
+
+# Détecter l'utilisateur actuel (non-root)
+CURRENT_USER=$(logname 2>/dev/null || echo "$SUDO_USER")
+if [ -z "$CURRENT_USER" ]; then
+    CURRENT_USER="user"
+fi
+
+echo "   Utilisateur détecté: $CURRENT_USER"
+
+# Détecter l'utilisateur Odoo si existe
+ODOO_USER=""
+if id "odoo" &>/dev/null; then
+    ODOO_USER="odoo"
+    echo "   Utilisateur Odoo trouvé: $ODOO_USER"
+>>>>>>> bf69dd4e6a9 (🚀 SCRIPTS: Installation automatique sudoers (PROD + DEV))
 fi
 
 echo ""
@@ -73,6 +102,7 @@ echo ""
 cat > /etc/sudoers.d/odoo-saas << 'EOF'
 # Odoo SaaS - Configuration DÉVELOPPEMENT/TEST
 # ⚠️  NE PAS UTILISER EN PRODUCTION
+<<<<<<< HEAD
 # Généré automatiquement le $(date)
 # Utilisateurs autorisés: odoo, baba_odoo, babamerveilles
 
@@ -124,6 +154,46 @@ EOF
 
 # Ajouter la date de génération
 sed -i "s/\$(date)/$(date)/" /etc/sudoers.d/odoo-saas 2>/dev/null || true
+=======
+EOF
+
+echo "# Généré automatiquement le $(date)" >> /etc/sudoers.d/odoo-saas
+echo "" >> /etc/sudoers.d/odoo-saas
+
+# Ajouter permissions pour utilisateur odoo si existe
+if [ -n "$ODOO_USER" ]; then
+    cat >> /etc/sudoers.d/odoo-saas << EOF
+# Configuration pour utilisateur Odoo (PRODUCTION)
+$ODOO_USER ALL=(ALL) NOPASSWD: /home/user/odoo/addons/onedesk_core/scripts/setup_client_domain.sh
+$ODOO_USER ALL=(ALL) NOPASSWD: /home/user/odoo/addons/onedesk_core/scripts/test_client_domain_local.sh
+$ODOO_USER ALL=(ALL) NOPASSWD: /home/user/odoo/addons/onedesk_core/scripts/simulate_domain_setup.sh
+$ODOO_USER ALL=(ALL) NOPASSWD: /usr/bin/systemctl reload nginx
+$ODOO_USER ALL=(ALL) NOPASSWD: /usr/bin/systemctl restart nginx
+$ODOO_USER ALL=(ALL) NOPASSWD: /usr/bin/nginx -t
+$ODOO_USER ALL=(ALL) NOPASSWD: /usr/bin/certbot --nginx *
+$ODOO_USER ALL=(ALL) NOPASSWD: /usr/bin/certbot renew
+$ODOO_USER ALL=(ALL) NOPASSWD: /usr/bin/rm -f /etc/nginx/sites-enabled/*
+$ODOO_USER ALL=(ALL) NOPASSWD: /usr/bin/rm -f /etc/nginx/sites-available/*
+
+EOF
+fi
+
+# Ajouter permissions pour utilisateur de dev
+cat >> /etc/sudoers.d/odoo-saas << EOF
+# Configuration pour utilisateur DEV/TEST (à retirer en production)
+$CURRENT_USER ALL=(ALL) NOPASSWD: /home/user/odoo/addons/onedesk_core/scripts/setup_client_domain.sh
+$CURRENT_USER ALL=(ALL) NOPASSWD: /home/user/odoo/addons/onedesk_core/scripts/test_client_domain_local.sh
+$CURRENT_USER ALL=(ALL) NOPASSWD: /home/user/odoo/addons/onedesk_core/scripts/simulate_domain_setup.sh
+$CURRENT_USER ALL=(ALL) NOPASSWD: /usr/bin/systemctl reload nginx
+$CURRENT_USER ALL=(ALL) NOPASSWD: /usr/bin/systemctl restart nginx
+$CURRENT_USER ALL=(ALL) NOPASSWD: /usr/bin/nginx -t
+$CURRENT_USER ALL=(ALL) NOPASSWD: /usr/bin/certbot --nginx *
+$CURRENT_USER ALL=(ALL) NOPASSWD: /usr/bin/certbot renew
+$CURRENT_USER ALL=(ALL) NOPASSWD: /usr/bin/rm -f /etc/nginx/sites-enabled/*
+$CURRENT_USER ALL=(ALL) NOPASSWD: /usr/bin/rm -f /etc/nginx/sites-available/*
+$CURRENT_USER ALL=(ALL) NOPASSWD: /usr/bin/whoami
+EOF
+>>>>>>> bf69dd4e6a9 (🚀 SCRIPTS: Installation automatique sudoers (PROD + DEV))
 
 echo "   ✅ Fichier créé: /etc/sudoers.d/odoo-saas"
 
@@ -155,6 +225,7 @@ echo ""
 echo "5️⃣ Test de la configuration..."
 echo ""
 
+<<<<<<< HEAD
 # Test sudo pour chaque utilisateur qui existe
 if [ "$USER_ODOO_EXISTS" = true ]; then
     if sudo -u odoo sudo -n whoami &>/dev/null; then
@@ -178,6 +249,13 @@ if [ "$USER_BABAMERVEILLES_EXISTS" = true ]; then
     else
         echo "   ⚠️  Test sudo échoué pour 'babamerveilles'"
     fi
+=======
+# Test sudo avec utilisateur courant
+if sudo -n whoami &>/dev/null; then
+    echo "   ✅ Test sudo réussi (utilisateur: $CURRENT_USER)"
+else
+    echo "   ⚠️  Test sudo échoué"
+>>>>>>> bf69dd4e6a9 (🚀 SCRIPTS: Installation automatique sudoers (PROD + DEV))
 fi
 
 echo ""
@@ -186,6 +264,7 @@ echo ""
 
 # Créer le dossier de logs
 mkdir -p /var/log/onedesk
+<<<<<<< HEAD
 
 # Donner les permissions (priorité: odoo > baba_odoo > babamerveilles)
 if [ "$USER_ODOO_EXISTS" = true ]; then
@@ -196,21 +275,39 @@ elif [ "$USER_BABAMERVEILLES_EXISTS" = true ]; then
     chown babamerveilles:babamerveilles /var/log/onedesk 2>/dev/null || chown babamerveilles /var/log/onedesk
 fi
 
+=======
+if [ -n "$ODOO_USER" ]; then
+    chown "$ODOO_USER:$ODOO_USER" /var/log/onedesk 2>/dev/null || chown "$ODOO_USER" /var/log/onedesk
+else
+    chown "$CURRENT_USER:$CURRENT_USER" /var/log/onedesk 2>/dev/null || chown "$CURRENT_USER" /var/log/onedesk
+fi
+>>>>>>> bf69dd4e6a9 (🚀 SCRIPTS: Installation automatique sudoers (PROD + DEV))
 chmod 755 /var/log/onedesk
 
 echo "   ✅ Dossier créé: /var/log/onedesk"
 
 echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+<<<<<<< HEAD
 echo "✅ Installation RÉUSSIE - DEV/TEST!"
+=======
+echo "✅ Installation RÉUSSIE (DEV/TEST)!"
+>>>>>>> bf69dd4e6a9 (🚀 SCRIPTS: Installation automatique sudoers (PROD + DEV))
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo ""
 echo "📋 Résumé de la configuration:"
 echo "   • Environnement: DÉVELOPPEMENT/TEST"
+<<<<<<< HEAD
 echo "   • Utilisateurs configurés:"
 echo "     • odoo"
 echo "     • baba_odoo"
 echo "     • babamerveilles"
+=======
+echo "   • Utilisateur dev: $CURRENT_USER"
+if [ -n "$ODOO_USER" ]; then
+    echo "   • Utilisateur Odoo: $ODOO_USER"
+fi
+>>>>>>> bf69dd4e6a9 (🚀 SCRIPTS: Installation automatique sudoers (PROD + DEV))
 echo "   • Fichier: /etc/sudoers.d/odoo-saas"
 echo "   • Permissions: 0440 root:root"
 echo "   • Logs: /var/log/onedesk"

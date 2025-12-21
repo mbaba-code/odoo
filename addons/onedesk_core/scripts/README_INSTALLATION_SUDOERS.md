@@ -1,5 +1,6 @@
 # 🚀 Installation Rapide Sudoers - Copier/Coller
 
+<<<<<<< HEAD
 ## 👥 Utilisateurs Configurés
 
 ### Production (VPS)
@@ -13,6 +14,8 @@
 
 ---
 
+=======
+>>>>>>> bf69dd4e6a9 (🚀 SCRIPTS: Installation automatique sudoers (PROD + DEV))
 ## Pour PRODUCTION (VPS Production)
 
 **1️⃣ Copier-coller cette commande complète :**
@@ -24,12 +27,19 @@ sudo addons/onedesk_core/scripts/install_sudoers_production.sh
 ```
 
 Le script va :
+<<<<<<< HEAD
 - ✅ Configurer utilisateurs **odoo** et **baba_odoo**
+=======
+- ✅ Détecter automatiquement l'utilisateur Odoo
+>>>>>>> bf69dd4e6a9 (🚀 SCRIPTS: Installation automatique sudoers (PROD + DEV))
 - ✅ Créer la configuration sécurisée
 - ✅ Configurer les permissions strictes
 - ✅ Vérifier la syntaxe
 - ✅ Tester la configuration
+<<<<<<< HEAD
 - ✅ Proposer de créer l'utilisateur baba_odoo si n'existe pas
+=======
+>>>>>>> bf69dd4e6a9 (🚀 SCRIPTS: Installation automatique sudoers (PROD + DEV))
 
 ---
 
@@ -44,9 +54,14 @@ sudo addons/onedesk_core/scripts/install_sudoers_dev.sh
 ```
 
 Le script va :
+<<<<<<< HEAD
 - ✅ Configurer utilisateurs **odoo**, **baba_odoo** et **babamerveilles**
 - ✅ Permettre les tests depuis n'importe quel utilisateur
 - ✅ Configuration adaptée pour MacBook et serveur test
+=======
+- ✅ Configurer permissions pour utilisateur dev + odoo
+- ✅ Permettre les tests sans restrictions
+>>>>>>> bf69dd4e6a9 (🚀 SCRIPTS: Installation automatique sudoers (PROD + DEV))
 - ⚠️ Configuration NON recommandée pour production
 
 ---
