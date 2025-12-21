@@ -678,6 +678,65 @@ class SaasClient(models.Model):
     # GESTION DOMAINE PERSONNALISÉ
     # ============================================================
 
+    def action_debug_sudo(self):
+        """DEBUG: Tester la configuration sudo depuis Odoo"""
+        import os
+        import subprocess
+        import pwd
+
+        # Récupérer l'utilisateur
+        uid = os.getuid()
+        try:
+            user_info = pwd.getpwuid(uid)
+            username = user_info.pw_name
+        except:
+            username = "unknown"
+
+        # Tester sudo
+        try:
+            result = subprocess.run(
+                ['sudo', '-n', 'whoami'],
+                capture_output=True,
+                text=True,
+                timeout=5
+            )
+            sudo_works = result.returncode == 0
+            sudo_user = result.stdout.strip() if sudo_works else "FAILED"
+            sudo_error = result.stderr if not sudo_works else ""
+        except Exception as e:
+            sudo_works = False
+            sudo_user = "EXCEPTION"
+            sudo_error = str(e)
+
+        # Message
+        msg = (f"🔍 DEBUG SUDO<br/><br/>"
+              f"<strong>Utilisateur Odoo:</strong> {username} (UID: {uid})<br/>"
+              f"<strong>Sudo fonctionne:</strong> {'✅ OUI' if sudo_works else '❌ NON'}<br/>"
+              f"<strong>Sudo user:</strong> {sudo_user}<br/>")
+
+        if not sudo_works:
+            msg += f"<strong>Erreur sudo:</strong> {sudo_error}<br/>"
+
+        msg += "<br/><strong>Action requise:</strong><br/>"
+        if not sudo_works:
+            msg += f"Ajouter dans /etc/sudoers.d/odoo-saas:<br/>"
+            msg += f"<code>{username} ALL=(ALL) NOPASSWD: /home/user/odoo/addons/onedesk_core/scripts/*</code>"
+        else:
+            msg += "✅ Configuration OK!"
+
+        self.message_post(body=msg)
+
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'title': 'Debug Sudo',
+                'message': f'User: {username} | Sudo: {"OK" if sudo_works else "FAILED"}',
+                'type': 'success' if sudo_works else 'danger',
+                'sticky': True,
+            }
+        }
+
     def action_setup_custom_domain(self, test_mode=False):
         """Configure automatiquement Nginx + SSL pour le domaine personnalisé
 
