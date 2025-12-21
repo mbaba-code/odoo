@@ -1,6 +1,9 @@
 # 🚀 Installation Rapide Sudoers - Copier/Coller
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 1d21623536f (👥 UPDATE: Utilisateurs spécifiques sudoers (odoo, baba_odoo, babamerveilles))
 ## 👥 Utilisateurs Configurés
 
 ### Production (VPS)
@@ -14,8 +17,11 @@
 
 ---
 
+<<<<<<< HEAD
 =======
 >>>>>>> bf69dd4e6a9 (🚀 SCRIPTS: Installation automatique sudoers (PROD + DEV))
+=======
+>>>>>>> 1d21623536f (👥 UPDATE: Utilisateurs spécifiques sudoers (odoo, baba_odoo, babamerveilles))
 ## Pour PRODUCTION (VPS Production)
 
 **1️⃣ Copier-coller cette commande complète :**
@@ -28,18 +34,26 @@ sudo addons/onedesk_core/scripts/install_sudoers_production.sh
 
 Le script va :
 <<<<<<< HEAD
+<<<<<<< HEAD
 - ✅ Configurer utilisateurs **odoo** et **baba_odoo**
 =======
 - ✅ Détecter automatiquement l'utilisateur Odoo
 >>>>>>> bf69dd4e6a9 (🚀 SCRIPTS: Installation automatique sudoers (PROD + DEV))
+=======
+- ✅ Configurer utilisateurs **odoo** et **baba_odoo**
+>>>>>>> 1d21623536f (👥 UPDATE: Utilisateurs spécifiques sudoers (odoo, baba_odoo, babamerveilles))
 - ✅ Créer la configuration sécurisée
 - ✅ Configurer les permissions strictes
 - ✅ Vérifier la syntaxe
 - ✅ Tester la configuration
 <<<<<<< HEAD
+<<<<<<< HEAD
 - ✅ Proposer de créer l'utilisateur baba_odoo si n'existe pas
 =======
 >>>>>>> bf69dd4e6a9 (🚀 SCRIPTS: Installation automatique sudoers (PROD + DEV))
+=======
+- ✅ Proposer de créer l'utilisateur baba_odoo si n'existe pas
+>>>>>>> 1d21623536f (👥 UPDATE: Utilisateurs spécifiques sudoers (odoo, baba_odoo, babamerveilles))
 
 ---
 
@@ -55,6 +69,7 @@ sudo addons/onedesk_core/scripts/install_sudoers_dev.sh
 
 Le script va :
 <<<<<<< HEAD
+<<<<<<< HEAD
 - ✅ Configurer utilisateurs **odoo**, **baba_odoo** et **babamerveilles**
 - ✅ Permettre les tests depuis n'importe quel utilisateur
 - ✅ Configuration adaptée pour MacBook et serveur test
@@ -62,6 +77,11 @@ Le script va :
 - ✅ Configurer permissions pour utilisateur dev + odoo
 - ✅ Permettre les tests sans restrictions
 >>>>>>> bf69dd4e6a9 (🚀 SCRIPTS: Installation automatique sudoers (PROD + DEV))
+=======
+- ✅ Configurer utilisateurs **odoo**, **baba_odoo** et **babamerveilles**
+- ✅ Permettre les tests depuis n'importe quel utilisateur
+- ✅ Configuration adaptée pour MacBook et serveur test
+>>>>>>> 1d21623536f (👥 UPDATE: Utilisateurs spécifiques sudoers (odoo, baba_odoo, babamerveilles))
 - ⚠️ Configuration NON recommandée pour production
 
 ---
