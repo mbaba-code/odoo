@@ -708,7 +708,21 @@ class SaasClient(models.Model):
 
             # Chemin du script
             import os
-            script_name = 'test_client_domain_local.sh' if test_mode else 'setup_client_domain.sh'
+            import subprocess
+            import shutil
+
+            # Détecter si Nginx est installé
+            nginx_available = shutil.which('nginx') is not None
+
+            if nginx_available:
+                # Environnement complet avec Nginx
+                script_name = 'test_client_domain_local.sh' if test_mode else 'setup_client_domain.sh'
+                _logger.info(f"[SAAS] Nginx détecté - Utilisation du script: {script_name}")
+            else:
+                # Environnement de développement sans Nginx - Mode simulation
+                script_name = 'simulate_domain_setup.sh'
+                _logger.warning(f"[SAAS] Nginx NON détecté - Mode SIMULATION (pour test intégration seulement)")
+
             script_path = os.path.join(
                 os.path.dirname(os.path.dirname(__file__)),
                 'scripts',
@@ -722,7 +736,6 @@ class SaasClient(models.Model):
             os.chmod(script_path, 0o755)
 
             # Exécuter le script avec sudo (non-interactif)
-            import subprocess
             cmd = [
                 'sudo',
                 '-n',  # Non-interactive: fail if password required
@@ -755,13 +768,20 @@ class SaasClient(models.Model):
             _logger.info(f"[SAAS] Configuration réussie: {result.stdout}")
 
             # Mettre à jour SSL status
-            self.write({'domain_ssl_active': not test_mode})
+            self.write({'domain_ssl_active': not test_mode and nginx_available})
 
             # Mettre à jour l'URL
             self._compute_url()
 
             # Message de succès
-            if test_mode:
+            if not nginx_available:
+                msg = (f"🧪 Domaine configuré en MODE SIMULATION!<br/>"
+                      f"<strong>Domaine:</strong> {self.custom_domain}<br/>"
+                      f"<strong>Mode:</strong> SIMULATION (Nginx non installé)<br/>"
+                      f"<strong>⚠️ Attention:</strong> Aucune configuration réelle créée<br/>"
+                      f"<strong>Action:</strong> Installez Nginx pour production réelle<br/>"
+                      f"<strong>Logs:</strong> /var/log/onedesk/domain_setup.log")
+            elif test_mode:
                 msg = (f"✅ Domaine configuré en mode TEST!<br/>"
                       f"<strong>Domaine:</strong> {self.custom_domain}<br/>"
                       f"<strong>Mode:</strong> TEST (HTTP seulement, pas de SSL)<br/>"
@@ -775,14 +795,21 @@ class SaasClient(models.Model):
 
             self.message_post(body=msg)
 
+            notification_type = 'warning' if not nginx_available else 'success'
+            notification_title = 'Simulation' if not nginx_available else ('Succès!' if not test_mode else 'Test configuré!')
+            notification_msg = (
+                f'Mode SIMULATION - Nginx non installé' if not nginx_available
+                else f'Le domaine {self.custom_domain} a été configuré {"en mode TEST" if test_mode else "avec succès"}!'
+            )
+
             return {
                 'type': 'ir.actions.client',
                 'tag': 'display_notification',
                 'params': {
-                    'title': 'Succès!' if not test_mode else 'Test configuré!',
-                    'message': f'Le domaine {self.custom_domain} a été configuré {"en mode TEST" if test_mode else "avec succès"}!',
-                    'type': 'success',
-                    'sticky': False,
+                    'title': notification_title,
+                    'message': notification_msg,
+                    'type': notification_type,
+                    'sticky': not nginx_available,  # Sticky if simulation
                 }
             }
 
