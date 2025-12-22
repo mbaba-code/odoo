@@ -105,19 +105,17 @@ class SaasClient(models.Model):
 
     @api.depends('database_name', 'admin_login', 'custom_domain')
     def _compute_url(self):
-        """Génère l'URL d'accès à la base de données client avec login"""
+        """Génère l'URL d'accès DIRECT à la base de données client (force la base unique)"""
         base_url = self.env['ir.config_parameter'].sudo().get_param('web.base.url', 'http://localhost:8069')
         for client in self:
             # Priorité: domaine personnalisé > URL avec paramètre DB
             if client.custom_domain:
                 # URL simple avec domaine personnalisé (Nginx gère le routing)
-                client.url = f'https://{client.custom_domain}'
+                client.url = f'https://{client.custom_domain}/web/login'
             elif client.database_name:
-                # URL avec sélection de la base + login pré-rempli
-                if client.admin_login:
-                    client.url = f'{base_url}/web/login?db={client.database_name}&login={client.admin_login}'
-                else:
-                    client.url = f'{base_url}/web?db={client.database_name}'
+                # URL DIRECTE vers la base - Force la sélection de la base unique
+                # Utilise le hash redirect pour forcer la base sans permettre le choix
+                client.url = f'{base_url}/web?db={client.database_name}#action=&db={client.database_name}'
             else:
                 client.url = False
 
@@ -495,20 +493,62 @@ class SaasClient(models.Model):
         """Envoie l'email de bienvenue avec les credentials"""
         self.ensure_one()
 
+        if not self.email:
+            _logger.warning(f"[SAAS] Impossible d'envoyer email pour {self.name} - email manquant")
+            return
+
         _logger.info(f"[SAAS] Envoi email bienvenue à {self.email}")
 
-        # TODO: Créer le template email
-        # template = self.env.ref('onedesk_core.email_template_client_welcome')
-        # template.send_mail(self.id, force_send=True)
+        try:
+            # Récupérer le template email
+            template = self.env.ref('onedesk_core.email_template_client_welcome', raise_if_not_found=False)
 
-        # Pour l'instant, juste un message dans le chatter
-        self.message_post(
-            body=f"Email de bienvenue à envoyer à {self.email}<br/>"
-                 f"URL: {self.url}<br/>"
-                 f"Login: {self.admin_login}<br/>"
-                 f"Password: {admin_password}",
-            subject="Bienvenue sur OneDesk",
-        )
+            if not template:
+                _logger.error("[SAAS] Template email 'email_template_client_welcome' introuvable")
+                # Fallback: message dans le chatter
+                self.message_post(
+                    body=f"⚠️ Email NON envoyé (template manquant)<br/>"
+                         f"Destinataire: {self.email}<br/>"
+                         f"URL: {self.url}<br/>"
+                         f"Login: {self.admin_login}<br/>"
+                         f"Password: {admin_password}",
+                    subject="Bienvenue sur OneDesk (non envoyé)",
+                )
+                return
+
+            # Envoyer l'email avec le mot de passe dans le contexte
+            template.with_context(admin_password=admin_password).send_mail(
+                self.id,
+                force_send=True,
+                email_values={
+                    'email_to': self.email,
+                    'email_from': self.env.company.email or 'noreply@basatechno.fr',
+                }
+            )
+
+            _logger.info(f"[SAAS] Email de bienvenue envoyé à {self.email}")
+
+            # Message dans le chatter pour confirmation
+            self.message_post(
+                body=f"✅ Email de bienvenue envoyé à {self.email}<br/>"
+                     f"URL: <a href='{self.url}'>{self.url}</a><br/>"
+                     f"Login: {self.admin_login}<br/>"
+                     f"Mot de passe: {admin_password} (envoyé par email)",
+                subject="Email de bienvenue envoyé",
+            )
+
+        except Exception as e:
+            _logger.error(f"[SAAS] Erreur envoi email pour {self.name}: {str(e)}", exc_info=True)
+            # Message d'erreur dans le chatter avec les infos
+            self.message_post(
+                body=f"❌ Erreur envoi email à {self.email}<br/>"
+                     f"Erreur: {str(e)}<br/><br/>"
+                     f"<strong>Identifiants à communiquer manuellement:</strong><br/>"
+                     f"URL: {self.url}<br/>"
+                     f"Login: {self.admin_login}<br/>"
+                     f"Password: {admin_password}",
+                subject="Erreur envoi email de bienvenue",
+            )
 
     def action_suspend(self):
         """Suspendre l'accès à la base client"""
