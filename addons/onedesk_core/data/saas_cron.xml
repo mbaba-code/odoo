@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <!--
+            Tâches Planifiées (Cron) pour le SaaS Multi-Database
+
+            Ces crons gèrent le monitoring, les alertes et la collecte de métriques
+            pour tous les clients Premium
+        -->
+
+        <!-- CRON: Collecte des métriques toutes les 5 minutes -->
+        <record id="cron_saas_collect_metrics" model="ir.cron">
+            <field name="name">SaaS: Collecte des Métriques Clients</field>
+            <field name="model_id" ref="onedesk_core.model_saas_client"/>
+            <field name="state">code</field>
+            <field name="code">model.cron_collect_metrics()</field>
+            <field name="interval_number">5</field>
+            <field name="interval_type">minutes</field>
+            <field name="active" eval="True"/>
+        </record>
+
+        <!-- CRON: Vérification des quotas toutes les heures -->
+        <record id="cron_saas_check_quotas" model="ir.cron">
+            <field name="name">SaaS: Vérification des Quotas</field>
+            <field name="model_id" ref="onedesk_core.model_saas_alert"/>
+            <field name="state">code</field>
+            <field name="code">model.cron_check_quotas()</field>
+            <field name="interval_number">1</field>
+            <field name="interval_type">hours</field>
+            <field name="active" eval="True"/>
+        </record>
+
+        <!-- CRON: Vérification expiration essais gratuits quotidien -->
+        <record id="cron_saas_check_trial_expiration" model="ir.cron">
+            <field name="name">SaaS: Vérification Expiration Essais</field>
+            <field name="model_id" ref="onedesk_core.model_saas_alert"/>
+            <field name="state">code</field>
+            <field name="code">model.cron_check_trial_expiration()</field>
+            <field name="interval_number">1</field>
+            <field name="interval_type">days</field>
+            <field name="active" eval="True"/>
+        </record>
+
+    </data>
+</odoo>

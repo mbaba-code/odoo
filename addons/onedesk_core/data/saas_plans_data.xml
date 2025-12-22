@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <!--
+            Plans SaaS OneDesk Premium/Enterprise
+
+            Ces plans définissent les quotas et tarifs pour les clients Premium
+            qui bénéficient d'une base de données dédiée
+        -->
+
+        <!-- PLAN STARTER -->
+        <record id="saas_plan_starter" model="saas.plan">
+            <field name="name">Starter</field>
+            <field name="sequence">10</field>
+            <field name="active">True</field>
+
+            <field name="description"><![CDATA[
+                <h3>Plan Starter - Pour démarrer votre activité</h3>
+                <ul>
+                    <li>Jusqu'à 5 utilisateurs</li>
+                    <li>10 GB de stockage</li>
+                    <li>10,000 appels API/jour</li>
+                    <li>Support par email (24-48h)</li>
+                    <li>14 jours d'essai gratuit</li>
+                </ul>
+                <p><strong>Idéal pour:</strong> Petites agences, propriétaires indépendants</p>
+            ]]></field>
+
+            <!-- Limites techniques -->
+            <field name="max_users">5</field>
+            <field name="max_storage_gb">10</field>
+            <field name="max_api_calls_per_day">10000</field>
+            <field name="max_databases">1</field>
+
+            <!-- Tarification -->
+            <field name="price_monthly">49.00</field>
+            <field name="price_yearly">490.00</field>  <!-- 2 mois gratuits -->
+            <field name="trial_days">14</field>
+
+            <!-- Fonctionnalités -->
+            <field name="has_custom_domain">False</field>
+            <field name="has_white_label">False</field>
+            <field name="has_api_access">False</field>
+            <field name="has_advanced_analytics">False</field>
+            <field name="has_priority_support">False</field>
+
+            <!-- Support -->
+            <field name="support_level">email</field>
+        </record>
+
+        <!-- PLAN PRO -->
+        <record id="saas_plan_pro" model="saas.plan">
+            <field name="name">Pro</field>
+            <field name="sequence">20</field>
+            <field name="active">True</field>
+
+            <field name="description"><![CDATA[
+                <h3>Plan Pro - Pour les professionnels exigeants</h3>
+                <ul>
+                    <li>Jusqu'à 25 utilisateurs</li>
+                    <li>50 GB de stockage</li>
+                    <li>50,000 appels API/jour</li>
+                    <li>Accès API complet</li>
+                    <li>Analytics avancés</li>
+                    <li>Support prioritaire (email + chat, 8-24h)</li>
+                    <li>14 jours d'essai gratuit</li>
+                </ul>
+                <p><strong>Idéal pour:</strong> Agences moyennes, gestionnaires de portefeuilles</p>
+            ]]></field>
+
+            <!-- Limites techniques -->
+            <field name="max_users">25</field>
+            <field name="max_storage_gb">50</field>
+            <field name="max_api_calls_per_day">50000</field>
+            <field name="max_databases">1</field>
+
+            <!-- Tarification -->
+            <field name="price_monthly">99.00</field>
+            <field name="price_yearly">990.00</field>  <!-- 2 mois gratuits -->
+            <field name="trial_days">14</field>
+
+            <!-- Fonctionnalités -->
+            <field name="has_custom_domain">True</field>
+            <field name="has_white_label">False</field>
+            <field name="has_api_access">True</field>
+            <field name="has_advanced_analytics">True</field>
+            <field name="has_priority_support">True</field>
+
+            <!-- Support -->
+            <field name="support_level">chat</field>
+        </record>
+
+        <!-- PLAN ENTERPRISE -->
+        <record id="saas_plan_enterprise" model="saas.plan">
+            <field name="name">Enterprise</field>
+            <field name="sequence">30</field>
+            <field name="active">True</field>
+
+            <field name="description"><![CDATA[
+                <h3>Plan Enterprise - Solution sur mesure</h3>
+                <ul>
+                    <li>Utilisateurs illimités</li>
+                    <li>500 GB de stockage</li>
+                    <li>500,000 appels API/jour</li>
+                    <li>Domaine personnalisé</li>
+                    <li>White label (marque personnalisée)</li>
+                    <li>Accès API complet</li>
+                    <li>Analytics avancés</li>
+                    <li>Support dédié 24/7 (&lt; 1h)</li>
+                    <li>SLA 99.9% uptime</li>
+                    <li>Multi-instances (plusieurs bases)</li>
+                    <li>30 jours d'essai gratuit</li>
+                </ul>
+                <p><strong>Idéal pour:</strong> Grandes agences, franchises, groupes immobiliers</p>
+            ]]></field>
+
+            <!-- Limites techniques -->
+            <field name="max_users">999999</field>  <!-- Illimité -->
+            <field name="max_storage_gb">500</field>
+            <field name="max_api_calls_per_day">500000</field>
+            <field name="max_databases">10</field>  <!-- Multi-instances -->
+
+            <!-- Tarification -->
+            <field name="price_monthly">299.00</field>
+            <field name="price_yearly">2990.00</field>  <!-- 2 mois gratuits -->
+            <field name="trial_days">30</field>
+
+            <!-- Fonctionnalités -->
+            <field name="has_custom_domain">True</field>
+            <field name="has_white_label">True</field>
+            <field name="has_api_access">True</field>
+            <field name="has_advanced_analytics">True</field>
+            <field name="has_priority_support">True</field>
+
+            <!-- Support -->
+            <field name="support_level">dedicated</field>
+        </record>
+
+    </data>
+</odoo>
