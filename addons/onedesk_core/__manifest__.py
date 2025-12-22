@@ -104,6 +104,7 @@
     # SaaS Multi-Database Data (NEW - Premium/Enterprise)
     'data/saas_plans_data.xml',  # Plans SaaS (Starter, Pro, Enterprise)
     'data/saas_cron.xml',  # Cron jobs for metrics & monitoring
+    'data/mail_template_welcome.xml',  # Email de bienvenue clients SaaS
     ],
 
     # Assets (CSS, JavaScript)
