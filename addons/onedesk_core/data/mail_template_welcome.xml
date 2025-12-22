@@ -7,7 +7,7 @@
             <field name="name">SaaS Client - Email de Bienvenue</field>
             <field name="model_id" ref="model_saas_client"/>
             <field name="subject">Bienvenue sur {{ object.company_name }} - Votre plateforme Odoo est prête !</field>
-            <field name="email_from">{{ (object.company_id.email or user.email or 'noreply@basatechno.fr') }}</field>
+            <field name="email_from">noreply@basatechno.fr</field>
             <field name="email_to">{{ object.email }}</field>
             <field name="auto_delete" eval="False"/>
             <field name="body_html" type="html">
