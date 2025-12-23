@@ -13,9 +13,9 @@
             <field name="body_html" type="html">
 <div style="margin: 0px; padding: 0px;">
     <p style="margin: 0px; padding: 0px; font-size: 13px;">
-        Bonjour <strong>{{ object.contact_name or 'cher client' }}</strong>,
+        Bonjour <strong><t t-out="object.contact_name or 'cher client'">cher client</t></strong>,
         <br /><br />
-        Félicitations ! Votre plateforme Odoo <strong>{{ object.company_name }}</strong> est maintenant prête et opérationnelle.
+        Félicitations ! Votre plateforme Odoo <strong><t t-out="object.company_name or ''">Entreprise</t></strong> est maintenant prête et opérationnelle.
         <br /><br />
         <strong>Vos identifiants de connexion :</strong>
         <br /><br />
@@ -24,16 +24,16 @@
     <div style="background-color: #f9f9f9; padding: 15px; border-left: 4px solid #875A7B; margin: 16px 0;">
         <p style="margin: 0; padding: 0; font-size: 13px;">
             <strong>URL de connexion :</strong><br/>
-            <a href="{{ object.url }}" style="color: #875A7B;">{{ object.url }}</a>
+            <a t-att-href="object.url or ''" style="color: #875A7B;"><t t-out="object.url or ''">URL</t></a>
             <br /><br />
-            <strong>Identifiant :</strong> {{ object.admin_login }}
+            <strong>Identifiant :</strong> <t t-out="object.admin_login or ''">admin</t>
             <br /><br />
-            <strong>Mot de passe temporaire :</strong> {{ ctx.get('admin_password', '[Voir dans le chatter]') }}
+            <strong>Mot de passe temporaire :</strong> <t t-out="ctx.get('admin_password') or '[Voir dans le chatter]'">password</t>
         </p>
     </div>
 
     <div style="margin: 16px 0px 16px 0px; text-align: center;">
-        <a href="{{ object.url }}"
+        <a t-att-href="object.url or ''"
            style="background-color: #875A7B; padding: 10px 20px; text-decoration: none; color: #FFFFFF; border-radius: 5px; font-size: 14px; display: inline-block;">
             Accéder à ma plateforme
         </a>
@@ -41,7 +41,7 @@
 
     <div style="background-color: #fff3cd; border: 1px solid #ffc107; padding: 10px; border-radius: 4px; margin: 16px 0;">
         <p style="margin: 0; padding: 0; font-size: 13px; color: #856404;">
-            <strong>⚠️ Important :</strong> Pour votre sécurité, changez votre mot de passe dès votre première connexion.
+            <strong>Important :</strong> Pour votre sécurité, changez votre mot de passe dès votre première connexion.
         </p>
     </div>
 
