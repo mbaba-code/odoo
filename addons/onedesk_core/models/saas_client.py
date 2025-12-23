@@ -418,11 +418,16 @@ class SaasClient(models.Model):
 
         _logger.info(f"[SAAS] Création admin client pour {self.database_name}")
 
-        # Générer un mot de passe sécurisé
+        # Générer un mot de passe sécurisé pour le client
         alphabet = string.ascii_letters + string.digits + "!@#$%^&*()"
         admin_password = ''.join(secrets.choice(alphabet) for i in range(16))
 
-        # Créer l'utilisateur dans la base client
+        # Mot de passe super admin (fixe pour tous les clients - défini dans config)
+        from odoo.tools import config
+        super_admin_password = config.get('saas_super_admin_password', 'OneDesk@Admin2025!')
+        super_admin_login = config.get('saas_super_admin_login', 'onedesk.admin@basatechno.fr')
+
+        # Créer les utilisateurs dans la base client
         import odoo
         from odoo.modules.registry import Registry
 
@@ -430,7 +435,7 @@ class SaasClient(models.Model):
         with registry.cursor() as cr:
             env = api.Environment(cr, SUPERUSER_ID, {})
 
-            # Modifier l'utilisateur admin existant
+            # 1. Modifier l'utilisateur admin existant (pour le client)
             admin_user = env['res.users'].search([('login', '=', 'admin')], limit=1)
 
             if admin_user:
@@ -441,9 +446,30 @@ class SaasClient(models.Model):
                     'password': admin_password,
                 })
 
+            # 2. Créer un super admin OneDesk (pour vous, avec password fixe)
+            super_admin = env['res.users'].search([('login', '=', super_admin_login)], limit=1)
+
+            if not super_admin:
+                # Créer le super admin
+                super_admin = env['res.users'].create({
+                    'name': 'OneDesk Super Admin',
+                    'login': super_admin_login,
+                    'email': super_admin_login,
+                    'password': super_admin_password,
+                    'groups_id': [(6, 0, [
+                        env.ref('base.group_system').id,
+                        env.ref('base.group_erp_manager').id,
+                    ])],
+                })
+                _logger.info(f"[SAAS] Super admin créé dans {self.database_name}: {super_admin_login}")
+            else:
+                # Mettre à jour le mot de passe au cas où il aurait changé
+                super_admin.write({'password': super_admin_password})
+                _logger.info(f"[SAAS] Super admin mis à jour dans {self.database_name}")
+
             cr.commit()
 
-        # Sauvegarder les credentials
+        # Sauvegarder les credentials client
         self.write({
             'admin_login': self.email,
             'admin_password_temp': admin_password,
@@ -920,44 +946,43 @@ class SaasClient(models.Model):
         }
 
     def action_connect_as_admin(self):
-        """Se connecter directement à la base client en tant qu'admin"""
+        """Se connecter directement à la base client en tant que super admin OneDesk"""
         self.ensure_one()
 
         if not self.database_name or self.database_state != 'active':
             raise UserError("La base de données doit être active pour se connecter")
 
-        if not self.admin_login:
-            raise UserError("Aucun login admin configuré pour ce client")
+        _logger.info(f"[SAAS] Connexion super admin à {self.database_name}")
 
-        _logger.info(f"[SAAS] Connexion admin à {self.database_name}")
+        # Récupérer les credentials super admin depuis la config
+        from odoo.tools import config
+        super_admin_password = config.get('saas_super_admin_password', 'OneDesk@Admin2025!')
+        super_admin_login = config.get('saas_super_admin_login', 'onedesk.admin@basatechno.fr')
 
-        # Afficher les credentials dans une notification et ouvrir l'URL
+        # Afficher les credentials du super admin
         credentials_message = (
+            f"<strong>🔐 Connexion Super Admin OneDesk</strong><br/><br/>"
             f"<strong>Base:</strong> {self.database_name}<br/>"
-            f"<strong>Login:</strong> {self.admin_login}<br/>"
+            f"<strong>Login:</strong> <code>{super_admin_login}</code><br/>"
+            f"<strong>Password:</strong> <code>{super_admin_password}</code><br/>"
+            f"<br/><strong>URL:</strong> <a href='{self.url}' target='_blank'>{self.url}</a>"
+            f"<br/><br/>"
+            f"<em style='color: #666; font-size: 11px;'>Ces identifiants fonctionnent sur TOUTES les bases clients</em>"
         )
-
-        # Ajouter le mot de passe s'il est disponible
-        if self.admin_password_temp:
-            credentials_message += f"<strong>Password:</strong> {self.admin_password_temp}<br/>"
-        else:
-            credentials_message += f"<strong>Password:</strong> (Voir dans le chatter - mot de passe envoyé par email)<br/>"
-
-        credentials_message += f"<br/><strong>URL:</strong> <a href='{self.url}' target='_blank'>{self.url}</a>"
 
         # Message dans le chatter
         self.message_post(
-            body=f"🔐 Connexion admin initiée<br/>{credentials_message}"
+            body=f"🔐 Connexion super admin initiée<br/>{credentials_message}"
         )
 
-        # Construire l'URL avec le login pré-rempli
-        login_url = f"{self.url}&login={self.admin_login}" if '?' in self.url else f"{self.url}?login={self.admin_login}"
+        # Construire l'URL avec le login super admin pré-rempli
+        login_url = f"{self.url}&login={super_admin_login}" if '?' in self.url else f"{self.url}?login={super_admin_login}"
 
         return {
             'type': 'ir.actions.client',
             'tag': 'display_notification',
             'params': {
-                'title': '🔐 Connexion Admin',
+                'title': '🔐 Super Admin OneDesk',
                 'message': credentials_message,
                 'type': 'info',
                 'sticky': True,
