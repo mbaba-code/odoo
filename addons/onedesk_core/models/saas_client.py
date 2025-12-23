@@ -557,7 +557,18 @@ class SaasClient(models.Model):
                 'database_state': 'suspended',
                 'subscription_state': 'suspended',
             })
-            client.message_post(body="Base de données suspendue")
+            client.message_post(body="⏸️ Base de données suspendue")
+
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'title': 'Suspendu',
+                'message': 'La base de données a été suspendue',
+                'type': 'warning',
+                'sticky': False,
+            }
+        }
 
     def action_activate(self):
         """Réactiver l'accès à la base client"""
@@ -566,7 +577,18 @@ class SaasClient(models.Model):
                 'database_state': 'active',
                 'subscription_state': 'active',
             })
-            client.message_post(body="Base de données réactivée")
+            client.message_post(body="✅ Base de données réactivée")
+
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'title': 'Réactivé',
+                'message': 'La base de données a été réactivée',
+                'type': 'success',
+                'sticky': False,
+            }
+        }
 
     def action_terminate(self):
         """Terminer définitivement la base client (attention: irréversible!)"""
@@ -578,6 +600,17 @@ class SaasClient(models.Model):
                 'cancelled_date': fields.Date.today(),
             })
             client.message_post(body="⚠️ Base de données terminée - Backup final créé")
+
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'title': 'Terminé',
+                'message': 'La base de données a été terminée',
+                'type': 'danger',
+                'sticky': True,
+            }
+        }
 
     def action_reset_and_reprovision(self):
         """Nettoyer complètement et recommencer le provisioning (DANGER!)"""
@@ -713,6 +746,238 @@ class SaasClient(models.Model):
                 ])
         except Exception as e:
             _logger.error(f"[SAAS] Erreur collecte métriques pour {self.name}: {str(e)}")
+
+    # ============================================================
+    # FONCTIONNALITÉS SUPER ADMIN
+    # ============================================================
+
+    def action_create_backup(self):
+        """Créer un backup de la base de données client"""
+        self.ensure_one()
+
+        if not self.database_name or self.database_state not in ['active', 'suspended']:
+            raise UserError("La base de données doit être active ou suspendue pour créer un backup")
+
+        try:
+            import odoo
+            import datetime
+
+            _logger.info(f"[SAAS] Création backup pour {self.database_name}")
+
+            # Créer le backup avec Odoo
+            backup_format = 'zip'
+            timestamp = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
+            backup_name = f"{self.database_name}_{timestamp}"
+
+            # Le backup est créé dans le filestore
+            odoo.service.db.exp_dump(self.database_name, backup_format)
+
+            self.message_post(
+                body=f"💾 Backup créé: {backup_name}.{backup_format}"
+            )
+
+            return {
+                'type': 'ir.actions.client',
+                'tag': 'display_notification',
+                'params': {
+                    'title': 'Backup créé',
+                    'message': f'Le backup {backup_name} a été créé avec succès',
+                    'type': 'success',
+                    'sticky': False,
+                }
+            }
+
+        except Exception as e:
+            _logger.error(f"[SAAS] Erreur création backup: {str(e)}", exc_info=True)
+            raise UserError(f"Erreur lors de la création du backup: {str(e)}")
+
+    def action_download_backup(self):
+        """Télécharger un backup complet de la base de données (dump PostgreSQL)"""
+        self.ensure_one()
+
+        if not self.database_name or self.database_state == 'draft':
+            raise UserError("La base de données doit être provisionnée pour télécharger un backup")
+
+        try:
+            import subprocess
+            import base64
+            import tempfile
+            import os
+            import datetime
+
+            _logger.info(f"[SAAS] Téléchargement backup pour {self.database_name}")
+
+            # Récupérer les paramètres PostgreSQL depuis la configuration Odoo
+            from odoo.tools import config
+            db_host = config['db_host'] or 'localhost'
+            db_port = str(config['db_port'] or '5432')
+            db_user = config['db_user'] or 'odoo'
+            db_password = config['db_password'] or ''
+
+            # Créer un fichier temporaire pour le dump
+            timestamp = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
+            filename = f"{self.database_name}_{timestamp}.sql"
+
+            # Créer un fichier .pgpass temporaire si mot de passe fourni
+            pgpass_file = None
+            if db_password:
+                import stat
+                with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.pgpass') as pgpass:
+                    pgpass_file = pgpass.name
+                    # Format: hostname:port:database:username:password
+                    pgpass.write(f"{db_host}:{db_port}:*:{db_user}:{db_password}\n")
+                # Chmod 0600 (requis par PostgreSQL)
+                os.chmod(pgpass_file, stat.S_IRUSR | stat.S_IWUSR)
+
+            try:
+                with tempfile.NamedTemporaryFile(mode='wb', delete=False, suffix='.sql') as tmp_file:
+                    tmp_path = tmp_file.name
+
+                    # Préparer l'environnement
+                    env = os.environ.copy()
+                    if pgpass_file:
+                        env['PGPASSFILE'] = pgpass_file
+                    elif db_password:
+                        env['PGPASSWORD'] = db_password
+
+                    cmd = [
+                        'pg_dump',
+                        '-h', db_host,
+                        '-p', db_port,
+                        '-U', db_user,
+                        '-F', 'c',  # Format custom (compressé)
+                        '-b',  # Include blobs
+                        '-v',  # Verbose
+                        '-f', tmp_path,
+                        self.database_name
+                    ]
+
+                    _logger.info(f"[SAAS] Exécution pg_dump pour {self.database_name}")
+
+                    result = subprocess.run(
+                        cmd,
+                        env=env,
+                        capture_output=True,
+                        text=True,
+                        timeout=600  # 10 minutes max
+                    )
+
+                    if result.returncode != 0:
+                        raise Exception(f"pg_dump a échoué: {result.stderr}")
+
+                    # Lire le fichier
+                    with open(tmp_path, 'rb') as f:
+                        dump_data = f.read()
+
+                    # Supprimer le fichier temporaire
+                    os.unlink(tmp_path)
+            finally:
+                # Nettoyer le fichier pgpass
+                if pgpass_file and os.path.exists(pgpass_file):
+                    os.unlink(pgpass_file)
+
+            # Créer un attachement pour le téléchargement
+            attachment = self.env['ir.attachment'].create({
+                'name': filename,
+                'datas': base64.b64encode(dump_data),
+                'res_model': 'saas.client',
+                'res_id': self.id,
+                'type': 'binary',
+                'mimetype': 'application/octet-stream',
+            })
+
+            self.message_post(
+                body=f"📥 Backup complet créé: {filename} ({len(dump_data) / (1024*1024):.2f} MB)",
+                attachment_ids=[attachment.id]
+            )
+
+            return {
+                'type': 'ir.actions.act_url',
+                'url': f'/web/content/{attachment.id}?download=true',
+                'target': 'self',
+            }
+
+        except subprocess.TimeoutExpired:
+            raise UserError("Le backup a pris trop de temps (timeout 10 min)")
+        except Exception as e:
+            _logger.error(f"[SAAS] Erreur téléchargement backup: {str(e)}", exc_info=True)
+            raise UserError(f"Erreur lors du téléchargement du backup: {str(e)}")
+
+    def action_restore_backup(self):
+        """Restaurer la base de données depuis un backup (via interface utilisateur)"""
+        self.ensure_one()
+
+        # Retourner une action wizard pour uploader et restaurer un backup
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'title': 'Restauration',
+                'message': 'Utilisez le gestionnaire de base de données Odoo pour restaurer un backup',
+                'type': 'info',
+                'sticky': True,
+            }
+        }
+
+    def action_connect_as_admin(self):
+        """Se connecter directement à la base client en tant qu'admin"""
+        self.ensure_one()
+
+        if not self.database_name or self.database_state != 'active':
+            raise UserError("La base de données doit être active pour se connecter")
+
+        if not self.admin_login:
+            raise UserError("Aucun login admin configuré pour ce client")
+
+        _logger.info(f"[SAAS] Connexion admin à {self.database_name}")
+
+        # Afficher les credentials dans une notification et ouvrir l'URL
+        credentials_message = (
+            f"<strong>Base:</strong> {self.database_name}<br/>"
+            f"<strong>Login:</strong> {self.admin_login}<br/>"
+        )
+
+        # Ajouter le mot de passe s'il est disponible
+        if self.admin_password_temp:
+            credentials_message += f"<strong>Password:</strong> {self.admin_password_temp}<br/>"
+        else:
+            credentials_message += f"<strong>Password:</strong> (Voir dans le chatter - mot de passe envoyé par email)<br/>"
+
+        credentials_message += f"<br/><strong>URL:</strong> <a href='{self.url}' target='_blank'>{self.url}</a>"
+
+        # Message dans le chatter
+        self.message_post(
+            body=f"🔐 Connexion admin initiée<br/>{credentials_message}"
+        )
+
+        # Construire l'URL avec le login pré-rempli
+        login_url = f"{self.url}&login={self.admin_login}" if '?' in self.url else f"{self.url}?login={self.admin_login}"
+
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'title': '🔐 Connexion Admin',
+                'message': credentials_message,
+                'type': 'info',
+                'sticky': True,
+                'next': {
+                    'type': 'ir.actions.act_url',
+                    'url': login_url,
+                    'target': 'new',
+                }
+            }
+        }
+
+    def action_open_database_manager(self):
+        """Ouvrir le gestionnaire de base de données Odoo"""
+        base_url = self.env['ir.config_parameter'].sudo().get_param('web.base.url', 'http://localhost:8069')
+
+        return {
+            'type': 'ir.actions.act_url',
+            'url': f'{base_url}/web/database/manager',
+            'target': 'new',
+        }
 
     # ============================================================
     # GESTION DOMAINE PERSONNALISÉ
