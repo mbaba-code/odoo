@@ -456,7 +456,7 @@ class SaasClient(models.Model):
                     'login': super_admin_login,
                     'email': super_admin_login,
                     'password': super_admin_password,
-                    'groups_id': [(6, 0, [
+                    'groups_ids': [(6, 0, [
                         env.ref('base.group_system').id,
                         env.ref('base.group_erp_manager').id,
                     ])],
