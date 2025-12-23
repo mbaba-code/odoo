@@ -807,55 +807,74 @@ class SaasClient(models.Model):
 
             _logger.info(f"[SAAS] Téléchargement backup pour {self.database_name}")
 
-            # Récupérer les paramètres PostgreSQL
-            db_host = self.env['ir.config_parameter'].sudo().get_param('db_host', 'localhost')
-            db_port = self.env['ir.config_parameter'].sudo().get_param('db_port', '5432')
-            db_user = self.env['ir.config_parameter'].sudo().get_param('db_user', 'odoo')
-            db_password = self.env['ir.config_parameter'].sudo().get_param('db_password', '')
+            # Récupérer les paramètres PostgreSQL depuis la configuration Odoo
+            from odoo.tools import config
+            db_host = config['db_host'] or 'localhost'
+            db_port = str(config['db_port'] or '5432')
+            db_user = config['db_user'] or 'odoo'
+            db_password = config['db_password'] or ''
 
             # Créer un fichier temporaire pour le dump
             timestamp = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
             filename = f"{self.database_name}_{timestamp}.sql"
 
-            with tempfile.NamedTemporaryFile(mode='wb', delete=False, suffix='.sql') as tmp_file:
-                tmp_path = tmp_file.name
+            # Créer un fichier .pgpass temporaire si mot de passe fourni
+            pgpass_file = None
+            if db_password:
+                import stat
+                with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.pgpass') as pgpass:
+                    pgpass_file = pgpass.name
+                    # Format: hostname:port:database:username:password
+                    pgpass.write(f"{db_host}:{db_port}:*:{db_user}:{db_password}\n")
+                # Chmod 0600 (requis par PostgreSQL)
+                os.chmod(pgpass_file, stat.S_IRUSR | stat.S_IWUSR)
 
-                # Utiliser pg_dump pour créer un dump complet
-                env = os.environ.copy()
-                if db_password:
-                    env['PGPASSWORD'] = db_password
+            try:
+                with tempfile.NamedTemporaryFile(mode='wb', delete=False, suffix='.sql') as tmp_file:
+                    tmp_path = tmp_file.name
 
-                cmd = [
-                    'pg_dump',
-                    '-h', db_host,
-                    '-p', db_port,
-                    '-U', db_user,
-                    '-F', 'c',  # Format custom (compressé)
-                    '-b',  # Include blobs
-                    '-v',  # Verbose
-                    '-f', tmp_path,
-                    self.database_name
-                ]
+                    # Préparer l'environnement
+                    env = os.environ.copy()
+                    if pgpass_file:
+                        env['PGPASSFILE'] = pgpass_file
+                    elif db_password:
+                        env['PGPASSWORD'] = db_password
 
-                _logger.info(f"[SAAS] Exécution pg_dump: {' '.join(cmd[:-1])} ***")
+                    cmd = [
+                        'pg_dump',
+                        '-h', db_host,
+                        '-p', db_port,
+                        '-U', db_user,
+                        '-F', 'c',  # Format custom (compressé)
+                        '-b',  # Include blobs
+                        '-v',  # Verbose
+                        '-f', tmp_path,
+                        self.database_name
+                    ]
 
-                result = subprocess.run(
-                    cmd,
-                    env=env,
-                    capture_output=True,
-                    text=True,
-                    timeout=600  # 10 minutes max
-                )
+                    _logger.info(f"[SAAS] Exécution pg_dump pour {self.database_name}")
 
-                if result.returncode != 0:
-                    raise Exception(f"pg_dump a échoué: {result.stderr}")
+                    result = subprocess.run(
+                        cmd,
+                        env=env,
+                        capture_output=True,
+                        text=True,
+                        timeout=600  # 10 minutes max
+                    )
 
-                # Lire le fichier
-                with open(tmp_path, 'rb') as f:
-                    dump_data = f.read()
+                    if result.returncode != 0:
+                        raise Exception(f"pg_dump a échoué: {result.stderr}")
 
-                # Supprimer le fichier temporaire
-                os.unlink(tmp_path)
+                    # Lire le fichier
+                    with open(tmp_path, 'rb') as f:
+                        dump_data = f.read()
+
+                    # Supprimer le fichier temporaire
+                    os.unlink(tmp_path)
+            finally:
+                # Nettoyer le fichier pgpass
+                if pgpass_file and os.path.exists(pgpass_file):
+                    os.unlink(pgpass_file)
 
             # Créer un attachement pour le téléchargement
             attachment = self.env['ir.attachment'].create({
