@@ -2,160 +2,110 @@
 <odoo>
     <data noupdate="1">
 
-        <!-- Template Email de Bienvenue Client SaaS -->
-        <record id="email_template_client_welcome" model="mail.template">
-            <field name="name">SaaS Client - Email de Bienvenue</field>
-            <field name="model_id" ref="model_saas_client"/>
-            <field name="subject">Bienvenue sur {{ object.company_name }} - Votre plateforme Odoo est prête !</field>
-            <field name="email_from">noreply@basatechno.fr</field>
-            <field name="email_to">{{ object.email }}</field>
-            <field name="auto_delete" eval="False"/>
-            <field name="body_html" type="html">
-<div style="margin: 0px; padding: 0px; font-family: Arial, sans-serif;">
-    <table border="0" cellpadding="0" cellspacing="0" style="padding-top: 16px; background-color: #F1F1F1; font-family: Arial, sans-serif; color: #454748; width: 100%; border-collapse: separate;">
-        <tr>
-            <td align="center">
-                <table border="0" cellpadding="0" cellspacing="0" width="600" style="padding: 16px; background-color: #FFFFFF; border: 1px solid #DDDDDD; border-radius: 4px;">
+    <!-- SaaS Client Welcome Email Template -->
+    <record id="email_template_client_welcome" model="mail.template">
+        <field name="name">SaaS Client - Email de Bienvenue</field>
+        <field name="email_from">noreply@basatechno.fr</field>
+        <field name="email_to">{{ (object.email or '') }}</field>
+        <field name="subject">Bienvenue sur {{ object.company_name or 'OneDesk' }} - Votre plateforme est prête ! 🎉</field>
+        <field name="model_id" ref="model_saas_client"/>
+        <field name="body_html" type="html">
+<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #f5f5f5; padding: 20px;">
+    <div style="background-color: white; border-radius: 8px; padding: 30px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
 
-                    <!-- En-tête -->
-                    <tr>
-                        <td style="padding: 20px 0px; text-align: center; background-color: #875A7B; border-radius: 4px 4px 0px 0px;">
-                            <h1 style="margin: 0px; color: #FFFFFF; font-size: 28px; font-weight: bold;">
-                                Bienvenue sur OneDesk !
-                            </h1>
-                        </td>
-                    </tr>
+        <!-- Header -->
+        <div style="text-align: center; margin-bottom: 30px;">
+            <h1 style="color: #875A7B; margin: 0;">🎉 Bienvenue sur OneDesk</h1>
+            <p style="color: #666; margin-top: 10px;">Votre plateforme Odoo est prête !</p>
+        </div>
 
-                    <!-- Corps du message -->
-                    <tr>
-                        <td style="padding: 30px 20px;">
-                            <p style="font-size: 16px; margin: 0px 0px 15px;">
-                                Bonjour <strong><t t-out="object.contact_name or 'cher client'">cher client</t></strong>,
-                            </p>
+        <!-- Main Content -->
+        <div style="margin-bottom: 30px;">
+            <p style="color: #333; font-size: 16px;">Bonjour <strong><t t-out="object.name or 'cher client'">Client</t></strong>,</p>
 
-                            <p style="font-size: 16px; margin: 0px 0px 15px;">
-                                Félicitations ! Votre plateforme Odoo est maintenant prête et opérationnelle.
-                            </p>
+            <p style="color: #666; line-height: 1.6;">
+                Félicitations ! Votre plateforme Odoo <strong><t t-out="object.company_name or ''">Entreprise</t></strong> est maintenant prête et opérationnelle.
+                Vous pouvez dès maintenant accéder à votre tableau de bord.
+            </p>
 
-                            <p style="font-size: 16px; margin: 0px 0px 25px;">
-                                Voici vos identifiants de connexion :
-                            </p>
+            <!-- Login Info -->
+            <div style="background-color: #f9f9f9; border-left: 4px solid #875A7B; padding: 15px; margin: 20px 0;">
+                <p style="margin: 0; color: #333;"><strong>🔑 Vos identifiants de connexion:</strong></p>
+                <p style="margin: 10px 0; color: #666;">
+                    <strong>URL:</strong><br/>
+                    <a t-att-href="object.url or ''" style="color: #875A7B; text-decoration: none;">
+                        <t t-out="object.url or ''">https://votre-plateforme.com</t>
+                    </a>
+                </p>
+                <p style="margin: 5px 0; color: #666;">
+                    <strong>Identifiant:</strong>
+                    <code style="background-color: #f0f0f0; padding: 2px 6px;"><t t-out="object.admin_login or ''">admin</t></code>
+                </p>
+                <p style="margin: 5px 0; color: #666;">
+                    <strong>Mot de passe temporaire:</strong>
+                    <code style="background-color: #f0f0f0; padding: 2px 6px;"><t t-out="ctx.get('admin_password') or '[Voir dans le chatter]'">password</t></code>
+                </p>
+            </div>
 
-                            <!-- Bloc identifiants -->
-                            <table border="0" cellpadding="0" cellspacing="0" style="width: 100%; background-color: #F8F8F8; border: 1px solid #DDDDDD; border-radius: 4px; margin-bottom: 25px;">
-                                <tr>
-                                    <td style="padding: 20px;">
-                                        <table border="0" cellpadding="0" cellspacing="0" style="width: 100%;">
-                                            <tr>
-                                                <td style="padding: 8px 0px;">
-                                                    <strong style="color: #875A7B;">URL de connexion :</strong>
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <td style="padding: 8px 0px;">
-                                                    <a t-att-href="object.url" style="color: #875A7B; text-decoration: none; font-size: 16px; word-break: break-all;">
-                                                        <t t-out="object.url or ''">https://client.example.com</t>
-                                                    </a>
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <td style="padding: 8px 0px; padding-top: 15px;">
-                                                    <strong style="color: #875A7B;">Identifiant :</strong>
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <td style="padding: 8px 0px;">
-                                                    <span style="font-family: 'Courier New', monospace; font-size: 16px; background-color: #FFFFFF; padding: 5px 10px; border: 1px solid #DDDDDD; border-radius: 3px; display: inline-block;">
-                                                        <t t-out="object.admin_login or ''">admin</t>
-                                                    </span>
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <td style="padding: 8px 0px; padding-top: 15px;">
-                                                    <strong style="color: #875A7B;">Mot de passe temporaire :</strong>
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <td style="padding: 8px 0px;">
-                                                    <span style="font-family: 'Courier New', monospace; font-size: 16px; background-color: #FFFFFF; padding: 5px 10px; border: 1px solid #DDDDDD; border-radius: 3px; display: inline-block;">
-                                                        <t t-out="ctx.get('admin_password', '[Voir dans le chatter]') or ''">password123</t>
-                                                    </span>
-                                                </td>
-                                            </tr>
-                                        </table>
-                                    </td>
-                                </tr>
-                            </table>
+            <!-- CTA Button -->
+            <div style="text-align: center; margin: 30px 0;">
+                <a t-att-href="object.url or ''"
+                   style="display: inline-block; background-color: #875A7B; color: white; padding: 12px 30px; border-radius: 5px; text-decoration: none; font-weight: bold;">
+                    🚀 Accéder à ma plateforme
+                </a>
+            </div>
 
-                            <!-- Bouton CTA -->
-                            <table border="0" cellpadding="0" cellspacing="0" style="width: 100%; margin-bottom: 25px;">
-                                <tr>
-                                    <td align="center" style="padding: 10px 0px;">
-                                        <a t-att-href="object.url" style="background-color: #875A7B; color: #FFFFFF; padding: 15px 40px; text-decoration: none; border-radius: 5px; font-size: 16px; font-weight: bold; display: inline-block;">
-                                            Accéder à ma plateforme
-                                        </a>
-                                    </td>
-                                </tr>
-                            </table>
+            <!-- Security Warning -->
+            <div style="background-color: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; margin: 20px 0;">
+                <p style="margin: 0; color: #856404;">
+                    <strong>⚠️ Important:</strong> Pour votre sécurité, changez votre mot de passe dès votre première connexion.
+                </p>
+            </div>
 
-                            <!-- Avertissement mot de passe -->
-                            <table border="0" cellpadding="0" cellspacing="0" style="width: 100%; background-color: #FFF3CD; border: 1px solid #FFE69C; border-radius: 4px; margin-bottom: 25px;">
-                                <tr>
-                                    <td style="padding: 15px;">
-                                        <p style="margin: 0px; font-size: 14px; color: #856404;">
-                                            <strong>Important :</strong> Pour votre sécurité, changez votre mot de passe dès votre première connexion.
-                                        </p>
-                                    </td>
-                                </tr>
-                            </table>
+            <!-- Plan Info -->
+            <t t-if="object.plan_id">
+            <div style="margin: 20px 0;">
+                <p style="color: #666; margin: 5px 0;">
+                    <strong>Plan souscrit:</strong> <t t-out="object.plan_id.name or ''">Plan</t>
+                </p>
+            </div>
+            </t>
 
-                            <!-- Informations plan -->
-                            <t t-if="object.plan_id">
-                                <p style="font-size: 14px; margin: 0px 0px 10px; color: #666666;">
-                                    <strong>Plan souscrit :</strong> <t t-out="object.plan_id.name or ''">Plan Standard</t>
-                                </p>
-                            </t>
+            <t t-if="object.is_trial">
+            <div style="background-color: #d4edda; border-left: 4px solid #28a745; padding: 12px; margin: 15px 0; border-radius: 5px;">
+                <p style="margin: 0; color: #155724;">
+                    <strong>🎁 Période d'essai:</strong> <t t-out="object.days_until_trial_end or 0">0</t> jours restants
+                </p>
+            </div>
+            </t>
 
-                            <t t-if="object.is_trial">
-                                <p style="font-size: 14px; margin: 0px 0px 25px; color: #666666;">
-                                    <strong>Période d'essai :</strong> <t t-out="object.days_until_trial_end or 0">30</t> jours restants
-                                </p>
-                            </t>
+            <!-- Support -->
+            <div style="background-color: #f0f8ff; border-radius: 5px; padding: 15px; margin-top: 30px;">
+                <p style="margin: 0; color: #084298; font-weight: bold;">💬 Besoin d'aide?</p>
+                <p style="margin: 5px 0; color: #666;">
+                    Notre équipe support est là pour vous aider:<br/>
+                    📧 <a href="mailto:support@basatechno.fr" style="color: #875A7B; text-decoration: none;">support@basatechno.fr</a>
+                </p>
+            </div>
 
-                            <!-- Message de support -->
-                            <p style="font-size: 14px; margin: 0px 0px 10px;">
-                                Si vous avez des questions ou besoin d'assistance, notre équipe est là pour vous aider :
-                            </p>
-                            <p style="font-size: 14px; margin: 0px 0px 25px;">
-                                <a href="mailto:support@basatechno.fr" style="color: #875A7B; text-decoration: none;">support@basatechno.fr</a>
-                            </p>
+            <p style="margin: 20px 0 0 0; color: #333;">
+                Excellente utilisation de votre nouvelle plateforme !
+            </p>
 
-                            <p style="font-size: 16px; margin: 0px;">
-                                Excellente utilisation de votre nouvelle plateforme !
-                            </p>
+            <p style="color: #666; margin-top: 20px;">
+                Cordialement,<br/>
+                <strong>L'équipe OneDesk</strong>
+            </p>
+        </div>
 
-                            <p style="font-size: 14px; margin: 20px 0px 0px; color: #666666;">
-                                Cordialement,<br/>
-                                <strong>L'équipe OneDesk</strong>
-                            </p>
-                        </td>
-                    </tr>
-
-                    <!-- Pied de page -->
-                    <tr>
-                        <td style="padding: 20px; text-align: center; background-color: #F8F8F8; border-radius: 0px 0px 4px 4px; border-top: 1px solid #DDDDDD;">
-                            <p style="font-size: 12px; color: #999999; margin: 0px;">
-                                © 2025 OneDesk - Tous droits réservés
-                            </p>
-                        </td>
-                    </tr>
-                </table>
-            </td>
-        </tr>
-    </table>
+        <!-- Footer -->
+        <div style="border-top: 1px solid #eee; padding-top: 20px; margin-top: 30px; color: #999; font-size: 12px; text-align: center;">
+            <p style="margin: 0;">© 2025 OneDesk - Tous droits réservés</p>
+        </div>
+    </div>
 </div>
-            </field>
-        </record>
+        </field>
+    </record>
 
     </data>
 </odoo>
