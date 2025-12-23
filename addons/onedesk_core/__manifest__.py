@@ -98,6 +98,7 @@
     'views/saas_database_views.xml',  # Bases de données clients
     'views/saas_metric_views.xml',  # Métriques et graphiques
     'views/saas_alert_views.xml',  # Alertes et notifications
+    'views/saas_domain_request_views.xml',  # Demandes de domaine personnalisé
     'views/saas_dashboard.xml',  # Dashboard SaaS avec KPIs
     'views/saas_menu.xml',  # Menu SaaS Manager
 
