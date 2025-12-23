@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+
+        <!-- Template Email de Bienvenue Client SaaS -->
+        <record id="email_template_client_welcome" model="mail.template">
+            <field name="name">SaaS Client - Email de Bienvenue</field>
+            <field name="model_id" ref="model_saas_client"/>
+            <field name="subject">Bienvenue sur {{ object.company_name }} - Votre plateforme Odoo est prête !</field>
+            <field name="email_from">noreply@basatechno.fr</field>
+            <field name="email_to">{{ object.email }}</field>
+            <field name="auto_delete" eval="False"/>
+            <field name="body_html" type="html">
+<div style="margin: 0px; padding: 0px; font-family: Arial, sans-serif;">
+    <table border="0" cellpadding="0" cellspacing="0" style="padding-top: 16px; background-color: #F1F1F1; font-family: Arial, sans-serif; color: #454748; width: 100%; border-collapse: separate;">
+        <tr>
+            <td align="center">
+                <table border="0" cellpadding="0" cellspacing="0" width="600" style="padding: 16px; background-color: #FFFFFF; border: 1px solid #DDDDDD; border-radius: 4px;">
+
+                    <!-- En-tête -->
+                    <tr>
+                        <td style="padding: 20px 0px; text-align: center; background-color: #875A7B; border-radius: 4px 4px 0px 0px;">
+                            <h1 style="margin: 0px; color: #FFFFFF; font-size: 28px; font-weight: bold;">
+                                Bienvenue sur OneDesk !
+                            </h1>
+                        </td>
+                    </tr>
+
+                    <!-- Corps du message -->
+                    <tr>
+                        <td style="padding: 30px 20px;">
+                            <p style="font-size: 16px; margin: 0px 0px 15px;">
+                                Bonjour <strong><t t-out="object.contact_name or 'cher client'">cher client</t></strong>,
+                            </p>
+
+                            <p style="font-size: 16px; margin: 0px 0px 15px;">
+                                Félicitations ! Votre plateforme Odoo est maintenant prête et opérationnelle.
+                            </p>
+
+                            <p style="font-size: 16px; margin: 0px 0px 25px;">
+                                Voici vos identifiants de connexion :
+                            </p>
+
+                            <!-- Bloc identifiants -->
+                            <table border="0" cellpadding="0" cellspacing="0" style="width: 100%; background-color: #F8F8F8; border: 1px solid #DDDDDD; border-radius: 4px; margin-bottom: 25px;">
+                                <tr>
+                                    <td style="padding: 20px;">
+                                        <table border="0" cellpadding="0" cellspacing="0" style="width: 100%;">
+                                            <tr>
+                                                <td style="padding: 8px 0px;">
+                                                    <strong style="color: #875A7B;">URL de connexion :</strong>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td style="padding: 8px 0px;">
+                                                    <a t-att-href="object.url" style="color: #875A7B; text-decoration: none; font-size: 16px; word-break: break-all;">
+                                                        <t t-out="object.url or ''">https://client.example.com</t>
+                                                    </a>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td style="padding: 8px 0px; padding-top: 15px;">
+                                                    <strong style="color: #875A7B;">Identifiant :</strong>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td style="padding: 8px 0px;">
+                                                    <span style="font-family: 'Courier New', monospace; font-size: 16px; background-color: #FFFFFF; padding: 5px 10px; border: 1px solid #DDDDDD; border-radius: 3px; display: inline-block;">
+                                                        <t t-out="object.admin_login or ''">admin</t>
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td style="padding: 8px 0px; padding-top: 15px;">
+                                                    <strong style="color: #875A7B;">Mot de passe temporaire :</strong>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td style="padding: 8px 0px;">
+                                                    <span style="font-family: 'Courier New', monospace; font-size: 16px; background-color: #FFFFFF; padding: 5px 10px; border: 1px solid #DDDDDD; border-radius: 3px; display: inline-block;">
+                                                        <t t-out="ctx.get('admin_password', '[Voir dans le chatter]') or ''">password123</t>
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <!-- Bouton CTA -->
+                            <table border="0" cellpadding="0" cellspacing="0" style="width: 100%; margin-bottom: 25px;">
+                                <tr>
+                                    <td align="center" style="padding: 10px 0px;">
+                                        <a t-att-href="object.url" style="background-color: #875A7B; color: #FFFFFF; padding: 15px 40px; text-decoration: none; border-radius: 5px; font-size: 16px; font-weight: bold; display: inline-block;">
+                                            Accéder à ma plateforme
+                                        </a>
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <!-- Avertissement mot de passe -->
+                            <table border="0" cellpadding="0" cellspacing="0" style="width: 100%; background-color: #FFF3CD; border: 1px solid #FFE69C; border-radius: 4px; margin-bottom: 25px;">
+                                <tr>
+                                    <td style="padding: 15px;">
+                                        <p style="margin: 0px; font-size: 14px; color: #856404;">
+                                            <strong>Important :</strong> Pour votre sécurité, changez votre mot de passe dès votre première connexion.
+                                        </p>
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <!-- Informations plan -->
+                            <t t-if="object.plan_id">
+                                <p style="font-size: 14px; margin: 0px 0px 10px; color: #666666;">
+                                    <strong>Plan souscrit :</strong> <t t-out="object.plan_id.name or ''">Plan Standard</t>
+                                </p>
+                            </t>
+
+                            <t t-if="object.is_trial">
+                                <p style="font-size: 14px; margin: 0px 0px 25px; color: #666666;">
+                                    <strong>Période d'essai :</strong> <t t-out="object.days_until_trial_end or 0">30</t> jours restants
+                                </p>
+                            </t>
+
+                            <!-- Message de support -->
+                            <p style="font-size: 14px; margin: 0px 0px 10px;">
+                                Si vous avez des questions ou besoin d'assistance, notre équipe est là pour vous aider :
+                            </p>
+                            <p style="font-size: 14px; margin: 0px 0px 25px;">
+                                <a href="mailto:support@basatechno.fr" style="color: #875A7B; text-decoration: none;">support@basatechno.fr</a>
+                            </p>
+
+                            <p style="font-size: 16px; margin: 0px;">
+                                Excellente utilisation de votre nouvelle plateforme !
+                            </p>
+
+                            <p style="font-size: 14px; margin: 20px 0px 0px; color: #666666;">
+                                Cordialement,<br/>
+                                <strong>L'équipe OneDesk</strong>
+                            </p>
+                        </td>
+                    </tr>
+
+                    <!-- Pied de page -->
+                    <tr>
+                        <td style="padding: 20px; text-align: center; background-color: #F8F8F8; border-radius: 0px 0px 4px 4px; border-top: 1px solid #DDDDDD;">
+                            <p style="font-size: 12px; color: #999999; margin: 0px;">
+                                © 2025 OneDesk - Tous droits réservés
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</div>
+            </field>
+        </record>
+
+    </data>
+</odoo>
