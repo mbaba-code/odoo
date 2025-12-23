@@ -27,7 +27,7 @@
               name="SaaS Manager"
               sequence="5"
               web_icon="onedesk_core,static/description/icon.png"
-              groups="base.group_system"/>
+              groups="onedesk_core.group_saas_manager"/>
 
     <!-- Dashboard SaaS -->
     <menuitem id="menu_saas_dashboard"

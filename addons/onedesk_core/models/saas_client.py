@@ -582,40 +582,97 @@ class SaasClient(models.Model):
             )
 
     def action_suspend(self):
-        """Suspendre l'accès à la base client"""
-        for client in self:
-            client.write({
-                'database_state': 'suspended',
-                'subscription_state': 'suspended',
-            })
-            client.message_post(body="⏸️ Base de données suspendue")
+        """Suspendre l'accès à la base client - Désactive tous les utilisateurs"""
+        self.ensure_one()
+
+        from odoo.tools import config
+        super_admin_login = config.get('saas_super_admin_login', 'onedesk.admin@basatechno.fr')
+
+        # Se connecter à la base client et désactiver tous les utilisateurs
+        import odoo
+        from odoo.modules.registry import Registry
+
+        try:
+            registry = Registry(self.database_name)
+            with registry.cursor() as cr:
+                env = api.Environment(cr, SUPERUSER_ID, {})
+
+                # Désactiver tous les utilisateurs SAUF le super admin OneDesk
+                users = env['res.users'].search([
+                    ('login', '!=', super_admin_login),
+                    ('id', '!=', SUPERUSER_ID),  # Ne pas désactiver l'admin système
+                ])
+
+                if users:
+                    users.write({'active': False})
+                    _logger.info(f"[SAAS] {len(users)} utilisateurs désactivés dans {self.database_name}")
+
+                cr.commit()
+
+        except Exception as e:
+            _logger.error(f"[SAAS] Erreur suspension base {self.database_name}: {str(e)}")
+            raise UserError(f"Erreur lors de la suspension: {str(e)}")
+
+        # Mettre à jour l'état
+        self.write({
+            'database_state': 'suspended',
+            'subscription_state': 'suspended',
+        })
+        self.message_post(body=f"⏸️ Base de données suspendue - {len(users) if 'users' in locals() else 0} utilisateurs désactivés")
 
         return {
             'type': 'ir.actions.client',
             'tag': 'display_notification',
             'params': {
                 'title': 'Suspendu',
-                'message': 'La base de données a été suspendue',
+                'message': f'La base de données a été suspendue ({len(users) if "users" in locals() else 0} utilisateurs désactivés)',
                 'type': 'warning',
                 'sticky': False,
             }
         }
 
     def action_activate(self):
-        """Réactiver l'accès à la base client"""
-        for client in self:
-            client.write({
-                'database_state': 'active',
-                'subscription_state': 'active',
-            })
-            client.message_post(body="✅ Base de données réactivée")
+        """Réactiver l'accès à la base client - Réactive tous les utilisateurs"""
+        self.ensure_one()
+
+        # Se connecter à la base client et réactiver tous les utilisateurs
+        import odoo
+        from odoo.modules.registry import Registry
+
+        try:
+            registry = Registry(self.database_name)
+            with registry.cursor() as cr:
+                env = api.Environment(cr, SUPERUSER_ID, {})
+
+                # Réactiver tous les utilisateurs qui étaient désactivés
+                users = env['res.users'].with_context(active_test=False).search([
+                    ('active', '=', False),
+                    ('id', '!=', SUPERUSER_ID),
+                ])
+
+                if users:
+                    users.write({'active': True})
+                    _logger.info(f"[SAAS] {len(users)} utilisateurs réactivés dans {self.database_name}")
+
+                cr.commit()
+
+        except Exception as e:
+            _logger.error(f"[SAAS] Erreur réactivation base {self.database_name}: {str(e)}")
+            raise UserError(f"Erreur lors de la réactivation: {str(e)}")
+
+        # Mettre à jour l'état
+        self.write({
+            'database_state': 'active',
+            'subscription_state': 'active',
+        })
+        self.message_post(body=f"✅ Base de données réactivée - {len(users) if 'users' in locals() else 0} utilisateurs réactivés")
 
         return {
             'type': 'ir.actions.client',
             'tag': 'display_notification',
             'params': {
                 'title': 'Réactivé',
-                'message': 'La base de données a été réactivée',
+                'message': f'La base de données a été réactivée ({len(users) if "users" in locals() else 0} utilisateurs réactivés)',
                 'type': 'success',
                 'sticky': False,
             }

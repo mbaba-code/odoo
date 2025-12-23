@@ -50,4 +50,5 @@ from . import saas_client
 from . import saas_database
 from . import saas_metric
 from . import saas_alert
+from . import saas_domain_request
 from . import ir_http_saas
