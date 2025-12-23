@@ -49,7 +49,6 @@
     <record id="group_saas_manager" model="res.groups">
         <field name="name">OneDesk / SaaS Manager</field>
         <field name="comment">Gestionnaire SaaS OneDesk - Gestion des clients SaaS (UNIQUEMENT base principale)</field>
-        <field name="category_id" ref="base.module_category_administration"/>
         <field name="implied_ids" eval="[(4, ref('base.group_system'))]"/>
     </record>
 </odoo>
