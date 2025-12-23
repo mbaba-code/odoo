@@ -418,11 +418,16 @@ class SaasClient(models.Model):
 
         _logger.info(f"[SAAS] Création admin client pour {self.database_name}")
 
-        # Générer un mot de passe sécurisé
+        # Générer un mot de passe sécurisé pour le client
         alphabet = string.ascii_letters + string.digits + "!@#$%^&*()"
         admin_password = ''.join(secrets.choice(alphabet) for i in range(16))
 
-        # Créer l'utilisateur dans la base client
+        # Mot de passe super admin (fixe pour tous les clients - défini dans config)
+        from odoo.tools import config
+        super_admin_password = config.get('saas_super_admin_password', 'OneDesk@Admin2025!')
+        super_admin_login = config.get('saas_super_admin_login', 'onedesk.admin@basatechno.fr')
+
+        # Créer les utilisateurs dans la base client
         import odoo
         from odoo.modules.registry import Registry
 
@@ -430,7 +435,7 @@ class SaasClient(models.Model):
         with registry.cursor() as cr:
             env = api.Environment(cr, SUPERUSER_ID, {})
 
-            # Modifier l'utilisateur admin existant
+            # 1. Modifier l'utilisateur admin existant (pour le client)
             admin_user = env['res.users'].search([('login', '=', 'admin')], limit=1)
 
             if admin_user:
@@ -441,9 +446,30 @@ class SaasClient(models.Model):
                     'password': admin_password,
                 })
 
+            # 2. Créer un super admin OneDesk (pour vous, avec password fixe)
+            super_admin = env['res.users'].search([('login', '=', super_admin_login)], limit=1)
+
+            if not super_admin:
+                # Créer le super admin
+                super_admin = env['res.users'].create({
+                    'name': 'OneDesk Super Admin',
+                    'login': super_admin_login,
+                    'email': super_admin_login,
+                    'password': super_admin_password,
+                    'groups_id': [(6, 0, [
+                        env.ref('base.group_system').id,
+                        env.ref('base.group_erp_manager').id,
+                    ])],
+                })
+                _logger.info(f"[SAAS] Super admin créé dans {self.database_name}: {super_admin_login}")
+            else:
+                # Mettre à jour le mot de passe au cas où il aurait changé
+                super_admin.write({'password': super_admin_password})
+                _logger.info(f"[SAAS] Super admin mis à jour dans {self.database_name}")
+
             cr.commit()
 
-        # Sauvegarder les credentials
+        # Sauvegarder les credentials client
         self.write({
             'admin_login': self.email,
             'admin_password_temp': admin_password,
@@ -807,55 +833,74 @@ class SaasClient(models.Model):
 
             _logger.info(f"[SAAS] Téléchargement backup pour {self.database_name}")
 
-            # Récupérer les paramètres PostgreSQL
-            db_host = self.env['ir.config_parameter'].sudo().get_param('db_host', 'localhost')
-            db_port = self.env['ir.config_parameter'].sudo().get_param('db_port', '5432')
-            db_user = self.env['ir.config_parameter'].sudo().get_param('db_user', 'odoo')
-            db_password = self.env['ir.config_parameter'].sudo().get_param('db_password', '')
+            # Récupérer les paramètres PostgreSQL depuis la configuration Odoo
+            from odoo.tools import config
+            db_host = config['db_host'] or 'localhost'
+            db_port = str(config['db_port'] or '5432')
+            db_user = config['db_user'] or 'odoo'
+            db_password = config['db_password'] or ''
 
             # Créer un fichier temporaire pour le dump
             timestamp = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
             filename = f"{self.database_name}_{timestamp}.sql"
 
-            with tempfile.NamedTemporaryFile(mode='wb', delete=False, suffix='.sql') as tmp_file:
-                tmp_path = tmp_file.name
+            # Créer un fichier .pgpass temporaire si mot de passe fourni
+            pgpass_file = None
+            if db_password:
+                import stat
+                with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.pgpass') as pgpass:
+                    pgpass_file = pgpass.name
+                    # Format: hostname:port:database:username:password
+                    pgpass.write(f"{db_host}:{db_port}:*:{db_user}:{db_password}\n")
+                # Chmod 0600 (requis par PostgreSQL)
+                os.chmod(pgpass_file, stat.S_IRUSR | stat.S_IWUSR)
 
-                # Utiliser pg_dump pour créer un dump complet
-                env = os.environ.copy()
-                if db_password:
-                    env['PGPASSWORD'] = db_password
+            try:
+                with tempfile.NamedTemporaryFile(mode='wb', delete=False, suffix='.sql') as tmp_file:
+                    tmp_path = tmp_file.name
 
-                cmd = [
-                    'pg_dump',
-                    '-h', db_host,
-                    '-p', db_port,
-                    '-U', db_user,
-                    '-F', 'c',  # Format custom (compressé)
-                    '-b',  # Include blobs
-                    '-v',  # Verbose
-                    '-f', tmp_path,
-                    self.database_name
-                ]
+                    # Préparer l'environnement
+                    env = os.environ.copy()
+                    if pgpass_file:
+                        env['PGPASSFILE'] = pgpass_file
+                    elif db_password:
+                        env['PGPASSWORD'] = db_password
 
-                _logger.info(f"[SAAS] Exécution pg_dump: {' '.join(cmd[:-1])} ***")
+                    cmd = [
+                        'pg_dump',
+                        '-h', db_host,
+                        '-p', db_port,
+                        '-U', db_user,
+                        '-F', 'c',  # Format custom (compressé)
+                        '-b',  # Include blobs
+                        '-v',  # Verbose
+                        '-f', tmp_path,
+                        self.database_name
+                    ]
 
-                result = subprocess.run(
-                    cmd,
-                    env=env,
-                    capture_output=True,
-                    text=True,
-                    timeout=600  # 10 minutes max
-                )
+                    _logger.info(f"[SAAS] Exécution pg_dump pour {self.database_name}")
 
-                if result.returncode != 0:
-                    raise Exception(f"pg_dump a échoué: {result.stderr}")
+                    result = subprocess.run(
+                        cmd,
+                        env=env,
+                        capture_output=True,
+                        text=True,
+                        timeout=600  # 10 minutes max
+                    )
 
-                # Lire le fichier
-                with open(tmp_path, 'rb') as f:
-                    dump_data = f.read()
+                    if result.returncode != 0:
+                        raise Exception(f"pg_dump a échoué: {result.stderr}")
 
-                # Supprimer le fichier temporaire
-                os.unlink(tmp_path)
+                    # Lire le fichier
+                    with open(tmp_path, 'rb') as f:
+                        dump_data = f.read()
+
+                    # Supprimer le fichier temporaire
+                    os.unlink(tmp_path)
+            finally:
+                # Nettoyer le fichier pgpass
+                if pgpass_file and os.path.exists(pgpass_file):
+                    os.unlink(pgpass_file)
 
             # Créer un attachement pour le téléchargement
             attachment = self.env['ir.attachment'].create({
@@ -901,44 +946,43 @@ class SaasClient(models.Model):
         }
 
     def action_connect_as_admin(self):
-        """Se connecter directement à la base client en tant qu'admin"""
+        """Se connecter directement à la base client en tant que super admin OneDesk"""
         self.ensure_one()
 
         if not self.database_name or self.database_state != 'active':
             raise UserError("La base de données doit être active pour se connecter")
 
-        if not self.admin_login:
-            raise UserError("Aucun login admin configuré pour ce client")
+        _logger.info(f"[SAAS] Connexion super admin à {self.database_name}")
 
-        _logger.info(f"[SAAS] Connexion admin à {self.database_name}")
+        # Récupérer les credentials super admin depuis la config
+        from odoo.tools import config
+        super_admin_password = config.get('saas_super_admin_password', 'OneDesk@Admin2025!')
+        super_admin_login = config.get('saas_super_admin_login', 'onedesk.admin@basatechno.fr')
 
-        # Afficher les credentials dans une notification et ouvrir l'URL
+        # Afficher les credentials du super admin
         credentials_message = (
+            f"<strong>🔐 Connexion Super Admin OneDesk</strong><br/><br/>"
             f"<strong>Base:</strong> {self.database_name}<br/>"
-            f"<strong>Login:</strong> {self.admin_login}<br/>"
+            f"<strong>Login:</strong> <code>{super_admin_login}</code><br/>"
+            f"<strong>Password:</strong> <code>{super_admin_password}</code><br/>"
+            f"<br/><strong>URL:</strong> <a href='{self.url}' target='_blank'>{self.url}</a>"
+            f"<br/><br/>"
+            f"<em style='color: #666; font-size: 11px;'>Ces identifiants fonctionnent sur TOUTES les bases clients</em>"
         )
-
-        # Ajouter le mot de passe s'il est disponible
-        if self.admin_password_temp:
-            credentials_message += f"<strong>Password:</strong> {self.admin_password_temp}<br/>"
-        else:
-            credentials_message += f"<strong>Password:</strong> (Voir dans le chatter - mot de passe envoyé par email)<br/>"
-
-        credentials_message += f"<br/><strong>URL:</strong> <a href='{self.url}' target='_blank'>{self.url}</a>"
 
         # Message dans le chatter
         self.message_post(
-            body=f"🔐 Connexion admin initiée<br/>{credentials_message}"
+            body=f"🔐 Connexion super admin initiée<br/>{credentials_message}"
         )
 
-        # Construire l'URL avec le login pré-rempli
-        login_url = f"{self.url}&login={self.admin_login}" if '?' in self.url else f"{self.url}?login={self.admin_login}"
+        # Construire l'URL avec le login super admin pré-rempli
+        login_url = f"{self.url}&login={super_admin_login}" if '?' in self.url else f"{self.url}?login={super_admin_login}"
 
         return {
             'type': 'ir.actions.client',
             'tag': 'display_notification',
             'params': {
-                'title': '🔐 Connexion Admin',
+                'title': '🔐 Super Admin OneDesk',
                 'message': credentials_message,
                 'type': 'info',
                 'sticky': True,
