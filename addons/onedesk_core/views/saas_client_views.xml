@@ -57,16 +57,26 @@
                     <!-- Boutons d'action selon l'état -->
                     <button name="action_provision_database" type="object" string="Provisionner"
                             class="oe_highlight" invisible="database_state != 'draft'"/>
-                    <button name="action_suspend" type="object" string="Suspendre"
+                    <button name="action_suspend" type="object" string="⏸️ Suspendre"
                             invisible="database_state not in ['active']"/>
-                    <button name="action_activate" type="object" string="Réactiver"
+                    <button name="action_activate" type="object" string="▶️ Réactiver"
                             invisible="database_state != 'suspended'"/>
                     <button name="action_reset_and_reprovision" type="object" string="Reset &amp; Reprovisionner"
                             confirm="ATTENTION: Cette action va supprimer complètement la base de données et recommencer. Continuer?"
                             invisible="database_state not in ['draft', 'error']"/>
-                    <button name="action_terminate" type="object" string="Terminer"
+                    <button name="action_terminate" type="object" string="❌ Terminer"
                             confirm="ATTENTION: Cette action est irréversible. La base sera terminée. Continuer?"
                             invisible="database_state in ['draft', 'terminated']"/>
+
+                    <!-- Boutons Super Admin -->
+                    <button name="action_connect_as_admin" type="object" string="🔐 Connexion Admin"
+                            class="btn-info" invisible="database_state != 'active'"
+                            help="Se connecter à la base en tant qu'administrateur"/>
+                    <button name="action_download_backup" type="object" string="💾 Backup"
+                            invisible="database_state == 'draft'"
+                            help="Télécharger un backup de la base de données"/>
+                    <button name="action_open_database_manager" type="object" string="🗄️ DB Manager"
+                            help="Ouvrir le gestionnaire de bases de données"/>
 
                     <field name="database_state" widget="statusbar"
                            statusbar_visible="draft,provisioning,active"/>

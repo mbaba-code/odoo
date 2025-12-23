@@ -557,7 +557,18 @@ class SaasClient(models.Model):
                 'database_state': 'suspended',
                 'subscription_state': 'suspended',
             })
-            client.message_post(body="Base de données suspendue")
+            client.message_post(body="⏸️ Base de données suspendue")
+
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'title': 'Suspendu',
+                'message': 'La base de données a été suspendue',
+                'type': 'warning',
+                'sticky': False,
+            }
+        }
 
     def action_activate(self):
         """Réactiver l'accès à la base client"""
@@ -566,7 +577,18 @@ class SaasClient(models.Model):
                 'database_state': 'active',
                 'subscription_state': 'active',
             })
-            client.message_post(body="Base de données réactivée")
+            client.message_post(body="✅ Base de données réactivée")
+
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'title': 'Réactivé',
+                'message': 'La base de données a été réactivée',
+                'type': 'success',
+                'sticky': False,
+            }
+        }
 
     def action_terminate(self):
         """Terminer définitivement la base client (attention: irréversible!)"""
@@ -578,6 +600,17 @@ class SaasClient(models.Model):
                 'cancelled_date': fields.Date.today(),
             })
             client.message_post(body="⚠️ Base de données terminée - Backup final créé")
+
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'title': 'Terminé',
+                'message': 'La base de données a été terminée',
+                'type': 'danger',
+                'sticky': True,
+            }
+        }
 
     def action_reset_and_reprovision(self):
         """Nettoyer complètement et recommencer le provisioning (DANGER!)"""
@@ -713,6 +746,161 @@ class SaasClient(models.Model):
                 ])
         except Exception as e:
             _logger.error(f"[SAAS] Erreur collecte métriques pour {self.name}: {str(e)}")
+
+    # ============================================================
+    # FONCTIONNALITÉS SUPER ADMIN
+    # ============================================================
+
+    def action_create_backup(self):
+        """Créer un backup de la base de données client"""
+        self.ensure_one()
+
+        if not self.database_name or self.database_state not in ['active', 'suspended']:
+            raise UserError("La base de données doit être active ou suspendue pour créer un backup")
+
+        try:
+            import odoo
+            import datetime
+
+            _logger.info(f"[SAAS] Création backup pour {self.database_name}")
+
+            # Créer le backup avec Odoo
+            backup_format = 'zip'
+            timestamp = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
+            backup_name = f"{self.database_name}_{timestamp}"
+
+            # Le backup est créé dans le filestore
+            odoo.service.db.exp_dump(self.database_name, backup_format)
+
+            self.message_post(
+                body=f"💾 Backup créé: {backup_name}.{backup_format}"
+            )
+
+            return {
+                'type': 'ir.actions.client',
+                'tag': 'display_notification',
+                'params': {
+                    'title': 'Backup créé',
+                    'message': f'Le backup {backup_name} a été créé avec succès',
+                    'type': 'success',
+                    'sticky': False,
+                }
+            }
+
+        except Exception as e:
+            _logger.error(f"[SAAS] Erreur création backup: {str(e)}", exc_info=True)
+            raise UserError(f"Erreur lors de la création du backup: {str(e)}")
+
+    def action_download_backup(self):
+        """Télécharger un backup de la base de données"""
+        self.ensure_one()
+
+        if not self.database_name or self.database_state == 'draft':
+            raise UserError("La base de données doit être provisionnée pour télécharger un backup")
+
+        try:
+            import odoo
+            import base64
+
+            _logger.info(f"[SAAS] Téléchargement backup pour {self.database_name}")
+
+            # Créer le dump
+            dump_stream = odoo.service.db.exp_dump(self.database_name, 'zip')
+
+            # Lire le contenu
+            dump_data = dump_stream.read() if hasattr(dump_stream, 'read') else dump_stream
+
+            # Créer un attachement pour le téléchargement
+            import datetime
+            timestamp = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
+            filename = f"{self.database_name}_{timestamp}.zip"
+
+            attachment = self.env['ir.attachment'].create({
+                'name': filename,
+                'datas': base64.b64encode(dump_data),
+                'res_model': 'saas.client',
+                'res_id': self.id,
+                'type': 'binary',
+            })
+
+            self.message_post(
+                body=f"📥 Backup téléchargé: {filename}",
+                attachment_ids=[attachment.id]
+            )
+
+            return {
+                'type': 'ir.actions.act_url',
+                'url': f'/web/content/{attachment.id}?download=true',
+                'target': 'self',
+            }
+
+        except Exception as e:
+            _logger.error(f"[SAAS] Erreur téléchargement backup: {str(e)}", exc_info=True)
+            raise UserError(f"Erreur lors du téléchargement du backup: {str(e)}")
+
+    def action_restore_backup(self):
+        """Restaurer la base de données depuis un backup (via interface utilisateur)"""
+        self.ensure_one()
+
+        # Retourner une action wizard pour uploader et restaurer un backup
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'title': 'Restauration',
+                'message': 'Utilisez le gestionnaire de base de données Odoo pour restaurer un backup',
+                'type': 'info',
+                'sticky': True,
+            }
+        }
+
+    def action_connect_as_admin(self):
+        """Se connecter directement à la base client en tant qu'admin"""
+        self.ensure_one()
+
+        if not self.database_name or self.database_state != 'active':
+            raise UserError("La base de données doit être active pour se connecter")
+
+        try:
+            import odoo
+            from odoo.modules.registry import Registry
+
+            _logger.info(f"[SAAS] Connexion admin à {self.database_name}")
+
+            # Obtenir l'admin user de la base client
+            registry = Registry(self.database_name)
+            with registry.cursor() as cr:
+                env = api.Environment(cr, SUPERUSER_ID, {})
+                admin_user = env['res.users'].search([('login', '=', self.admin_login)], limit=1)
+
+                if not admin_user:
+                    raise UserError(f"Utilisateur admin introuvable: {self.admin_login}")
+
+                # Créer un lien de connexion direct
+                self.message_post(
+                    body=f"🔐 Connexion admin initiée vers {self.database_name}"
+                )
+
+                # Rediriger vers la base avec login automatique
+                return {
+                    'type': 'ir.actions.act_url',
+                    'url': f'{self.url}',
+                    'target': 'new',
+                }
+
+        except Exception as e:
+            _logger.error(f"[SAAS] Erreur connexion admin: {str(e)}", exc_info=True)
+            raise UserError(f"Erreur lors de la connexion: {str(e)}")
+
+    def action_open_database_manager(self):
+        """Ouvrir le gestionnaire de base de données Odoo"""
+        base_url = self.env['ir.config_parameter'].sudo().get_param('web.base.url', 'http://localhost:8069')
+
+        return {
+            'type': 'ir.actions.act_url',
+            'url': f'{base_url}/web/database/manager',
+            'target': 'new',
+        }
 
     # ============================================================
     # GESTION DOMAINE PERSONNALISÉ
