@@ -191,8 +191,7 @@
     <record id="action_saas_domain_request_client" model="ir.actions.act_window">
         <field name="name">Mon Domaine Personnalisé</field>
         <field name="res_model">saas.domain.request</field>
-        <field name="view_mode">form,tree</field>
-        <field name="context">{'default_client_id': False}</field>  <!-- À remplir dynamiquement -->
+        <field name="view_mode">tree,form</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">
                 Configurez votre domaine personnalisé
@@ -228,5 +227,15 @@
               action="action_saas_domain_request_admin"
               sequence="3"
               groups="onedesk_core.group_saas_manager"/>
+
+    <!-- Menu dans OneDesk (pour les clients dans leur base) -->
+    <!-- Ce menu sera visible dans toutes les bases (principale et clients) -->
+    <!-- Dans la base principale, seuls les SaaS Managers le verront -->
+    <!-- Dans les bases clients, tous les Property Managers le verront -->
+    <menuitem id="menu_onedesk_domain_custom"
+              name="Domaine Personnalisé"
+              parent="onedesk_core.menu_onedesk_settings"
+              action="action_saas_domain_request_client"
+              sequence="100"/>
 
 </odoo>
