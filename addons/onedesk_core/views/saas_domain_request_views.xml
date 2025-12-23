@@ -182,10 +182,9 @@
                 <filter string="En attente" name="pending" domain="[('state', '=', 'pending')]"/>
                 <filter string="Approuvées" name="approved" domain="[('state', '=', 'approved')]"/>
                 <filter string="Configurées" name="configured" domain="[('state', '=', 'configured')]"/>
-                <separator/>
                 <filter string="DNS Valide" name="dns_valid" domain="[('dns_status', '=', 'valid')]"/>
                 <filter string="DNS Invalide" name="dns_invalid" domain="[('dns_status', '=', 'invalid')]"/>
-                <group expand="0" string="Group By">
+                <group string="Group By">
                     <filter string="État" name="group_state" context="{'group_by': 'state'}"/>
                     <filter string="Client" name="group_client" context="{'group_by': 'client_id'}"/>
                     <filter string="Statut DNS" name="group_dns" context="{'group_by': 'dns_status'}"/>
