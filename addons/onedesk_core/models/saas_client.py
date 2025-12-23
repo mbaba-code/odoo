@@ -460,7 +460,7 @@ class SaasClient(models.Model):
 
                 # Puis ajouter les groupes via write() (requis en Odoo 19)
                 super_admin.write({
-                    'groups_ids': [(6, 0, [
+                    'group_ids': [(6, 0, [
                         env.ref('base.group_system').id,
                         env.ref('base.group_erp_manager').id,
                     ])],
