@@ -6,61 +6,14 @@
         <record id="email_template_client_welcome" model="mail.template">
             <field name="name">SaaS Client - Email de Bienvenue</field>
             <field name="model_id" ref="model_saas_client"/>
-            <field name="subject">Bienvenue sur {{ object.company_name }} - Votre plateforme est prête</field>
+            <field name="subject">Bienvenue - Votre plateforme est prête</field>
             <field name="email_from">noreply@basatechno.fr</field>
             <field name="email_to">{{ object.email }}</field>
             <field name="auto_delete" eval="False"/>
             <field name="body_html" type="html">
-<div style="margin: 0px; padding: 0px;">
-    <p style="margin: 0px; padding: 0px; font-size: 13px;">
-        Bonjour <strong><t t-out="object.contact_name or 'cher client'">cher client</t></strong>,
-        <br /><br />
-        Félicitations ! Votre plateforme Odoo <strong><t t-out="object.company_name or ''">Entreprise</t></strong> est maintenant prête et opérationnelle.
-        <br /><br />
-        <strong>Vos identifiants de connexion :</strong>
-        <br /><br />
-    </p>
-
-    <div style="background-color: #f9f9f9; padding: 15px; border-left: 4px solid #875A7B; margin: 16px 0;">
-        <p style="margin: 0; padding: 0; font-size: 13px;">
-            <strong>URL de connexion :</strong><br/>
-            <a t-att-href="object.url or ''" style="color: #875A7B;"><t t-out="object.url or ''">URL</t></a>
-            <br /><br />
-            <strong>Identifiant :</strong> <t t-out="object.admin_login or ''">admin</t>
-            <br /><br />
-            <strong>Mot de passe temporaire :</strong> <t t-out="ctx.get('admin_password') or '[Voir dans le chatter]'">password</t>
-        </p>
-    </div>
-
-    <div style="margin: 16px 0px 16px 0px; text-align: center;">
-        <a t-att-href="object.url or ''"
-           style="background-color: #875A7B; padding: 10px 20px; text-decoration: none; color: #FFFFFF; border-radius: 5px; font-size: 14px; display: inline-block;">
-            Accéder à ma plateforme
-        </a>
-    </div>
-
-    <div style="background-color: #fff3cd; border: 1px solid #ffc107; padding: 10px; border-radius: 4px; margin: 16px 0;">
-        <p style="margin: 0; padding: 0; font-size: 13px; color: #856404;">
-            <strong>Important :</strong> Pour votre sécurité, changez votre mot de passe dès votre première connexion.
-        </p>
-    </div>
-
-    <p style="margin: 16px 0px; padding: 0px; font-size: 13px;">
-        Si vous avez des questions ou besoin d'assistance, contactez-nous à
-        <a href="mailto:support@basatechno.fr" style="color: #875A7B;">support@basatechno.fr</a>
-        <br /><br />
-        Excellente utilisation de votre nouvelle plateforme !
-        <br /><br />
-        Cordialement,<br />
-        <strong>L'équipe OneDesk</strong>
-    </p>
-
-    <hr style="border: none; border-top: 1px solid #ddd; margin: 20px 0;" />
-
-    <p style="margin: 0px; padding: 0px; font-size: 11px; color: #999; text-align: center;">
-        © 2025 OneDesk - Tous droits réservés
-    </p>
-</div>
+<p>Bonjour,</p>
+<p>Votre plateforme Odoo est prête.</p>
+<p>Cordialement,<br/>L'équipe OneDesk</p>
             </field>
         </record>
 
