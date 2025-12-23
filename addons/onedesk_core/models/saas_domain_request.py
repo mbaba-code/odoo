@@ -20,9 +20,6 @@ class SaaSDomainRequest(models.Model):
     client_id = fields.Many2one('saas.client', string='Client SaaS', required=True,
                                 ondelete='cascade', tracking=True)
 
-    company_id = fields.Many2one('res.company', string='Company',
-                                 related='client_id.company_id', store=True)
-
     state = fields.Selection([
         ('draft', 'Brouillon'),
         ('pending', 'En attente validation'),
