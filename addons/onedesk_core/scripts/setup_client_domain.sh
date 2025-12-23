@@ -19,12 +19,6 @@ mkdir -p /var/log/onedesk
 # Créer le dossier de logs si nécessaire
 mkdir -p /var/log/onedesk
 
-<<<<<<< HEAD
-# Créer le dossier de logs si nécessaire
-mkdir -p /var/log/onedesk
-
-=======
->>>>>>> f77f6aa9199 (🌐 FEATURE: Domaines Personnalisés SaaS - Auto Nginx + SSL)
 # Vérifications
 if [ -z "$DOMAIN" ] || [ -z "$DATABASE" ]; then
     echo "Usage: $0 <domain> <database_name>"
