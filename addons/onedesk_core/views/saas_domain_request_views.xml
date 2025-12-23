@@ -176,19 +176,13 @@
         <field name="name">saas.domain.request.search</field>
         <field name="model">saas.domain.request</field>
         <field name="arch" type="xml">
-            <search>
-                <field name="name"/>
-                <field name="client_id"/>
+            <search string="Rechercher Demandes">
+                <field name="name" string="Domaine"/>
+                <field name="client_id" string="Client"/>
+                <field name="state" string="État"/>
                 <filter string="En attente" name="pending" domain="[('state', '=', 'pending')]"/>
                 <filter string="Approuvées" name="approved" domain="[('state', '=', 'approved')]"/>
                 <filter string="Configurées" name="configured" domain="[('state', '=', 'configured')]"/>
-                <filter string="DNS Valide" name="dns_valid" domain="[('dns_status', '=', 'valid')]"/>
-                <filter string="DNS Invalide" name="dns_invalid" domain="[('dns_status', '=', 'invalid')]"/>
-                <group string="Group By">
-                    <filter string="État" name="group_state" context="{'group_by': 'state'}"/>
-                    <filter string="Client" name="group_client" context="{'group_by': 'client_id'}"/>
-                    <filter string="Statut DNS" name="group_dns" context="{'group_by': 'dns_status'}"/>
-                </group>
             </search>
         </field>
     </record>
