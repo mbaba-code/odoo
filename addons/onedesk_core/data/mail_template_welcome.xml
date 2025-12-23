@@ -21,7 +21,7 @@
                     <tr>
                         <td style="padding: 20px 0px; text-align: center; background-color: #875A7B; border-radius: 4px 4px 0px 0px;">
                             <h1 style="margin: 0px; color: #FFFFFF; font-size: 28px; font-weight: bold;">
-                                🎉 Bienvenue sur OneDesk !
+                                Bienvenue sur OneDesk !
                             </h1>
                         </td>
                     </tr>
@@ -30,7 +30,7 @@
                     <tr>
                         <td style="padding: 30px 20px;">
                             <p style="font-size: 16px; margin: 0px 0px 15px;">
-                                Bonjour <strong>{{ object.contact_name or 'cher client' }}</strong>,
+                                Bonjour <strong><t t-out="object.contact_name or 'cher client'">cher client</t></strong>,
                             </p>
 
                             <p style="font-size: 16px; margin: 0px 0px 15px;">
@@ -48,37 +48,37 @@
                                         <table border="0" cellpadding="0" cellspacing="0" style="width: 100%;">
                                             <tr>
                                                 <td style="padding: 8px 0px;">
-                                                    <strong style="color: #875A7B;">🔗 URL de connexion :</strong>
+                                                    <strong style="color: #875A7B;">URL de connexion :</strong>
                                                 </td>
                                             </tr>
                                             <tr>
                                                 <td style="padding: 8px 0px;">
-                                                    <a href="{{ object.url }}" style="color: #875A7B; text-decoration: none; font-size: 16px; word-break: break-all;">
-                                                        {{ object.url }}
+                                                    <a t-att-href="object.url" style="color: #875A7B; text-decoration: none; font-size: 16px; word-break: break-all;">
+                                                        <t t-out="object.url or ''">https://client.example.com</t>
                                                     </a>
                                                 </td>
                                             </tr>
                                             <tr>
                                                 <td style="padding: 8px 0px; padding-top: 15px;">
-                                                    <strong style="color: #875A7B;">👤 Identifiant :</strong>
+                                                    <strong style="color: #875A7B;">Identifiant :</strong>
                                                 </td>
                                             </tr>
                                             <tr>
                                                 <td style="padding: 8px 0px;">
                                                     <span style="font-family: 'Courier New', monospace; font-size: 16px; background-color: #FFFFFF; padding: 5px 10px; border: 1px solid #DDDDDD; border-radius: 3px; display: inline-block;">
-                                                        {{ object.admin_login }}
+                                                        <t t-out="object.admin_login or ''">admin</t>
                                                     </span>
                                                 </td>
                                             </tr>
                                             <tr>
                                                 <td style="padding: 8px 0px; padding-top: 15px;">
-                                                    <strong style="color: #875A7B;">🔒 Mot de passe temporaire :</strong>
+                                                    <strong style="color: #875A7B;">Mot de passe temporaire :</strong>
                                                 </td>
                                             </tr>
                                             <tr>
                                                 <td style="padding: 8px 0px;">
                                                     <span style="font-family: 'Courier New', monospace; font-size: 16px; background-color: #FFFFFF; padding: 5px 10px; border: 1px solid #DDDDDD; border-radius: 3px; display: inline-block;">
-                                                        {{ ctx.get('admin_password', '[Voir dans le chatter]') }}
+                                                        <t t-out="ctx.get('admin_password', '[Voir dans le chatter]') or ''">password123</t>
                                                     </span>
                                                 </td>
                                             </tr>
@@ -91,8 +91,8 @@
                             <table border="0" cellpadding="0" cellspacing="0" style="width: 100%; margin-bottom: 25px;">
                                 <tr>
                                     <td align="center" style="padding: 10px 0px;">
-                                        <a href="{{ object.url }}" style="background-color: #875A7B; color: #FFFFFF; padding: 15px 40px; text-decoration: none; border-radius: 5px; font-size: 16px; font-weight: bold; display: inline-block;">
-                                            🚀 Accéder à ma plateforme
+                                        <a t-att-href="object.url" style="background-color: #875A7B; color: #FFFFFF; padding: 15px 40px; text-decoration: none; border-radius: 5px; font-size: 16px; font-weight: bold; display: inline-block;">
+                                            Accéder à ma plateforme
                                         </a>
                                     </td>
                                 </tr>
@@ -103,35 +103,35 @@
                                 <tr>
                                     <td style="padding: 15px;">
                                         <p style="margin: 0px; font-size: 14px; color: #856404;">
-                                            <strong>⚠️ Important :</strong> Pour votre sécurité, changez votre mot de passe dès votre première connexion.
+                                            <strong>Important :</strong> Pour votre sécurité, changez votre mot de passe dès votre première connexion.
                                         </p>
                                     </td>
                                 </tr>
                             </table>
 
                             <!-- Informations plan -->
-                            % if object.plan_id:
-                            <p style="font-size: 14px; margin: 0px 0px 10px; color: #666666;">
-                                <strong>Plan souscrit :</strong> {{ object.plan_id.name }}
-                            </p>
-                            % endif
+                            <t t-if="object.plan_id">
+                                <p style="font-size: 14px; margin: 0px 0px 10px; color: #666666;">
+                                    <strong>Plan souscrit :</strong> <t t-out="object.plan_id.name or ''">Plan Standard</t>
+                                </p>
+                            </t>
 
-                            % if object.is_trial:
-                            <p style="font-size: 14px; margin: 0px 0px 25px; color: #666666;">
-                                <strong>Période d'essai :</strong> {{ object.days_until_trial_end }} jours restants
-                            </p>
-                            % endif
+                            <t t-if="object.is_trial">
+                                <p style="font-size: 14px; margin: 0px 0px 25px; color: #666666;">
+                                    <strong>Période d'essai :</strong> <t t-out="object.days_until_trial_end or 0">30</t> jours restants
+                                </p>
+                            </t>
 
                             <!-- Message de support -->
                             <p style="font-size: 14px; margin: 0px 0px 10px;">
                                 Si vous avez des questions ou besoin d'assistance, notre équipe est là pour vous aider :
                             </p>
                             <p style="font-size: 14px; margin: 0px 0px 25px;">
-                                📧 <a href="mailto:support@basatechno.fr" style="color: #875A7B; text-decoration: none;">support@basatechno.fr</a>
+                                <a href="mailto:support@basatechno.fr" style="color: #875A7B; text-decoration: none;">support@basatechno.fr</a>
                             </p>
 
                             <p style="font-size: 16px; margin: 0px;">
-                                Excellente utilisation de votre nouvelle plateforme ! 🎊
+                                Excellente utilisation de votre nouvelle plateforme !
                             </p>
 
                             <p style="font-size: 14px; margin: 20px 0px 0px; color: #666666;">
@@ -145,7 +145,7 @@
                     <tr>
                         <td style="padding: 20px; text-align: center; background-color: #F8F8F8; border-radius: 0px 0px 4px 4px; border-top: 1px solid #DDDDDD;">
                             <p style="font-size: 12px; color: #999999; margin: 0px;">
-                                © {{ datetime.datetime.now().year }} OneDesk - Tous droits réservés
+                                © 2025 OneDesk - Tous droits réservés
                             </p>
                         </td>
                     </tr>
