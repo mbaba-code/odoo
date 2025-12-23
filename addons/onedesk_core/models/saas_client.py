@@ -450,17 +450,22 @@ class SaasClient(models.Model):
             super_admin = env['res.users'].search([('login', '=', super_admin_login)], limit=1)
 
             if not super_admin:
-                # Créer le super admin
+                # Créer le super admin SANS les groupes d'abord
                 super_admin = env['res.users'].create({
                     'name': 'OneDesk Super Admin',
                     'login': super_admin_login,
                     'email': super_admin_login,
                     'password': super_admin_password,
+                })
+
+                # Puis ajouter les groupes via write() (requis en Odoo 19)
+                super_admin.write({
                     'groups_ids': [(6, 0, [
                         env.ref('base.group_system').id,
                         env.ref('base.group_erp_manager').id,
                     ])],
                 })
+
                 _logger.info(f"[SAAS] Super admin créé dans {self.database_name}: {super_admin_login}")
             else:
                 # Mettre à jour le mot de passe au cas où il aurait changé
