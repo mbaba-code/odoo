@@ -21,7 +21,7 @@
 
         <!-- Main Content -->
         <div style="margin-bottom: 30px;">
-            <p style="color: #333; font-size: 16px;">Bonjour <strong><t t-out="object.contact_name or 'cher client'">Client</t></strong>,</p>
+            <p style="color: #333; font-size: 16px;">Bonjour <strong><t t-out="object.name or 'cher client'">Client</t></strong>,</p>
 
             <p style="color: #666; line-height: 1.6;">
                 Félicitations ! Votre plateforme Odoo <strong><t t-out="object.company_name or ''">Entreprise</t></strong> est maintenant prête et opérationnelle.
