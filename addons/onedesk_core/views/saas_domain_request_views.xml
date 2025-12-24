@@ -1,0 +1,241 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Form view pour les demandes de domaine -->
+    <record id="view_saas_domain_request_form" model="ir.ui.view">
+        <field name="name">saas.domain.request.form</field>
+        <field name="model">saas.domain.request</field>
+        <field name="arch" type="xml">
+            <form string="Demande de Domaine Personnalisé">
+                <header>
+                    <button name="action_check_dns" type="object" string="Vérifier DNS"
+                            class="btn-primary"
+                            invisible="state not in ['draft', 'pending']"/>
+
+                    <button name="action_submit_request" type="object" string="Soumettre la demande"
+                            class="btn-primary"
+                            invisible="state != 'draft'"/>
+
+                    <!-- Boutons admin SaaS -->
+                    <button name="action_approve" type="object" string="Approuver"
+                            class="btn-success"
+                            invisible="state != 'pending'"
+                            groups="onedesk_core.group_saas_manager"/>
+
+                    <button name="action_reject" type="object" string="Refuser"
+                            class="btn-danger"
+                            invisible="state not in ['pending', 'dns_checking']"
+                            groups="onedesk_core.group_saas_manager"/>
+
+                    <button name="action_configure_domain" type="object" string="Configurer Domaine"
+                            class="btn-primary"
+                            invisible="state != 'approved'"
+                            groups="onedesk_core.group_saas_manager"/>
+
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="draft,pending,approved,configured"/>
+                </header>
+
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <!-- Badge DNS Status -->
+                        <button class="oe_stat_button" type="object" name="action_check_dns" icon="fa-globe">
+                            <field name="dns_status" widget="label_selection"
+                                   options="{'classes': {'not_checked': 'default', 'checking': 'info', 'valid': 'success', 'invalid': 'danger'}}"/>
+                        </button>
+                    </div>
+
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" placeholder="monentreprise.com"/>
+                        </h1>
+                    </div>
+
+                    <group>
+                        <group name="client_info">
+                            <field name="client_id" options="{'no_create': True, 'no_open': True}"/>
+                        </group>
+                        <group name="dns_info">
+                            <field name="dns_target" readonly="1"/>
+                            <field name="dns_status" readonly="1"/>
+                        </group>
+                    </group>
+
+                    <notebook>
+                        <page string="Configuration DNS" name="dns">
+                            <group>
+                                <field name="dns_check_result" widget="html" nolabel="1"/>
+                            </group>
+
+                            <div class="alert alert-info" role="alert" invisible="dns_status == 'valid'">
+                                <h4>Instructions de configuration DNS</h4>
+                                <p>Pour configurer votre domaine personnalisé, créez un enregistrement CNAME dans votre zone DNS:</p>
+                                <ul>
+                                    <li><strong>Type:</strong> CNAME</li>
+                                    <li><strong>Nom:</strong> <field name="name" readonly="1" nolabel="1"/></li>
+                                    <li><strong>Cible:</strong> <field name="dns_target" readonly="1" nolabel="1"/></li>
+                                </ul>
+                                <p>Une fois configuré, cliquez sur "Vérifier DNS" pour valider.</p>
+                            </div>
+
+                            <div class="alert alert-success" role="alert" invisible="dns_status != 'valid'">
+                                <h4>✅ DNS Configuré Correctement</h4>
+                                <p>Votre domaine est correctement configuré et pointe vers notre serveur.</p>
+                                <p>Vous pouvez maintenant soumettre votre demande de configuration.</p>
+                            </div>
+                        </page>
+
+                        <page string="Dates" name="dates" groups="onedesk_core.group_saas_manager">
+                            <group>
+                                <group>
+                                    <field name="requested_date" readonly="1"/>
+                                    <field name="approved_date" readonly="1"/>
+                                </group>
+                                <group>
+                                    <field name="configured_date" readonly="1"/>
+                                </group>
+                            </group>
+                        </page>
+
+                        <page string="Refus" name="rejection" invisible="state != 'rejected'">
+                            <group>
+                                <field name="rejection_reason" nolabel="1"/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+
+                <!-- Chatter -->
+                <div class="oe_chatter">
+                    <field name="message_follower_ids"/>
+                    <field name="activity_ids"/>
+                    <field name="message_ids"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <!-- Tree view -->
+    <record id="view_saas_domain_request_tree" model="ir.ui.view">
+        <field name="name">saas.domain.request.tree</field>
+        <field name="model">saas.domain.request</field>
+        <field name="arch" type="xml">
+            <tree string="Demandes de Domaine">
+                <field name="name"/>
+                <field name="client_id"/>
+                <field name="state" widget="badge"
+                       decoration-success="state == 'configured'"
+                       decoration-info="state == 'pending'"
+                       decoration-warning="state == 'approved'"
+                       decoration-danger="state == 'rejected'"/>
+                <field name="dns_status" widget="badge"
+                       decoration-success="dns_status == 'valid'"
+                       decoration-danger="dns_status == 'invalid'"/>
+                <field name="requested_date"/>
+                <field name="create_date"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- Kanban view -->
+    <record id="view_saas_domain_request_kanban" model="ir.ui.view">
+        <field name="name">saas.domain.request.kanban</field>
+        <field name="model">saas.domain.request</field>
+        <field name="arch" type="xml">
+            <kanban class="o_kanban_small_column" default_group_by="state">
+                <field name="name"/>
+                <field name="client_id"/>
+                <field name="state"/>
+                <field name="dns_status"/>
+                <templates>
+                    <t t-name="card">
+                        <div class="oe_kanban_global_click">
+                            <div class="oe_kanban_content">
+                                <div class="oe_kanban_details">
+                                    <strong class="o_kanban_record_title">
+                                        <field name="name"/>
+                                    </strong>
+                                    <div class="o_kanban_tags_section">
+                                        <span class="badge badge-pill">
+                                            <field name="client_id"/>
+                                        </span>
+                                    </div>
+                                    <ul>
+                                        <li>DNS: <field name="dns_status"/></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- Search view -->
+    <record id="view_saas_domain_request_search" model="ir.ui.view">
+        <field name="name">saas.domain.request.search</field>
+        <field name="model">saas.domain.request</field>
+        <field name="arch" type="xml">
+            <search string="Rechercher Demandes">
+                <field name="name" string="Domaine"/>
+                <field name="client_id" string="Client"/>
+                <field name="state" string="État"/>
+                <filter string="En attente" name="pending" domain="[('state', '=', 'pending')]"/>
+                <filter string="Approuvées" name="approved" domain="[('state', '=', 'approved')]"/>
+                <filter string="Configurées" name="configured" domain="[('state', '=', 'configured')]"/>
+            </search>
+        </field>
+    </record>
+
+    <!-- Action pour les clients (dans leur base) -->
+    <record id="action_saas_domain_request_client" model="ir.actions.act_window">
+        <field name="name">Mon Domaine Personnalisé</field>
+        <field name="res_model">saas.domain.request</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Configurez votre domaine personnalisé
+            </p>
+            <p>
+                Demandez un nom de domaine personnalisé pour accéder à votre instance OneDesk.<br/>
+                Exemple: monentreprise.com
+            </p>
+        </field>
+    </record>
+
+    <!-- Action pour les admins SaaS (dans la base principale) -->
+    <record id="action_saas_domain_request_admin" model="ir.actions.act_window">
+        <field name="name">Demandes de Domaine</field>
+        <field name="res_model">saas.domain.request</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="context">{'search_default_pending': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Aucune demande de domaine
+            </p>
+            <p>
+                Les clients peuvent demander des domaines personnalisés pour leur instance.<br/>
+                Vous devrez approuver et configurer ces demandes.
+            </p>
+        </field>
+    </record>
+
+    <!-- Menu dans SaaS Manager (base principale) -->
+    <menuitem id="menu_saas_domain_request"
+              name="Demandes de Domaine"
+              parent="menu_saas_config"
+              action="action_saas_domain_request_admin"
+              sequence="3"
+              groups="onedesk_core.group_saas_manager"/>
+
+    <!-- Menu dans OneDesk (pour les clients dans leur base) -->
+    <!-- Ce menu sera visible dans toutes les bases (principale et clients) -->
+    <!-- Dans la base principale, seuls les SaaS Managers le verront -->
+    <!-- Dans les bases clients, tous les Property Managers le verront -->
+    <menuitem id="menu_onedesk_domain_custom"
+              name="Domaine Personnalisé"
+              parent="onedesk_core.menu_onedesk_settings"
+              action="action_saas_domain_request_client"
+              sequence="100"/>
+
+</odoo>

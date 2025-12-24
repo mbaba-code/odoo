@@ -44,4 +44,11 @@
                                           (4, ref('account.group_account_manager')),
                                           (4, ref('base.group_partner_manager'))]"/>
     </record>
+
+    <!-- Group: SaaS Manager (ONLY for main database - manages SaaS clients) -->
+    <record id="group_saas_manager" model="res.groups">
+        <field name="name">OneDesk / SaaS Manager</field>
+        <field name="comment">Gestionnaire SaaS OneDesk - Gestion des clients SaaS (UNIQUEMENT base principale)</field>
+        <field name="implied_ids" eval="[(4, ref('base.group_system'))]"/>
+    </record>
 </odoo>

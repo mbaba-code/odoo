@@ -193,3 +193,5 @@ access_saas_metric_admin,SaaS Metric Admin,model_saas_metric,onedesk_core.group_
 access_saas_metric_support,SaaS Metric Support,model_saas_metric,onedesk_core.group_onedesk_support,1,0,0,0
 access_saas_alert_admin,SaaS Alert Admin,model_saas_alert,onedesk_core.group_onedesk_master_admin,1,1,1,1
 access_saas_alert_support,SaaS Alert Support,model_saas_alert,onedesk_core.group_onedesk_support,1,1,1,0
+access_saas_domain_request_manager,SaaS Domain Request Manager,model_saas_domain_request,onedesk_core.group_saas_manager,1,1,1,1
+access_saas_domain_request_client,SaaS Domain Request Client,model_saas_domain_request,onedesk_core.group_onedesk_property_manager,1,1,1,0
