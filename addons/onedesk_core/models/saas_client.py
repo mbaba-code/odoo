@@ -668,7 +668,7 @@ class SaasClient(models.Model):
             )
 
     def action_suspend(self):
-        """Suspendre l'accès à la base client - Désactive tous les utilisateurs"""
+        """Suspendre l'accès à la base client - Désactive tous les utilisateurs et invalide les sessions"""
         self.ensure_one()
 
         from odoo.tools import config
@@ -678,12 +678,15 @@ class SaasClient(models.Model):
         import odoo
         from odoo.modules.registry import Registry
 
+        users_count = 0
+        sessions_count = 0
+
         try:
             registry = Registry(self.database_name)
             with registry.cursor() as cr:
                 env = api.Environment(cr, SUPERUSER_ID, {})
 
-                # Désactiver tous les utilisateurs SAUF le super admin OneDesk
+                # 1. Désactiver tous les utilisateurs SAUF le super admin OneDesk
                 users = env['res.users'].search([
                     ('login', '!=', super_admin_login),
                     ('id', '!=', SUPERUSER_ID),  # Ne pas désactiver l'admin système
@@ -691,7 +694,18 @@ class SaasClient(models.Model):
 
                 if users:
                     users.write({'active': False})
-                    _logger.info(f"[SAAS] {len(users)} utilisateurs désactivés dans {self.database_name}")
+                    users_count = len(users)
+                    _logger.info(f"[SAAS] {users_count} utilisateurs désactivés dans {self.database_name}")
+
+                # 2. Invalider toutes les sessions actives (force la déconnexion)
+                try:
+                    sessions = env['ir.sessions'].search([])
+                    if sessions:
+                        sessions.unlink()
+                        sessions_count = len(sessions)
+                        _logger.info(f"[SAAS] {sessions_count} sessions invalidées dans {self.database_name}")
+                except Exception as e:
+                    _logger.warning(f"[SAAS] Erreur invalidation sessions: {str(e)}")
 
                 # NOTE: Le context manager 'with registry.cursor()' commit automatiquement
 
@@ -704,14 +718,18 @@ class SaasClient(models.Model):
             'database_state': 'suspended',
             'subscription_state': 'suspended',
         })
-        self.message_post(body=f"⏸️ Base de données suspendue - {len(users) if 'users' in locals() else 0} utilisateurs désactivés")
+        self.message_post(
+            body=f"⏸️ Base de données suspendue<br/>"
+                 f"• {users_count} utilisateurs désactivés<br/>"
+                 f"• {sessions_count} sessions invalidées"
+        )
 
         return {
             'type': 'ir.actions.client',
             'tag': 'display_notification',
             'params': {
                 'title': 'Suspendu',
-                'message': f'La base de données a été suspendue ({len(users) if "users" in locals() else 0} utilisateurs désactivés)',
+                'message': f'Base suspendue - {users_count} utilisateurs désactivés, {sessions_count} sessions invalidées',
                 'type': 'warning',
                 'sticky': False,
             }
@@ -765,22 +783,77 @@ class SaasClient(models.Model):
         }
 
     def action_terminate(self):
-        """Terminer définitivement la base client (attention: irréversible!)"""
-        for client in self:
-            # TODO: Créer un backup final avant suppression
-            client.write({
-                'database_state': 'terminated',
-                'subscription_state': 'cancelled',
-                'cancelled_date': fields.Date.today(),
-            })
-            client.message_post(body="⚠️ Base de données terminée - Backup final créé")
+        """
+        Terminer définitivement la base client
+        - Désactive tous les utilisateurs
+        - Invalide toutes les sessions
+        - Change l'état à 'terminated' (bloque l'accès via ir.http)
+        - Optionnel: Supprime la base après X jours de grâce
+        """
+        self.ensure_one()
+
+        from odoo.tools import config
+        super_admin_login = config.get('saas_super_admin_login', 'onedesk.admin@basatechno.fr')
+
+        # Se connecter à la base client pour la verrouiller
+        import odoo
+        from odoo.modules.registry import Registry
+
+        users_count = 0
+        sessions_count = 0
+
+        try:
+            registry = Registry(self.database_name)
+            with registry.cursor() as cr:
+                env = api.Environment(cr, SUPERUSER_ID, {})
+
+                # 1. Désactiver TOUS les utilisateurs (y compris le super admin)
+                users = env['res.users'].search([
+                    ('id', '!=', SUPERUSER_ID),  # Ne pas désactiver l'admin système Odoo
+                ])
+
+                if users:
+                    users.write({'active': False})
+                    users_count = len(users)
+                    _logger.info(f"[SAAS] {users_count} utilisateurs désactivés dans {self.database_name}")
+
+                # 2. Invalider toutes les sessions actives
+                try:
+                    sessions = env['ir.sessions'].search([])
+                    if sessions:
+                        sessions.unlink()
+                        sessions_count = len(sessions)
+                        _logger.info(f"[SAAS] {sessions_count} sessions invalidées dans {self.database_name}")
+                except Exception as e:
+                    _logger.warning(f"[SAAS] Erreur invalidation sessions: {str(e)}")
+
+        except Exception as e:
+            _logger.error(f"[SAAS] Erreur terminaison base {self.database_name}: {str(e)}")
+            raise UserError(f"Erreur lors de la terminaison: {str(e)}")
+
+        # Mettre à jour l'état (bloque l'accès via ir_http_saas.py)
+        self.write({
+            'database_state': 'terminated',
+            'subscription_state': 'cancelled',
+            'cancelled_date': fields.Date.today(),
+        })
+
+        self.message_post(
+            body=f"🚫 Base de données terminée définitivement<br/>"
+                 f"• {users_count} utilisateurs désactivés<br/>"
+                 f"• {sessions_count} sessions invalidées<br/>"
+                 f"• Accès bloqué via HTTP<br/>"
+                 f"• Date: {fields.Date.today()}"
+        )
+
+        _logger.warning(f"[SAAS] Base {self.database_name} TERMINÉE - Accès bloqué")
 
         return {
             'type': 'ir.actions.client',
             'tag': 'display_notification',
             'params': {
-                'title': 'Terminé',
-                'message': 'La base de données a été terminée',
+                'title': 'Base terminée',
+                'message': f'La base {self.database_name} a été terminée définitivement. Accès bloqué.',
                 'type': 'danger',
                 'sticky': True,
             }

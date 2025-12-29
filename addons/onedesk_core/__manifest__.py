@@ -68,6 +68,7 @@
 
     # Auth pages responsive override (login/signup)
     'views/auth_responsive_override.xml',
+    'views/database_suspended_template.xml',  # Template for suspended/terminated databases
 
     # Multi-tenant views (admin)
     'views/onedesk_plan_views.xml',
