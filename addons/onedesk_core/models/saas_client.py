@@ -325,12 +325,18 @@ class SaasClient(models.Model):
         from odoo.tools import config
         import os
 
-        # Priorité: variables d'environnement > config Odoo
+        # Récupérer les valeurs avec gestion des None
+        # Priorité: variables d'environnement > config Odoo > valeurs par défaut
+        db_host = os.environ.get('SAAS_DB_HOST') or config.get('db_host') or 'localhost'
+        db_port = os.environ.get('SAAS_DB_PORT') or config.get('db_port') or '5432'
+        db_user = os.environ.get('SAAS_DB_USER') or config.get('db_user') or 'odoo'
+        db_password = os.environ.get('SAAS_DB_PASSWORD') or config.get('db_password') or ''
+
         return {
-            'host': os.environ.get('SAAS_DB_HOST') or config.get('db_host', 'localhost'),
-            'port': int(os.environ.get('SAAS_DB_PORT') or config.get('db_port', '5432')),
-            'user': os.environ.get('SAAS_DB_USER') or config.get('db_user', 'odoo'),
-            'password': os.environ.get('SAAS_DB_PASSWORD') or config.get('db_password', ''),
+            'host': db_host,
+            'port': int(db_port),
+            'user': db_user,
+            'password': db_password,
         }
 
     def _validate_domain(self, domain):
