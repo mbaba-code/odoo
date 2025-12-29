@@ -10,6 +10,36 @@ class IrHttp(models.AbstractModel):
     _inherit = 'ir.http'
 
     @classmethod
+    def _get_master_database(cls):
+        """
+        Retourne le nom de la base de données maître (SaaS Manager)
+        Priorité: Variable d'env > Config Odoo
+
+        IMPORTANT: Configurez SAAS_MASTER_DATABASE dans vos variables d'environnement
+        ou saas_master_database dans votre fichier de config Odoo.
+
+        Exemple:
+        - Variable d'environnement: export SAAS_MASTER_DATABASE=base3
+        - Config Odoo: saas_master_database = base3
+        """
+        import os
+        from odoo.tools import config
+
+        # 1. Variable d'environnement (prioritaire)
+        master_db = os.environ.get('SAAS_MASTER_DATABASE')
+        if master_db:
+            return master_db
+
+        # 2. Config Odoo
+        master_db = config.get('saas_master_database')
+        if master_db:
+            return master_db
+
+        # 3. Si rien n'est configuré, désactiver la vérification
+        # Cela permet au système de fonctionner sans bloquer
+        return None
+
+    @classmethod
     def _check_database_access(cls, db_name):
         """
         Vérifie si l'accès à une base de données client est autorisé
@@ -18,8 +48,15 @@ class IrHttp(models.AbstractModel):
         if not db_name:
             return True
 
+        # Obtenir le nom de la base maître
+        master_db = cls._get_master_database()
+
+        # Si pas de base maître configurée, désactiver la vérification
+        if not master_db:
+            return True
+
         # Liste des bases maîtres (toujours autorisées)
-        master_databases = ['onedesk_core', 'postgres', 'template0', 'template1']
+        master_databases = [master_db, 'postgres', 'template0', 'template1']
         if db_name in master_databases:
             return True
 
@@ -40,7 +77,7 @@ class IrHttp(models.AbstractModel):
                 port=int(db_port),
                 user=db_user,
                 password=db_password,
-                database='onedesk_core',
+                database=master_db,
                 connect_timeout=5,
             )
 
@@ -119,9 +156,16 @@ class IrHttp(models.AbstractModel):
 
             # Si c'est "app" ou "www" ou vide, c'est la base maître
             if subdomain in ['app', 'www', 'admin', '']:
-                master_db = httprequest.session.get('force_db') or 'onedesk_core'
-                _logger.debug(f"[SAAS] Subdomain '{subdomain}' → Base maître: {master_db}")
-                return master_db
+                master_db = httprequest.session.get('force_db') or cls._get_master_database()
+                if master_db:
+                    _logger.debug(f"[SAAS] Subdomain '{subdomain}' → Base maître: {master_db}")
+                    return master_db
+
+            # Obtenir la base maître pour la recherche
+            master_db = cls._get_master_database()
+            if not master_db:
+                # Si pas de base maître configurée, utiliser le fallback Odoo
+                return super()._get_db_from_request(httprequest)
 
             # Sinon, chercher le mapping subdomain → database_name
             try:
@@ -144,7 +188,7 @@ class IrHttp(models.AbstractModel):
                     port=int(db_port),
                     user=db_user,
                     password=db_password,
-                    database='onedesk_core',  # Base maître
+                    database=master_db,  # Base maître détectée dynamiquement
                     connect_timeout=5,
                 )
 
