@@ -156,8 +156,8 @@
                         </group>
                         <group string="Accès Admin Client">
                             <field name="admin_login" readonly="1"/>
-                            <field name="admin_password_temp" password="True" readonly="1"
-                                   invisible="not admin_password_temp"/>
+                            <!-- NOTE SÉCURITÉ: Le mot de passe n'est JAMAIS stocké ni affiché -->
+                            <!-- Il est généré une seule fois et envoyé par email uniquement -->
                         </group>
                     </group>
 
