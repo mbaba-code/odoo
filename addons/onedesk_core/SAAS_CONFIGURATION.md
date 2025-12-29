@@ -1,63 +1,39 @@
 # Configuration SaaS Multi-Tenant
 
-## Variable d'environnement requise
+## 🎉 Détection Automatique de la Base Maître
 
-Pour que le système de suspension/terminaison des bases de données fonctionne correctement, vous devez configurer le nom de votre base de données maître (celle qui contient les modèles SaaS).
+**Bonne nouvelle !** Le système détecte automatiquement votre base de données maître (celle qui contient les modèles SaaS).
 
-### Méthode 1 : Variable d'environnement (recommandé)
+### Comment ça fonctionne ?
 
-```bash
-export SAAS_MASTER_DATABASE=votre_base_principale
-```
+Le système cherche automatiquement quelle base contient la table `saas_client` :
 
-Exemple pour votre configuration actuelle :
-```bash
-export SAAS_MASTER_DATABASE=base3
-```
+1. **Cache** : Utilise le cache si déjà détecté (performance)
+2. **Base actuelle** : Vérifie d'abord la base de la requête en cours
+3. **Scan PostgreSQL** : Si nécessaire, scanne toutes les bases pour trouver celle avec `saas_client`
 
-### Méthode 2 : Fichier de configuration Odoo
+**Aucune configuration manuelle requise !** ✨
 
-Ajoutez cette ligne dans votre fichier `odoo.conf` :
+### Vérification de la détection
 
-```ini
-[options]
-saas_master_database = base3
-```
-
-### Méthode 3 : Au démarrage d'Odoo
-
-```bash
-odoo-bin -c odoo.conf --saas-master-database=base3
-```
-
-## Pourquoi cette configuration est nécessaire ?
-
-Le système SaaS doit vérifier l'état des bases de données clients (active/suspended/terminated) avant de permettre l'accès. Pour cela, il doit se connecter à la base maître qui contient la table `saas_client`.
-
-Sans cette configuration :
-- ✅ Le système fonctionne normalement
-- ⚠️ Mais la vérification de suspension/terminaison est désactivée (pour éviter des erreurs)
-
-Avec cette configuration :
-- ✅ Le système bloque l'accès aux bases suspendues/terminées
-- ✅ Les clients ne peuvent plus se connecter si leur abonnement est annulé
-- ✅ Protection complète du système SaaS
-
-## Vérification de la configuration
-
-Vous pouvez vérifier que la configuration est correcte en regardant les logs Odoo :
+Au démarrage, vous verrez dans les logs :
 
 ```
-[SAAS] Subdomain 'test' → Database: onedesk_client_1_test
+[SAAS] Base maître détectée automatiquement: base3
+```
+
+Lors du blocage d'une base suspendue :
+```
 [SAAS] Accès refusé à onedesk_client_1_test - État: suspended
 ```
 
-Si vous voyez des erreurs comme :
-```
-[SAAS] Erreur vérification accès base: database "onedesk_core" does not exist
-```
+## Protection active
 
-C'est que la base maître n'est pas correctement configurée.
+Une fois la base maître détectée :
+- ✅ Le système bloque automatiquement l'accès aux bases suspendues/terminées
+- ✅ Les clients ne peuvent plus se connecter si leur abonnement est annulé
+- ✅ Protection complète du système SaaS sans configuration
+- 🚀 Performance optimale grâce au cache
 
 ## Autres variables d'environnement optionnelles
 

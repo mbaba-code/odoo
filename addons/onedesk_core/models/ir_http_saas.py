@@ -12,31 +12,123 @@ class IrHttp(models.AbstractModel):
     @classmethod
     def _get_master_database(cls):
         """
-        Retourne le nom de la base de données maître (SaaS Manager)
-        Priorité: Variable d'env > Config Odoo
+        Détecte automatiquement la base de données maître (SaaS Manager)
+        en cherchant quelle base contient la table saas_client
 
-        IMPORTANT: Configurez SAAS_MASTER_DATABASE dans vos variables d'environnement
-        ou saas_master_database dans votre fichier de config Odoo.
-
-        Exemple:
-        - Variable d'environnement: export SAAS_MASTER_DATABASE=base3
-        - Config Odoo: saas_master_database = base3
+        Priorité:
+        1. Cache (pour performance)
+        2. Base actuelle (si elle contient saas_client)
+        3. Scan de toutes les bases PostgreSQL
         """
-        import os
+        import psycopg2
         from odoo.tools import config
+        import os
 
-        # 1. Variable d'environnement (prioritaire)
-        master_db = os.environ.get('SAAS_MASTER_DATABASE')
-        if master_db:
-            return master_db
+        # Cache pour éviter de recalculer à chaque requête
+        if not hasattr(cls, '_master_db_cache'):
+            cls._master_db_cache = None
 
-        # 2. Config Odoo
-        master_db = config.get('saas_master_database')
-        if master_db:
-            return master_db
+        # Retourner le cache si disponible
+        if cls._master_db_cache:
+            return cls._master_db_cache
 
-        # 3. Si rien n'est configuré, désactiver la vérification
-        # Cela permet au système de fonctionner sans bloquer
+        try:
+            # Récupérer credentials de manière sécurisée
+            db_host = os.environ.get('SAAS_DB_HOST') or config.get('db_host') or 'localhost'
+            db_port = os.environ.get('SAAS_DB_PORT') or config.get('db_port') or '5432'
+            db_user = os.environ.get('SAAS_DB_USER') or config.get('db_user') or 'odoo'
+            db_password = os.environ.get('SAAS_DB_PASSWORD') or config.get('db_password') or ''
+
+            # 1. Essayer d'abord la base actuelle
+            if hasattr(request, 'db') and request.db:
+                try:
+                    conn = psycopg2.connect(
+                        host=db_host,
+                        port=int(db_port),
+                        user=db_user,
+                        password=db_password,
+                        database=request.db,
+                        connect_timeout=2,
+                    )
+                    cursor = conn.cursor()
+                    try:
+                        # Vérifier si la table saas_client existe
+                        cursor.execute("""
+                            SELECT EXISTS (
+                                SELECT FROM information_schema.tables
+                                WHERE table_name = 'saas_client'
+                            )
+                        """)
+                        if cursor.fetchone()[0]:
+                            cls._master_db_cache = request.db
+                            _logger.info(f"[SAAS] Base maître détectée automatiquement: {request.db}")
+                            return request.db
+                    finally:
+                        cursor.close()
+                        conn.close()
+                except:
+                    pass
+
+            # 2. Sinon, lister toutes les bases et chercher celle avec saas_client
+            try:
+                conn = psycopg2.connect(
+                    host=db_host,
+                    port=int(db_port),
+                    user=db_user,
+                    password=db_password,
+                    database='postgres',
+                    connect_timeout=2,
+                )
+                cursor = conn.cursor()
+                try:
+                    # Lister toutes les bases (sauf templates et postgres)
+                    cursor.execute("""
+                        SELECT datname FROM pg_database
+                        WHERE datistemplate = false
+                        AND datname != 'postgres'
+                        ORDER BY datname
+                    """)
+                    databases = [row[0] for row in cursor.fetchall()]
+                finally:
+                    cursor.close()
+                    conn.close()
+
+                # Tester chaque base pour trouver celle avec saas_client
+                for db_name in databases:
+                    try:
+                        conn = psycopg2.connect(
+                            host=db_host,
+                            port=int(db_port),
+                            user=db_user,
+                            password=db_password,
+                            database=db_name,
+                            connect_timeout=2,
+                        )
+                        cursor = conn.cursor()
+                        try:
+                            cursor.execute("""
+                                SELECT EXISTS (
+                                    SELECT FROM information_schema.tables
+                                    WHERE table_name = 'saas_client'
+                                )
+                            """)
+                            if cursor.fetchone()[0]:
+                                cls._master_db_cache = db_name
+                                _logger.info(f"[SAAS] Base maître détectée automatiquement: {db_name}")
+                                return db_name
+                        finally:
+                            cursor.close()
+                            conn.close()
+                    except:
+                        continue
+
+            except:
+                pass
+
+        except Exception as e:
+            _logger.debug(f"[SAAS] Erreur détection base maître: {str(e)}")
+
+        # Si aucune base trouvée, désactiver la vérification
         return None
 
     @classmethod
