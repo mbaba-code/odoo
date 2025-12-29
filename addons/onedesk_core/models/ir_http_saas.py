@@ -10,6 +10,128 @@ class IrHttp(models.AbstractModel):
     _inherit = 'ir.http'
 
     @classmethod
+    def _get_master_database(cls):
+        """
+        Détecte automatiquement la base de données maître (SaaS Manager)
+        en cherchant quelle base contient la table saas_client
+
+        Priorité:
+        1. Cache (pour performance)
+        2. Base actuelle (si elle contient saas_client)
+        3. Scan de toutes les bases PostgreSQL
+        """
+        import psycopg2
+        from odoo.tools import config
+        import os
+
+        # Cache pour éviter de recalculer à chaque requête
+        if not hasattr(cls, '_master_db_cache'):
+            cls._master_db_cache = None
+
+        # Retourner le cache si disponible
+        if cls._master_db_cache:
+            return cls._master_db_cache
+
+        try:
+            # Récupérer credentials de manière sécurisée
+            db_host = os.environ.get('SAAS_DB_HOST') or config.get('db_host') or 'localhost'
+            db_port = os.environ.get('SAAS_DB_PORT') or config.get('db_port') or '5432'
+            db_user = os.environ.get('SAAS_DB_USER') or config.get('db_user') or 'odoo'
+            db_password = os.environ.get('SAAS_DB_PASSWORD') or config.get('db_password') or ''
+
+            # 1. Essayer d'abord la base actuelle
+            if hasattr(request, 'db') and request.db:
+                try:
+                    conn = psycopg2.connect(
+                        host=db_host,
+                        port=int(db_port),
+                        user=db_user,
+                        password=db_password,
+                        database=request.db,
+                        connect_timeout=2,
+                    )
+                    cursor = conn.cursor()
+                    try:
+                        # Vérifier si la table saas_client existe
+                        cursor.execute("""
+                            SELECT EXISTS (
+                                SELECT FROM information_schema.tables
+                                WHERE table_name = 'saas_client'
+                            )
+                        """)
+                        if cursor.fetchone()[0]:
+                            cls._master_db_cache = request.db
+                            _logger.info(f"[SAAS] Base maître détectée automatiquement: {request.db}")
+                            return request.db
+                    finally:
+                        cursor.close()
+                        conn.close()
+                except:
+                    pass
+
+            # 2. Sinon, lister toutes les bases et chercher celle avec saas_client
+            try:
+                conn = psycopg2.connect(
+                    host=db_host,
+                    port=int(db_port),
+                    user=db_user,
+                    password=db_password,
+                    database='postgres',
+                    connect_timeout=2,
+                )
+                cursor = conn.cursor()
+                try:
+                    # Lister toutes les bases (sauf templates et postgres)
+                    cursor.execute("""
+                        SELECT datname FROM pg_database
+                        WHERE datistemplate = false
+                        AND datname != 'postgres'
+                        ORDER BY datname
+                    """)
+                    databases = [row[0] for row in cursor.fetchall()]
+                finally:
+                    cursor.close()
+                    conn.close()
+
+                # Tester chaque base pour trouver celle avec saas_client
+                for db_name in databases:
+                    try:
+                        conn = psycopg2.connect(
+                            host=db_host,
+                            port=int(db_port),
+                            user=db_user,
+                            password=db_password,
+                            database=db_name,
+                            connect_timeout=2,
+                        )
+                        cursor = conn.cursor()
+                        try:
+                            cursor.execute("""
+                                SELECT EXISTS (
+                                    SELECT FROM information_schema.tables
+                                    WHERE table_name = 'saas_client'
+                                )
+                            """)
+                            if cursor.fetchone()[0]:
+                                cls._master_db_cache = db_name
+                                _logger.info(f"[SAAS] Base maître détectée automatiquement: {db_name}")
+                                return db_name
+                        finally:
+                            cursor.close()
+                            conn.close()
+                    except:
+                        continue
+
+            except:
+                pass
+
+        except Exception as e:
+            _logger.debug(f"[SAAS] Erreur détection base maître: {str(e)}")
+
+        # Si aucune base trouvée, désactiver la vérification
+        return None
+
+    @classmethod
     def _check_database_access(cls, db_name):
         """
         Vérifie si l'accès à une base de données client est autorisé
@@ -18,8 +140,15 @@ class IrHttp(models.AbstractModel):
         if not db_name:
             return True
 
+        # Obtenir le nom de la base maître
+        master_db = cls._get_master_database()
+
+        # Si pas de base maître configurée, désactiver la vérification
+        if not master_db:
+            return True
+
         # Liste des bases maîtres (toujours autorisées)
-        master_databases = ['onedesk_core', 'postgres', 'template0', 'template1']
+        master_databases = [master_db, 'postgres', 'template0', 'template1']
         if db_name in master_databases:
             return True
 
@@ -40,7 +169,7 @@ class IrHttp(models.AbstractModel):
                 port=int(db_port),
                 user=db_user,
                 password=db_password,
-                database='onedesk_core',
+                database=master_db,
                 connect_timeout=5,
             )
 
@@ -119,9 +248,16 @@ class IrHttp(models.AbstractModel):
 
             # Si c'est "app" ou "www" ou vide, c'est la base maître
             if subdomain in ['app', 'www', 'admin', '']:
-                master_db = httprequest.session.get('force_db') or 'onedesk_core'
-                _logger.debug(f"[SAAS] Subdomain '{subdomain}' → Base maître: {master_db}")
-                return master_db
+                master_db = httprequest.session.get('force_db') or cls._get_master_database()
+                if master_db:
+                    _logger.debug(f"[SAAS] Subdomain '{subdomain}' → Base maître: {master_db}")
+                    return master_db
+
+            # Obtenir la base maître pour la recherche
+            master_db = cls._get_master_database()
+            if not master_db:
+                # Si pas de base maître configurée, utiliser le fallback Odoo
+                return super()._get_db_from_request(httprequest)
 
             # Sinon, chercher le mapping subdomain → database_name
             try:
@@ -144,7 +280,7 @@ class IrHttp(models.AbstractModel):
                     port=int(db_port),
                     user=db_user,
                     password=db_password,
-                    database='onedesk_core',  # Base maître
+                    database=master_db,  # Base maître détectée dynamiquement
                     connect_timeout=5,
                 )
 
