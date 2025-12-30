@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+
+    <!-- SaaS Client Welcome Email Template -->
+    <record id="email_template_client_welcome" model="mail.template">
+        <field name="name">SaaS Client - Email de Bienvenue</field>
+        <field name="email_from">noreply@basatechno.fr</field>
+        <field name="email_to">{{ (object.email or '') }}</field>
+        <field name="subject">Bienvenue sur {{ object.company_name or 'OneDesk' }} - Votre plateforme est prête ! 🎉</field>
+        <field name="model_id" ref="model_saas_client"/>
+        <field name="body_html" type="html">
+<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #f5f5f5; padding: 20px;">
+    <div style="background-color: white; border-radius: 8px; padding: 30px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+
+        <!-- Header -->
+        <div style="text-align: center; margin-bottom: 30px;">
+            <h1 style="color: #875A7B; margin: 0;">🎉 Bienvenue sur OneDesk</h1>
+            <p style="color: #666; margin-top: 10px;">Votre plateforme Odoo est prête !</p>
+        </div>
+
+        <!-- Main Content -->
+        <div style="margin-bottom: 30px;">
+            <p style="color: #333; font-size: 16px;">Bonjour <strong><t t-out="object.name or 'cher client'">Client</t></strong>,</p>
+
+            <p style="color: #666; line-height: 1.6;">
+                Félicitations ! Votre plateforme Odoo <strong><t t-out="object.company_name or ''">Entreprise</t></strong> est maintenant prête et opérationnelle.
+                Vous pouvez dès maintenant accéder à votre tableau de bord.
+            </p>
+
+            <!-- Login Info -->
+            <div style="background-color: #f9f9f9; border-left: 4px solid #875A7B; padding: 15px; margin: 20px 0;">
+                <p style="margin: 0; color: #333;"><strong>🔑 Vos identifiants de connexion:</strong></p>
+                <p style="margin: 10px 0; color: #666;">
+                    <strong>URL:</strong><br/>
+                    <a t-att-href="object.url or ''" style="color: #875A7B; text-decoration: none;">
+                        <t t-out="object.url or ''">https://votre-plateforme.com</t>
+                    </a>
+                </p>
+                <p style="margin: 5px 0; color: #666;">
+                    <strong>Identifiant:</strong>
+                    <code style="background-color: #f0f0f0; padding: 2px 6px;"><t t-out="object.admin_login or ''">admin</t></code>
+                </p>
+                <p style="margin: 5px 0; color: #666;">
+                    <strong>Mot de passe temporaire:</strong>
+                    <code style="background-color: #f0f0f0; padding: 2px 6px;"><t t-out="ctx.get('admin_password') or '[Voir dans le chatter]'">password</t></code>
+                </p>
+            </div>
+
+            <!-- CTA Button -->
+            <div style="text-align: center; margin: 30px 0;">
+                <a t-att-href="object.url or ''"
+                   style="display: inline-block; background-color: #875A7B; color: white; padding: 12px 30px; border-radius: 5px; text-decoration: none; font-weight: bold;">
+                    🚀 Accéder à ma plateforme
+                </a>
+            </div>
+
+            <!-- Security Warning -->
+            <div style="background-color: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; margin: 20px 0;">
+                <p style="margin: 0; color: #856404;">
+                    <strong>⚠️ Important:</strong> Pour votre sécurité, changez votre mot de passe dès votre première connexion.
+                </p>
+            </div>
+
+            <!-- Plan Info -->
+            <t t-if="object.plan_id">
+            <div style="margin: 20px 0;">
+                <p style="color: #666; margin: 5px 0;">
+                    <strong>Plan souscrit:</strong> <t t-out="object.plan_id.name or ''">Plan</t>
+                </p>
+            </div>
+            </t>
+
+            <t t-if="object.is_trial">
+            <div style="background-color: #d4edda; border-left: 4px solid #28a745; padding: 12px; margin: 15px 0; border-radius: 5px;">
+                <p style="margin: 0; color: #155724;">
+                    <strong>🎁 Période d'essai:</strong> <t t-out="object.days_until_trial_end or 0">0</t> jours restants
+                </p>
+            </div>
+            </t>
+
+            <!-- Support -->
+            <div style="background-color: #f0f8ff; border-radius: 5px; padding: 15px; margin-top: 30px;">
+                <p style="margin: 0; color: #084298; font-weight: bold;">💬 Besoin d'aide?</p>
+                <p style="margin: 5px 0; color: #666;">
+                    Notre équipe support est là pour vous aider:<br/>
+                    📧 <a href="mailto:support@basatechno.fr" style="color: #875A7B; text-decoration: none;">support@basatechno.fr</a>
+                </p>
+            </div>
+
+            <p style="margin: 20px 0 0 0; color: #333;">
+                Excellente utilisation de votre nouvelle plateforme !
+            </p>
+
+            <p style="color: #666; margin-top: 20px;">
+                Cordialement,<br/>
+                <strong>L'équipe OneDesk</strong>
+            </p>
+        </div>
+
+        <!-- Footer -->
+        <div style="border-top: 1px solid #eee; padding-top: 20px; margin-top: 30px; color: #999; font-size: 12px; text-align: center;">
+            <p style="margin: 0;">© 2025 OneDesk - Tous droits réservés</p>
+        </div>
+    </div>
+</div>
+        </field>
+    </record>
+
+    </data>
+</odoo>

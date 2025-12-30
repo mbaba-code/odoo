@@ -1,0 +1,233 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!--
+        RECORD RULES POUR MODÈLES SAAS
+
+        SÉCURITÉ CRITIQUE: Ces modèles gèrent l'infrastructure SaaS multi-tenant.
+        Seuls les SaaS Managers (admins du système principal) doivent y avoir accès.
+        Les clients dans leurs bases isolées ne doivent JAMAIS accéder à ces modèles.
+    -->
+
+    <!-- ================== SAAS CLIENT ACCESS ================== -->
+
+    <!-- System Admin: Full access to all SaaS clients -->
+    <record id="rule_system_admin_saas_client" model="ir.rule">
+        <field name="name">System Admin - All SaaS Clients</field>
+        <field name="model_id" ref="model_saas_client"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('base.group_system'))]"/>
+        <field name="perm_read">True</field>
+        <field name="perm_write">True</field>
+        <field name="perm_create">True</field>
+        <field name="perm_unlink">True</field>
+    </record>
+
+    <!-- SaaS Manager: Full access to all SaaS clients -->
+    <record id="rule_saas_manager_saas_client" model="ir.rule">
+        <field name="name">SaaS Manager - All SaaS Clients</field>
+        <field name="model_id" ref="model_saas_client"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('group_saas_manager'))]"/>
+        <field name="perm_read">True</field>
+        <field name="perm_write">True</field>
+        <field name="perm_create">True</field>
+        <field name="perm_unlink">False</field>
+    </record>
+
+    <!-- ================== SAAS PLAN ACCESS ================== -->
+
+    <!-- System Admin: Full access to all SaaS plans -->
+    <record id="rule_system_admin_saas_plan" model="ir.rule">
+        <field name="name">System Admin - All SaaS Plans</field>
+        <field name="model_id" ref="model_saas_plan"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('base.group_system'))]"/>
+        <field name="perm_read">True</field>
+        <field name="perm_write">True</field>
+        <field name="perm_create">True</field>
+        <field name="perm_unlink">True</field>
+    </record>
+
+    <!-- SaaS Manager: Full access to all SaaS plans -->
+    <record id="rule_saas_manager_saas_plan" model="ir.rule">
+        <field name="name">SaaS Manager - All SaaS Plans</field>
+        <field name="model_id" ref="model_saas_plan"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('group_saas_manager'))]"/>
+        <field name="perm_read">True</field>
+        <field name="perm_write">True</field>
+        <field name="perm_create">True</field>
+        <field name="perm_unlink">False</field>
+    </record>
+
+    <!-- ================== SAAS DATABASE ACCESS ================== -->
+
+    <!-- System Admin: Full access to all SaaS databases -->
+    <record id="rule_system_admin_saas_database" model="ir.rule">
+        <field name="name">System Admin - All SaaS Databases</field>
+        <field name="model_id" ref="model_saas_database"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('base.group_system'))]"/>
+        <field name="perm_read">True</field>
+        <field name="perm_write">True</field>
+        <field name="perm_create">True</field>
+        <field name="perm_unlink">True</field>
+    </record>
+
+    <!-- SaaS Manager: Full access to all SaaS databases -->
+    <record id="rule_saas_manager_saas_database" model="ir.rule">
+        <field name="name">SaaS Manager - All SaaS Databases</field>
+        <field name="model_id" ref="model_saas_database"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('group_saas_manager'))]"/>
+        <field name="perm_read">True</field>
+        <field name="perm_write">True</field>
+        <field name="perm_create">True</field>
+        <field name="perm_unlink">False</field>
+    </record>
+
+    <!-- ================== SAAS DOMAIN REQUEST ACCESS ================== -->
+
+    <!-- System Admin: Full access to all domain requests -->
+    <record id="rule_system_admin_saas_domain_request" model="ir.rule">
+        <field name="name">System Admin - All SaaS Domain Requests</field>
+        <field name="model_id" ref="model_saas_domain_request"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('base.group_system'))]"/>
+        <field name="perm_read">True</field>
+        <field name="perm_write">True</field>
+        <field name="perm_create">True</field>
+        <field name="perm_unlink">True</field>
+    </record>
+
+    <!-- SaaS Manager: Full access to all domain requests -->
+    <record id="rule_saas_manager_saas_domain_request" model="ir.rule">
+        <field name="name">SaaS Manager - All SaaS Domain Requests</field>
+        <field name="model_id" ref="model_saas_domain_request"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('group_saas_manager'))]"/>
+        <field name="perm_read">True</field>
+        <field name="perm_write">True</field>
+        <field name="perm_create">True</field>
+        <field name="perm_unlink">False</field>
+    </record>
+
+    <!-- Property Manager: Can only view/create requests for their own client -->
+    <!-- NOTE: This assumes domain requests have a client_id or similar field to link to saas.client -->
+    <!-- If not, this rule may need adjustment based on actual data model -->
+    <record id="rule_property_manager_domain_request" model="ir.rule">
+        <field name="name">Property Manager - Own Domain Requests</field>
+        <field name="model_id" ref="model_saas_domain_request"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('group_onedesk_property_manager'))]"/>
+        <field name="perm_read">True</field>
+        <field name="perm_write">False</field>
+        <field name="perm_create">True</field>
+        <field name="perm_unlink">False</field>
+    </record>
+
+    <!-- ================== SAAS ALERT ACCESS ================== -->
+
+    <!-- System Admin: Full access to all SaaS alerts -->
+    <record id="rule_system_admin_saas_alert" model="ir.rule">
+        <field name="name">System Admin - All SaaS Alerts</field>
+        <field name="model_id" ref="model_saas_alert"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('base.group_system'))]"/>
+        <field name="perm_read">True</field>
+        <field name="perm_write">True</field>
+        <field name="perm_create">True</field>
+        <field name="perm_unlink">True</field>
+    </record>
+
+    <!-- SaaS Manager: Full access to all SaaS alerts -->
+    <record id="rule_saas_manager_saas_alert" model="ir.rule">
+        <field name="name">SaaS Manager - All SaaS Alerts</field>
+        <field name="model_id" ref="model_saas_alert"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('group_saas_manager'))]"/>
+        <field name="perm_read">True</field>
+        <field name="perm_write">True</field>
+        <field name="perm_create">True</field>
+        <field name="perm_unlink">False</field>
+    </record>
+
+    <!-- ================== SAAS METRIC ACCESS ================== -->
+
+    <!-- System Admin: Full access to all SaaS metrics -->
+    <record id="rule_system_admin_saas_metric" model="ir.rule">
+        <field name="name">System Admin - All SaaS Metrics</field>
+        <field name="model_id" ref="model_saas_metric"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('base.group_system'))]"/>
+        <field name="perm_read">True</field>
+        <field name="perm_write">True</field>
+        <field name="perm_create">True</field>
+        <field name="perm_unlink">True</field>
+    </record>
+
+    <!-- SaaS Manager: Full access to all SaaS metrics -->
+    <record id="rule_saas_manager_saas_metric" model="ir.rule">
+        <field name="name">SaaS Manager - All SaaS Metrics</field>
+        <field name="model_id" ref="model_saas_metric"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('group_saas_manager'))]"/>
+        <field name="perm_read">True</field>
+        <field name="perm_write">True</field>
+        <field name="perm_create">True</field>
+        <field name="perm_unlink">False</field>
+    </record>
+
+    <!-- ================== SAAS RATE LIMIT ACCESS ================== -->
+
+    <!-- System Admin: Full access to all rate limit records -->
+    <record id="rule_system_admin_saas_rate_limit" model="ir.rule">
+        <field name="name">System Admin - All SaaS Rate Limits</field>
+        <field name="model_id" ref="model_saas_rate_limit"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('base.group_system'))]"/>
+        <field name="perm_read">True</field>
+        <field name="perm_write">True</field>
+        <field name="perm_create">True</field>
+        <field name="perm_unlink">True</field>
+    </record>
+
+    <!-- SaaS Manager: Read-only access to rate limits (monitoring) -->
+    <record id="rule_saas_manager_saas_rate_limit" model="ir.rule">
+        <field name="name">SaaS Manager - Read SaaS Rate Limits</field>
+        <field name="model_id" ref="model_saas_rate_limit"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('group_saas_manager'))]"/>
+        <field name="perm_read">True</field>
+        <field name="perm_write">False</field>
+        <field name="perm_create">False</field>
+        <field name="perm_unlink">False</field>
+    </record>
+
+    <!-- ================== SAAS AUDIT LOG ACCESS ================== -->
+
+    <!-- System Admin: Full access to all audit logs -->
+    <record id="rule_system_admin_saas_audit_log" model="ir.rule">
+        <field name="name">System Admin - All SaaS Audit Logs</field>
+        <field name="model_id" ref="model_saas_audit_log"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('base.group_system'))]"/>
+        <field name="perm_read">True</field>
+        <field name="perm_write">False</field>
+        <field name="perm_create">True</field>
+        <field name="perm_unlink">False</field>
+    </record>
+
+    <!-- SaaS Manager: Read-only access to audit logs (compliance/monitoring) -->
+    <record id="rule_saas_manager_saas_audit_log" model="ir.rule">
+        <field name="name">SaaS Manager - Read SaaS Audit Logs</field>
+        <field name="model_id" ref="model_saas_audit_log"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('group_saas_manager'))]"/>
+        <field name="perm_read">True</field>
+        <field name="perm_write">False</field>
+        <field name="perm_create">False</field>
+        <field name="perm_unlink">False</field>
+    </record>
+
+</odoo>

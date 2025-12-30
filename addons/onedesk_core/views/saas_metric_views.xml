@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Vue Graphique Métriques SaaS -->
+    <record id="view_saas_metric_graph" model="ir.ui.view">
+        <field name="name">saas.metric.graph</field>
+        <field name="model">saas.metric</field>
+        <field name="arch" type="xml">
+            <graph string="Métriques SaaS" type="line">
+                <field name="recorded_at" interval="day"/>
+                <field name="metric_type"/>
+                <field name="value" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <!-- Vue Pivot Métriques SaaS -->
+    <record id="view_saas_metric_pivot" model="ir.ui.view">
+        <field name="name">saas.metric.pivot</field>
+        <field name="model">saas.metric</field>
+        <field name="arch" type="xml">
+            <pivot string="Métriques SaaS">
+                <field name="client_id" type="row"/>
+                <field name="metric_type" type="col"/>
+                <field name="value" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <!-- Vue Liste Métriques SaaS -->
+    <record id="view_saas_metric_tree" model="ir.ui.view">
+        <field name="name">saas.metric.tree</field>
+        <field name="model">saas.metric</field>
+        <field name="arch" type="xml">
+            <list string="Métriques SaaS">
+                <field name="recorded_at"/>
+                <field name="client_id"/>
+                <field name="database_id"/>
+                <field name="metric_type"/>
+                <field name="value"/>
+                <field name="unit"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Vue Recherche Métriques -->
+    <record id="view_saas_metric_search" model="ir.ui.view">
+        <field name="name">saas.metric.search</field>
+        <field name="model">saas.metric</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="client_id"/>
+                <field name="metric_type"/>
+            </search>
+        </field>
+    </record>
+
+    <!-- Action Métriques SaaS -->
+    <!-- NOTE: action_saas_metric déplacée vers saas_menu.xml pour éviter problèmes de chargement -->
+
+</odoo>

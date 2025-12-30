@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!--
+        VUES SAAS RATE LIMITING
+
+        Monitoring des tentatives de provisioning et protection DoS
+        Accessible uniquement aux SaaS Managers et System Admins
+    -->
+
+    <!-- Tree View: Liste des Rate Limits -->
+    <record id="view_saas_rate_limit_tree" model="ir.ui.view">
+        <field name="name">saas.rate_limit.tree</field>
+        <field name="model">saas.rate_limit</field>
+        <field name="arch" type="xml">
+            <list string="Rate Limiting" default_order="window_start desc" decoration-danger="is_blocked">
+                <field name="window_start"/>
+                <field name="ip_address"/>
+                <field name="user_id"/>
+                <field name="request_count"/>
+                <field name="is_blocked"/>
+                <field name="blocked_until" optional="show"/>
+                <field name="attempts_blocked" optional="hide"/>
+                <field name="last_attempt"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Form View: Détails d'un Rate Limit -->
+    <record id="view_saas_rate_limit_form" model="ir.ui.view">
+        <field name="name">saas.rate_limit.form</field>
+        <field name="model">saas.rate_limit</field>
+        <field name="arch" type="xml">
+            <form string="Rate Limit Details" create="false" edit="false">
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="ip_address" readonly="1"/>
+                        </h1>
+                    </div>
+            
+                    <group>
+                        <group string="Identification">
+                            <field name="ip_address" readonly="1"/>
+                            <field name="user_id" readonly="1"/>
+                        </group>
+            
+                        <group string="Compteurs">
+                            <field name="request_count" readonly="1"/>
+                            <field name="attempts_blocked" readonly="1"/>
+                            <field name="window_start" readonly="1"/>
+                            <field name="last_attempt" readonly="1"/>
+                        </group>
+                    </group>
+            
+                    <group string="Blocage" invisible="not is_blocked">
+                        <field name="is_blocked" readonly="1"/>
+                        <field name="blocked_until" readonly="1"/>
+                        <field name="blocked_reason" readonly="1"/>
+                    </group>
+            
+                    <notebook>
+                        <page string="Informations de Sécurité">
+                            <group>
+                                <div class="alert alert-info" role="status">
+                                    <strong>Rate Limiting Configuration:</strong><br/>
+                                    • Maximum: 5 provisionings / heure / IP<br/>
+                                    • Blocage: 1h après dépassement<br/>
+                                    • Blocage étendu: 24h après 3 dépassements<br/>
+                                    • Conservation: 7 jours / 30 jours bloqués
+                                </div>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Search View: Filtres et recherches -->
+    <record id="saas_rate_limit_view_search" model="ir.ui.view">
+        <field name="name">saas.rate_limit.view.search</field>
+        <field name="model">saas.rate_limit</field>
+        <field name="arch" type="xml">
+            <search string="Rechercher Rate Limits">
+                <!-- Champs de recherche EN PREMIER -->
+                <field name="ip_address"/>
+                <field name="user_id"/>
+    
+                <!-- Ensuite les filtres -->
+                <filter string="Actuellement bloqués"
+                        name="filter_blocked"
+                        domain="[('is_blocked', '=', True)]"/>
+    
+                <filter string="Non bloqués"
+                        name="filter_not_blocked"
+                        domain="[('is_blocked', '=', False)]"/>
+    
+                <separator/>
+    
+                <filter string="Dernière heure"
+                        name="filter_last_hour"
+                        domain="[('is_last_hour', '=', True)]"/>
+    
+                <filter string="Dernières 24h"
+                        name="filter_last_24h"
+                        domain="[('is_last_24h', '=', True)]"/>
+    
+                <filter string="Derniers 7 jours"
+                        name="filter_last_7d"
+                        domain="[('is_last_7d', '=', True)]"/>
+    
+                <separator/>
+    
+                <!-- Enfin les groupements -->
+                <filter string="IP" name="group_by_ip" context="{'group_by': 'ip_address'}"/>
+                <filter string="Utilisateur" name="group_by_user" context="{'group_by': 'user_id'}"/>
+                <filter string="Bloqué" name="group_by_is_blocked" context="{'group_by': 'is_blocked'}"/>
+                <filter string="Fenêtre" name="group_by_window_start" context="{'group_by': 'window_start'}"/>
+            </search>
+        </field>
+    </record>
+
+    <!-- Action: Ouvrir la liste des Rate Limits -->
+    <record id="action_saas_rate_limit" model="ir.actions.act_window">
+        <field name="name">Rate Limiting</field>
+        <field name="res_model">saas.rate_limit</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'search_default_filter_last_24h': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Aucun enregistrement de rate limiting
+            </p>
+            <p>
+                Le système de rate limiting protège contre les attaques DoS en limitant
+                le nombre de provisionings par IP/heure.
+            </p>
+            <p>
+                Les enregistrements apparaîtront ici lorsque des clients seront provisionnés.
+            </p>
+        </field>
+    </record>
+
+    <!-- Menu: Rate Limiting (dans le menu SaaS Manager) -->
+    <menuitem id="menu_saas_rate_limit"
+              name="Rate Limiting"
+              parent="onedesk_core.menu_saas_root"
+              action="action_saas_rate_limit"
+              sequence="60"
+              groups="base.group_system,onedesk_core.group_saas_manager"/>
+
+</odoo>

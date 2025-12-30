@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Template affiché quand une base de données est suspendue ou terminée -->
+    <template id="database_suspended_template" name="Base de données suspendue">
+        <t t-call="web.login_layout">
+            <div class="container mt-5">
+                <div class="row justify-content-center">
+                    <div class="col-md-8">
+                        <div class="alert alert-warning text-center" role="alert">
+                            <h1 class="alert-heading">
+                                <i class="fa fa-lock fa-3x mb-3"/>
+                            </h1>
+                            <h2>Accès suspendu</h2>
+                            <hr/>
+                            <p class="lead">
+                                Cette base de données (<strong t-esc="database_name"/>) n'est actuellement pas accessible.
+                            </p>
+                            <p>
+                                Raisons possibles :
+                            </p>
+                            <ul class="list-unstyled">
+                                <li>⏸️ Compte suspendu temporairement</li>
+                                <li>💳 Problème de paiement</li>
+                                <li>🚫 Abonnement expiré ou annulé</li>
+                            </ul>
+                            <hr/>
+                            <p class="mb-0">
+                                <strong>Besoin d'aide ?</strong><br/>
+                                Contactez notre support : <a href="mailto:support@onedesk.com">support@onedesk.com</a>
+                            </p>
+                        </div>
+                        <div class="text-center mt-4">
+                            <a href="/" class="btn btn-primary">
+                                <i class="fa fa-home"/> Retour à l'accueil
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+</odoo>

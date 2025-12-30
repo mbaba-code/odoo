@@ -1,6 +1,6 @@
 {
     'name': 'OneDesk Core',
-    'version': '19.0.1.0.4',
+    'version': '19.0.2.0.0',  # Nouvelle feature majeure: SaaS Multi-Database
     'summary': 'Core of OneDesk (central hub for property management, tasks, documents, etc.)',
     'author': 'Merveilles',
     'license': 'LGPL-3',
@@ -19,6 +19,7 @@
     'data/onedesk_groups.xml',
 
     'security/ir.model.access.csv',
+    'security/saas_security.xml',  # SaaS record rules for multi-tenant isolation
 
     # Dashboards FIRST (car le menu y référence des actions)
     'views/onedesk_dashboard.xml',
@@ -67,12 +68,27 @@
 
     # Auth pages responsive override (login/signup)
     'views/auth_responsive_override.xml',
+    'views/database_suspended_template.xml',  # Template for suspended/terminated databases
 
     # Multi-tenant views (admin)
     'views/onedesk_plan_views.xml',
     'views/onedesk_client_views.xml',
     'views/onedesk_subscription_views.xml',
     'views/onedesk_audit_log_views.xml',
+
+    # SaaS Multi-Database Views (NEW - Premium/Enterprise)
+    # ⚠️ IMPORTANT: Ces vues DOIVENT être chargées AVANT les crons
+    # ⚠️ CRITIQUE: saas_menu.xml DOIT être chargé EN PREMIER car il définit les menus parents
+    'views/saas_menu.xml',  # Menu SaaS Manager (DOIT être en premier!)
+    'views/saas_plan_views.xml',  # Plans SaaS (Starter, Pro, Enterprise)
+    'views/saas_client_views.xml',  # Clients SaaS avec actions de provisioning
+    'views/saas_database_views.xml',  # Bases de données clients
+    'views/saas_metric_views.xml',  # Métriques et graphiques
+    'views/saas_alert_views.xml',  # Alertes et notifications
+    'views/saas_domain_request_views.xml',  # Demandes de domaine personnalisé
+    'views/saas_rate_limit_views.xml',  # Rate limiting DoS protection
+    'views/saas_audit_log_views.xml',  # Audit logging pour traçabilité
+    'views/saas_dashboard.xml',  # Dashboard SaaS avec KPIs
 
     # Données après (quand les models sont chargés)
     'data/integration_providers.xml',
@@ -89,7 +105,15 @@
     # Multi-tenant data (plans, règles)
     'data/onedesk_plans.xml',
     'data/onedesk_security.xml',
+    'data/onedesk_security_premium.xml',  # Premium Manager security rules
     'data/onedesk_email_templates.xml',
+
+    # SaaS Multi-Database Data (NEW - Premium/Enterprise)
+    'data/saas_plans_data.xml',  # Plans SaaS (Starter, Pro, Enterprise)
+    'data/mail_template_welcome.xml',  # Email de bienvenue clients SaaS
+    
+    # ⚠️ CRITIQUE: Crons EN DERNIER (après toutes les vues)
+    'data/saas_cron.xml',  # Cron jobs for metrics & monitoring
     ],
 
     # Assets (CSS, JavaScript)
@@ -101,26 +125,25 @@
             # OneDesk Dashboard CSS & JS
             'onedesk_core/static/src/css/dashboard.css',
             'onedesk_core/static/src/css/document_form.css',
+            'onedesk_core/static/src/css/saas_form_layout.css',  # Force chatter en bas
             'onedesk_core/static/src/xml/dashboard_templates.xml',  # NEW: OWL Templates
             'onedesk_core/static/src/js/dashboard_refresh.js',
             'onedesk_core/static/src/js/dashboard_apexcharts.js',  # NEW: ApexCharts dashboard
             'onedesk_core/static/src/js/dashboard_admin_master.js',  # NEW: Admin Master dashboard
             'onedesk_core/static/src/js/dashboard_customization.js',
             'onedesk_core/static/src/js/document_form_layout.js',
+            'onedesk_core/static/src/js/saas_form_layout.js',  # Fix chatter position for SaaS forms
         ],
-        'web.assets_frontend': [
-            # Auth pages responsive (login/signup mobile fix)
-            'onedesk_core/static/src/css/auth_responsive.css',
-        ]
+        # Auth responsive CSS chargé directement dans le template (pas dans assets_frontend)
+        # pour éviter conflits avec website builder
     },
     
     # ← NOUVEAU : Dépendances Python
     'external_dependencies': {
-        'python': ['cryptography', 'requests', 'python-dateutil'],
+        'python': ['cryptography', 'requests', 'python-dateutil', 'dnspython'],
     },
     
     'installable': True,
     'application': True,
     'post_init_hook': 'post_init_hook',
 }
-
