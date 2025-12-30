@@ -51,4 +51,6 @@ from . import saas_database
 from . import saas_metric
 from . import saas_alert
 from . import saas_domain_request
+from . import saas_rate_limit  # Rate limiting pour protection DoS
+from . import saas_audit_log  # Audit logging pour traçabilité
 from . import ir_http_saas

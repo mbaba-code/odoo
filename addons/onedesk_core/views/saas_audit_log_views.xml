@@ -1,0 +1,233 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!--
+        VUES SAAS AUDIT LOGGING
+
+        Journal d'audit complet de toutes les actions critiques SaaS
+        Accessible uniquement aux SaaS Managers et System Admins
+        Conformité RGPD: Rétention 1-3 ans selon sévérité
+    -->
+
+    <!-- Tree View: Liste des Logs d'Audit -->
+    <record id="view_saas_audit_log_tree" model="ir.ui.view">
+        <field name="name">saas.audit_log.tree</field>
+        <field name="model">saas.audit_log</field>
+        <field name="arch" type="xml">
+            <tree string="Journal d'Audit SaaS" default_order="timestamp desc"
+                  decoration-danger="severity == 'critical'"
+                  decoration-warning="severity == 'warning'"
+                  decoration-muted="is_archived">
+                <field name="timestamp"/>
+                <field name="action"/>
+                <field name="action_category" optional="show"/>
+                <field name="client_name"/>
+                <field name="user_name"/>
+                <field name="ip_address" optional="show"/>
+                <field name="status"/>
+                <field name="severity"/>
+                <field name="is_archived" optional="hide"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- Form View: Détails d'un Log d'Audit -->
+    <record id="view_saas_audit_log_form" model="ir.ui.view">
+        <field name="name">saas.audit_log.form</field>
+        <field name="model">saas.audit_log</field>
+        <field name="arch" type="xml">
+            <form string="Détails Log d'Audit" create="false" edit="false">
+                <header>
+                    <field name="status" widget="statusbar"/>
+                    <field name="severity" widget="statusbar" statusbar_colors='{"critical":"danger","warning":"warning"}'/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button class="oe_stat_button" type="object" name="action_view_client"
+                                icon="fa-database" attrs="{'invisible': [('client_id', '=', False)]}">
+                            <div class="o_field_widget o_stat_info">
+                                <span class="o_stat_text">Voir Client</span>
+                            </div>
+                        </button>
+                    </div>
+
+                    <div class="oe_title">
+                        <label for="action" class="oe_edit_only"/>
+                        <h1>
+                            <field name="action" readonly="1"/>
+                        </h1>
+                        <h3>
+                            <field name="timestamp" readonly="1"/>
+                        </h3>
+                    </div>
+
+                    <group>
+                        <group name="action_info" string="Information Action">
+                            <field name="action" readonly="1"/>
+                            <field name="action_category" readonly="1"/>
+                            <field name="status" readonly="1"/>
+                            <field name="severity" readonly="1"/>
+                        </group>
+                        <group name="context_info" string="Contexte">
+                            <field name="timestamp" readonly="1"/>
+                            <field name="is_archived" readonly="1"/>
+                            <field name="retention_date" readonly="1"/>
+                        </group>
+                    </group>
+
+                    <group>
+                        <group name="user_info" string="Utilisateur">
+                            <field name="user_id" readonly="1"/>
+                            <field name="user_name" readonly="1" attrs="{'invisible': [('user_id', '!=', False)]}"/>
+                            <field name="user_email" readonly="1"/>
+                        </group>
+                        <group name="client_info" string="Client">
+                            <field name="client_id" readonly="1"/>
+                            <field name="client_name" readonly="1" attrs="{'invisible': [('client_id', '!=', False)]}"/>
+                            <field name="database_name" readonly="1"/>
+                        </group>
+                    </group>
+
+                    <group>
+                        <group name="technical_info" string="Informations Techniques">
+                            <field name="ip_address" readonly="1"/>
+                            <field name="user_agent" readonly="1"/>
+                        </group>
+                    </group>
+
+                    <notebook>
+                        <page string="Détails" attrs="{'invisible': [('error_message', '=', False), ('old_values', '=', False), ('new_values', '=', False), ('metadata', '=', False)]}">
+                            <group>
+                                <field name="error_message" readonly="1" attrs="{'invisible': [('error_message', '=', False)]}"/>
+                                <field name="old_values" readonly="1" attrs="{'invisible': [('old_values', '=', False)]}"/>
+                                <field name="new_values" readonly="1" attrs="{'invisible': [('new_values', '=', False)]}"/>
+                                <field name="metadata" readonly="1" attrs="{'invisible': [('metadata', '=', False)]}"/>
+                            </group>
+                        </page>
+                        <page string="Informations de Conformité">
+                            <group>
+                                <p class="alert alert-info" role="alert">
+                                    <strong>Conservation des Logs (RGPD):</strong><br/>
+                                    • Logs normaux: 1 an<br/>
+                                    • Logs critiques/sécurité: 3 ans<br/>
+                                    • Logs archivés après expiration mais conservés pour conformité
+                                </p>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Search View: Filtres et recherches avancés -->
+    <record id="view_saas_audit_log_search" model="ir.ui.view">
+        <field name="name">saas.audit_log.search</field>
+        <field name="model">saas.audit_log</field>
+        <field name="arch" type="xml">
+            <search string="Rechercher Logs d'Audit">
+                <field name="action"/>
+                <field name="client_name"/>
+                <field name="client_id"/>
+                <field name="user_name"/>
+                <field name="user_id"/>
+                <field name="database_name"/>
+                <field name="ip_address"/>
+
+                <!-- Filtres par sévérité -->
+                <filter string="🔴 Critiques" name="filter_critical"
+                        domain="[('severity', '=', 'critical')]"/>
+                <filter string="⚠️ Avertissements" name="filter_warning"
+                        domain="[('severity', '=', 'warning')]"/>
+                <filter string="ℹ️ Informations" name="filter_info"
+                        domain="[('severity', '=', 'info')]"/>
+
+                <separator/>
+
+                <!-- Filtres par catégorie -->
+                <filter string="🔐 Sécurité" name="filter_security"
+                        domain="[('action_category', '=', 'security')]"/>
+                <filter string="⚙️ Provisioning" name="filter_provisioning"
+                        domain="[('action_category', '=', 'provisioning')]"/>
+                <filter string="👤 Administration" name="filter_administration"
+                        domain="[('action_category', '=', 'administration')]"/>
+                <filter string="💻 Système" name="filter_system"
+                        domain="[('action_category', '=', 'system')]"/>
+
+                <separator/>
+
+                <!-- Filtres par statut -->
+                <filter string="✅ Succès" name="filter_success"
+                        domain="[('status', '=', 'success')]"/>
+                <filter string="❌ Erreurs" name="filter_errors"
+                        domain="[('status', '=', 'error')]"/>
+                <filter string="⚠️ Avertissements Status" name="filter_warnings_status"
+                        domain="[('status', '=', 'warning')]"/>
+
+                <separator/>
+
+                <!-- Filtres par période -->
+                <filter string="Dernière Heure" name="filter_last_hour"
+                        domain="[('timestamp', '&gt;=', (context_today() - relativedelta(hours=1)).strftime('%Y-%m-%d %H:%M:%S'))]"/>
+                <filter string="Dernières 24h" name="filter_last_day"
+                        domain="[('timestamp', '&gt;=', (context_today() - relativedelta(days=1)).strftime('%Y-%m-%d %H:%M:%S'))]"/>
+                <filter string="Derniers 7 jours" name="filter_last_week"
+                        domain="[('timestamp', '&gt;=', (context_today() - relativedelta(days=7)).strftime('%Y-%m-%d %H:%M:%S'))]"/>
+                <filter string="Dernier mois" name="filter_last_month"
+                        domain="[('timestamp', '&gt;=', (context_today() - relativedelta(months=1)).strftime('%Y-%m-%d %H:%M:%S'))]"/>
+
+                <separator/>
+
+                <!-- Archivage -->
+                <filter string="Actifs" name="filter_active"
+                        domain="[('is_archived', '=', False)]"/>
+                <filter string="Archivés" name="filter_archived"
+                        domain="[('is_archived', '=', True)]"/>
+
+                <group expand="0" string="Grouper par">
+                    <filter string="Action" name="group_action" context="{'group_by': 'action'}"/>
+                    <filter string="Catégorie" name="group_category" context="{'group_by': 'action_category'}"/>
+                    <filter string="Statut" name="group_status" context="{'group_by': 'status'}"/>
+                    <filter string="Sévérité" name="group_severity" context="{'group_by': 'severity'}"/>
+                    <filter string="Client" name="group_client" context="{'group_by': 'client_id'}"/>
+                    <filter string="Utilisateur" name="group_user" context="{'group_by': 'user_id'}"/>
+                    <filter string="IP" name="group_ip" context="{'group_by': 'ip_address'}"/>
+                    <filter string="Date" name="group_date" context="{'group_by': 'timestamp:day'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Action: Ouvrir la liste des Logs d'Audit -->
+    <record id="action_saas_audit_log" model="ir.actions.act_window">
+        <field name="name">Journal d'Audit</field>
+        <field name="res_model">saas.audit_log</field>
+        <field name="view_mode">tree,form</field>
+        <field name="context">{'search_default_filter_last_week': 1, 'search_default_filter_active': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Aucun log d'audit enregistré
+            </p>
+            <p>
+                Le journal d'audit enregistre automatiquement toutes les actions critiques:
+            </p>
+            <ul>
+                <li>🔐 Provisioning et terminaison de bases</li>
+                <li>⏸️ Suspension et réactivation</li>
+                <li>🚫 Accès refusés</li>
+                <li>⚙️ Modifications de configuration</li>
+            </ul>
+            <p>
+                Les logs apparaîtront ici dès que des actions seront effectuées.
+            </p>
+        </field>
+    </record>
+
+    <!-- Menu: Journal d'Audit (dans le menu SaaS Manager) -->
+    <menuitem id="menu_saas_audit_log"
+              name="Journal d'Audit"
+              parent="onedesk_core.menu_saas_root"
+              action="action_saas_audit_log"
+              sequence="70"
+              groups="base.group_system,onedesk_core.group_saas_manager"/>
+
+</odoo>
