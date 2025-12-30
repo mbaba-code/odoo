@@ -74,8 +74,9 @@ def _auto_configure_existing_premium_managers(env):
             return
 
         # Trouver tous les utilisateurs qui ont ce groupe
+        # Note: Pour les Many2many, utiliser '=' au lieu de 'in'
         premium_users = env['res.users'].sudo().search([
-            ('groups_id', 'in', [premium_group.id])
+            ('groups_id', '=', premium_group.id)
         ])
 
         if not premium_users:
