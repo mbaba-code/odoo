@@ -195,3 +195,7 @@ access_saas_alert_admin,SaaS Alert Admin,model_saas_alert,onedesk_core.group_one
 access_saas_alert_support,SaaS Alert Support,model_saas_alert,onedesk_core.group_onedesk_support,1,1,1,0
 access_saas_domain_request_manager,SaaS Domain Request Manager,model_saas_domain_request,onedesk_core.group_saas_manager,1,1,1,1
 access_saas_domain_request_client,SaaS Domain Request Client,model_saas_domain_request,onedesk_core.group_onedesk_property_manager,1,1,1,0
+access_saas_rate_limit_admin,SaaS Rate Limit Admin,model_saas_rate_limit,base.group_system,1,1,1,1
+access_saas_rate_limit_manager,SaaS Rate Limit Manager,model_saas_rate_limit,onedesk_core.group_saas_manager,1,0,0,0
+access_saas_audit_log_admin,SaaS Audit Log Admin,model_saas_audit_log,base.group_system,1,0,1,0
+access_saas_audit_log_manager,SaaS Audit Log Manager,model_saas_audit_log,onedesk_core.group_saas_manager,1,0,0,0

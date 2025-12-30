@@ -156,8 +156,8 @@
                         </group>
                         <group string="Accès Admin Client">
                             <field name="admin_login" readonly="1"/>
-                            <field name="admin_password_temp" password="True" readonly="1"
-                                   invisible="not admin_password_temp"/>
+                            <!-- NOTE SÉCURITÉ: Le mot de passe n'est JAMAIS stocké ni affiché -->
+                            <!-- Il est généré une seule fois et envoyé par email uniquement -->
                         </group>
                     </group>
 
@@ -324,19 +324,6 @@
     </record>
 
     <!-- Action Clients SaaS -->
-    <record id="action_saas_client" model="ir.actions.act_window">
-        <field name="name">Clients SaaS</field>
-        <field name="res_model">saas.client</field>
-        <field name="view_mode">kanban,list,form</field>
-        <field name="context">{'search_default_active_db': 1}</field>
-        <field name="help" type="html">
-            <p class="o_view_nocontent_smiling_face">
-                Créez votre premier client SaaS!
-            </p>
-            <p>
-                Les clients SaaS disposent chacun de leur propre base de données Odoo indépendante.
-            </p>
-        </field>
-    </record>
+    <!-- NOTE: action_saas_client déplacée vers saas_menu.xml pour éviter problèmes de chargement -->
 
 </odoo>
