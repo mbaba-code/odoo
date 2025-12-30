@@ -38,7 +38,6 @@
             <form string="Détails Log d'Audit" create="false" edit="false">
                 <header>
                     <field name="status" widget="statusbar"/>
-                    <field name="severity" widget="statusbar" statusbar_colors='{"critical":"danger","warning":"warning"}'/>
                 </header>
                 <sheet>
                     <div class="oe_button_box" name="button_box">
