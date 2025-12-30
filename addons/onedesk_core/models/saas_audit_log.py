@@ -152,6 +152,22 @@ class SaasAuditLog(models.Model):
 
             record.retention_date = (record.timestamp + timedelta(days=365 * retention_years)).date()
 
+    def action_view_client(self):
+        """
+        Ouvre la fiche du client associé au log
+        """
+        self.ensure_one()
+        if not self.client_id:
+            return {'type': 'ir.actions.act_window_close'}
+        
+        return {
+            'type': 'ir.actions.act_window',
+            'res_model': 'saas.client',
+            'res_id': self.client_id.id,
+            'view_mode': 'form',
+            'target': 'current',
+        }
+
     @api.model
     def log_action(self, action, client_id=None, status='success', error_message=None,
                    old_values=None, new_values=None, metadata=None):

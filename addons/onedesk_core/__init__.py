@@ -26,6 +26,10 @@ def post_init_hook(env):
     # Auto-configuration: Configurer automatiquement tous les Premium Managers existants
     _auto_configure_existing_premium_managers(env)
 
+    # Création des crons SaaS problématiques (qui ne peuvent pas être créés en XML)
+    _create_saas_rate_limit_cron(env)
+    _create_saas_audit_log_cron(env)
+
 
 def _migrate_partners_without_company(env):
     """Assigne les anciens partenaires sans company_id à une compagnie par défaut"""
@@ -143,3 +147,73 @@ def _auto_configure_existing_premium_managers(env):
 
     except Exception as e:
         _logger.error(f"❌ Erreur lors de l'auto-configuration des Premium Managers: {e}")
+
+
+def _create_saas_rate_limit_cron(env):
+    """Crée le cron de nettoyage des rate limits"""
+    try:
+        IrCron = env['ir.cron'].sudo()
+        IrModel = env['ir.model'].sudo()
+        
+        # Vérifier si le cron existe déjà
+        existing = IrCron.search([('name', '=', 'SaaS: Nettoyage Rate Limiting')], limit=1)
+        if existing:
+            _logger.info("ℹ️ Cron 'SaaS: Nettoyage Rate Limiting' déjà existant")
+            return
+        
+        # Récupérer le modèle
+        model = IrModel.search([('model', '=', 'saas.rate_limit')], limit=1)
+        if not model:
+            _logger.warning("⚠️ Modèle 'saas.rate_limit' non trouvé, skip création cron")
+            return
+        
+        # Créer le cron
+        IrCron.create({
+            'name': 'SaaS: Nettoyage Rate Limiting',
+            'model_id': model.id,
+            'state': 'code',
+            'code': 'model.cleanup_old_records()',
+            'interval_number': 1,
+            'interval_type': 'days',
+            'numbercall': -1,
+            'active': True,
+        })
+        _logger.info("✅ Cron 'SaaS: Nettoyage Rate Limiting' créé avec succès")
+        
+    except Exception as e:
+        _logger.error(f"❌ Erreur lors de la création du cron Rate Limiting: {e}")
+
+
+def _create_saas_audit_log_cron(env):
+    """Crée le cron d'archivage des logs d'audit"""
+    try:
+        IrCron = env['ir.cron'].sudo()
+        IrModel = env['ir.model'].sudo()
+        
+        # Vérifier si le cron existe déjà
+        existing = IrCron.search([('name', '=', 'SaaS: Archivage Logs d\'Audit')], limit=1)
+        if existing:
+            _logger.info("ℹ️ Cron 'SaaS: Archivage Logs d'Audit' déjà existant")
+            return
+        
+        # Récupérer le modèle
+        model = IrModel.search([('model', '=', 'saas.audit_log')], limit=1)
+        if not model:
+            _logger.warning("⚠️ Modèle 'saas.audit_log' non trouvé, skip création cron")
+            return
+        
+        # Créer le cron
+        IrCron.create({
+            'name': 'SaaS: Archivage Logs d\'Audit',
+            'model_id': model.id,
+            'state': 'code',
+            'code': 'model.cleanup_old_logs()',
+            'interval_number': 1,
+            'interval_type': 'months',
+            'numbercall': -1,
+            'active': True,
+        })
+        _logger.info("✅ Cron 'SaaS: Archivage Logs d'Audit' créé avec succès")
+        
+    except Exception as e:
+        _logger.error(f"❌ Erreur lors de la création du cron Audit Log: {e}")
