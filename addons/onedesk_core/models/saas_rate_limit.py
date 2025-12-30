@@ -121,6 +121,8 @@ class SaasRateLimit(models.Model):
         - Blocage de 1 heure après dépassement
         - Blocage de 24h après 3 dépassements dans la journée
 
+        EXCEPTION: Les administrateurs système (group_system) sont exemptés
+
         Args:
             ip_address: IP source de la requête
             user_id: ID de l'utilisateur (optionnel)
@@ -134,6 +136,14 @@ class SaasRateLimit(models.Model):
         if not ip_address:
             # Si pas d'IP (requête locale?), autoriser
             return {'allowed': True, 'message': 'OK', 'remaining': 999}
+
+        # EXCEPTION: Les administrateurs système sont exemptés du rate limiting
+        # Cela permet aux admins de créer plusieurs clients pour tests/démos
+        if user_id:
+            user = self.env['res.users'].browse(user_id)
+            if user.has_group('base.group_system'):
+                _logger.info(f"[SAAS SECURITY] Rate limit bypassed - System Admin: {user.name}")
+                return {'allowed': True, 'message': 'Admin exempted', 'remaining': 999}
 
         # Configuration des limites
         MAX_REQUESTS_PER_HOUR = 5
