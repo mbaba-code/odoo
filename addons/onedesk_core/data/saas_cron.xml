@@ -41,5 +41,31 @@
             <field name="active" eval="True"/>
         </record>
 
+        <!-- CRON: Nettoyage des anciens rate limits (quotidien) -->
+        <record id="cron_saas_rate_limit_cleanup" model="ir.cron">
+            <field name="name">SaaS: Nettoyage Rate Limiting</field>
+            <field name="model_id" ref="onedesk_core.model_saas_rate_limit"/>
+            <field name="state">code</field>
+            <field name="code">model.cleanup_old_records()</field>
+            <field name="interval_number">1</field>
+            <field name="interval_type">days</field>
+            <field name="active" eval="True"/>
+            <field name="numbercall">-1</field>
+            <field name="doall" eval="False"/>
+        </record>
+
+        <!-- CRON: Archivage des anciens logs d'audit (mensuel) -->
+        <record id="cron_saas_audit_log_cleanup" model="ir.cron">
+            <field name="name">SaaS: Archivage Logs d'Audit</field>
+            <field name="model_id" ref="onedesk_core.model_saas_audit_log"/>
+            <field name="state">code</field>
+            <field name="code">model.cleanup_old_logs()</field>
+            <field name="interval_number">1</field>
+            <field name="interval_type">months</field>
+            <field name="active" eval="True"/>
+            <field name="numbercall">-1</field>
+            <field name="doall" eval="False"/>
+        </record>
+
     </data>
 </odoo>

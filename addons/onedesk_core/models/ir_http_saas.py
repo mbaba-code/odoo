@@ -219,7 +219,55 @@ class IrHttp(models.AbstractModel):
         db_name = request.db if hasattr(request, 'db') else None
 
         if db_name and not cls._check_database_access(db_name):
-            # Base suspendue ou terminée
+            # Base suspendue ou terminée - Logger l'accès refusé
+            try:
+                # Obtenir la base maître pour l'audit
+                master_db = cls._get_master_database()
+                if master_db:
+                    import psycopg2
+                    from odoo.tools import config
+                    import os
+
+                    db_host = os.environ.get('SAAS_DB_HOST') or config.get('db_host') or 'localhost'
+                    db_port = os.environ.get('SAAS_DB_PORT') or config.get('db_port') or '5432'
+                    db_user = os.environ.get('SAAS_DB_USER') or config.get('db_user') or 'odoo'
+                    db_password = os.environ.get('SAAS_DB_PASSWORD') or config.get('db_password') or ''
+
+                    conn = psycopg2.connect(
+                        host=db_host, port=int(db_port),
+                        user=db_user, password=db_password,
+                        database=master_db, connect_timeout=2
+                    )
+                    cursor = conn.cursor()
+
+                    # Trouver le client_id
+                    cursor.execute("SELECT id FROM saas_client WHERE database_name = %s LIMIT 1", (db_name,))
+                    result = cursor.fetchone()
+                    client_id = result[0] if result else None
+
+                    # Récupérer l'IP
+                    ip_address = request.httprequest.environ.get('HTTP_X_FORWARDED_FOR')
+                    if ip_address:
+                        ip_address = ip_address.split(',')[0].strip()
+                    else:
+                        ip_address = request.httprequest.environ.get('REMOTE_ADDR')
+
+                    # Logger l'accès refusé
+                    if client_id:
+                        cursor.execute("""
+                            INSERT INTO saas_audit_log (
+                                action, timestamp, client_id, database_name,
+                                ip_address, status, create_date, write_date
+                            ) VALUES (%s, NOW(), %s, %s, %s, %s, NOW(), NOW())
+                        """, ('access_denied', client_id, db_name, ip_address, 'warning'))
+
+                    conn.commit()
+                    cursor.close()
+                    conn.close()
+
+            except Exception as e:
+                _logger.debug(f"[SAAS AUDIT] Erreur log accès refusé: {str(e)}")
+
             return request.render('onedesk_core.database_suspended_template', {
                 'database_name': db_name,
             }, status=403)

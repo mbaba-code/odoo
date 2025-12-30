@@ -224,7 +224,39 @@ class SaasClient(models.Model):
         if self.database_state != 'draft':
             raise UserError("La base de données a déjà été provisionnée")
 
+        # SÉCURITÉ: Vérifier le rate limiting (protection DoS)
+        from odoo.http import request
+        ip_address = None
+        user_id = self.env.uid
+
+        if request and hasattr(request, 'httprequest'):
+            # Récupérer l'IP réelle (supporte les proxies/load balancers)
+            ip_address = request.httprequest.environ.get('HTTP_X_FORWARDED_FOR')
+            if ip_address:
+                # X-Forwarded-For peut contenir plusieurs IPs, prendre la première
+                ip_address = ip_address.split(',')[0].strip()
+            else:
+                ip_address = request.httprequest.environ.get('REMOTE_ADDR')
+
+        # Vérifier le rate limit
+        rate_limit_check = self.env['saas.rate_limit'].check_rate_limit(ip_address, user_id)
+
+        if not rate_limit_check['allowed']:
+            # Ne devrait jamais arriver ici car check_rate_limit raise une UserError
+            raise UserError("Limite de provisioning atteinte. Veuillez réessayer plus tard.")
+
+        # Log si proche de la limite
+        if rate_limit_check.get('remaining', 999) <= 2:
+            _logger.warning(f"[SAAS SECURITY] IP {ip_address} proche limite: {rate_limit_check['remaining']} restant(s)")
+
         try:
+            # AUDIT: Log début du provisioning
+            self.env['saas.audit_log'].log_action(
+                action='provision',
+                client_id=self.id,
+                metadata={'database_name': self.database_name, 'plan': self.plan_id.name}
+            )
+
             # Changer l'état
             self.write({
                 'database_state': 'provisioning',
@@ -261,6 +293,18 @@ class SaasClient(models.Model):
 
             _logger.info(f"[SAAS] Provisioning terminé avec succès pour {self.name}")
 
+            # AUDIT: Log succès du provisioning
+            self.env['saas.audit_log'].log_action(
+                action='provision_success',
+                client_id=self.id,
+                status='success',
+                metadata={
+                    'database_name': self.database_name,
+                    'url': self.url,
+                    'admin_login': self.admin_login
+                }
+            )
+
             # Échapper l'URL pour affichage HTML sécurisé
             safe_url = self._escape_html_url(self.url)
             safe_login = self._escape_html_url(self.admin_login)
@@ -273,6 +317,16 @@ class SaasClient(models.Model):
 
         except Exception as e:
             _logger.error(f"[SAAS] Erreur provisioning client {self.name}: {str(e)}", exc_info=True)
+
+            # AUDIT: Log erreur du provisioning
+            self.env['saas.audit_log'].log_action(
+                action='provision_error',
+                client_id=self.id,
+                status='error',
+                error_message=str(e),
+                metadata={'database_name': self.database_name}
+            )
+
             self.write({
                 'database_state': 'error',
                 'database_error': str(e),
@@ -360,6 +414,131 @@ class SaasClient(models.Model):
             raise ValidationError(f"Le domaine contient des caractères non autorisés: {domain}")
 
         return domain.lower()
+
+    def _validate_email(self, email):
+        """
+        Valide strictement une adresse email (SÉCURITÉ)
+
+        Vérifie:
+        1. Format syntaxique (RFC 5322)
+        2. Domaine ne contient pas de caractères dangereux
+        3. Extension de domaine valide (TLD)
+
+        Returns: email valide ou raise ValidationError
+        """
+        if not email:
+            raise ValidationError("L'adresse email est requise")
+
+        email = email.strip().lower()
+
+        # Pattern email strict (RFC 5322 simplifié mais sécurisé)
+        # Format: local@domain.tld
+        email_pattern = r'^[a-z0-9!#$%&\'*+\-/=?^_`{|}~]+(\.[a-z0-9!#$%&\'*+\-/=?^_`{|}~]+)*@[a-z0-9]([a-z0-9\-]{0,61}[a-z0-9])?(\.[a-z0-9]([a-z0-9\-]{0,61}[a-z0-9])?)+$'
+
+        if not re.match(email_pattern, email):
+            raise ValidationError(
+                f"Adresse email invalide: {email}\n\n"
+                "Format attendu: utilisateur@domaine.extension\n"
+                "Caractères autorisés: lettres, chiffres, points, tirets"
+            )
+
+        # Vérifier longueur maximale (RFC 5321)
+        if len(email) > 254:
+            raise ValidationError(f"L'adresse email est trop longue (max 254 caractères): {email}")
+
+        # Extraire le domaine
+        try:
+            local, domain = email.rsplit('@', 1)
+        except ValueError:
+            raise ValidationError(f"Format email invalide (pas de @): {email}")
+
+        # Vérifier longueur de la partie locale
+        if len(local) > 64:
+            raise ValidationError(f"La partie locale de l'email est trop longue (max 64 caractères): {email}")
+
+        # Vérifier que le domaine a au moins un point (TLD requis)
+        if '.' not in domain:
+            raise ValidationError(f"Le domaine de l'email doit avoir une extension (ex: .com, .fr): {email}")
+
+        # Vérifier contre les domaines jetables/suspects courants
+        disposable_domains = [
+            'tempmail.com', 'throwaway.email', 'guerrillamail.com',
+            'mailinator.com', '10minutemail.com', 'trashmail.com'
+        ]
+        if domain in disposable_domains:
+            _logger.warning(f"[SAAS SECURITY] Email jetable détecté: {email}")
+            raise ValidationError(
+                f"Les adresses email jetables ne sont pas autorisées.\n\n"
+                f"Veuillez utiliser une adresse email professionnelle permanente."
+            )
+
+        return email
+
+    def _verify_email_dns(self, email):
+        """
+        Vérifie que le domaine de l'email a des enregistrements MX valides
+
+        Cette vérification confirme que le domaine peut recevoir des emails.
+        Prévient les typos et les domaines inexistants.
+
+        Returns: True si MX records trouvés, False sinon
+        """
+        try:
+            import dns.resolver
+        except ImportError:
+            _logger.warning("[SAAS] Module 'dnspython' non installé - Skip DNS MX verification")
+            return True  # Ne pas bloquer si la lib n'est pas installée
+
+        try:
+            # Extraire le domaine
+            _, domain = email.rsplit('@', 1)
+
+            # Vérifier les enregistrements MX
+            try:
+                mx_records = dns.resolver.resolve(domain, 'MX')
+                if mx_records:
+                    _logger.info(f"[SAAS] Email {email} - MX records trouvés: {len(mx_records)}")
+                    return True
+            except (dns.resolver.NXDOMAIN, dns.resolver.NoAnswer):
+                # Pas de MX, essayer les enregistrements A (fallback)
+                try:
+                    a_records = dns.resolver.resolve(domain, 'A')
+                    if a_records:
+                        _logger.info(f"[SAAS] Email {email} - Pas de MX mais A records trouvés")
+                        return True
+                except:
+                    pass
+
+            _logger.warning(f"[SAAS SECURITY] Email {email} - Aucun MX/A record trouvé pour {domain}")
+            return False
+
+        except Exception as e:
+            _logger.error(f"[SAAS] Erreur vérification DNS pour {email}: {str(e)}")
+            return True  # En cas d'erreur, ne pas bloquer (fail-open)
+
+    @api.constrains('email')
+    def _check_email(self):
+        """
+        Contrainte de validation sur le champ email
+
+        Appliquée automatiquement à la création et modification
+        """
+        for record in self:
+            if record.email:
+                # 1. Validation syntaxique stricte
+                validated_email = record._validate_email(record.email)
+
+                # 2. Vérification DNS MX (optionnel mais recommandé)
+                if not record._verify_email_dns(validated_email):
+                    raise ValidationError(
+                        f"Le domaine de l'adresse email '{validated_email}' ne semble pas valide.\n\n"
+                        f"Aucun serveur de mail (MX record) n'a été trouvé pour ce domaine.\n\n"
+                        f"Veuillez vérifier l'orthographe de votre adresse email."
+                    )
+
+                # Mettre à jour l'email normalisé (lowercase)
+                if record.email != validated_email:
+                    record.email = validated_email
 
     def _sanitize_url_param(self, param):
         """
@@ -714,6 +893,18 @@ class SaasClient(models.Model):
             'database_state': 'suspended',
             'subscription_state': 'suspended',
         })
+
+        # AUDIT: Log suspension
+        self.env['saas.audit_log'].log_action(
+            action='suspend',
+            client_id=self.id,
+            status='success',
+            metadata={
+                'users_deactivated': users_count,
+                'database_name': self.database_name
+            }
+        )
+
         self.message_post(
             body=f"⏸️ Base de données suspendue<br/>"
                  f"• {users_count} utilisateurs désactivés<br/>"
@@ -765,7 +956,20 @@ class SaasClient(models.Model):
             'database_state': 'active',
             'subscription_state': 'active',
         })
-        self.message_post(body=f"✅ Base de données réactivée - {len(users) if 'users' in locals() else 0} utilisateurs réactivés")
+
+        # AUDIT: Log réactivation
+        users_reactivated = len(users) if 'users' in locals() else 0
+        self.env['saas.audit_log'].log_action(
+            action='reactivate',
+            client_id=self.id,
+            status='success',
+            metadata={
+                'users_reactivated': users_reactivated,
+                'database_name': self.database_name
+            }
+        )
+
+        self.message_post(body=f"✅ Base de données réactivée - {users_reactivated} utilisateurs réactivés")
 
         return {
             'type': 'ir.actions.client',
@@ -821,6 +1025,18 @@ class SaasClient(models.Model):
             'subscription_state': 'cancelled',
             'cancelled_date': fields.Date.today(),
         })
+
+        # AUDIT: Log terminaison
+        self.env['saas.audit_log'].log_action(
+            action='terminate',
+            client_id=self.id,
+            status='success',
+            metadata={
+                'users_deactivated': users_count,
+                'database_name': self.database_name,
+                'cancelled_date': str(fields.Date.today())
+            }
+        )
 
         self.message_post(
             body=f"🚫 Base de données terminée définitivement<br/>"
