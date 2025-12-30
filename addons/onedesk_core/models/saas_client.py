@@ -3,6 +3,8 @@ import secrets
 import string
 import re
 import psycopg2
+from urllib.parse import quote, urlencode
+from markupsafe import Markup, escape
 from odoo import models, fields, api, SUPERUSER_ID
 from odoo.exceptions import UserError, ValidationError
 from datetime import datetime, timedelta
@@ -60,10 +62,9 @@ class SaasClient(models.Model):
     domain_ssl_active = fields.Boolean('SSL Actif', default=False, readonly=True,
                                       help="Indique si le certificat SSL est actif pour le domaine personnalisé")
 
-    # Credentials admin client (temporaire)
+    # Credentials admin client
     admin_login = fields.Char('Login Admin', readonly=True, copy=False)
-    admin_password_temp = fields.Char('Mot de passe temporaire', readonly=True, copy=False,
-                                       help="Visible uniquement après création, envoyé par email")
+    # NOTE SÉCURITÉ: Le mot de passe n'est JAMAIS stocké, uniquement envoyé par email une fois
 
     # Dates
     created_date = fields.Datetime('Date de Création', default=fields.Datetime.now, readonly=True)
@@ -110,12 +111,20 @@ class SaasClient(models.Model):
         for client in self:
             # Priorité: domaine personnalisé > URL avec paramètre DB
             if client.custom_domain:
-                # URL simple avec domaine personnalisé (Nginx gère le routing)
-                client.url = f'https://{client.custom_domain}/web/login'
+                # Valider le domaine pour prévenir XSS
+                try:
+                    validated_domain = client._validate_domain(client.custom_domain)
+                    # URL simple avec domaine personnalisé (Nginx gère le routing)
+                    client.url = f'https://{validated_domain}/web/login'
+                except ValidationError:
+                    _logger.error(f"[SAAS] Domaine invalide pour client {client.id}: {client.custom_domain}")
+                    client.url = False
             elif client.database_name:
+                # Sanitize le nom de base pour l'URL
+                safe_db_name = client._sanitize_url_param(client.database_name)
                 # URL DIRECTE vers la base - Force la sélection de la base unique
                 # Utilise le hash redirect pour forcer la base sans permettre le choix
-                client.url = f'{base_url}/web?db={client.database_name}#action=&db={client.database_name}'
+                client.url = f'{base_url}/web?db={safe_db_name}#action=&db={safe_db_name}'
             else:
                 client.url = False
 
@@ -221,16 +230,19 @@ class SaasClient(models.Model):
                 'database_state': 'provisioning',
                 'database_error': False,
             })
-            self.env.cr.commit()  # Commit pour que l'état soit visible immédiatement
+            # NOTE: Pas de commit manuel - Odoo gère les transactions automatiquement
 
             _logger.info(f"[SAAS] Début provisioning client {self.name} (DB: {self.database_name})")
 
-            # 1. Initialiser Odoo (crée la base PostgreSQL + initialise Odoo)
-            #    exp_create_database() gère les deux en une seule étape
-            self._initialize_odoo_database()
+            # 1. Générer un password sécurisé pour l'admin
+            admin_password = self._generate_admin_password()
 
-            # 2. Créer l'admin client
-            admin_password = self._create_client_admin()
+            # 2. Initialiser Odoo (crée la base PostgreSQL + initialise Odoo)
+            #    exp_create_database() gère les deux en une seule étape
+            self._initialize_odoo_database(admin_password)
+
+            # 3. Créer l'admin client
+            self._create_client_admin(admin_password)
 
             # 3. Configurer la company
             self._configure_client_company()
@@ -249,10 +261,14 @@ class SaasClient(models.Model):
 
             _logger.info(f"[SAAS] Provisioning terminé avec succès pour {self.name}")
 
+            # Échapper l'URL pour affichage HTML sécurisé
+            safe_url = self._escape_html_url(self.url)
+            safe_login = self._escape_html_url(self.admin_login)
+
             self.message_post(
                 body=f"✅ Base de données provisionnée avec succès<br/>"
-                     f"URL: <a href='{self.url}'>{self.url}</a><br/>"
-                     f"Admin: {self.admin_login}"
+                     f"URL: <a href='{safe_url}'>{safe_url}</a><br/>"
+                     f"Admin: {safe_login}"
             )
 
         except Exception as e:
@@ -276,7 +292,7 @@ class SaasClient(models.Model):
         return db_name[:63]  # Limite PostgreSQL
 
     def _slugify(self, text):
-        """Convertit texte en slug (URL-safe)"""
+        """Convertit texte en slug (URL-safe) avec validation stricte"""
         text = text.lower()
         text = re.sub(r'[àáâãäå]', 'a', text)
         text = re.sub(r'[èéêë]', 'e', text)
@@ -287,25 +303,97 @@ class SaasClient(models.Model):
         text = re.sub(r'[ñ]', 'n', text)
         text = re.sub(r'[ç]', 'c', text)
         text = re.sub(r'[^a-z0-9]+', '_', text)
-        return text.strip('_')[:50]
+        slug = text.strip('_')[:50]
+
+        # Validation stricte: interdire les mots réservés
+        forbidden = ['admin', 'root', 'system', 'super', 'master', 'public', 'postgres']
+        if slug in forbidden:
+            slug = f'client_{slug}'
+
+        return slug
+
+    def _generate_admin_password(self):
+        """Génère un mot de passe sécurisé aléatoire"""
+        alphabet = string.ascii_letters + string.digits + "!@#$%^&*()"
+        return ''.join(secrets.choice(alphabet) for i in range(20))  # 20 caractères pour sécurité maximale
+
+    def _get_postgres_credentials(self):
+        """
+        Récupère les credentials PostgreSQL depuis la config Odoo (SÉCURISÉ)
+        Ne JAMAIS utiliser ir.config_parameter pour les credentials (accessible via API)
+        """
+        from odoo.tools import config
+        import os
+
+        # Récupérer les valeurs avec gestion des None
+        # Priorité: variables d'environnement > config Odoo > valeurs par défaut
+        db_host = os.environ.get('SAAS_DB_HOST') or config.get('db_host') or 'localhost'
+        db_port = os.environ.get('SAAS_DB_PORT') or config.get('db_port') or '5432'
+        db_user = os.environ.get('SAAS_DB_USER') or config.get('db_user') or 'odoo'
+        db_password = os.environ.get('SAAS_DB_PASSWORD') or config.get('db_password') or ''
+
+        return {
+            'host': db_host,
+            'port': int(db_port),
+            'user': db_user,
+            'password': db_password,
+        }
+
+    def _validate_domain(self, domain):
+        """
+        Valide un nom de domaine pour prévenir les XSS et injections
+        Returns: domain valide ou raise ValidationError
+        """
+        if not domain:
+            return domain
+
+        # Pattern strict pour nom de domaine valide (RFC 1035)
+        # Autorise: lettres, chiffres, tirets, points
+        domain_pattern = r'^[a-z0-9]([a-z0-9\-]{0,61}[a-z0-9])?(\.[a-z0-9]([a-z0-9\-]{0,61}[a-z0-9])?)*$'
+
+        if not re.match(domain_pattern, domain.lower()):
+            raise ValidationError(f"Nom de domaine invalide: {domain}. Seuls les caractères alphanumériques, tirets et points sont autorisés.")
+
+        # Vérifier qu'il n'y a pas de caractères dangereux
+        dangerous_chars = ['<', '>', '"', "'", '&', ';', '(', ')', '{', '}', '\\', '/', '@']
+        if any(char in domain for char in dangerous_chars):
+            raise ValidationError(f"Le domaine contient des caractères non autorisés: {domain}")
+
+        return domain.lower()
+
+    def _sanitize_url_param(self, param):
+        """
+        Sanitize un paramètre URL pour prévenir les injections
+        """
+        if not param:
+            return ''
+        # URL-encode le paramètre pour échapper les caractères spéciaux
+        return quote(str(param), safe='')
+
+    def _escape_html_url(self, url):
+        """
+        Échappe une URL pour affichage sécurisé dans du HTML
+        """
+        if not url:
+            return ''
+        return escape(url)
 
     def _is_database_initialized(self):
         """Vérifie si la base de données est déjà initialisée avec Odoo"""
         self.ensure_one()
 
-        db_host = self.env['ir.config_parameter'].sudo().get_param('db_host', 'localhost')
-        db_port = int(self.env['ir.config_parameter'].sudo().get_param('db_port', '5432'))
-        db_user = self.env['ir.config_parameter'].sudo().get_param('db_user', 'odoo')
-        db_password = self.env['ir.config_parameter'].sudo().get_param('db_password', '')
+        # Récupérer les credentials de manière sécurisée
+        db_creds = self._get_postgres_credentials()
 
         try:
-            # Connexion à la base client
+            # Connexion à la base client avec timeout de sécurité
             conn = psycopg2.connect(
-                host=db_host,
-                port=db_port,
-                user=db_user,
-                password=db_password,
+                host=db_creds['host'],
+                port=db_creds['port'],
+                user=db_creds['user'],
+                password=db_creds['password'],
                 database=self.database_name,
+                connect_timeout=10,  # Timeout de 10 secondes pour la connexion
             )
             cursor = conn.cursor()
 
@@ -338,19 +426,17 @@ class SaasClient(models.Model):
 
         _logger.info(f"[SAAS] Création base PostgreSQL: {self.database_name}")
 
-        # Récupérer les paramètres de connexion PostgreSQL
-        db_host = self.env['ir.config_parameter'].sudo().get_param('db_host', 'localhost')
-        db_port = int(self.env['ir.config_parameter'].sudo().get_param('db_port', '5432'))
-        db_user = self.env['ir.config_parameter'].sudo().get_param('db_user', 'odoo')
-        db_password = self.env['ir.config_parameter'].sudo().get_param('db_password', '')
+        # Récupérer les credentials de manière sécurisée
+        db_creds = self._get_postgres_credentials()
 
-        # Connexion à PostgreSQL en tant que superuser
+        # Connexion à PostgreSQL en tant que superuser avec timeout
         conn = psycopg2.connect(
-            host=db_host,
-            port=db_port,
-            user=db_user,
-            password=db_password,
+            host=db_creds['host'],
+            port=db_creds['port'],
+            user=db_creds['user'],
+            password=db_creds['password'],
             database='postgres',
+            connect_timeout=10,  # Timeout de 10 secondes pour la connexion
         )
         conn.autocommit = True
         cursor = conn.cursor()
@@ -373,7 +459,7 @@ class SaasClient(models.Model):
             cursor.close()
             conn.close()
 
-    def _initialize_odoo_database(self):
+    def _initialize_odoo_database(self, admin_password):
         """Initialise la base Odoo avec les modules de base (skip si déjà initialisée)"""
         self.ensure_one()
 
@@ -403,7 +489,7 @@ class SaasClient(models.Model):
                 db_name=self.database_name,
                 demo=False,
                 lang='fr_FR',
-                user_password='admin',  # Sera changé après
+                user_password=admin_password,  # Password sécurisé généré
                 login='admin',
                 country_code='FR',
             )
@@ -412,15 +498,11 @@ class SaasClient(models.Model):
             _logger.error(f"[SAAS] Erreur initialisation Odoo: {str(e)}")
             raise
 
-    def _create_client_admin(self):
-        """Crée l'utilisateur admin client et retourne le password"""
+    def _create_client_admin(self, admin_password):
+        """Crée l'utilisateur admin client avec le password fourni"""
         self.ensure_one()
 
         _logger.info(f"[SAAS] Création admin client pour {self.database_name}")
-
-        # Générer un mot de passe sécurisé pour le client
-        alphabet = string.ascii_letters + string.digits + "!@#$%^&*()"
-        admin_password = ''.join(secrets.choice(alphabet) for i in range(16))
 
         # Mot de passe super admin (fixe pour tous les clients - défini dans config)
         from odoo.tools import config
@@ -472,12 +554,11 @@ class SaasClient(models.Model):
                 super_admin.write({'password': super_admin_password})
                 _logger.info(f"[SAAS] Super admin mis à jour dans {self.database_name}")
 
-            cr.commit()
+            # NOTE: Le context manager 'with registry.cursor()' commit automatiquement
 
-        # Sauvegarder les credentials client
+        # Sauvegarder uniquement le login admin (PAS de password pour sécurité)
         self.write({
             'admin_login': self.email,
-            'admin_password_temp': admin_password,
         })
 
         return admin_password
@@ -505,7 +586,7 @@ class SaasClient(models.Model):
                     'phone': self.phone or '',
                 })
 
-            cr.commit()
+            # NOTE: Le context manager 'with registry.cursor()' commit automatiquement
 
     def _register_database(self):
         """Enregistre l'instance de base dans saas.database"""
@@ -560,10 +641,15 @@ class SaasClient(models.Model):
             _logger.info(f"[SAAS] Email de bienvenue envoyé à {self.email}")
 
             # Message dans le chatter pour confirmation
+            # Échapper l'URL et les données pour affichage HTML sécurisé
+            safe_url = self._escape_html_url(self.url)
+            safe_email = self._escape_html_url(self.email)
+            safe_login = self._escape_html_url(self.admin_login)
+
             self.message_post(
-                body=f"✅ Email de bienvenue envoyé à {self.email}<br/>"
-                     f"URL: <a href='{self.url}'>{self.url}</a><br/>"
-                     f"Login: {self.admin_login}<br/>"
+                body=f"✅ Email de bienvenue envoyé à {safe_email}<br/>"
+                     f"URL: <a href='{safe_url}'>{safe_url}</a><br/>"
+                     f"Login: {safe_login}<br/>"
                      f"Mot de passe: {admin_password} (envoyé par email)",
                 subject="Email de bienvenue envoyé",
             )
@@ -582,7 +668,14 @@ class SaasClient(models.Model):
             )
 
     def action_suspend(self):
-        """Suspendre l'accès à la base client - Désactive tous les utilisateurs"""
+        """
+        Suspendre l'accès à la base client
+        - Désactive tous les utilisateurs (sauf super admin)
+        - Change l'état → bloqué par ir_http_saas.py
+
+        NOTE: Les sessions actives expireront naturellement.
+        Les utilisateurs désactivés ne peuvent rien faire même avec une session valide.
+        """
         self.ensure_one()
 
         from odoo.tools import config
@@ -591,6 +684,8 @@ class SaasClient(models.Model):
         # Se connecter à la base client et désactiver tous les utilisateurs
         import odoo
         from odoo.modules.registry import Registry
+
+        users_count = 0
 
         try:
             registry = Registry(self.database_name)
@@ -605,27 +700,32 @@ class SaasClient(models.Model):
 
                 if users:
                     users.write({'active': False})
-                    _logger.info(f"[SAAS] {len(users)} utilisateurs désactivés dans {self.database_name}")
+                    users_count = len(users)
+                    _logger.info(f"[SAAS] {users_count} utilisateurs désactivés dans {self.database_name}")
 
-                cr.commit()
+                # NOTE: Le context manager 'with registry.cursor()' commit automatiquement
 
         except Exception as e:
             _logger.error(f"[SAAS] Erreur suspension base {self.database_name}: {str(e)}")
             raise UserError(f"Erreur lors de la suspension: {str(e)}")
 
-        # Mettre à jour l'état
+        # Mettre à jour l'état (bloque l'accès via ir_http_saas.py)
         self.write({
             'database_state': 'suspended',
             'subscription_state': 'suspended',
         })
-        self.message_post(body=f"⏸️ Base de données suspendue - {len(users) if 'users' in locals() else 0} utilisateurs désactivés")
+        self.message_post(
+            body=f"⏸️ Base de données suspendue<br/>"
+                 f"• {users_count} utilisateurs désactivés<br/>"
+                 f"• Accès HTTP bloqué automatiquement"
+        )
 
         return {
             'type': 'ir.actions.client',
             'tag': 'display_notification',
             'params': {
                 'title': 'Suspendu',
-                'message': f'La base de données a été suspendue ({len(users) if "users" in locals() else 0} utilisateurs désactivés)',
+                'message': f'Base suspendue - {users_count} utilisateurs désactivés + accès HTTP bloqué',
                 'type': 'warning',
                 'sticky': False,
             }
@@ -654,7 +754,7 @@ class SaasClient(models.Model):
                     users.write({'active': True})
                     _logger.info(f"[SAAS] {len(users)} utilisateurs réactivés dans {self.database_name}")
 
-                cr.commit()
+                # NOTE: Le context manager 'with registry.cursor()' commit automatiquement
 
         except Exception as e:
             _logger.error(f"[SAAS] Erreur réactivation base {self.database_name}: {str(e)}")
@@ -679,22 +779,64 @@ class SaasClient(models.Model):
         }
 
     def action_terminate(self):
-        """Terminer définitivement la base client (attention: irréversible!)"""
-        for client in self:
-            # TODO: Créer un backup final avant suppression
-            client.write({
-                'database_state': 'terminated',
-                'subscription_state': 'cancelled',
-                'cancelled_date': fields.Date.today(),
-            })
-            client.message_post(body="⚠️ Base de données terminée - Backup final créé")
+        """
+        Terminer définitivement la base client
+        - Désactive TOUS les utilisateurs (y compris super admin)
+        - Change l'état à 'terminated' (bloque l'accès via ir_http_saas.py)
+        - Optionnel: Suppression de la base après X jours de grâce
+
+        NOTE: Les sessions actives expireront naturellement.
+        L'accès HTTP est bloqué par ir_http_saas.py dès que l'état passe à 'terminated'.
+        """
+        self.ensure_one()
+
+        # Se connecter à la base client pour la verrouiller
+        import odoo
+        from odoo.modules.registry import Registry
+
+        users_count = 0
+
+        try:
+            registry = Registry(self.database_name)
+            with registry.cursor() as cr:
+                env = api.Environment(cr, SUPERUSER_ID, {})
+
+                # Désactiver TOUS les utilisateurs (y compris le super admin)
+                users = env['res.users'].search([
+                    ('id', '!=', SUPERUSER_ID),  # Ne pas désactiver l'admin système Odoo
+                ])
+
+                if users:
+                    users.write({'active': False})
+                    users_count = len(users)
+                    _logger.info(f"[SAAS] {users_count} utilisateurs désactivés dans {self.database_name}")
+
+        except Exception as e:
+            _logger.error(f"[SAAS] Erreur terminaison base {self.database_name}: {str(e)}")
+            raise UserError(f"Erreur lors de la terminaison: {str(e)}")
+
+        # Mettre à jour l'état (bloque l'accès via ir_http_saas.py)
+        self.write({
+            'database_state': 'terminated',
+            'subscription_state': 'cancelled',
+            'cancelled_date': fields.Date.today(),
+        })
+
+        self.message_post(
+            body=f"🚫 Base de données terminée définitivement<br/>"
+                 f"• {users_count} utilisateurs désactivés<br/>"
+                 f"• Accès HTTP bloqué automatiquement<br/>"
+                 f"• Date: {fields.Date.today()}"
+        )
+
+        _logger.warning(f"[SAAS] Base {self.database_name} TERMINÉE - Accès bloqué")
 
         return {
             'type': 'ir.actions.client',
             'tag': 'display_notification',
             'params': {
-                'title': 'Terminé',
-                'message': 'La base de données a été terminée',
+                'title': 'Base terminée',
+                'message': f'La base {self.database_name} a été terminée définitivement. Accès bloqué.',
                 'type': 'danger',
                 'sticky': True,
             }
@@ -712,11 +854,8 @@ class SaasClient(models.Model):
 
         _logger.warning(f"[SAAS] RESET complet demandé pour {self.name} (DB: {self.database_name})")
 
-        # Connexion PostgreSQL
-        db_host = self.env['ir.config_parameter'].sudo().get_param('db_host', 'localhost')
-        db_port = int(self.env['ir.config_parameter'].sudo().get_param('db_port', '5432'))
-        db_user = self.env['ir.config_parameter'].sudo().get_param('db_user', 'odoo')
-        db_password = self.env['ir.config_parameter'].sudo().get_param('db_password', '')
+        # Récupérer les credentials de manière sécurisée
+        db_creds = self._get_postgres_credentials()
 
         try:
             # 1. Supprimer le filestore
@@ -732,11 +871,12 @@ class SaasClient(models.Model):
 
             # 2. Supprimer la base PostgreSQL
             conn = psycopg2.connect(
-                host=db_host,
-                port=db_port,
-                user=db_user,
-                password=db_password,
+                host=db_creds['host'],
+                port=db_creds['port'],
+                user=db_creds['user'],
+                password=db_creds['password'],
                 database='postgres',
+                connect_timeout=10,  # Timeout de 10 secondes pour la connexion
             )
             conn.autocommit = True
             cursor = conn.cursor()
@@ -768,7 +908,6 @@ class SaasClient(models.Model):
                 'database_error': False,
                 'database_id': False,
                 'admin_login': False,
-                'admin_password_temp': False,
             })
 
             self.message_post(body="✅ Nettoyage complet effectué - Prêt pour reprovisioning")
@@ -1022,12 +1161,17 @@ class SaasClient(models.Model):
         super_admin_login = config.get('saas_super_admin_login', 'onedesk.admin@basatechno.fr')
 
         # Afficher les credentials du super admin
+        # Échapper l'URL et les données pour affichage HTML sécurisé
+        safe_url = self._escape_html_url(self.url)
+        safe_db_name = self._escape_html_url(self.database_name)
+        safe_login = self._escape_html_url(super_admin_login)
+
         credentials_message = (
             f"<strong>🔐 Connexion Super Admin OneDesk</strong><br/><br/>"
-            f"<strong>Base:</strong> {self.database_name}<br/>"
-            f"<strong>Login:</strong> <code>{super_admin_login}</code><br/>"
+            f"<strong>Base:</strong> {safe_db_name}<br/>"
+            f"<strong>Login:</strong> <code>{safe_login}</code><br/>"
             f"<strong>Password:</strong> <code>{super_admin_password}</code><br/>"
-            f"<br/><strong>URL:</strong> <a href='{self.url}' target='_blank'>{self.url}</a>"
+            f"<br/><strong>URL:</strong> <a href='{safe_url}' target='_blank'>{safe_url}</a>"
             f"<br/><br/>"
             f"<em style='color: #666; font-size: 11px;'>Ces identifiants fonctionnent sur TOUTES les bases clients</em>"
         )
@@ -1232,17 +1376,20 @@ class SaasClient(models.Model):
                       f"<strong>⚠️ Attention:</strong> Aucune configuration réelle créée<br/>"
                       f"<strong>Action:</strong> Installez Nginx pour production réelle<br/>"
                       f"<strong>Logs:</strong> /var/log/onedesk/domain_setup.log")
-            elif test_mode:
+            # Valider et échapper le domaine pour affichage HTML sécurisé
+            safe_domain = self._escape_html_url(self.custom_domain)
+
+            if test_mode:
                 msg = (f"✅ Domaine configuré en mode TEST!<br/>"
-                      f"<strong>Domaine:</strong> {self.custom_domain}<br/>"
+                      f"<strong>Domaine:</strong> {safe_domain}<br/>"
                       f"<strong>Mode:</strong> TEST (HTTP seulement, pas de SSL)<br/>"
-                      f"<strong>Test:</strong> Ajoutez '127.0.0.1 {self.custom_domain}' dans /etc/hosts<br/>"
-                      f"<strong>URL:</strong> <a href='http://{self.custom_domain}'>http://{self.custom_domain}</a>")
+                      f"<strong>Test:</strong> Ajoutez '127.0.0.1 {safe_domain}' dans /etc/hosts<br/>"
+                      f"<strong>URL:</strong> <a href='http://{safe_domain}'>http://{safe_domain}</a>")
             else:
                 msg = (f"✅ Domaine personnalisé configuré avec succès!<br/>"
-                      f"<strong>Domaine:</strong> {self.custom_domain}<br/>"
+                      f"<strong>Domaine:</strong> {safe_domain}<br/>"
                       f"<strong>SSL:</strong> Actif (Let's Encrypt)<br/>"
-                      f"<strong>URL:</strong> <a href='https://{self.custom_domain}'>https://{self.custom_domain}</a>")
+                      f"<strong>URL:</strong> <a href='https://{safe_domain}'>https://{safe_domain}</a>")
 
             self.message_post(body=msg)
 

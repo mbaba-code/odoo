@@ -19,6 +19,7 @@
     'data/onedesk_groups.xml',
 
     'security/ir.model.access.csv',
+    'security/saas_security.xml',  # SaaS record rules for multi-tenant isolation
 
     # Dashboards FIRST (car le menu y référence des actions)
     'views/onedesk_dashboard.xml',
@@ -67,6 +68,7 @@
 
     # Auth pages responsive override (login/signup)
     'views/auth_responsive_override.xml',
+    'views/database_suspended_template.xml',  # Template for suspended/terminated databases
 
     # Multi-tenant views (admin)
     'views/onedesk_plan_views.xml',
