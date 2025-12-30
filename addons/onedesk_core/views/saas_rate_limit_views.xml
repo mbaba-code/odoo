@@ -31,10 +31,6 @@
         <field name="model">saas.rate_limit</field>
         <field name="arch" type="xml">
             <form string="Rate Limit Details" create="false" edit="false">
-                <header>
-                    <field name="is_blocked" widget="statusbar"/>
-                </header>
-            
                 <sheet>
                     <div class="oe_title">
                         <h1>
