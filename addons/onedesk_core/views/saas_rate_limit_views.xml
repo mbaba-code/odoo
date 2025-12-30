@@ -12,7 +12,7 @@
         <field name="name">saas.rate_limit.tree</field>
         <field name="model">saas.rate_limit</field>
         <field name="arch" type="xml">
-            <tree string="Rate Limiting" default_order="window_start desc" decoration-danger="is_blocked">
+            <list string="Rate Limiting" default_order="window_start desc" decoration-danger="is_blocked">
                 <field name="window_start"/>
                 <field name="ip_address"/>
                 <field name="user_id"/>
@@ -21,7 +21,7 @@
                 <field name="blocked_until" optional="show"/>
                 <field name="attempts_blocked" optional="hide"/>
                 <field name="last_attempt"/>
-            </tree>
+            </list>
         </field>
     </record>
 
@@ -34,42 +34,44 @@
                 <header>
                     <field name="is_blocked" widget="statusbar"/>
                 </header>
+            
                 <sheet>
                     <div class="oe_title">
                         <h1>
                             <field name="ip_address" readonly="1"/>
                         </h1>
                     </div>
-
+            
                     <group>
-                        <group name="identification" string="Identification">
+                        <group string="Identification">
                             <field name="ip_address" readonly="1"/>
                             <field name="user_id" readonly="1"/>
                         </group>
-                        <group name="counters" string="Compteurs">
+            
+                        <group string="Compteurs">
                             <field name="request_count" readonly="1"/>
                             <field name="attempts_blocked" readonly="1"/>
                             <field name="window_start" readonly="1"/>
                             <field name="last_attempt" readonly="1"/>
                         </group>
                     </group>
-
-                    <group name="blocking" string="Blocage" attrs="{'invisible': [('is_blocked', '=', False)]}">
+            
+                    <group string="Blocage" invisible="not is_blocked">
                         <field name="is_blocked" readonly="1"/>
                         <field name="blocked_until" readonly="1"/>
                         <field name="blocked_reason" readonly="1"/>
                     </group>
-
+            
                     <notebook>
                         <page string="Informations de Sécurité">
                             <group>
-                                <p class="alert alert-info" role="alert">
+                                <div class="alert alert-info" role="status">
                                     <strong>Rate Limiting Configuration:</strong><br/>
-                                    • Maximum: 5 provisionings par heure par IP<br/>
-                                    • Blocage: 1 heure après dépassement<br/>
-                                    • Blocage étendu: 24h après 3 dépassements en 24h<br/>
-                                    • Conservation: 7 jours (records normaux), 30 jours (bloqués)
-                                </p>
+                                    • Maximum: 5 provisionings / heure / IP<br/>
+                                    • Blocage: 1h après dépassement<br/>
+                                    • Blocage étendu: 24h après 3 dépassements<br/>
+                                    • Conservation: 7 jours / 30 jours bloqués
+                                </div>
                             </group>
                         </page>
                     </notebook>
@@ -79,35 +81,45 @@
     </record>
 
     <!-- Search View: Filtres et recherches -->
-    <record id="view_saas_rate_limit_search" model="ir.ui.view">
-        <field name="name">saas.rate_limit.search</field>
+    <record id="saas_rate_limit_view_search" model="ir.ui.view">
+        <field name="name">saas.rate_limit.view.search</field>
         <field name="model">saas.rate_limit</field>
         <field name="arch" type="xml">
             <search string="Rechercher Rate Limits">
+                <!-- Champs de recherche EN PREMIER -->
                 <field name="ip_address"/>
                 <field name="user_id"/>
-
-                <filter string="Actuellement Bloqués" name="filter_blocked"
-                        domain="[('is_blocked', '=', True), ('blocked_until', '>', context_today())]"/>
-                <filter string="Historique Bloqués" name="filter_was_blocked"
+    
+                <!-- Ensuite les filtres -->
+                <filter string="Actuellement bloqués"
+                        name="filter_blocked"
                         domain="[('is_blocked', '=', True)]"/>
-                <filter string="Non Bloqués" name="filter_not_blocked"
+    
+                <filter string="Non bloqués"
+                        name="filter_not_blocked"
                         domain="[('is_blocked', '=', False)]"/>
-
+    
                 <separator/>
-                <filter string="Dernière Heure" name="filter_last_hour"
-                        domain="[('window_start', '&gt;=', (context_today() - relativedelta(hours=1)).strftime('%Y-%m-%d %H:%M:%S'))]"/>
-                <filter string="Dernières 24h" name="filter_last_day"
-                        domain="[('window_start', '&gt;=', (context_today() - relativedelta(days=1)).strftime('%Y-%m-%d %H:%M:%S'))]"/>
-                <filter string="Derniers 7 jours" name="filter_last_week"
-                        domain="[('window_start', '&gt;=', (context_today() - relativedelta(days=7)).strftime('%Y-%m-%d %H:%M:%S'))]"/>
-
-                <group expand="0" string="Grouper par">
-                    <filter string="IP" name="group_ip" context="{'group_by': 'ip_address'}"/>
-                    <filter string="Utilisateur" name="group_user" context="{'group_by': 'user_id'}"/>
-                    <filter string="Bloqué" name="group_blocked" context="{'group_by': 'is_blocked'}"/>
-                    <filter string="Fenêtre" name="group_window" context="{'group_by': 'window_start'}"/>
-                </group>
+    
+                <filter string="Dernière heure"
+                        name="filter_last_hour"
+                        domain="[('is_last_hour', '=', True)]"/>
+    
+                <filter string="Dernières 24h"
+                        name="filter_last_24h"
+                        domain="[('is_last_24h', '=', True)]"/>
+    
+                <filter string="Derniers 7 jours"
+                        name="filter_last_7d"
+                        domain="[('is_last_7d', '=', True)]"/>
+    
+                <separator/>
+    
+                <!-- Enfin les groupements -->
+                <filter string="IP" name="group_by_ip" context="{'group_by': 'ip_address'}"/>
+                <filter string="Utilisateur" name="group_by_user" context="{'group_by': 'user_id'}"/>
+                <filter string="Bloqué" name="group_by_is_blocked" context="{'group_by': 'is_blocked'}"/>
+                <filter string="Fenêtre" name="group_by_window_start" context="{'group_by': 'window_start'}"/>
             </search>
         </field>
     </record>
@@ -117,7 +129,7 @@
         <field name="name">Rate Limiting</field>
         <field name="res_model">saas.rate_limit</field>
         <field name="view_mode">tree,form</field>
-        <field name="context">{'search_default_filter_last_day': 1}</field>
+        <field name="context">{'search_default_filter_last_24h': 1}</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">
                 Aucun enregistrement de rate limiting

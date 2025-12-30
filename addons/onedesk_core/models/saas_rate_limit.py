@@ -4,6 +4,7 @@ from odoo.exceptions import UserError
 from datetime import datetime, timedelta
 import logging
 
+
 _logger = logging.getLogger(__name__)
 
 class SaasRateLimit(models.Model):
@@ -37,6 +38,9 @@ class SaasRateLimit(models.Model):
                                       help="Date de fin du blocage (si applicable)")
     blocked_reason = fields.Text('Raison du Blocage',
                                    help="Détails sur la raison du blocage")
+    
+    
+
 
     # Audit
     last_attempt = fields.Datetime('Dernière Tentative', default=fields.Datetime.now,
@@ -48,6 +52,64 @@ class SaasRateLimit(models.Model):
         ('ip_window_unique', 'unique(ip_address, window_start)',
          'Un seul enregistrement par IP et fenêtre de temps autorisé'),
     ]
+    
+    
+    
+    
+    # 1. On définit les champs comme non-stockés (store=False)
+    # 2. On ajoute l'attribut 'search' pour dire à Odoo comment filtrer
+    is_last_hour = fields.Boolean(
+        string="Dernière heure", 
+        compute='_compute_dummy', 
+        search='_search_last_hour',
+        store=False
+    )
+    
+    is_last_24h = fields.Boolean(
+        string="Dernières 24h", 
+        compute='_compute_dummy', 
+        search='_search_last_24h',
+        store=False
+    )
+    
+    is_last_7d = fields.Boolean(
+        string="Derniers 7 jours", 
+        compute='_compute_dummy', 
+        search='_search_last_7d',
+        store=False
+    )
+
+    # Fonction compute "bidon" obligatoire pour les champs non stockés
+    # Elle sert juste à éviter une erreur si on essaie de LIRE ces champs
+    def _compute_dummy(self):
+        for rec in self:
+            rec.is_last_hour = False
+            rec.is_last_24h = False
+            rec.is_last_7d = False
+
+    # --- FONCTIONS DE RECHERCHE (C'est ici que la magie opère) ---
+    
+    def _search_last_hour(self, operator, value):
+        # Si on cherche "est vrai" (True)
+        if operator == '=' and value:
+            limit = fields.Datetime.now() - timedelta(hours=1)
+            return [('window_start', '>=', limit)]
+        return []
+
+    def _search_last_24h(self, operator, value):
+        if operator == '=' and value:
+            limit = fields.Datetime.now() - timedelta(hours=24)
+            return [('window_start', '>=', limit)]
+        return []
+
+    def _search_last_7d(self, operator, value):
+        if operator == '=' and value:
+            limit = fields.Datetime.now() - timedelta(days=7)
+            return [('window_start', '>=', limit)]
+        return []
+    
+    
+    
 
     @api.model
     def check_rate_limit(self, ip_address, user_id=None):
@@ -270,3 +332,6 @@ class SaasRateLimit(models.Model):
             'blocks_last_24h': self.search_count([('is_blocked', '=', True), ('window_start', '>=', day_ago)]),
             'total_records': self.search_count([]),
         }
+        
+    
+    

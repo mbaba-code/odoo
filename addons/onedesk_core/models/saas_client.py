@@ -1134,6 +1134,9 @@ class SaasClient(models.Model):
             _logger.error(f"[SAAS] Erreur lors du reset de {self.name}: {str(e)}", exc_info=True)
             raise UserError(f"Erreur lors du reset: {str(e)}")
 
+    
+    @api.model
+    
     def cron_collect_metrics(self):
         """Cron: Collecter les métriques de tous les clients actifs"""
         active_clients = self.search([('database_state', '=', 'active')])
