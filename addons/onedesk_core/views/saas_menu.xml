@@ -34,7 +34,7 @@
         <field name="name">Dashboard SaaS</field>
         <field name="res_model">saas.client</field>
         <field name="view_mode">kanban</field>
-        <field name="view_id" ref="view_saas_dashboard_kanban"/>
+        <!-- NOTE: view_id non spécifié - Odoo utilisera automatiquement la vue kanban du modèle -->
         <field name="domain">[('database_state', '=', 'active')]</field>
     </record>
 
