@@ -55,19 +55,6 @@
     </record>
 
     <!-- Action Métriques SaaS -->
-    <record id="action_saas_metric" model="ir.actions.act_window">
-        <field name="name">Métriques</field>
-        <field name="res_model">saas.metric</field>
-        <field name="view_mode">graph,pivot,list</field>
-        <field name="context">{}</field>
-        <field name="help" type="html">
-            <p class="o_view_nocontent_empty_folder">
-                Aucune métrique enregistrée
-            </p>
-            <p>
-                Les métriques sont collectées automatiquement toutes les 5 minutes par le cron.
-            </p>
-        </field>
-    </record>
+    <!-- NOTE: action_saas_metric déplacée vers saas_menu.xml pour éviter problèmes de chargement -->
 
 </odoo>

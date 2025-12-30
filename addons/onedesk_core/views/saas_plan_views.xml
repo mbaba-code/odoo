@@ -158,18 +158,6 @@
     </record>
 
     <!-- Action Plans SaaS -->
-    <record id="action_saas_plan" model="ir.actions.act_window">
-        <field name="name">Plans SaaS</field>
-        <field name="res_model">saas.plan</field>
-        <field name="view_mode">list,kanban,form</field>
-        <field name="help" type="html">
-            <p class="o_view_nocontent_smiling_face">
-                Créez votre premier plan SaaS!
-            </p>
-            <p>
-                Définissez les plans d'abonnement (Starter, Pro, Enterprise) avec leurs limites et tarifs.
-            </p>
-        </field>
-    </record>
+    <!-- NOTE: action_saas_plan déplacée vers saas_menu.xml pour éviter problèmes de chargement -->
 
 </odoo>
