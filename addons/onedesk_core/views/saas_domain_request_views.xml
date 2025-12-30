@@ -228,14 +228,7 @@
               sequence="3"
               groups="onedesk_core.group_saas_manager"/>
 
-    <!-- Menu dans OneDesk (pour les clients dans leur base) -->
-    <!-- Ce menu sera visible dans toutes les bases (principale et clients) -->
-    <!-- Dans la base principale, seuls les SaaS Managers le verront -->
-    <!-- Dans les bases clients, tous les Property Managers le verront -->
-    <menuitem id="menu_onedesk_domain_custom"
-              name="Domaine Personnalisé"
-              parent="onedesk_core.menu_onedesk_settings"
-              action="action_saas_domain_request_client"
-              sequence="100"/>
+    <!-- NOTE: Le menuitem menu_onedesk_domain_custom a été déplacé vers onedesk_menu_hierarchy.xml -->
+    <!-- pour résoudre les problèmes de dépendances de chargement XML (menu_onedesk_settings) -->
 
 </odoo>
