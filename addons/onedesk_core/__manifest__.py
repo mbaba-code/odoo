@@ -78,6 +78,8 @@
 
     # SaaS Multi-Database Views (NEW - Premium/Enterprise)
     # ⚠️ IMPORTANT: Ces vues DOIVENT être chargées AVANT les crons
+    # ⚠️ CRITIQUE: saas_menu.xml DOIT être chargé EN PREMIER car il définit les menus parents
+    'views/saas_menu.xml',  # Menu SaaS Manager (DOIT être en premier!)
     'views/saas_plan_views.xml',  # Plans SaaS (Starter, Pro, Enterprise)
     'views/saas_client_views.xml',  # Clients SaaS avec actions de provisioning
     'views/saas_database_views.xml',  # Bases de données clients
@@ -87,7 +89,6 @@
     'views/saas_rate_limit_views.xml',  # Rate limiting DoS protection
     'views/saas_audit_log_views.xml',  # Audit logging pour traçabilité
     'views/saas_dashboard.xml',  # Dashboard SaaS avec KPIs
-    'views/saas_menu.xml',  # Menu SaaS Manager
 
     # Données après (quand les models sont chargés)
     'data/integration_providers.xml',
