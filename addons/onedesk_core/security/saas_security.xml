@@ -178,4 +178,56 @@
         <field name="perm_unlink">False</field>
     </record>
 
+    <!-- ================== SAAS RATE LIMIT ACCESS ================== -->
+
+    <!-- System Admin: Full access to all rate limit records -->
+    <record id="rule_system_admin_saas_rate_limit" model="ir.rule">
+        <field name="name">System Admin - All SaaS Rate Limits</field>
+        <field name="model_id" ref="model_saas_rate_limit"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('base.group_system'))]"/>
+        <field name="perm_read">True</field>
+        <field name="perm_write">True</field>
+        <field name="perm_create">True</field>
+        <field name="perm_unlink">True</field>
+    </record>
+
+    <!-- SaaS Manager: Read-only access to rate limits (monitoring) -->
+    <record id="rule_saas_manager_saas_rate_limit" model="ir.rule">
+        <field name="name">SaaS Manager - Read SaaS Rate Limits</field>
+        <field name="model_id" ref="model_saas_rate_limit"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('group_saas_manager'))]"/>
+        <field name="perm_read">True</field>
+        <field name="perm_write">False</field>
+        <field name="perm_create">False</field>
+        <field name="perm_unlink">False</field>
+    </record>
+
+    <!-- ================== SAAS AUDIT LOG ACCESS ================== -->
+
+    <!-- System Admin: Full access to all audit logs -->
+    <record id="rule_system_admin_saas_audit_log" model="ir.rule">
+        <field name="name">System Admin - All SaaS Audit Logs</field>
+        <field name="model_id" ref="model_saas_audit_log"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('base.group_system'))]"/>
+        <field name="perm_read">True</field>
+        <field name="perm_write">False</field>
+        <field name="perm_create">True</field>
+        <field name="perm_unlink">False</field>
+    </record>
+
+    <!-- SaaS Manager: Read-only access to audit logs (compliance/monitoring) -->
+    <record id="rule_saas_manager_saas_audit_log" model="ir.rule">
+        <field name="name">SaaS Manager - Read SaaS Audit Logs</field>
+        <field name="model_id" ref="model_saas_audit_log"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('group_saas_manager'))]"/>
+        <field name="perm_read">True</field>
+        <field name="perm_write">False</field>
+        <field name="perm_create">False</field>
+        <field name="perm_unlink">False</field>
+    </record>
+
 </odoo>

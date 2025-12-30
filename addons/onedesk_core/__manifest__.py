@@ -101,6 +101,8 @@
     'views/saas_metric_views.xml',  # Métriques et graphiques
     'views/saas_alert_views.xml',  # Alertes et notifications
     'views/saas_domain_request_views.xml',  # Demandes de domaine personnalisé
+    'views/saas_rate_limit_views.xml',  # Rate limiting DoS protection
+    'views/saas_audit_log_views.xml',  # Audit logging pour traçabilité
     'views/saas_dashboard.xml',  # Dashboard SaaS avec KPIs
     'views/saas_menu.xml',  # Menu SaaS Manager
 
@@ -134,7 +136,7 @@
     
     # ← NOUVEAU : Dépendances Python
     'external_dependencies': {
-        'python': ['cryptography', 'requests', 'python-dateutil'],
+        'python': ['cryptography', 'requests', 'python-dateutil', 'dnspython'],
     },
     
     'installable': True,
