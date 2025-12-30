@@ -139,21 +139,7 @@
         </field>
     </record>
 
-    <record id="action_saas_dashboard" model="ir.actions.act_window">
-        <field name="name">Dashboard SaaS</field>
-        <field name="res_model">saas.client</field>
-        <field name="view_mode">kanban</field>
-        <field name="view_id" ref="view_saas_dashboard_kanban"/>
-        <field name="domain">[('database_state', '=', 'active')]</field>
-        <field name="context">{}</field>
-        <field name="help" type="html">
-            <p class="o_view_nocontent_smiling_face">
-                Bienvenue dans le SaaS Manager!
-            </p>
-            <p>
-                Gérez vos clients SaaS, plans, métriques et alertes depuis ce dashboard.
-            </p>
-        </field>
-    </record>
+    <!-- NOTE: action_saas_dashboard a été déplacée dans saas_menu.xml
+         pour résoudre un problème d'ordre de chargement -->
 
 </odoo>

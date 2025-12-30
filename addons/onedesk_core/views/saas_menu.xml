@@ -29,6 +29,15 @@
               web_icon="onedesk_core,static/description/icon.png"
               groups="onedesk_core.group_saas_manager"/>
 
+    <!-- Action Dashboard (doit être définie avant le menuitem) -->
+    <record id="action_saas_dashboard" model="ir.actions.act_window">
+        <field name="name">Dashboard SaaS</field>
+        <field name="res_model">saas.client</field>
+        <field name="view_mode">kanban</field>
+        <field name="view_id" ref="view_saas_dashboard_kanban"/>
+        <field name="domain">[('database_state', '=', 'active')]</field>
+    </record>
+
     <!-- Dashboard SaaS -->
     <menuitem id="menu_saas_dashboard"
               name="Dashboard"
