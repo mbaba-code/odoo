@@ -15,6 +15,8 @@
         'templates/subscription.xml',
         'templates/payment.xml',
         'templates/saas_landing.xml',
+        'templates/saas_subscribe_form.xml',
+        'templates/saas_payment.xml',
         'views/saas_website_pages.xml',
     ],
     'external_dependencies': {

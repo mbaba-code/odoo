@@ -1,0 +1,231 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Formulaire de souscription au plan SaaS -->
+    <template id="saas_subscribe_form" name="SaaS Subscription Form">
+        <t t-call="website.layout">
+            <link rel="stylesheet" href="/website_onedesk/static/css/saas_landing.css"/>
+
+            <div class="container mt-5 mb-5">
+                <div class="row">
+                    <div class="col-lg-8 mx-auto">
+                        <!-- Header -->
+                        <div class="mb-5 text-center">
+                            <a href="/saas" class="btn btn-link mb-3">← Retour aux plans</a>
+                            <h1 class="mb-3">S'abonner au plan <strong t-esc="plan.name"/></h1>
+                            <div class="card bg-light border-0 p-4">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h4 class="mb-2" t-esc="plan.name"/>
+                                        <p class="text-muted mb-0">
+                                            <strong>
+                                                <span t-esc="'{:.2f}'.format(plan.price_monthly)"/>€/mois
+                                            </strong>
+                                            ou
+                                            <strong>
+                                                <span t-esc="'{:.2f}'.format(plan.price_yearly)"/>€/an
+                                            </strong>
+                                        </p>
+                                    </div>
+                                    <div class="text-end">
+                                        <div class="badge bg-primary fs-6">
+                                            <t t-esc="plan.max_users"/> utilisateurs
+                                        </div>
+                                        <div class="badge bg-success fs-6 ms-2">
+                                            <t t-esc="int(plan.max_storage_gb)"/> GB
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Form -->
+                        <form id="saas_subscription_form" method="POST" action="/saas/subscribe/create">
+                            <input type="hidden" name="plan_id" t-att-value="plan.id"/>
+
+                            <!-- Informations Entreprise -->
+                            <div class="card mb-4 border-0 shadow-sm">
+                                <div class="card-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+                                    <h5 class="mb-0">🏢 Informations de l'entreprise</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="mb-3">
+                                        <label for="company_name" class="form-label">Nom de l'entreprise <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="company_name" name="company_name" placeholder="Ex: Ma Startup SaaS" required="required"/>
+                                        <small class="form-text text-muted">Le nom de votre organisation</small>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Informations Contact -->
+                            <div class="card mb-4 border-0 shadow-sm">
+                                <div class="card-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+                                    <h5 class="mb-0">👤 Informations de contact</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="mb-3">
+                                        <label for="contact_name" class="form-label">Nom du responsable <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="contact_name" name="contact_name" placeholder="Ex: Jean Dupont" required="required"/>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="email" class="form-label">Email <span class="text-danger">*</span></label>
+                                        <input type="email" class="form-control" id="email" name="email" placeholder="contact@example.com" required="required"/>
+                                        <small class="form-text text-muted">Cet email sera utilisé pour vous connecter</small>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="phone" class="form-label">Téléphone</label>
+                                        <input type="tel" class="form-control" id="phone" name="phone" placeholder="+33 1 23 45 67 89"/>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Facturation -->
+                            <div class="card mb-4 border-0 shadow-sm">
+                                <div class="card-header bg-success text-white">
+                                    <h5 class="mb-0">💳 Facturation</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="mb-3">
+                                        <label class="form-label">Mode de facturation <span class="text-danger">*</span></label>
+                                        <div class="btn-group w-100" role="group">
+                                            <input type="radio" class="btn-check" name="billing_cycle" id="billing_monthly" value="monthly" checked="checked"/>
+                                            <label class="btn btn-outline-primary" for="billing_monthly">
+                                                <strong>Mensuel</strong><br/>
+                                                <span class="price-display-monthly"><t t-esc="'{:.2f}'.format(plan.price_monthly)"/>€/mois</span>
+                                            </label>
+
+                                            <input type="radio" class="btn-check" name="billing_cycle" id="billing_yearly" value="yearly"/>
+                                            <label class="btn btn-outline-primary" for="billing_yearly">
+                                                <strong>Annuel</strong>
+                                                <span class="badge bg-success ms-1">-20%</span><br/>
+                                                <span class="price-display-yearly"><t t-esc="'{:.2f}'.format(plan.price_yearly)"/>€/an</span>
+                                            </label>
+                                        </div>
+                                    </div>
+
+                                    <!-- Résumé -->
+                                    <div class="alert alert-info mt-4">
+                                        <h6 class="mb-2"><strong>📊 Résumé</strong></h6>
+                                        <div class="d-flex justify-content-between mb-1">
+                                            <span>Plan :</span>
+                                            <strong t-esc="plan.name"/>
+                                        </div>
+                                        <div class="d-flex justify-content-between mb-1">
+                                            <span>Cycle de facturation :</span>
+                                            <strong id="summary-cycle">Mensuel</strong>
+                                        </div>
+                                        <hr/>
+                                        <div class="d-flex justify-content-between">
+                                            <span><strong>Total</strong> :</span>
+                                            <strong class="fs-5 text-primary" id="summary-total">
+                                                <span t-esc="'{:.2f}'.format(plan.price_monthly)"/>€
+                                            </strong>
+                                        </div>
+                                        <t t-if="plan.trial_days > 0">
+                                            <div class="alert alert-success mt-3 mb-0">
+                                                🎁 <strong><t t-esc="plan.trial_days"/> jours</strong> d'essai gratuit inclus !
+                                            </div>
+                                        </t>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Conditions -->
+                            <div class="card mb-4 border-0 shadow-sm">
+                                <div class="card-body">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="terms_accepted" name="terms_accepted" required="required"/>
+                                        <label class="form-check-label" for="terms_accepted">
+                                            J'accepte les <a href="/terms" target="_blank">conditions d'utilisation</a> et la <a href="/privacy" target="_blank">politique de confidentialité</a> <span class="text-danger">*</span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Submit Button -->
+                            <div class="text-center">
+                                <button type="submit" class="btn btn-lg btn-primary px-5" id="submit-btn" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none;">
+                                    🚀 Continuer vers le paiement
+                                </button>
+                                <p class="text-muted mt-3 mb-0">
+                                    <small>🔒 Paiement sécurisé • Annulable à tout moment</small>
+                                </p>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- JavaScript pour gérer le formulaire -->
+            <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    const form = document.getElementById('saas_subscription_form');
+                    const monthlyRadio = document.getElementById('billing_monthly');
+                    const yearlyRadio = document.getElementById('billing_yearly');
+                    const summaryCycle = document.getElementById('summary-cycle');
+                    const summaryTotal = document.getElementById('summary-total');
+                    const submitBtn = document.getElementById('submit-btn');
+
+                    const monthlyPrice = <t t-esc="plan.price_monthly"/>;
+                    const yearlyPrice = <t t-esc="plan.price_yearly"/>;
+
+                    // Update summary on billing cycle change
+                    function updateSummary() {
+                        if (yearlyRadio.checked) {
+                            summaryCycle.textContent = 'Annuel';
+                            summaryTotal.textContent = yearlyPrice.toFixed(2) + '€';
+                        } else {
+                            summaryCycle.textContent = 'Mensuel';
+                            summaryTotal.textContent = monthlyPrice.toFixed(2) + '€';
+                        }
+                    }
+
+                    monthlyRadio.addEventListener('change', updateSummary);
+                    yearlyRadio.addEventListener('change', updateSummary);
+
+                    // Handle form submission
+                    form.addEventListener('submit', function(e) {
+                        e.preventDefault();
+
+                        // Disable submit button
+                        submitBtn.disabled = true;
+                        submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Traitement...';
+
+                        // Collect form data
+                        const formData = new FormData(form);
+
+                        // Send AJAX request
+                        fetch('/saas/subscribe/create', {
+                            method: 'POST',
+                            body: formData
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.status === 'success') {
+                                if (data.is_free) {
+                                    // Plan gratuit - rediriger vers invitation
+                                    alert(data.message);
+                                    window.location.href = data.redirect_url;
+                                } else if (data.requires_payment) {
+                                    // Plan payant - rediriger vers paiement
+                                    alert(data.message);
+                                    window.location.href = data.payment_url;
+                                }
+                            } else {
+                                // Erreur
+                                alert('Erreur: ' + data.message);
+                                submitBtn.disabled = false;
+                                submitBtn.innerHTML = '🚀 Continuer vers le paiement';
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            alert('Une erreur est survenue. Veuillez réessayer.');
+                            submitBtn.disabled = false;
+                            submitBtn.innerHTML = '🚀 Continuer vers le paiement';
+                        });
+                    });
+                });
+            </script>
+        </t>
+    </template>
+</odoo>
