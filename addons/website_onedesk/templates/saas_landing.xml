@@ -1,0 +1,543 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Landing Page SaaS Product - Moderne et Professionnel -->
+    <template id="saas_landing_page" name="SaaS Product Landing Page">
+        <t t-call="website.layout">
+            <!-- SEO Meta Tags -->
+            <t t-set="head">
+                <meta name="description" content="Plateforme SaaS Multi-Tenant professionnelle. Créez et gérez vos bases de données clients en toute sécurité. Provisioning automatique, monitoring, sauvegardes, facturation intégrée."/>
+                <meta name="keywords" content="saas, multi-tenant, plateforme saas, provisioning, base de données, odoo saas, white label"/>
+
+                <!-- Open Graph / Facebook -->
+                <meta property="og:type" content="website"/>
+                <meta property="og:title" content="Plateforme SaaS Multi-Tenant - Solution Professionnelle"/>
+                <meta property="og:description" content="Créez votre empire SaaS. Provisioning automatique, sécurité renforcée, facturation intégrée."/>
+
+                <!-- Twitter Card -->
+                <meta name="twitter:card" content="summary_large_image"/>
+                <meta name="twitter:title" content="Plateforme SaaS Multi-Tenant - Solution Professionnelle"/>
+
+                <!-- Additional SEO -->
+                <meta name="robots" content="index, follow"/>
+                <link rel="canonical" href="/saas"/>
+
+                <!-- Schema.org -->
+                <script type="application/ld+json">
+                {
+                    "@context": "https://schema.org",
+                    "@type": "SoftwareApplication",
+                    "name": "Plateforme SaaS Multi-Tenant",
+                    "applicationCategory": "BusinessApplication",
+                    "operatingSystem": "Web",
+                    "description": "Créez et gérez votre infrastructure SaaS multi-tenant avec provisioning automatique, monitoring et facturation intégrée."
+                }
+                </script>
+            </t>
+
+            <!-- Link to CSS -->
+            <link rel="stylesheet" href="/website_onedesk/static/css/saas_landing.css"/>
+
+            <div id="wrap" class="oe_structure">
+
+                <!-- Hero Section -->
+                <section class="saas-hero">
+                    <div class="container">
+                        <div class="hero-content">
+                            <div class="hero-text">
+                                <div class="hero-badge">🚀 Plateforme SaaS Multi-Tenant</div>
+                                <h1>Créez votre empire SaaS en quelques clics</h1>
+                                <p class="subtitle">
+                                    Une plateforme complète pour gérer vos clients SaaS : provisioning automatique,
+                                    bases de données isolées, monitoring en temps réel, facturation intégrée.
+                                </p>
+                                <div class="hero-cta">
+                                    <a href="#pricing" class="btn-primary-modern">
+                                        💎 Voir les plans
+                                    </a>
+                                    <a href="#demo" class="btn-secondary-modern">
+                                        📹 Démo en vidéo
+                                    </a>
+                                </div>
+                                <div class="hero-stats">
+                                    <div class="stat-item">
+                                        <div class="stat-value"><t t-esc="len(plans)"/></div>
+                                        <div class="stat-label">Plans disponibles</div>
+                                    </div>
+                                    <div class="stat-item">
+                                        <div class="stat-value">99.9%</div>
+                                        <div class="stat-label">Uptime</div>
+                                    </div>
+                                    <div class="stat-item">
+                                        <div class="stat-value">24/7</div>
+                                        <div class="stat-label">Support</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="hero-visual">
+                                <div class="dashboard-mockup">
+                                    <div class="mockup-header">
+                                        <div class="mockup-dot"></div>
+                                        <div class="mockup-dot"></div>
+                                        <div class="mockup-dot"></div>
+                                        <div class="mockup-title">SaaS Dashboard</div>
+                                    </div>
+                                    <div class="mockup-body">
+                                        <div class="metrics-grid">
+                                            <div class="metric-card blue">
+                                                <div class="metric-icon">👥</div>
+                                                <div class="metric-content">
+                                                    <div class="metric-value">247</div>
+                                                    <div class="metric-label">Clients Actifs</div>
+                                                </div>
+                                            </div>
+                                            <div class="metric-card green">
+                                                <div class="metric-icon">💰</div>
+                                                <div class="metric-content">
+                                                    <div class="metric-value">48.5K€</div>
+                                                    <div class="metric-label">MRR</div>
+                                                </div>
+                                            </div>
+                                            <div class="metric-card purple">
+                                                <div class="metric-icon">🗄️</div>
+                                                <div class="metric-content">
+                                                    <div class="metric-value">312</div>
+                                                    <div class="metric-label">Bases de Données</div>
+                                                </div>
+                                            </div>
+                                            <div class="metric-card orange">
+                                                <div class="metric-icon">📈</div>
+                                                <div class="metric-content">
+                                                    <div class="metric-value">+28%</div>
+                                                    <div class="metric-label">Croissance</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="activity-list">
+                                            <div class="activity-item">
+                                                <div class="activity-icon success">✓</div>
+                                                <div class="activity-text">
+                                                    <strong>Nouveau client</strong> - Base provisionnée
+                                                </div>
+                                                <div class="activity-time">Il y a 2 min</div>
+                                            </div>
+                                            <div class="activity-item">
+                                                <div class="activity-icon info">💳</div>
+                                                <div class="activity-text">
+                                                    <strong>Paiement reçu</strong> - 299€
+                                                </div>
+                                                <div class="activity-time">Il y a 15 min</div>
+                                            </div>
+                                            <div class="activity-item">
+                                                <div class="activity-icon warning">⚡</div>
+                                                <div class="activity-text">
+                                                    <strong>Upgrade plan</strong> - Pro → Enterprise
+                                                </div>
+                                                <div class="activity-time">Il y a 1h</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Features Grid -->
+                <section class="features-grid">
+                    <div class="container">
+                        <div class="section-header">
+                            <h2>Tout ce qu'il faut pour votre succès SaaS</h2>
+                            <p>Une plateforme complète avec toutes les fonctionnalités dont vous avez besoin</p>
+                        </div>
+
+                        <div class="features-list">
+                            <div class="feature-card">
+                                <div class="feature-icon blue">🚀</div>
+                                <h3>Provisioning Automatique</h3>
+                                <p>Créez des bases de données clients en quelques secondes. Provisioning entièrement automatisé avec configuration personnalisable.</p>
+                                <ul class="feature-points">
+                                    <li>✓ Création instantanée de bases</li>
+                                    <li>✓ Configuration automatique</li>
+                                    <li>✓ Domaines personnalisés</li>
+                                </ul>
+                            </div>
+
+                            <div class="feature-card">
+                                <div class="feature-icon purple">🔒</div>
+                                <h3>Sécurité Renforcée</h3>
+                                <p>Isolation complète des données clients. Sauvegardes automatiques, chiffrement, audit logs complets.</p>
+                                <ul class="feature-points">
+                                    <li>✓ Bases isolées par client</li>
+                                    <li>✓ Sauvegardes quotidiennes</li>
+                                    <li>✓ Audit trail complet</li>
+                                </ul>
+                            </div>
+
+                            <div class="feature-card">
+                                <div class="feature-icon green">💳</div>
+                                <h3>Facturation Intégrée</h3>
+                                <p>Gestion complète des abonnements et paiements. Stripe/PayPal intégrés, relances automatiques.</p>
+                                <ul class="feature-points">
+                                    <li>✓ Paiements récurrents</li>
+                                    <li>✓ Facturation automatique</li>
+                                    <li>✓ Multi-devises</li>
+                                </ul>
+                            </div>
+
+                            <div class="feature-card">
+                                <div class="feature-icon orange">📊</div>
+                                <h3>Monitoring & Analytics</h3>
+                                <p>Dashboards en temps réel. Métriques de performance, utilisation, revenus - tout est visualisé.</p>
+                                <ul class="feature-points">
+                                    <li>✓ Métriques en temps réel</li>
+                                    <li>✓ Alertes personnalisables</li>
+                                    <li>✓ Exports Excel/PDF</li>
+                                </ul>
+                            </div>
+
+                            <div class="feature-card">
+                                <div class="feature-icon red">🎨</div>
+                                <h3>White Label</h3>
+                                <p>Personnalisation complète de votre marque. Logo, couleurs, domaine - tout est à votre image.</p>
+                                <ul class="feature-points">
+                                    <li>✓ Logo & couleurs custom</li>
+                                    <li>✓ Domaine personnalisé</li>
+                                    <li>✓ Emails de marque</li>
+                                </ul>
+                            </div>
+
+                            <div class="feature-card">
+                                <div class="feature-icon pink">🔌</div>
+                                <h3>API Complète</h3>
+                                <p>API REST complète pour toutes vos intégrations. Documentation détaillée, SDKs disponibles.</p>
+                                <ul class="feature-points">
+                                    <li>✓ API REST complète</li>
+                                    <li>✓ Webhooks en temps réel</li>
+                                    <li>✓ Documentation OpenAPI</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Pricing Section avec Calculateur -->
+                <section class="pricing-section" id="pricing">
+                    <div class="container">
+                        <div class="section-header">
+                            <h2>Choisissez votre plan</h2>
+                            <p>Tarifs transparents qui s'adaptent à votre croissance</p>
+                        </div>
+
+                        <!-- Billing Toggle -->
+                        <div class="billing-toggle">
+                            <span class="toggle-label" id="monthly-label">Mensuel</span>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="billing-toggle"/>
+                                <span class="toggle-slider"></span>
+                            </label>
+                            <span class="toggle-label" id="yearly-label">Annuel <span class="save-badge">-20%</span></span>
+                        </div>
+
+                        <!-- Plans Grid -->
+                        <div class="plans-grid">
+                            <t t-foreach="plans" t-as="plan">
+                                <div class="plan-card" t-att-data-popular="'true' if plan_index == 1 else 'false'">
+                                    <t t-if="plan_index == 1">
+                                        <div class="popular-badge">⭐ Le plus populaire</div>
+                                    </t>
+
+                                    <div class="plan-header">
+                                        <h3 class="plan-name"><t t-esc="plan.name"/></h3>
+                                        <div class="plan-price">
+                                            <span class="price-monthly">
+                                                <span class="currency">€</span>
+                                                <span class="amount"><t t-esc="int(plan.price_monthly)"/></span>
+                                                <span class="period">/mois</span>
+                                            </span>
+                                            <span class="price-yearly" style="display: none;">
+                                                <span class="currency">€</span>
+                                                <span class="amount"><t t-esc="int(plan.price_yearly / 12)"/></span>
+                                                <span class="period">/mois</span>
+                                            </span>
+                                        </div>
+                                        <div class="price-detail">
+                                            <span class="detail-monthly">Facturé mensuellement</span>
+                                            <span class="detail-yearly" style="display: none;">
+                                                <t t-esc="int(plan.price_yearly)"/>€ facturés annuellement
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    <div class="plan-features">
+                                        <!-- Limites techniques -->
+                                        <div class="feature-item">
+                                            <span class="feature-icon">✓</span>
+                                            <span><strong><t t-esc="plan.max_users"/></strong> utilisateurs max</span>
+                                        </div>
+                                        <div class="feature-item">
+                                            <span class="feature-icon">✓</span>
+                                            <span><strong><t t-esc="int(plan.max_storage_gb)"/> GB</strong> de stockage</span>
+                                        </div>
+                                        <div class="feature-item">
+                                            <span class="feature-icon">✓</span>
+                                            <span><strong><t t-esc="'{:,}'.format(plan.max_api_calls_per_day).replace(',', ' ')"/></strong> API calls/jour</span>
+                                        </div>
+                                        <div class="feature-item">
+                                            <span class="feature-icon">✓</span>
+                                            <span><strong><t t-esc="plan.max_databases"/></strong> base(s) de données</span>
+                                        </div>
+
+                                        <!-- Fonctionnalités -->
+                                        <div class="feature-divider"></div>
+
+                                        <div class="feature-item" t-if="plan.has_custom_domain">
+                                            <span class="feature-icon">✓</span>
+                                            <span>Domaine personnalisé</span>
+                                        </div>
+                                        <div class="feature-item" t-if="not plan.has_custom_domain">
+                                            <span class="feature-icon disabled">✗</span>
+                                            <span class="disabled">Domaine personnalisé</span>
+                                        </div>
+
+                                        <div class="feature-item" t-if="plan.has_white_label">
+                                            <span class="feature-icon">✓</span>
+                                            <span>White Label</span>
+                                        </div>
+                                        <div class="feature-item" t-if="not plan.has_white_label">
+                                            <span class="feature-icon disabled">✗</span>
+                                            <span class="disabled">White Label</span>
+                                        </div>
+
+                                        <div class="feature-item" t-if="plan.has_api_access">
+                                            <span class="feature-icon">✓</span>
+                                            <span>Accès API complet</span>
+                                        </div>
+                                        <div class="feature-item" t-if="not plan.has_api_access">
+                                            <span class="feature-icon disabled">✗</span>
+                                            <span class="disabled">Accès API</span>
+                                        </div>
+
+                                        <div class="feature-item" t-if="plan.has_advanced_analytics">
+                                            <span class="feature-icon">✓</span>
+                                            <span>Analytics avancés</span>
+                                        </div>
+                                        <div class="feature-item" t-if="not plan.has_advanced_analytics">
+                                            <span class="feature-icon disabled">✗</span>
+                                            <span class="disabled">Analytics avancés</span>
+                                        </div>
+
+                                        <!-- Support -->
+                                        <div class="feature-divider"></div>
+                                        <div class="feature-item">
+                                            <span class="feature-icon">💬</span>
+                                            <span>Support <strong><t t-esc="dict(plan._fields['support_level'].selection)[plan.support_level]"/></strong></span>
+                                        </div>
+
+                                        <t t-if="plan.trial_days > 0">
+                                            <div class="feature-item highlight">
+                                                <span class="feature-icon">🎁</span>
+                                                <span><strong><t t-esc="plan.trial_days"/> jours</strong> d'essai gratuit</span>
+                                            </div>
+                                        </t>
+                                    </div>
+
+                                    <div class="plan-cta">
+                                        <a t-att-href="'/saas/subscribe/' + str(plan.id)" class="btn-plan">
+                                            <t t-if="plan.price_monthly == 0 and plan.price_yearly == 0">
+                                                Commencer gratuitement
+                                            </t>
+                                            <t t-else="">
+                                                Choisir ce plan →
+                                            </t>
+                                        </a>
+                                    </div>
+                                </div>
+                            </t>
+                        </div>
+
+                        <!-- Price Calculator -->
+                        <div class="price-calculator">
+                            <h3>💡 Calculez votre coût mensuel</h3>
+                            <p>Simulez votre investissement en fonction de votre croissance</p>
+
+                            <div class="calculator-controls">
+                                <div class="control-group">
+                                    <label for="calc-clients">Nombre de clients</label>
+                                    <input type="range" id="calc-clients" min="1" max="1000" value="10" step="1"/>
+                                    <span class="control-value" id="clients-value">10</span>
+                                </div>
+                                <div class="control-group">
+                                    <label for="calc-plan">Plan sélectionné</label>
+                                    <select id="calc-plan" class="form-control">
+                                        <t t-foreach="plans" t-as="plan">
+                                            <option t-att-value="plan.id"
+                                                    t-att-data-monthly="plan.price_monthly"
+                                                    t-att-data-yearly="plan.price_yearly">
+                                                <t t-esc="plan.name"/>
+                                            </option>
+                                        </t>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="calculator-result">
+                                <div class="result-row">
+                                    <span>Coût mensuel:</span>
+                                    <strong id="monthly-cost">€</strong>
+                                </div>
+                                <div class="result-row">
+                                    <span>Coût annuel (avec réduction):</span>
+                                    <strong id="yearly-cost">€</strong>
+                                </div>
+                                <div class="result-row highlight">
+                                    <span>Économies annuelles:</span>
+                                    <strong id="savings">€</strong>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- FAQ Section -->
+                <section class="faq-section">
+                    <div class="container">
+                        <div class="section-header">
+                            <h2>Questions Fréquentes</h2>
+                            <p>Tout ce que vous devez savoir sur notre plateforme SaaS</p>
+                        </div>
+
+                        <div class="faq-grid">
+                            <div class="faq-item">
+                                <h4>🚀 Comment fonctionne le provisioning ?</h4>
+                                <p>Le provisioning est entièrement automatique. Lorsqu'un nouveau client s'inscrit, une base de données isolée est créée automatiquement en quelques secondes avec tous les modules configurés.</p>
+                            </div>
+
+                            <div class="faq-item">
+                                <h4>🔒 Mes données sont-elles sécurisées ?</h4>
+                                <p>Absolument. Chaque client a sa propre base de données complètement isolée. Nous effectuons des sauvegardes quotidiennes automatiques et tous les logs d'accès sont audités.</p>
+                            </div>
+
+                            <div class="faq-item">
+                                <h4>💳 Quels modes de paiement acceptez-vous ?</h4>
+                                <p>Nous acceptons tous les moyens de paiement via Stripe (cartes bancaires, SEPA, etc.) et PayPal. Les paiements sont sécurisés et conformes PCI-DSS.</p>
+                            </div>
+
+                            <div class="faq-item">
+                                <h4>📈 Puis-je changer de plan en cours de route ?</h4>
+                                <p>Oui ! Vous pouvez upgrader ou downgrader à tout moment. Les changements sont appliqués immédiatement et la facturation est ajustée au prorata.</p>
+                            </div>
+
+                            <div class="faq-item">
+                                <h4>🎯 Y a-t-il une période d'essai ?</h4>
+                                <p>La plupart de nos plans incluent une période d'essai gratuite (voir détails de chaque plan). Aucune carte bancaire requise pour démarrer l'essai.</p>
+                            </div>
+
+                            <div class="faq-item">
+                                <h4>🌐 Puis-je utiliser mon propre domaine ?</h4>
+                                <p>Oui, sur les plans Pro et Enterprise. Vous pouvez configurer votre propre domaine (ex: app.votremarque.com) avec certificat SSL automatique.</p>
+                            </div>
+
+                            <div class="faq-item">
+                                <h4>📊 Quelles métriques puis-je suivre ?</h4>
+                                <p>Vous avez accès à des dashboards complets : nombre de clients, MRR, taux de churn, utilisation de ressources, performances des bases, et bien plus.</p>
+                            </div>
+
+                            <div class="faq-item">
+                                <h4>🔌 L'API est-elle documentée ?</h4>
+                                <p>Oui, nous fournissons une documentation OpenAPI complète avec des exemples de code. Des SDKs sont disponibles en Python, JavaScript et PHP.</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Final CTA -->
+                <section class="final-cta">
+                    <div class="container">
+                        <h2>Prêt à lancer votre SaaS ?</h2>
+                        <p>Rejoignez des centaines d'entreprises qui font confiance à notre plateforme</p>
+                        <div class="cta-buttons">
+                            <a href="#pricing" class="btn-cta-primary">
+                                🚀 Commencer maintenant
+                            </a>
+                            <a href="#demo" class="btn-cta-secondary">
+                                📞 Contactez-nous
+                            </a>
+                        </div>
+                        <div class="trust-badges">
+                            <span>✓ Aucune carte bancaire requise</span>
+                            <span>✓ Support 24/7</span>
+                            <span>✓ Résiliable à tout moment</span>
+                        </div>
+                    </div>
+                </section>
+
+            </div>
+
+            <!-- JavaScript for Price Calculator and Billing Toggle -->
+            <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    // Billing toggle (Monthly/Yearly)
+                    const billingToggle = document.getElementById('billing-toggle');
+                    const priceMonthlyElements = document.querySelectorAll('.price-monthly');
+                    const priceYearlyElements = document.querySelectorAll('.price-yearly');
+                    const detailMonthlyElements = document.querySelectorAll('.detail-monthly');
+                    const detailYearlyElements = document.querySelectorAll('.detail-yearly');
+
+                    if (billingToggle) {
+                        billingToggle.addEventListener('change', function() {
+                            const isYearly = this.checked;
+
+                            priceMonthlyElements.forEach(el => el.style.display = isYearly ? 'none' : 'flex');
+                            priceYearlyElements.forEach(el => el.style.display = isYearly ? 'flex' : 'none');
+                            detailMonthlyElements.forEach(el => el.style.display = isYearly ? 'none' : 'block');
+                            detailYearlyElements.forEach(el => el.style.display = isYearly ? 'block' : 'none');
+
+                            updateCalculator();
+                        });
+                    }
+
+                    // Price Calculator
+                    const clientsInput = document.getElementById('calc-clients');
+                    const clientsValue = document.getElementById('clients-value');
+                    const planSelect = document.getElementById('calc-plan');
+                    const monthlyCostEl = document.getElementById('monthly-cost');
+                    const yearlyCostEl = document.getElementById('yearly-cost');
+                    const savingsEl = document.getElementById('savings');
+
+                    function updateCalculator() {
+                        if (!clientsInput || !planSelect) return;
+
+                        const numClients = parseInt(clientsInput.value);
+                        const selectedOption = planSelect.options[planSelect.selectedIndex];
+                        const monthlyPrice = parseFloat(selectedOption.dataset.monthly);
+                        const yearlyPrice = parseFloat(selectedOption.dataset.yearly);
+                        const isYearly = billingToggle ? billingToggle.checked : false;
+
+                        if (clientsValue) clientsValue.textContent = numClients;
+
+                        // Pour SaaS multi-tenant, le coût est le même quel que soit le nombre de clients
+                        // (c'est le propriétaire de la plateforme qui paie, pas par client)
+                        const monthlyCost = monthlyPrice;
+                        const yearlyCost = yearlyPrice;
+                        const savings = (monthlyCost * 12) - yearlyCost;
+
+                        if (monthlyCostEl) monthlyCostEl.textContent = monthlyCost.toFixed(2) + '€';
+                        if (yearlyCostEl) yearlyCostEl.textContent = yearlyCost.toFixed(2) + '€';
+                        if (savingsEl) savingsEl.textContent = savings.toFixed(2) + '€';
+                    }
+
+                    if (clientsInput) {
+                        clientsInput.addEventListener('input', updateCalculator);
+                    }
+                    if (planSelect) {
+                        planSelect.addEventListener('change', updateCalculator);
+                    }
+
+                    // Initial calculation
+                    updateCalculator();
+                });
+            </script>
+        </t>
+    </template>
+</odoo>
