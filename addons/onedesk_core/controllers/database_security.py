@@ -150,11 +150,7 @@ class DatabaseSecurity(Database):
     Hérite du contrôleur Database pour bloquer les accès non autorisés
     """
 
-<<<<<<< HEAD
     @http.route('/web/database/manager', type='http', auth="public", methods=['GET', 'POST'])
-=======
-    @http.route('/web/database/manager', type='http', auth="user", methods=['GET', 'POST'])
->>>>>>> 80e76ad173b31145bcccc1a3ba3f4ce6764a9975
     def manager(self, **kw):
         """
         Bloque l'accès au gestionnaire de bases de données pour tous sauf super admin
@@ -163,12 +159,11 @@ class DatabaseSecurity(Database):
         - En production SaaS, le database manager NE DOIT JAMAIS être accessible
         - Seuls les super admins de la base principale peuvent y accéder
         - Les clients et utilisateurs normaux sont bloqués
-<<<<<<< HEAD
 
-        NOTE: auth="public" permet d'accéder à l'utilisateur s'il est connecté
+        NOTE: auth="public" permet d'accéder à l'utilisateur connecté sans forcer la connexion
         """
-        # Vérifier si l'utilisateur est connecté et est super admin
-        if not request.env.uid or request.env.uid == request.env.ref('base.public_user').id:
+        # Si pas d'utilisateur connecté, bloquer
+        if not request.env.uid:
             _logger.warning("[SECURITY] Tentative d'accès non authentifié à /web/database/manager")
             return _blocked_response(
                 reason='Authentification requise',
@@ -176,12 +171,6 @@ class DatabaseSecurity(Database):
             )
 
         # Vérifier si l'utilisateur est super admin
-=======
-
-        NOTE: auth="user" force la connexion et redirige automatiquement vers login
-        """
-        # Avec auth="user", l'utilisateur est toujours connecté
->>>>>>> 80e76ad173b31145bcccc1a3ba3f4ce6764a9975
         user = request.env.user
 
         # Seuls les utilisateurs avec group_system peuvent accéder
@@ -199,20 +188,15 @@ class DatabaseSecurity(Database):
         _logger.info(f"[SECURITY] Accès autorisé à /web/database/manager pour {user.name} (Super Admin)")
         return super().manager(**kw)
 
-<<<<<<< HEAD
     @http.route('/web/database/selector', type='http', auth="public")
-=======
-    @http.route('/web/database/selector', type='http', auth="user")
->>>>>>> 80e76ad173b31145bcccc1a3ba3f4ce6764a9975
     def selector(self, **kw):
         """
         Bloque l'accès au sélecteur de bases de données
 
         En mode SaaS, les utilisateurs ne doivent PAS voir la liste des bases
-        NOTE: auth="user" force la connexion
+        NOTE: auth="public" permet d'accéder à l'utilisateur connecté
         """
-<<<<<<< HEAD
-        # Vérifier si l'utilisateur est connecté et n'est pas public
+        # Vérifier si l'utilisateur est connecté (et pas l'utilisateur public)
         if not request.env.uid or request.env.uid == request.env.ref('base.public_user').id:
             _logger.warning("[SECURITY] Tentative d'accès non authentifié à /web/database/selector")
             return _blocked_response(
@@ -220,8 +204,6 @@ class DatabaseSecurity(Database):
                 message='Le sélecteur de bases de données n\'est pas accessible.'
             )
 
-=======
->>>>>>> 80e76ad173b31145bcccc1a3ba3f4ce6764a9975
         user = request.env.user
 
         # Seuls les super admins peuvent voir le sélecteur
@@ -280,17 +262,13 @@ class DatabaseSecurity(Database):
             message='La suppression de bases de données via cette interface est désactivée. Utilisez le système de gestion SaaS.'
         )
 
-<<<<<<< HEAD
     @http.route('/web/database/backup', type='http', auth="public", methods=['POST'], csrf=False)
-=======
-    @http.route('/web/database/backup', type='http', auth="user", methods=['POST'], csrf=False)
->>>>>>> 80e76ad173b31145bcccc1a3ba3f4ce6764a9975
     def backup(self, *args, **kw):
         """
         Limite le backup aux super admins uniquement
-        NOTE: auth="user" force la connexion
+        NOTE: auth="public" permet d'accéder à l'utilisateur connecté
         """
-<<<<<<< HEAD
+        # Vérifier si l'utilisateur est connecté (et pas l'utilisateur public)
         if not request.env.uid or request.env.uid == request.env.ref('base.public_user').id:
             _logger.warning("[SECURITY] Tentative de backup non authentifié")
             return _blocked_response(
@@ -298,8 +276,6 @@ class DatabaseSecurity(Database):
                 message='Seuls les super administrateurs peuvent effectuer des backups.'
             )
 
-=======
->>>>>>> 80e76ad173b31145bcccc1a3ba3f4ce6764a9975
         user = request.env.user
         if not user.has_group('base.group_system'):
             _logger.warning(f"[SECURITY] Tentative de backup non autorisé par {user.name}")
