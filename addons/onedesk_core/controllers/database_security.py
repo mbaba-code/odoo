@@ -20,7 +20,7 @@ class DatabaseSecurity(Database):
     Hérite du contrôleur Database pour bloquer les accès non autorisés
     """
 
-    @http.route('/web/database/manager', type='http', auth="none", website=True)
+    @http.route('/web/database/manager', type='http', auth="none")
     def manager(self, **kw):
         """
         Bloque l'accès au gestionnaire de bases de données pour tous sauf super admin
@@ -39,7 +39,7 @@ class DatabaseSecurity(Database):
             })
 
         # Vérifier si l'utilisateur est super admin
-        user = request.env.user
+        user = request.env['res.users'].browse(request.env.uid)
 
         # Seuls les utilisateurs avec group_system peuvent accéder
         if not user.has_group('base.group_system'):
@@ -56,7 +56,7 @@ class DatabaseSecurity(Database):
         _logger.info(f"[SECURITY] Accès autorisé à /web/database/manager pour {user.name} (Super Admin)")
         return super().manager(**kw)
 
-    @http.route('/web/database/selector', type='http', auth="none", website=True)
+    @http.route('/web/database/selector', type='http', auth="none")
     def selector(self, **kw):
         """
         Bloque l'accès au sélecteur de bases de données
@@ -71,7 +71,7 @@ class DatabaseSecurity(Database):
                 'message': 'Le sélecteur de bases de données n\'est pas accessible.'
             })
 
-        user = request.env.user
+        user = request.env['res.users'].browse(request.env.uid)
 
         # Seuls les super admins peuvent voir le sélecteur
         if not user.has_group('base.group_system'):
@@ -88,7 +88,7 @@ class DatabaseSecurity(Database):
         _logger.info(f"[SECURITY] Accès autorisé à /web/database/selector pour {user.name} (Super Admin)")
         return super().selector(**kw)
 
-    @http.route('/web/database/create', type='http', auth="none", methods=['POST'], csrf=False, website=True)
+    @http.route('/web/database/create', type='http', auth="none", methods=['POST'], csrf=False)
     def create(self, *args, **kw):
         """
         Bloque complètement la création de bases via HTTP
@@ -104,7 +104,7 @@ class DatabaseSecurity(Database):
                       'Utilisez le système de provisioning SaaS.'
         })
 
-    @http.route('/web/database/duplicate', type='http', auth="none", methods=['POST'], csrf=False, website=True)
+    @http.route('/web/database/duplicate', type='http', auth="none", methods=['POST'], csrf=False)
     def duplicate(self, *args, **kw):
         """
         Bloque la duplication de bases via HTTP
@@ -115,7 +115,7 @@ class DatabaseSecurity(Database):
             'message': 'La duplication de bases de données via cette interface est désactivée.'
         })
 
-    @http.route('/web/database/drop', type='http', auth="none", methods=['POST'], csrf=False, website=True)
+    @http.route('/web/database/drop', type='http', auth="none", methods=['POST'], csrf=False)
     def drop(self, *args, **kw):
         """
         Bloque la suppression de bases via HTTP
@@ -131,22 +131,30 @@ class DatabaseSecurity(Database):
                       'Utilisez le système de gestion SaaS.'
         })
 
-    @http.route('/web/database/backup', type='http', auth="none", methods=['POST'], csrf=False, website=True)
+    @http.route('/web/database/backup', type='http', auth="none", methods=['POST'], csrf=False)
     def backup(self, *args, **kw):
         """
         Limite le backup aux super admins uniquement
         """
-        if not request.env.uid or not request.env.user.has_group('base.group_system'):
+        if not request.env.uid:
+            _logger.warning("[SECURITY] Tentative de backup non authentifié")
+            return request.render('onedesk_core.database_manager_blocked', {
+                'reason': 'Accès refusé',
+                'message': 'Seuls les super administrateurs peuvent effectuer des backups.'
+            })
+
+        user = request.env['res.users'].browse(request.env.uid)
+        if not user.has_group('base.group_system'):
             _logger.warning("[SECURITY] Tentative de backup non autorisé")
             return request.render('onedesk_core.database_manager_blocked', {
                 'reason': 'Accès refusé',
                 'message': 'Seuls les super administrateurs peuvent effectuer des backups.'
             })
 
-        _logger.info(f"[SECURITY] Backup autorisé pour {request.env.user.name}")
+        _logger.info(f"[SECURITY] Backup autorisé pour {user.name}")
         return super().backup(*args, **kw)
 
-    @http.route('/web/database/restore', type='http', auth="none", methods=['POST'], csrf=False, website=True)
+    @http.route('/web/database/restore', type='http', auth="none", methods=['POST'], csrf=False)
     def restore(self, *args, **kw):
         """
         Bloque complètement la restauration via HTTP
@@ -157,7 +165,7 @@ class DatabaseSecurity(Database):
             'message': 'La restauration de bases de données via cette interface est désactivée.'
         })
 
-    @http.route('/web/database/change_password', type='http', auth="none", methods=['POST'], csrf=False, website=True)
+    @http.route('/web/database/change_password', type='http', auth="none", methods=['POST'], csrf=False)
     def change_password(self, *args, **kw):
         """
         Bloque le changement de master password via HTTP
