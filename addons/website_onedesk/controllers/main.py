@@ -349,6 +349,34 @@ class OneDeskWebsite(http.Controller):
 
     # ==================== SUBSCRIPTION / PRICING ====================
 
+    # ==================== SAAS PRODUCT LANDING PAGE ====================
+
+    @http.route('/saas', type='http', auth='public', website=True)
+    def saas_landing_page(self, **kw):
+        """Landing page pour le produit SaaS avec tarifs dynamiques"""
+        # Récupérer tous les plans SaaS actifs
+        plans = request.env['saas.plan'].sudo().search([
+            ('active', '=', True)
+        ], order='sequence')
+
+        return request.render('website_onedesk.saas_landing_page', {
+            'plans': plans,
+            'page_title': 'Plateforme SaaS Multi-Tenant - Solution Professionnelle',
+        })
+
+    @http.route('/saas/subscribe/<int:plan_id>', type='http', auth='public', website=True)
+    def saas_subscribe(self, plan_id, **kw):
+        """Page de souscription pour un plan SaaS spécifique"""
+        plan = request.env['saas.plan'].sudo().browse(plan_id)
+
+        if not plan.exists():
+            return request.render('website.404')
+
+        return request.render('website_onedesk.saas_subscribe_form', {
+            'plan': plan,
+            'page_title': f'S\'abonner au plan {plan.name}',
+        })
+
     @http.route('/onedesk/subscription', type='http', auth='public', website=True)
     def subscription_plans(self, **kw):
         """Page de plans d'abonnement"""
