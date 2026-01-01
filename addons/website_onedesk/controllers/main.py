@@ -446,10 +446,12 @@ class OneDeskWebsite(http.Controller):
 
             if not saas_client:
                 # Déterminer l'état initial
+                # Plans gratuits = actif immédiatement
+                # Plans payants = trial (en attente de paiement) puis active après paiement
                 if is_free_plan:
                     initial_state = 'active'
                 else:
-                    initial_state = 'pending_payment'
+                    initial_state = 'trial'  # En attente de paiement
 
                 # Retry pour gérer les erreurs de concurrence
                 for attempt in range(3):
