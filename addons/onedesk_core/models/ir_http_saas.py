@@ -214,7 +214,16 @@ class IrHttp(models.AbstractModel):
     def _dispatch(cls, endpoint):
         """
         Override pour vérifier l'état de la base avant chaque requête
+        ET forcer la base maître pour éviter le database selector
         """
+        # SÉCURITÉ: Forcer la base maître dans la session si non définie
+        # Cela empêche la redirection automatique vers le database selector
+        if not request.session.db:
+            master_db = cls._get_master_database()
+            if master_db:
+                request.session.db = master_db
+                _logger.debug(f"[SAAS SECURITY] Base maître forcée dans session: {master_db}")
+
         # Vérifier l'accès à la base de données
         db_name = request.db if hasattr(request, 'db') else None
 
