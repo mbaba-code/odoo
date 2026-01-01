@@ -211,6 +211,30 @@ class IrHttp(models.AbstractModel):
         return True
 
     @classmethod
+    def _authenticate(cls, endpoint):
+        """
+        Override pour empêcher la redirection automatique vers /web/database/selector
+
+        SÉCURITÉ: En mode SaaS, on ne veut JAMAIS rediriger vers le database selector,
+        même si la session n'a pas de base définie.
+        """
+        # Appeler la méthode parent normalement
+        result = super()._authenticate(endpoint)
+
+        # Si la méthode parent a déclenché une redirection vers le selector, l'intercepter
+        # et forcer la base maître dans la session à la place
+        if hasattr(request, 'session') and not request.session.db:
+            # Forcer la base maître pour éviter la redirection vers selector
+            from odoo.tools import config
+            master_db = config.get('db_name') or cls._get_master_database()
+
+            if master_db:
+                request.session.db = master_db
+                _logger.info(f"[SAAS SECURITY] Base forcée dans _authenticate: {master_db}")
+
+        return result
+
+    @classmethod
     def _dispatch(cls, endpoint):
         """
         Override pour vérifier l'état de la base avant chaque requête
