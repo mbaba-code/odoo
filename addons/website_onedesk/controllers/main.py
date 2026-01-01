@@ -428,25 +428,6 @@ class OneDeskWebsite(http.Controller):
                     content_type='application/json'
                 )
 
-            # Créer ou récupérer la société client
-            Company = request.env['res.company'].sudo()
-            company = Company.search([('name', '=', company_name)], limit=1)
-            if not company:
-                company = Company.create({
-                    'name': company_name,
-                })
-
-            # Créer ou récupérer le contact
-            Partner = request.env['res.partner'].sudo()
-            partner = Partner.search([('email', '=', email)], limit=1)
-            if not partner:
-                partner = Partner.create({
-                    'name': contact_name,
-                    'email': email,
-                    'phone': phone if phone else False,
-                    'company_id': company.id,
-                })
-
             # Déterminer si le plan est gratuit
             is_free_plan = (plan.price_monthly == 0 and plan.price_yearly == 0)
             payment_mode = self._get_payment_mode()
@@ -461,7 +442,7 @@ class OneDeskWebsite(http.Controller):
 
             # Créer le client SaaS
             SaasClient = request.env['saas.client'].sudo()
-            saas_client = SaasClient.search([('company_id', '=', company.id)], limit=1)
+            saas_client = SaasClient.search([('email', '=', email)], limit=1)
 
             if not saas_client:
                 # Déterminer l'état initial
@@ -474,11 +455,13 @@ class OneDeskWebsite(http.Controller):
                 for attempt in range(3):
                     try:
                         saas_client = SaasClient.create({
-                            'company_id': company.id,
+                            'company_name': company_name,
+                            'name': contact_name,
+                            'email': email,
+                            'phone': phone if phone else False,
                             'plan_id': plan.id,
                             'subscription_state': initial_state,
                             'subscription_billing': billing_cycle,
-                            'billing_contact_id': partner.id,
                         })
                         _logger.info(f'✅ Created SaaS client {saas_client.id} (state={initial_state})')
                         break
