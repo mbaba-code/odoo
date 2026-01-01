@@ -322,6 +322,13 @@ class IrHttp(models.AbstractModel):
         - clientb.onedesk.com → onedesk_client_2_clientb
         - app.onedesk.com → onedesk_core (base maître)
         """
+        # SÉCURITÉ: Si db_name est défini dans la config, TOUJOURS l'utiliser
+        # Cela empêche complètement le database selector
+        from odoo.tools import config
+        if config.get('db_name'):
+            db_name = config.get('db_name')
+            _logger.debug(f"[SAAS SECURITY] Utilisation db_name du config: {db_name}")
+            return db_name
 
         # Récupérer le Host header
         host = httprequest.environ.get('HTTP_HOST', '').split(':')[0]
