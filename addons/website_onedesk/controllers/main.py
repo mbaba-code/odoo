@@ -480,15 +480,22 @@ class OneDeskWebsite(http.Controller):
                     'subscription_billing': billing_cycle,
                 })
 
-            # Créer un audit log
-            request.env['saas.audit.log'].sudo().create({
-                'log_type': 'subscription_created',
-                'severity': 'info',
-                'description': f'Nouvelle souscription SaaS créée: {plan.name} ({billing_cycle}) - {"Gratuit" if is_free_plan else "Payant"}',
-                'actor_name': contact_name,
-                'actor_email': email,
-                'result': 'success',
-            })
+            # Log audit (optionnel)
+            try:
+                request.env['saas.audit_log'].sudo().log_action(
+                    action='provision',
+                    client_id=saas_client.id,
+                    status='success',
+                    metadata={
+                        'plan': plan.name,
+                        'billing_cycle': billing_cycle,
+                        'is_free': is_free_plan,
+                        'contact_name': contact_name,
+                        'contact_email': email,
+                    }
+                )
+            except Exception as e:
+                _logger.warning(f'⚠️ Impossible de créer l\'audit log: {e}')
 
             # Logique différenciée gratuit/payant
             if is_free_plan:
@@ -684,7 +691,10 @@ class OneDeskWebsite(http.Controller):
             })
 
         currency = request.env.company.currency_id
-        partner = client.billing_contact_id or request.env.user.partner_id
+        # Récupérer le partenaire depuis l'email du client
+        partner = request.env['res.partner'].sudo().search([('email', '=', client.email)], limit=1)
+        if not partner:
+            partner = request.env.user.partner_id
 
         _logger.info(f'💳 SaaS Payment PROD - Client: {client.id}, Amount: {amount}€')
 
@@ -755,13 +765,17 @@ class OneDeskWebsite(http.Controller):
                 # Paiement échoué
                 _logger.warning(f'❌ Payment failed for SaaS client {client.id}: {tx.state_message}')
 
-                # Log l'échec
-                request.env['saas.audit.log'].sudo().create({
-                    'log_type': 'payment_failed',
-                    'severity': 'warning',
-                    'description': f'Échec de paiement SaaS pour client {client.id}: {tx.state_message}',
-                    'result': 'failed',
-                })
+                # Log l'échec (optionnel)
+                try:
+                    request.env['saas.audit_log'].sudo().log_action(
+                        action='access_denied',  # Utiliser une action existante
+                        client_id=client.id,
+                        status='error',
+                        error_message=f'Échec de paiement: {tx.state_message}',
+                        metadata={'transaction_state': tx.state}
+                    )
+                except Exception as e:
+                    _logger.warning(f'⚠️ Impossible de créer l\'audit log: {e}')
 
                 return request.redirect(f'/saas/payment/error?error={tx.state_message or "payment_failed"}')
 
@@ -786,7 +800,7 @@ class OneDeskWebsite(http.Controller):
         })
 
         # 2. Créer une invitation si l'utilisateur n'existe pas encore
-        contact_email = client.billing_contact_id.email
+        contact_email = client.email
         _logger.info(f'📧 Vérification invitation pour {contact_email}')
 
         existing_user = request.env['res.users'].sudo().search([('login', '=', contact_email)], limit=1)
@@ -802,13 +816,16 @@ class OneDeskWebsite(http.Controller):
             })
             _logger.info(f'✅ Invitation créée: ID={invitation.id}')
 
-        # 3. Créer un audit log
-        request.env['saas.audit.log'].sudo().create({
-            'log_type': 'payment_validated',
-            'severity': 'info',
-            'description': f'Paiement validé et client SaaS activé: {client.id}',
-            'result': 'success',
-        })
+        # 3. Créer un audit log (optionnel)
+        try:
+            request.env['saas.audit_log'].sudo().log_action(
+                action='provision_success',
+                client_id=client.id,
+                status='success',
+                metadata={'payment_validated': True, 'subscription_state': 'active'}
+            )
+        except Exception as e:
+            _logger.warning(f'⚠️ Impossible de créer l\'audit log: {e}')
 
         _logger.info(f'✅ SaaS Client {client.id} fully activated')
 
@@ -816,7 +833,7 @@ class OneDeskWebsite(http.Controller):
         """
         Obtenir l'URL de redirection après paiement SaaS réussi
         """
-        contact_email = client.billing_contact_id.email
+        contact_email = client.email
         _logger.info(f'🔍 Recherche invitation SaaS pour {contact_email}')
 
         # Chercher une invitation en attente
