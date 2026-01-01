@@ -1,0 +1,311 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Page de simulation de paiement (MODE TEST) -->
+    <template id="saas_payment_test_page" name="SaaS Payment Test Page">
+        <t t-call="website.layout">
+            <link rel="stylesheet" href="/website_onedesk/static/css/payment.css"/>
+
+            <div class="container mt-5 mb-5">
+                <div class="row justify-content-center">
+                    <div class="col-lg-6">
+                        <!-- Header with TEST badge -->
+                        <div class="alert alert-warning text-center mb-4">
+                            <h4 class="mb-2">🧪 MODE TEST - Simulation de paiement</h4>
+                            <p class="mb-0">Aucune transaction réelle ne sera effectuée</p>
+                        </div>
+
+                        <!-- Payment Summary Card -->
+                        <div class="card shadow-lg mb-4">
+                            <div class="card-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+                                <h4 class="mb-0 text-center">💳 Paiement de votre souscription</h4>
+                            </div>
+                            <div class="card-body p-4">
+                                <!-- Plan Info -->
+                                <div class="mb-4">
+                                    <h5 class="border-bottom pb-2 mb-3">📋 Détails de votre commande</h5>
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <span>Plan :</span>
+                                        <strong t-esc="plan.name"></strong>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <span>Facturation :</span>
+                                        <strong>
+                                            <t t-if="request.params.get('cycle') == 'yearly'">Annuelle</t>
+                                            <t t-else="">Mensuelle</t>
+                                        </strong>
+                                    </div>
+                                    <t t-if="plan.trial_days > 0">
+                                        <div class="alert alert-success mt-3">
+                                            🎁 <strong><t t-esc="plan.trial_days"/> jours</strong> d'essai gratuit inclus
+                                        </div>
+                                    </t>
+                                </div>
+
+                                <!-- Amount -->
+                                <div class="alert alert-primary">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <h5 class="mb-0">Montant total</h5>
+                                        <h3 class="mb-0">
+                                            <span t-esc="'{:.2f}'.format(amount)"></span>€
+                                        </h3>
+                                    </div>
+                                </div>
+
+                                <!-- Client Info -->
+                                <div class="mt-4">
+                                    <h6 class="border-bottom pb-2 mb-3">👤 Client</h6>
+                                    <p class="mb-1"><strong t-esc="client.company_id.name"></strong></p>
+                                    <p class="text-muted mb-0 small" t-esc="client.billing_contact_id.email"></p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Simulation Buttons -->
+                        <div class="card shadow-lg">
+                            <div class="card-body p-4 text-center">
+                                <p class="mb-4">Choisissez le résultat de la simulation :</p>
+
+                                <button type="button" class="btn btn-success btn-lg mb-3 w-100" onclick="simulatePayment('success')">
+                                    ✅ Simuler un paiement réussi
+                                </button>
+
+                                <button type="button" class="btn btn-danger btn-lg w-100" onclick="simulatePayment('fail')">
+                                    ❌ Simuler un échec de paiement
+                                </button>
+
+                                <div class="mt-4 text-muted">
+                                    <small>🧪 Mode test activé - Aucun débit réel</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- JavaScript -->
+            <script>
+                function simulatePayment(action) {
+                    const btn = event.target;
+                    btn.disabled = true;
+                    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Simulation en cours...';
+
+                    // Simulate payment
+                    fetch('/saas/payment/test/simulate', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                        },
+                        body: new URLSearchParams({
+                            'client_id': <t t-esc="client.id"/>,
+                            'action': action
+                        })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'success') {
+                            alert(data.message);
+                            window.location.href = data.redirect_url;
+                        } else {
+                            alert(data.message);
+                            btn.disabled = false;
+                            if (action === 'success') {
+                                btn.innerHTML = '✅ Simuler un paiement réussi';
+                            } else {
+                                btn.innerHTML = '❌ Simuler un échec de paiement';
+                            }
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('Une erreur est survenue lors de la simulation');
+                        btn.disabled = false;
+                        if (action === 'success') {
+                            btn.innerHTML = '✅ Simuler un paiement réussi';
+                        } else {
+                            btn.innerHTML = '❌ Simuler un échec de paiement';
+                        }
+                    });
+                }
+            </script>
+        </t>
+    </template>
+
+    <!-- Page de paiement réel (MODE PROD) -->
+    <template id="saas_payment_page_prod" name="SaaS Payment Production Page">
+        <t t-call="website.layout">
+            <link rel="stylesheet" href="/website_onedesk/static/css/payment.css"/>
+
+            <div class="container mt-5 mb-5">
+                <div class="row justify-content-center">
+                    <div class="col-lg-8">
+                        <!-- Header -->
+                        <div class="text-center mb-4">
+                            <h2>💳 Paiement sécurisé</h2>
+                            <p class="text-muted">Finalisez votre souscription au plan <strong t-esc="plan.name"></strong></p>
+                        </div>
+
+                        <div class="row">
+                            <!-- Left: Order Summary -->
+                            <div class="col-md-5 mb-4">
+                                <div class="card shadow-sm">
+                                    <div class="card-body">
+                                        <h5 class="mb-3">📋 Résumé de votre commande</h5>
+
+                                        <div class="d-flex justify-content-between mb-2">
+                                            <span>Plan :</span>
+                                            <strong t-esc="plan.name"></strong>
+                                        </div>
+
+                                        <div class="d-flex justify-content-between mb-2">
+                                            <span>Facturation :</span>
+                                            <strong>
+                                                <t t-if="request.params.get('cycle') == 'yearly'">Annuelle</t>
+                                                <t t-else="">Mensuelle</t>
+                                            </strong>
+                                        </div>
+
+                                        <hr/>
+
+                                        <div class="d-flex justify-content-between">
+                                            <h5 class="mb-0">Total</h5>
+                                            <h4 class="mb-0 text-primary">
+                                                <span t-esc="'{:.2f}'.format(amount)"></span>€
+                                            </h4>
+                                        </div>
+
+                                        <t t-if="plan.trial_days > 0">
+                                            <div class="alert alert-success mt-3">
+                                                <small>🎁 <t t-esc="plan.trial_days"/> jours d'essai gratuit</small>
+                                            </div>
+                                        </t>
+
+                                        <!-- Features Included -->
+                                        <div class="mt-4">
+                                            <h6 class="mb-2">✨ Inclus dans votre plan</h6>
+                                            <ul class="list-unstyled small text-muted">
+                                                <li>✓ <t t-esc="plan.max_users"/> utilisateurs</li>
+                                                <li>✓ <t t-esc="int(plan.max_storage_gb)"/> GB stockage</li>
+                                                <li>✓ <t t-esc="'{:,}'.format(plan.max_api_calls_per_day).replace(',', ' ')"/> API calls/jour</li>
+                                                <t t-if="plan.has_custom_domain">
+                                                    <li>✓ Domaine personnalisé</li>
+                                                </t>
+                                                <t t-if="plan.has_api_access">
+                                                    <li>✓ Accès API complet</li>
+                                                </t>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Right: Payment Form -->
+                            <div class="col-md-7">
+                                <div class="card shadow-sm">
+                                    <div class="card-header bg-primary text-white">
+                                        <h5 class="mb-0">Informations de paiement</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <!-- Odoo Payment Form -->
+                                        <div id="payment_form">
+                                            <t t-call="payment.form"/>
+                                        </div>
+
+                                        <!-- Security Badges -->
+                                        <div class="mt-4 text-center">
+                                            <p class="text-muted small mb-2">
+                                                <i class="fa fa-lock me-1"/>
+                                                Paiement sécurisé SSL/TLS
+                                            </p>
+                                            <div class="d-flex justify-content-center gap-3">
+                                                <img src="/web/static/img/payment_stripe.png" alt="Stripe" height="24" style="opacity: 0.6;"/>
+                                                <img src="/web/static/img/payment_paypal.png" alt="PayPal" height="24" style="opacity: 0.6;"/>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Trust Badges -->
+                        <div class="text-center mt-4">
+                            <p class="text-muted small">
+                                <span class="me-3">✓ Paiement sécurisé</span>
+                                <span class="me-3">✓ Sans engagement</span>
+                                <span>✓ Support 24/7</span>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <!-- Page de succès après paiement -->
+    <template id="saas_payment_success" name="SaaS Payment Success">
+        <t t-call="website.layout">
+            <div class="container mt-5 mb-5">
+                <div class="row justify-content-center">
+                    <div class="col-lg-6 text-center">
+                        <div class="card shadow-lg">
+                            <div class="card-body p-5">
+                                <div class="mb-4" style="font-size: 80px;">🎉</div>
+                                <h2 class="mb-3">Paiement réussi !</h2>
+                                <p class="lead mb-4">
+                                    Votre souscription a été activée avec succès.
+                                </p>
+                                <div class="alert alert-success">
+                                    <p class="mb-2"><strong>Prochaines étapes :</strong></p>
+                                    <ol class="text-start mb-0">
+                                        <li>Consultez votre email pour activer votre compte</li>
+                                        <li>Configurez votre environnement SaaS</li>
+                                        <li>Commencez à utiliser la plateforme</li>
+                                    </ol>
+                                </div>
+                                <a href="/web/login" class="btn btn-primary btn-lg mt-3">
+                                    Accéder à mon compte →
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <!-- Page d'erreur de paiement -->
+    <template id="saas_payment_error" name="SaaS Payment Error">
+        <t t-call="website.layout">
+            <div class="container mt-5 mb-5">
+                <div class="row justify-content-center">
+                    <div class="col-lg-6 text-center">
+                        <div class="card shadow-lg">
+                            <div class="card-body p-5">
+                                <div class="mb-4" style="font-size: 80px;">❌</div>
+                                <h2 class="mb-3 text-danger">Échec du paiement</h2>
+                                <p class="lead mb-4">
+                                    Votre paiement n'a pas pu être traité.
+                                </p>
+                                <div class="alert alert-warning text-start">
+                                    <p class="mb-2"><strong>Raisons possibles :</strong></p>
+                                    <ul class="mb-0">
+                                        <li>Fonds insuffisants</li>
+                                        <li>Carte expirée ou invalide</li>
+                                        <li>Limitation de votre banque</li>
+                                    </ul>
+                                </div>
+                                <div class="mt-4">
+                                    <a href="/saas" class="btn btn-primary me-2">
+                                        ← Retour aux plans
+                                    </a>
+                                    <a href="#" onclick="history.back(); return false;" class="btn btn-outline-secondary">
+                                        Réessayer le paiement
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+</odoo>

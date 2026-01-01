@@ -490,19 +490,24 @@ input:checked + .toggle-slider:before {
 
 .plans-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-    gap: 32px;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 24px;
     margin-bottom: 60px;
+    max-width: 1200px;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 .plan-card {
     background: white;
     border-radius: var(--radius-lg);
-    padding: 32px;
+    padding: 24px;
     box-shadow: var(--shadow-md);
     transition: all 0.3s ease;
     position: relative;
     border: 2px solid transparent;
+    max-width: 380px;
+    margin: 0 auto;
 }
 
 .plan-card:hover {
@@ -532,16 +537,16 @@ input:checked + .toggle-slider:before {
 
 .plan-header {
     text-align: center;
-    padding-bottom: 24px;
+    padding-bottom: 20px;
     border-bottom: 2px solid var(--border-gray);
-    margin-bottom: 24px;
+    margin-bottom: 20px;
 }
 
 .plan-name {
-    font-size: 1.6rem;
+    font-size: 1.4rem;
     font-weight: 800;
     color: var(--text-dark);
-    margin-bottom: 16px;
+    margin-bottom: 12px;
 }
 
 .plan-price {
@@ -559,19 +564,19 @@ input:checked + .toggle-slider:before {
 }
 
 .currency {
-    font-size: 1.5rem;
+    font-size: 1.2rem;
     font-weight: 700;
     color: var(--text-gray);
 }
 
 .amount {
-    font-size: 3.5rem;
+    font-size: 2.8rem;
     font-weight: 800;
     color: var(--text-dark);
 }
 
 .period {
-    font-size: 1.1rem;
+    font-size: 1rem;
     color: var(--text-gray);
 }
 
