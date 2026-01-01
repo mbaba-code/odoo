@@ -211,6 +211,30 @@ class IrHttp(models.AbstractModel):
         return True
 
     @classmethod
+    def _authenticate(cls, endpoint):
+        """
+        Override pour empêcher la redirection automatique vers /web/database/selector
+
+        SÉCURITÉ: En mode SaaS, on ne veut JAMAIS rediriger vers le database selector,
+        même si la session n'a pas de base définie.
+        """
+        # Appeler la méthode parent normalement
+        result = super()._authenticate(endpoint)
+
+        # Si la méthode parent a déclenché une redirection vers le selector, l'intercepter
+        # et forcer la base maître dans la session à la place
+        if hasattr(request, 'session') and not request.session.db:
+            # Forcer la base maître pour éviter la redirection vers selector
+            from odoo.tools import config
+            master_db = config.get('db_name') or cls._get_master_database()
+
+            if master_db:
+                request.session.db = master_db
+                _logger.info(f"[SAAS SECURITY] Base forcée dans _authenticate: {master_db}")
+
+        return result
+
+    @classmethod
     def _dispatch(cls, endpoint):
         """
         Override pour vérifier l'état de la base avant chaque requête
@@ -322,6 +346,19 @@ class IrHttp(models.AbstractModel):
         - clientb.onedesk.com → onedesk_client_2_clientb
         - app.onedesk.com → onedesk_core (base maître)
         """
+        # SÉCURITÉ: Si db_name est défini dans la config, TOUJOURS l'utiliser
+        # Cela empêche complètement le database selector
+        from odoo.tools import config
+        if config.get('db_name'):
+            db_name = config.get('db_name')
+            _logger.debug(f"[SAAS SECURITY] Utilisation db_name du config: {db_name}")
+
+            # IMPORTANT: Mettre à jour la session pour persister la base
+            # Sans ça, la prochaine requête redemandera la base
+            if hasattr(httprequest, 'session'):
+                httprequest.session.db = db_name
+
+            return db_name
 
         # Récupérer le Host header
         host = httprequest.environ.get('HTTP_HOST', '').split(':')[0]
