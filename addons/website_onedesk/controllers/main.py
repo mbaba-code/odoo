@@ -440,53 +440,59 @@ class OneDeskWebsite(http.Controller):
             else:
                 amount = plan.price_monthly
 
-            # Créer le client SaaS
+            # Vérifier si un client avec cet email existe déjà
             SaasClient = request.env['saas.client'].sudo()
-            saas_client = SaasClient.search([('email', '=', email)], limit=1)
+            existing_client = SaasClient.search([('email', '=', email)], limit=1)
 
-            if not saas_client:
-                # Déterminer l'état initial
-                # Plans gratuits = actif immédiatement
-                # Plans payants = trial (en attente de paiement) puis active après paiement
-                if is_free_plan:
-                    initial_state = 'active'
-                else:
-                    initial_state = 'trial'  # En attente de paiement
+            if existing_client:
+                # Client déjà existant - retourner une erreur
+                _logger.warning(f'⚠️ Tentative d\'inscription avec email existant: {email}')
+                return http.Response(
+                    json.dumps({
+                        'status': 'error',
+                        'message': f'Un compte avec l\'email {email} existe déjà. Veuillez utiliser un autre email ou contactez le support.',
+                    }),
+                    content_type='application/json'
+                )
 
-                # Retry pour gérer les erreurs de concurrence
-                for attempt in range(3):
-                    try:
-                        saas_client = SaasClient.create({
-                            'company_name': company_name,
-                            'name': contact_name,
-                            'email': email,
-                            'phone': phone if phone else False,
-                            'plan_id': plan.id,
-                            'subscription_state': initial_state,
-                            'subscription_billing': billing_cycle,
-                        })
-                        # Commit explicite pour s'assurer que le client est bien enregistré
-                        request.env.cr.commit()
-                        _logger.info(f'✅ Created SaaS client {saas_client.id} (state={initial_state}) - COMMITTED')
-                        break
-                    except psycopg2.errors.SerializationFailure as e:
-                        if attempt < 2:
-                            _logger.warning(f'⚠️ Erreur de concurrence (tentative {attempt + 1}/3), retry...')
-                            request.env.cr.rollback()
-                            time.sleep(0.1)
-                        else:
-                            _logger.error(f'❌ Échec création client après 3 tentatives: {e}')
-                            raise
-                    except Exception as e:
-                        _logger.error(f'❌ Erreur lors de la création du client SaaS: {e}')
-                        request.env.cr.rollback()
-                        raise
+            # Créer le nouveau client SaaS
+            # Déterminer l'état initial
+            # Plans gratuits = actif immédiatement
+            # Plans payants = trial (en attente de paiement) puis active après paiement
+            if is_free_plan:
+                initial_state = 'active'
             else:
-                # Mettre à jour le client existant
-                saas_client.write({
-                    'plan_id': plan.id,
-                    'subscription_billing': billing_cycle,
-                })
+                initial_state = 'trial'  # En attente de paiement
+
+            # Retry pour gérer les erreurs de concurrence
+            saas_client = None
+            for attempt in range(3):
+                try:
+                    saas_client = SaasClient.create({
+                        'company_name': company_name,
+                        'name': contact_name,
+                        'email': email,
+                        'phone': phone if phone else False,
+                        'plan_id': plan.id,
+                        'subscription_state': initial_state,
+                        'subscription_billing': billing_cycle,
+                    })
+                    # Commit explicite pour s'assurer que le client est bien enregistré
+                    request.env.cr.commit()
+                    _logger.info(f'✅ Created SaaS client {saas_client.id} (state={initial_state}) - COMMITTED')
+                    break
+                except psycopg2.errors.SerializationFailure as e:
+                    if attempt < 2:
+                        _logger.warning(f'⚠️ Erreur de concurrence (tentative {attempt + 1}/3), retry...')
+                        request.env.cr.rollback()
+                        time.sleep(0.1)
+                    else:
+                        _logger.error(f'❌ Échec création client après 3 tentatives: {e}')
+                        raise
+                except Exception as e:
+                    _logger.error(f'❌ Erreur lors de la création du client SaaS: {e}')
+                    request.env.cr.rollback()
+                    raise
 
             # Log audit (optionnel)
             try:
