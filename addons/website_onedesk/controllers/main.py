@@ -501,40 +501,19 @@ class OneDeskWebsite(http.Controller):
 
             # Logique différenciée gratuit/payant
             if is_free_plan:
-                # ✅ PLAN GRATUIT: Créer invitation et activer
+                # ✅ PLAN GRATUIT: Activation immédiate
                 _logger.info('🆓 Plan gratuit - Activation immédiate')
 
-                # Vérifier si l'utilisateur existe déjà
-                existing_user = request.env['res.users'].sudo().search([('login', '=', email)], limit=1)
+                # Redirection vers page de succès
+                base_url = request.env['ir.config_parameter'].sudo().get_param('web.base.url')
+                success_url = f"{base_url}/saas/payment/success?client_id={saas_client.id}&free_plan=1"
 
-                if not existing_user:
-                    # Créer une invitation
-                    invitation = request.env['saas.client.invitation'].sudo().create({
-                        'client_id': saas_client.id,
-                        'email': email,
-                        'role': 'admin',
-                        'state': 'pending',
-                        'expires_date': fields.Datetime.now() + timedelta(days=7),
-                    })
-                    _logger.info(f'✅ Invitation créée: token={invitation.invitation_token}')
-
-                    # URL d'invitation
-                    base_url = request.env['ir.config_parameter'].sudo().get_param('web.base.url')
-                    invitation_url = f"{base_url}/saas/invite/accept/{invitation.invitation_token}"
-
-                    response = {
-                        'status': 'success',
-                        'message': f'✅ Souscription créée avec succès!',
-                        'is_free': True,
-                        'redirect_url': invitation_url,
-                    }
-                else:
-                    response = {
-                        'status': 'success',
-                        'message': f'✅ Souscription créée!\n\nVous pouvez vous connecter avec votre compte existant.',
-                        'is_free': True,
-                        'redirect_url': '/web/login',
-                    }
+                response = {
+                    'status': 'success',
+                    'message': f'✅ Souscription créée avec succès!',
+                    'is_free': True,
+                    'redirect_url': success_url,
+                }
 
             else:
                 # 💳 PLAN PAYANT: Générer lien de paiement
@@ -801,22 +780,9 @@ class OneDeskWebsite(http.Controller):
             'subscription_state': 'active',
         })
 
-        # 2. Créer une invitation si l'utilisateur n'existe pas encore
-        contact_email = client.email
-        _logger.info(f'📧 Vérification invitation pour {contact_email}')
-
-        existing_user = request.env['res.users'].sudo().search([('login', '=', contact_email)], limit=1)
-
-        if not existing_user:
-            _logger.info(f'🆕 Création invitation pour {contact_email}')
-            invitation = request.env['saas.client.invitation'].sudo().create({
-                'client_id': client.id,
-                'email': contact_email,
-                'role': 'admin',
-                'state': 'pending',
-                'expires_date': fields.Datetime.now() + timedelta(days=7),
-            })
-            _logger.info(f'✅ Invitation créée: ID={invitation.id}')
+        # 2. Log l'activation (pas d'invitation - le provisioning se fera manuellement via SaaS Manager)
+        _logger.info(f'📧 Client activé: {client.email}')
+        _logger.info(f'ℹ️ Le client devra être provisionné manuellement depuis le SaaS Manager')
 
         # 3. Créer un audit log (optionnel)
         try:
@@ -834,29 +800,29 @@ class OneDeskWebsite(http.Controller):
     def _get_saas_post_payment_redirect_url(self, client):
         """
         Obtenir l'URL de redirection après paiement SaaS réussi
+        Redirige vers la page de succès avec les informations du client
         """
-        contact_email = client.email
-        _logger.info(f'🔍 Recherche invitation SaaS pour {contact_email}')
+        _logger.info(f'🔍 Génération URL de redirection pour client {client.id}')
 
-        # Chercher une invitation en attente
-        invitation = request.env['saas.client.invitation'].sudo().search([
-            ('email', '=', contact_email),
-            ('state', '=', 'pending'),
-        ], limit=1, order='id desc')
-
-        if invitation:
-            redirect_url = f'/saas/invite/accept/{invitation.invitation_token}'
-            _logger.info(f'✅ Invitation trouvée, redirection vers: {redirect_url}')
-            return redirect_url
-        else:
-            _logger.warning(f'⚠️ Aucune invitation trouvée pour {contact_email}, redirection vers succès')
-            return '/saas/payment/success'
+        # Redirection vers page de succès
+        redirect_url = f'/saas/payment/success?client_id={client.id}'
+        _logger.info(f'✅ Redirection vers: {redirect_url}')
+        return redirect_url
 
     @http.route('/saas/payment/success', type='http', auth='public', website=True)
     def saas_payment_success(self, **kw):
         """Page de confirmation de paiement SaaS réussi"""
+        client_id = kw.get('client_id')
+        is_free = kw.get('free_plan') == '1'
+
+        client = None
+        if client_id:
+            client = request.env['saas.client'].sudo().browse(int(client_id))
+
         return request.render('website_onedesk.saas_payment_success', {
-            'page_title': 'Paiement Réussi',
+            'page_title': 'Souscription Réussie' if is_free else 'Paiement Réussi',
+            'client': client,
+            'is_free': is_free,
         })
 
     @http.route('/saas/payment/error', type='http', auth='public', website=True)
