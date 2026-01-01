@@ -54,8 +54,8 @@
                                 <!-- Client Info -->
                                 <div class="mt-4">
                                     <h6 class="border-bottom pb-2 mb-3">👤 Client</h6>
-                                    <p class="mb-1"><strong t-esc="client.company_id.name"></strong></p>
-                                    <p class="text-muted mb-0 small" t-esc="client.billing_contact_id.email"></p>
+                                    <p class="mb-1"><strong t-esc="client.company_name"></strong></p>
+                                    <p class="text-muted mb-0 small" t-esc="client.email"></p>
                                 </div>
                             </div>
                         </div>
