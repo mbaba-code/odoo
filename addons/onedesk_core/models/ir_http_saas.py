@@ -352,6 +352,12 @@ class IrHttp(models.AbstractModel):
         if config.get('db_name'):
             db_name = config.get('db_name')
             _logger.debug(f"[SAAS SECURITY] Utilisation db_name du config: {db_name}")
+
+            # IMPORTANT: Mettre à jour la session pour persister la base
+            # Sans ça, la prochaine requête redemandera la base
+            if hasattr(httprequest, 'session'):
+                httprequest.session.db = db_name
+
             return db_name
 
         # Récupérer le Host header
