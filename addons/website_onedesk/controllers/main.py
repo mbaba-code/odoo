@@ -465,7 +465,9 @@ class OneDeskWebsite(http.Controller):
                             'subscription_state': initial_state,
                             'subscription_billing': billing_cycle,
                         })
-                        _logger.info(f'✅ Created SaaS client {saas_client.id} (state={initial_state})')
+                        # Commit explicite pour s'assurer que le client est bien enregistré
+                        request.env.cr.commit()
+                        _logger.info(f'✅ Created SaaS client {saas_client.id} (state={initial_state}) - COMMITTED')
                         break
                     except psycopg2.errors.SerializationFailure as e:
                         if attempt < 2:
@@ -475,6 +477,10 @@ class OneDeskWebsite(http.Controller):
                         else:
                             _logger.error(f'❌ Échec création client après 3 tentatives: {e}')
                             raise
+                    except Exception as e:
+                        _logger.error(f'❌ Erreur lors de la création du client SaaS: {e}')
+                        request.env.cr.rollback()
+                        raise
             else:
                 # Mettre à jour le client existant
                 saas_client.write({
@@ -500,6 +506,7 @@ class OneDeskWebsite(http.Controller):
                 _logger.warning(f'⚠️ Impossible de créer l\'audit log: {e}')
 
             # 📧 Envoyer email à l'admin pour notification de provisioning
+            # Note: on fait ça APRÈS le commit du client pour être sûr qu'il est sauvegardé
             try:
                 admin_email = request.env['ir.config_parameter'].sudo().get_param('saas.admin_email', 'admin@basatechno.fr')
                 base_url = request.env['ir.config_parameter'].sudo().get_param('web.base.url')
@@ -534,8 +541,13 @@ class OneDeskWebsite(http.Controller):
                     )
                     _logger.info(f'✅ Notification admin envoyée pour client {saas_client.id}')
 
+                # Commit les notifications aussi
+                request.env.cr.commit()
+                _logger.info(f'✅ Notifications committées')
+
             except Exception as e:
                 _logger.warning(f'⚠️ Impossible d\'envoyer la notification admin: {e}')
+                # Ne pas rollback si les notifications échouent, le client est déjà sauvegardé
 
             # Logique différenciée gratuit/payant
             if is_free_plan:
@@ -817,6 +829,9 @@ class OneDeskWebsite(http.Controller):
         client.write({
             'subscription_state': 'active',
         })
+        # Commit explicite pour sauvegarder l'activation
+        request.env.cr.commit()
+        _logger.info(f'✅ Client {client.id} activé et committé en base')
 
         # 2. Log l'activation (pas d'invitation - le provisioning se fera manuellement via SaaS Manager)
         _logger.info(f'📧 Client activé: {client.email}')
