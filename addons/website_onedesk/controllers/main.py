@@ -499,6 +499,44 @@ class OneDeskWebsite(http.Controller):
             except Exception as e:
                 _logger.warning(f'⚠️ Impossible de créer l\'audit log: {e}')
 
+            # 📧 Envoyer email à l'admin pour notification de provisioning
+            try:
+                admin_email = request.env['ir.config_parameter'].sudo().get_param('saas.admin_email', 'admin@basatechno.fr')
+                base_url = request.env['ir.config_parameter'].sudo().get_param('web.base.url')
+
+                # Email simple via message_post pour l'admin
+                saas_client.message_post(
+                    body=f"""
+                        <h3>🆕 Nouveau client SaaS à provisionner</h3>
+                        <p><strong>Client :</strong> {company_name}</p>
+                        <p><strong>Contact :</strong> {contact_name} ({email})</p>
+                        <p><strong>Plan :</strong> {plan.name}</p>
+                        <p><strong>Facturation :</strong> {billing_cycle}</p>
+                        <p><strong>État :</strong> {'✅ Actif (plan gratuit)' if is_free_plan else '⏳ En attente de paiement'}</p>
+                        <hr/>
+                        <p>👉 <a href='{base_url}/web#id={saas_client.id}&model=saas.client&view_type=form'>Voir le client dans le SaaS Manager</a></p>
+                        <p>🚀 Action requise : Provisionner la base de données pour ce client</p>
+                    """,
+                    subject=f'🆕 Nouveau client SaaS: {company_name}',
+                    message_type='notification',
+                    partner_ids=[],  # Envoyer à tous les admins
+                )
+
+                # Notifier les utilisateurs avec groupe système
+                admin_users = request.env['res.users'].sudo().search([
+                    ('groups_id', 'in', request.env.ref('base.group_system').id)
+                ])
+                if admin_users:
+                    saas_client.message_notify(
+                        partner_ids=admin_users.mapped('partner_id').ids,
+                        subject=f'🆕 Nouveau client SaaS: {company_name}',
+                        body=f'Client {company_name} inscrit au plan {plan.name}. Provisioning requis.',
+                    )
+                    _logger.info(f'✅ Notification admin envoyée pour client {saas_client.id}')
+
+            except Exception as e:
+                _logger.warning(f'⚠️ Impossible d\'envoyer la notification admin: {e}')
+
             # Logique différenciée gratuit/payant
             if is_free_plan:
                 # ✅ PLAN GRATUIT: Activation immédiate
@@ -784,7 +822,42 @@ class OneDeskWebsite(http.Controller):
         _logger.info(f'📧 Client activé: {client.email}')
         _logger.info(f'ℹ️ Le client devra être provisionné manuellement depuis le SaaS Manager')
 
-        # 3. Créer un audit log (optionnel)
+        # 3. 📧 Envoyer notification admin après paiement
+        try:
+            base_url = request.env['ir.config_parameter'].sudo().get_param('web.base.url')
+
+            # Message dans le chatter du client
+            client.message_post(
+                body=f"""
+                    <h3>💳 Paiement validé - Client à provisionner</h3>
+                    <p><strong>Client :</strong> {client.company_name}</p>
+                    <p><strong>Contact :</strong> {client.name} ({client.email})</p>
+                    <p><strong>Plan :</strong> {client.plan_id.name}</p>
+                    <p><strong>État :</strong> ✅ PAYÉ - En attente de provisioning</p>
+                    <hr/>
+                    <p>👉 <a href='{base_url}/web#id={client.id}&model=saas.client&view_type=form'>Voir le client dans le SaaS Manager</a></p>
+                    <p>🚀 Action requise : Provisionner la base de données pour ce client MAINTENANT</p>
+                """,
+                subject=f'💳 Paiement validé - {client.company_name} - PROVISIONNER',
+                message_type='notification',
+            )
+
+            # Notifier les admins système
+            admin_users = request.env['res.users'].sudo().search([
+                ('groups_id', 'in', request.env.ref('base.group_system').id)
+            ])
+            if admin_users:
+                client.message_notify(
+                    partner_ids=admin_users.mapped('partner_id').ids,
+                    subject=f'💳 URGENT: {client.company_name} a payé - Provisionner maintenant',
+                    body=f'Le client {client.company_name} ({client.plan_id.name}) a payé. Base de données à provisionner.',
+                )
+                _logger.info(f'✅ Notification admin paiement envoyée pour client {client.id}')
+
+        except Exception as e:
+            _logger.warning(f'⚠️ Impossible d\'envoyer la notification admin après paiement: {e}')
+
+        # 4. Créer un audit log (optionnel)
         try:
             request.env['saas.audit_log'].sudo().log_action(
                 action='provision_success',
