@@ -219,10 +219,39 @@ class IrHttp(models.AbstractModel):
         # SÉCURITÉ: Forcer la base maître dans la session si non définie
         # Cela empêche la redirection automatique vers le database selector
         if not request.session.db:
+            # Essayer plusieurs méthodes pour trouver la base par défaut
+            master_db = None
+
+            # Méthode 1: Détection automatique via saas_client
             master_db = cls._get_master_database()
+
+            # Méthode 2: Variable d'environnement
+            if not master_db:
+                import os
+                master_db = os.environ.get('ODOO_DEFAULT_DB')
+
+            # Méthode 3: Configuration Odoo
+            if not master_db:
+                from odoo.tools import config
+                master_db = config.get('db_name')
+
+            # Méthode 4: Lister les bases et prendre la première
+            if not master_db:
+                try:
+                    import odoo
+                    db_list = odoo.service.db.list_dbs(force=True)
+                    if db_list:
+                        master_db = db_list[0]
+                        _logger.info(f"[SAAS SECURITY] Utilisation de la première base disponible: {master_db}")
+                except:
+                    pass
+
+            # Forcer la base dans la session
             if master_db:
                 request.session.db = master_db
-                _logger.debug(f"[SAAS SECURITY] Base maître forcée dans session: {master_db}")
+                _logger.debug(f"[SAAS SECURITY] Base forcée dans session: {master_db}")
+            else:
+                _logger.error("[SAAS SECURITY] Aucune base trouvée - database selector sera affiché")
 
         # Vérifier l'accès à la base de données
         db_name = request.db if hasattr(request, 'db') else None
