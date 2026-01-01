@@ -360,6 +360,13 @@ class IrHttp(models.AbstractModel):
             except Exception as e:
                 _logger.error(f"[SAAS] Erreur lors du mapping subdomain '{subdomain}': {str(e)}")
 
-        # Fallback sur le comportement par défaut d'Odoo
+        # SÉCURITÉ: En mode SaaS, TOUJOURS retourner la base maître au lieu du sélecteur
+        # Cela empêche l'affichage du database selector aux clients publics
+        master_db = httprequest.session.get('force_db') or cls._get_master_database()
+        if master_db:
+            _logger.debug(f"[SAAS SECURITY] Fallback vers base maître: {master_db} (empêche database selector)")
+            return master_db
+
+        # Si vraiment aucune base trouvée, fallback Odoo (ne devrait jamais arriver)
         return super()._get_db_from_request(httprequest)
 
