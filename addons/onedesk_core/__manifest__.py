@@ -69,7 +69,6 @@
     # Auth pages responsive override (login/signup)
     'views/auth_responsive_override.xml',
     'views/database_suspended_template.xml',  # Template for suspended/terminated databases
-    'views/database_security_templates.xml',  # SÉCURITÉ: Blocage database manager
 
     # Multi-tenant views (admin)
     'views/onedesk_plan_views.xml',

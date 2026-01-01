@@ -14,6 +14,10 @@
         'templates/pages.xml',
         'templates/subscription.xml',
         'templates/payment.xml',
+        'templates/saas_landing.xml',
+        'templates/saas_subscribe_form.xml',
+        'templates/saas_payment.xml',
+        'views/saas_website_pages.xml',
     ],
     'external_dependencies': {
         'python': [],
@@ -22,6 +26,7 @@
         'web.assets_frontend': [
             'website_onedesk/static/css/website_onedesk.css',
             'website_onedesk/static/css/payment.css',
+            'website_onedesk/static/css/saas_landing.css',
         ],
     },
     'installable': True,

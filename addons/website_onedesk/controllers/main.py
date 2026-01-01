@@ -349,6 +349,591 @@ class OneDeskWebsite(http.Controller):
 
     # ==================== SUBSCRIPTION / PRICING ====================
 
+    # ==================== SAAS PRODUCT LANDING PAGE ====================
+
+    @http.route('/saas', type='http', auth='public', website=True)
+    def saas_landing_page(self, **kw):
+        """Landing page pour le produit SaaS avec tarifs dynamiques"""
+        # Récupérer tous les plans SaaS actifs
+        plans = request.env['saas.plan'].sudo().search([
+            ('active', '=', True)
+        ], order='sequence')
+
+        return request.render('website_onedesk.saas_landing_page', {
+            'plans': plans,
+            'page_title': 'Plateforme SaaS Multi-Tenant - Solution Professionnelle',
+        })
+
+    @http.route('/saas/subscribe/<int:plan_id>', type='http', auth='public', website=True)
+    def saas_subscribe(self, plan_id, **kw):
+        """Page de souscription pour un plan SaaS spécifique"""
+        plan = request.env['saas.plan'].sudo().browse(plan_id)
+
+        if not plan.exists():
+            return request.render('website.404')
+
+        return request.render('website_onedesk.saas_subscribe_form', {
+            'plan': plan,
+            'page_title': f'S\'abonner au plan {plan.name}',
+        })
+
+    @http.route('/saas/subscribe/create', type='http', auth='public', website=True, methods=['POST'], csrf=False)
+    def saas_subscribe_create(self, **kw):
+        """
+        Crée une souscription SaaS avec gestion du paiement
+
+        COMPORTEMENT:
+        - Plans GRATUITS (price_monthly = 0 et price_yearly = 0): activation immédiate
+        - Plans PAYANTS: génération lien paiement
+        - Mode TEST: simulation de paiement
+        - Mode PROD: paiement réel via Stripe/PayPal
+        """
+        try:
+            # Récupérer les données du formulaire
+            plan_id = int(kw.get('plan_id'))
+            company_name = kw.get('company_name', '').strip()
+            contact_name = kw.get('contact_name', '').strip()
+            email = kw.get('email', '').strip()
+            phone = kw.get('phone', '').strip()
+            billing_cycle = kw.get('billing_cycle', 'monthly')  # 'monthly' ou 'yearly'
+            terms_accepted = kw.get('terms_accepted') == 'on'
+
+            # Valider les champs requis
+            if not all([company_name, contact_name, email]):
+                return http.Response(
+                    json.dumps({
+                        'status': 'error',
+                        'message': 'Tous les champs marqués avec * sont requis.',
+                    }),
+                    content_type='application/json'
+                )
+
+            if not terms_accepted:
+                return http.Response(
+                    json.dumps({
+                        'status': 'error',
+                        'message': 'Veuillez accepter les conditions d\'utilisation.',
+                    }),
+                    content_type='application/json'
+                )
+
+            # Récupérer le plan
+            plan = request.env['saas.plan'].sudo().browse(plan_id)
+            if not plan.exists():
+                return http.Response(
+                    json.dumps({
+                        'status': 'error',
+                        'message': 'Ce plan n\'existe pas.',
+                    }),
+                    content_type='application/json'
+                )
+
+            # Déterminer si le plan est gratuit
+            is_free_plan = (plan.price_monthly == 0 and plan.price_yearly == 0)
+            payment_mode = self._get_payment_mode()
+
+            _logger.info(f'📋 Plan {plan.name}: Gratuit={is_free_plan}, Cycle={billing_cycle}, Mode paiement={payment_mode}')
+
+            # Calculer le montant à payer
+            if billing_cycle == 'yearly':
+                amount = plan.price_yearly
+            else:
+                amount = plan.price_monthly
+
+            # Vérifier si un client avec cet email existe déjà
+            SaasClient = request.env['saas.client'].sudo()
+            existing_client = SaasClient.search([('email', '=', email)], limit=1)
+
+            if existing_client:
+                # Client déjà existant - retourner une erreur
+                _logger.warning(f'⚠️ Tentative d\'inscription avec email existant: {email}')
+                return http.Response(
+                    json.dumps({
+                        'status': 'error',
+                        'message': f'Un compte avec l\'email {email} existe déjà. Veuillez utiliser un autre email ou contactez le support.',
+                    }),
+                    content_type='application/json'
+                )
+
+            # Créer le nouveau client SaaS
+            # Déterminer l'état initial
+            # Plans gratuits = actif immédiatement
+            # Plans payants = trial (en attente de paiement) puis active après paiement
+            if is_free_plan:
+                initial_state = 'active'
+            else:
+                initial_state = 'trial'  # En attente de paiement
+
+            # Retry pour gérer les erreurs de concurrence
+            saas_client = None
+            for attempt in range(3):
+                try:
+                    saas_client = SaasClient.create({
+                        'company_name': company_name,
+                        'name': contact_name,
+                        'email': email,
+                        'phone': phone if phone else False,
+                        'plan_id': plan.id,
+                        'subscription_state': initial_state,
+                        'subscription_billing': billing_cycle,
+                    })
+                    # Commit explicite pour s'assurer que le client est bien enregistré
+                    request.env.cr.commit()
+                    _logger.info(f'✅ Created SaaS client {saas_client.id} (state={initial_state}) - COMMITTED')
+                    break
+                except psycopg2.errors.SerializationFailure as e:
+                    if attempt < 2:
+                        _logger.warning(f'⚠️ Erreur de concurrence (tentative {attempt + 1}/3), retry...')
+                        request.env.cr.rollback()
+                        time.sleep(0.1)
+                    else:
+                        _logger.error(f'❌ Échec création client après 3 tentatives: {e}')
+                        raise
+                except Exception as e:
+                    _logger.error(f'❌ Erreur lors de la création du client SaaS: {e}')
+                    request.env.cr.rollback()
+                    raise
+
+            # Log audit (optionnel)
+            try:
+                request.env['saas.audit_log'].sudo().log_action(
+                    action='provision',
+                    client_id=saas_client.id,
+                    status='success',
+                    metadata={
+                        'plan': plan.name,
+                        'billing_cycle': billing_cycle,
+                        'is_free': is_free_plan,
+                        'contact_name': contact_name,
+                        'contact_email': email,
+                    }
+                )
+            except Exception as e:
+                _logger.warning(f'⚠️ Impossible de créer l\'audit log: {e}')
+
+            # 📧 Envoyer email à l'admin pour notification de provisioning
+            # Note: on fait ça APRÈS le commit du client pour être sûr qu'il est sauvegardé
+            try:
+                admin_email = request.env['ir.config_parameter'].sudo().get_param('saas.admin_email', 'admin@basatechno.fr')
+                base_url = request.env['ir.config_parameter'].sudo().get_param('web.base.url')
+
+                # Email simple via message_post pour l'admin
+                saas_client.message_post(
+                    body=f"""
+                        <h3>🆕 Nouveau client SaaS à provisionner</h3>
+                        <p><strong>Client :</strong> {company_name}</p>
+                        <p><strong>Contact :</strong> {contact_name} ({email})</p>
+                        <p><strong>Plan :</strong> {plan.name}</p>
+                        <p><strong>Facturation :</strong> {billing_cycle}</p>
+                        <p><strong>État :</strong> {'✅ Actif (plan gratuit)' if is_free_plan else '⏳ En attente de paiement'}</p>
+                        <hr/>
+                        <p>👉 <a href='{base_url}/web#id={saas_client.id}&model=saas.client&view_type=form'>Voir le client dans le SaaS Manager</a></p>
+                        <p>🚀 Action requise : Provisionner la base de données pour ce client</p>
+                    """,
+                    subject=f'🆕 Nouveau client SaaS: {company_name}',
+                    message_type='notification',
+                    partner_ids=[],  # Envoyer à tous les admins
+                )
+
+                # Notifier les utilisateurs avec groupe système
+                admin_users = request.env['res.users'].sudo().search([
+                    ('groups_id', 'in', request.env.ref('base.group_system').id)
+                ])
+                if admin_users:
+                    saas_client.message_notify(
+                        partner_ids=admin_users.mapped('partner_id').ids,
+                        subject=f'🆕 Nouveau client SaaS: {company_name}',
+                        body=f'Client {company_name} inscrit au plan {plan.name}. Provisioning requis.',
+                    )
+                    _logger.info(f'✅ Notification admin envoyée pour client {saas_client.id}')
+
+                # Commit les notifications aussi
+                request.env.cr.commit()
+                _logger.info(f'✅ Notifications committées')
+
+            except Exception as e:
+                _logger.warning(f'⚠️ Impossible d\'envoyer la notification admin: {e}')
+                # Ne pas rollback si les notifications échouent, le client est déjà sauvegardé
+
+            # Logique différenciée gratuit/payant
+            if is_free_plan:
+                # ✅ PLAN GRATUIT: Activation immédiate
+                _logger.info('🆓 Plan gratuit - Activation immédiate')
+
+                # Redirection vers page de succès
+                base_url = request.env['ir.config_parameter'].sudo().get_param('web.base.url')
+                success_url = f"{base_url}/saas/payment/success?client_id={saas_client.id}&free_plan=1"
+
+                response = {
+                    'status': 'success',
+                    'message': f'✅ Souscription créée avec succès!',
+                    'is_free': True,
+                    'redirect_url': success_url,
+                }
+
+            else:
+                # 💳 PLAN PAYANT: Générer lien de paiement
+                _logger.info(f'💰 Montant à payer: {amount}€')
+
+                # Construire l'URL de paiement
+                base_url = request.env['ir.config_parameter'].sudo().get_param('web.base.url')
+
+                if payment_mode == 'test':
+                    # Mode TEST: simulation
+                    payment_url = f"{base_url}/saas/payment/test/{saas_client.id}?amount={amount}&cycle={billing_cycle}"
+                    _logger.info('🧪 MODE TEST - SIMULATION DE PAIEMENT')
+                    message = f'🧪 MODE TEST - Souscription créée\n\nVous allez être redirigé vers la simulation de paiement.\n\nMontant: {amount}€'
+                else:
+                    # Mode PROD: paiement réel
+                    payment_url = f"{base_url}/saas/payment/{saas_client.id}?amount={amount}&cycle={billing_cycle}"
+                    _logger.info('💳 MODE PRODUCTION - PAIEMENT RÉEL')
+                    message = f'💳 Paiement requis\n\nVous allez être redirigé vers le paiement sécurisé.\n\nMontant: {amount}€'
+
+                response = {
+                    'status': 'success',
+                    'message': message,
+                    'is_free': False,
+                    'requires_payment': True,
+                    'payment_url': payment_url,
+                    'amount': amount,
+                    'payment_mode': payment_mode,
+                }
+
+            _logger.info(f'Returning response: {response}')
+            return http.Response(json.dumps(response), content_type='application/json')
+
+        except ValueError as e:
+            _logger.error(f'ValueError: {e}')
+            return http.Response(
+                json.dumps({
+                    'status': 'error',
+                    'message': 'Données invalides. Veuillez vérifier votre saisie.',
+                }),
+                content_type='application/json'
+            )
+
+        except Exception as e:
+            error_msg = str(e)
+            _logger.exception(f'Unexpected error creating SaaS subscription: {error_msg}')
+            return http.Response(
+                json.dumps({
+                    'status': 'error',
+                    'message': f'Une erreur s\'est produite: {error_msg}',
+                }),
+                content_type='application/json'
+            )
+
+    # ==================== SAAS PAYMENT ROUTES ====================
+
+    @http.route('/saas/payment/test/<int:client_id>', type='http', auth='public', website=True)
+    def saas_payment_test_page(self, client_id, **kw):
+        """
+        Page de simulation de paiement en mode TEST pour SaaS
+        """
+        client = request.env['saas.client'].sudo().browse(client_id)
+
+        if not client.exists():
+            return request.render('website.404')
+
+        amount = float(kw.get('amount', 0))
+        cycle = kw.get('cycle', 'monthly')
+
+        return request.render('website_onedesk.saas_payment_test_page', {
+            'client': client,
+            'plan': client.plan_id,
+            'amount': amount,
+            'cycle': cycle,
+            'page_title': 'Simulation de Paiement SaaS (MODE TEST)',
+        })
+
+    @http.route('/saas/payment/test/simulate', type='http', auth='public', methods=['POST'], csrf=False)
+    def saas_payment_test_simulate(self, **kw):
+        """
+        Simule un paiement validé en mode TEST pour SaaS
+        """
+        try:
+            client_id = int(kw.get('client_id'))
+            action = kw.get('action')  # 'success' ou 'fail'
+
+            client = request.env['saas.client'].sudo().browse(client_id)
+
+            if not client.exists():
+                return http.Response(
+                    json.dumps({
+                        'status': 'error',
+                        'message': 'Client SaaS non trouvé',
+                    }),
+                    content_type='application/json'
+                )
+
+            if action == 'success':
+                # Simuler un paiement réussi
+                self._activate_saas_client_after_payment(client)
+
+                # Récupérer l'URL de redirection
+                redirect_url = self._get_saas_post_payment_redirect_url(client)
+
+                return http.Response(
+                    json.dumps({
+                        'status': 'success',
+                        'message': '✅ Paiement simulé avec succès!',
+                        'redirect_url': redirect_url,
+                    }),
+                    content_type='application/json'
+                )
+            else:
+                # Simuler un échec de paiement
+                return http.Response(
+                    json.dumps({
+                        'status': 'error',
+                        'message': '❌ Paiement simulé échoué',
+                        'redirect_url': '/saas/payment/error',
+                    }),
+                    content_type='application/json'
+                )
+
+        except Exception as e:
+            _logger.exception('Error in SaaS payment simulation')
+            return http.Response(
+                json.dumps({
+                    'status': 'error',
+                    'message': str(e),
+                }),
+                content_type='application/json'
+            )
+
+    @http.route('/saas/payment/<int:client_id>', type='http', auth='public', website=True)
+    def saas_payment_page(self, client_id, **kw):
+        """
+        Page de paiement réel en mode PRODUCTION pour SaaS
+        """
+        client = request.env['saas.client'].sudo().browse(client_id)
+
+        if not client.exists():
+            return request.render('website.404')
+
+        amount = float(kw.get('amount', 0))
+        cycle = kw.get('cycle', 'monthly')
+
+        # Récupérer les payment providers
+        payment_providers = request.env['payment.provider'].sudo().search([
+            ('state', '!=', 'disabled'),
+        ])
+
+        if not payment_providers:
+            _logger.warning('⚠️ No payment providers configured for PROD mode')
+            return request.render('website_onedesk.saas_payment_error', {
+                'error_message': 'Aucun moyen de paiement configuré. Veuillez contacter le support.',
+                'page_title': 'Erreur de paiement',
+            })
+
+        currency = request.env.company.currency_id
+        # Récupérer le partenaire depuis l'email du client
+        partner = request.env['res.partner'].sudo().search([('email', '=', client.email)], limit=1)
+        if not partner:
+            partner = request.env.user.partner_id
+
+        _logger.info(f'💳 SaaS Payment PROD - Client: {client.id}, Amount: {amount}€')
+
+        return request.render('website_onedesk.saas_payment_page_prod', {
+            'client': client,
+            'plan': client.plan_id,
+            'amount': amount,
+            'cycle': cycle,
+            'currency': currency,
+            'partner_id': partner.id,
+            'providers_sudo': payment_providers,
+            'transaction_route': '/payment/transaction',
+            'landing_route': f'/saas/payment/callback?client_id={client_id}',
+            'reference_prefix': f'SAAS-{client.id}',
+            'page_title': 'Paiement SaaS',
+        })
+
+    @http.route('/saas/payment/callback', type='http', auth='public', methods=['GET', 'POST'], csrf=False, website=True)
+    def saas_payment_callback(self, **kw):
+        """
+        Callback appelé après paiement SaaS
+        """
+        try:
+            client_id = int(kw.get('client_id'))
+            client = request.env['saas.client'].sudo().browse(client_id)
+
+            if not client.exists():
+                _logger.error(f'SaaS Client {client_id} not found in payment callback')
+                return request.redirect('/saas/payment/error?error=client_not_found')
+
+            _logger.info(f'💳 SaaS Payment callback received for client {client.id}')
+
+            # Chercher la transaction de paiement
+            tx = request.env['payment.transaction'].sudo().search([
+                ('reference', 'like', f'SAAS-{client.id}%'),
+            ], order='id desc', limit=1)
+
+            if not tx:
+                _logger.error(f'No payment transaction found for SaaS client {client.id}')
+                return request.redirect('/saas/payment/error?error=transaction_not_found')
+
+            _logger.info(f'💳 Transaction found: {tx.reference}, state: {tx.state}')
+
+            # Vérifier l'état de la transaction
+            if tx.state == 'done':
+                # Paiement réussi - Activer le client
+                _logger.info(f'✅ Payment successful for SaaS client {client.id}')
+                self._activate_saas_client_after_payment(client)
+
+                # Redirection
+                redirect_url = self._get_saas_post_payment_redirect_url(client)
+                return request.redirect(redirect_url)
+
+            elif tx.state == 'authorized':
+                # Paiement autorisé
+                _logger.info(f'⏳ Payment authorized for SaaS client {client.id}')
+                self._activate_saas_client_after_payment(client)
+
+                redirect_url = self._get_saas_post_payment_redirect_url(client)
+                return request.redirect(redirect_url)
+
+            elif tx.state in ['pending', 'draft']:
+                # Paiement en attente
+                _logger.info(f'⏳ Payment pending for SaaS client {client.id}')
+                return request.redirect('/saas/payment/pending')
+
+            elif tx.state in ['cancel', 'error']:
+                # Paiement échoué
+                _logger.warning(f'❌ Payment failed for SaaS client {client.id}: {tx.state_message}')
+
+                # Log l'échec (optionnel)
+                try:
+                    request.env['saas.audit_log'].sudo().log_action(
+                        action='access_denied',  # Utiliser une action existante
+                        client_id=client.id,
+                        status='error',
+                        error_message=f'Échec de paiement: {tx.state_message}',
+                        metadata={'transaction_state': tx.state}
+                    )
+                except Exception as e:
+                    _logger.warning(f'⚠️ Impossible de créer l\'audit log: {e}')
+
+                return request.redirect(f'/saas/payment/error?error={tx.state_message or "payment_failed"}')
+
+            else:
+                # État inconnu
+                _logger.warning(f'⚠️ Unknown payment state for SaaS client {client.id}: {tx.state}')
+                return request.redirect('/saas/payment/pending')
+
+        except Exception as e:
+            _logger.exception('Error in SaaS payment callback')
+            return request.redirect(f'/saas/payment/error?error={str(e)}')
+
+    def _activate_saas_client_after_payment(self, client):
+        """
+        Active un client SaaS après validation du paiement
+        """
+        _logger.info(f'✅ Activating SaaS client {client.id} after payment')
+
+        # 1. Activer le client
+        client.write({
+            'subscription_state': 'active',
+        })
+        # Commit explicite pour sauvegarder l'activation
+        request.env.cr.commit()
+        _logger.info(f'✅ Client {client.id} activé et committé en base')
+
+        # 2. Log l'activation (pas d'invitation - le provisioning se fera manuellement via SaaS Manager)
+        _logger.info(f'📧 Client activé: {client.email}')
+        _logger.info(f'ℹ️ Le client devra être provisionné manuellement depuis le SaaS Manager')
+
+        # 3. 📧 Envoyer notification admin après paiement
+        try:
+            base_url = request.env['ir.config_parameter'].sudo().get_param('web.base.url')
+
+            # Message dans le chatter du client
+            client.message_post(
+                body=f"""
+                    <h3>💳 Paiement validé - Client à provisionner</h3>
+                    <p><strong>Client :</strong> {client.company_name}</p>
+                    <p><strong>Contact :</strong> {client.name} ({client.email})</p>
+                    <p><strong>Plan :</strong> {client.plan_id.name}</p>
+                    <p><strong>État :</strong> ✅ PAYÉ - En attente de provisioning</p>
+                    <hr/>
+                    <p>👉 <a href='{base_url}/web#id={client.id}&model=saas.client&view_type=form'>Voir le client dans le SaaS Manager</a></p>
+                    <p>🚀 Action requise : Provisionner la base de données pour ce client MAINTENANT</p>
+                """,
+                subject=f'💳 Paiement validé - {client.company_name} - PROVISIONNER',
+                message_type='notification',
+            )
+
+            # Notifier les admins système
+            admin_users = request.env['res.users'].sudo().search([
+                ('groups_id', 'in', request.env.ref('base.group_system').id)
+            ])
+            if admin_users:
+                client.message_notify(
+                    partner_ids=admin_users.mapped('partner_id').ids,
+                    subject=f'💳 URGENT: {client.company_name} a payé - Provisionner maintenant',
+                    body=f'Le client {client.company_name} ({client.plan_id.name}) a payé. Base de données à provisionner.',
+                )
+                _logger.info(f'✅ Notification admin paiement envoyée pour client {client.id}')
+
+        except Exception as e:
+            _logger.warning(f'⚠️ Impossible d\'envoyer la notification admin après paiement: {e}')
+
+        # 4. Créer un audit log (optionnel)
+        try:
+            request.env['saas.audit_log'].sudo().log_action(
+                action='provision_success',
+                client_id=client.id,
+                status='success',
+                metadata={'payment_validated': True, 'subscription_state': 'active'}
+            )
+        except Exception as e:
+            _logger.warning(f'⚠️ Impossible de créer l\'audit log: {e}')
+
+        _logger.info(f'✅ SaaS Client {client.id} fully activated')
+
+    def _get_saas_post_payment_redirect_url(self, client):
+        """
+        Obtenir l'URL de redirection après paiement SaaS réussi
+        Redirige vers la page de succès avec les informations du client
+        """
+        _logger.info(f'🔍 Génération URL de redirection pour client {client.id}')
+
+        # Redirection vers page de succès
+        redirect_url = f'/saas/payment/success?client_id={client.id}'
+        _logger.info(f'✅ Redirection vers: {redirect_url}')
+        return redirect_url
+
+    @http.route('/saas/payment/success', type='http', auth='public', website=True)
+    def saas_payment_success(self, **kw):
+        """Page de confirmation de paiement SaaS réussi"""
+        client_id = kw.get('client_id')
+        is_free = kw.get('free_plan') == '1'
+
+        client = None
+        if client_id:
+            client = request.env['saas.client'].sudo().browse(int(client_id))
+
+        return request.render('website_onedesk.saas_payment_success', {
+            'page_title': 'Souscription Réussie' if is_free else 'Paiement Réussi',
+            'client': client,
+            'is_free': is_free,
+        })
+
+    @http.route('/saas/payment/error', type='http', auth='public', website=True)
+    def saas_payment_error(self, **kw):
+        """Page d'erreur de paiement SaaS"""
+        return request.render('website_onedesk.saas_payment_error', {
+            'page_title': 'Erreur de Paiement',
+            'error_message': kw.get('error', 'Une erreur est survenue'),
+        })
+
+    @http.route('/saas/payment/pending', type='http', auth='public', website=True)
+    def saas_payment_pending(self, **kw):
+        """Page de paiement en attente SaaS"""
+        return request.render('website_onedesk.payment_pending', {
+            'page_title': 'Paiement en Attente',
+        })
+
     @http.route('/onedesk/subscription', type='http', auth='public', website=True)
     def subscription_plans(self, **kw):
         """Page de plans d'abonnement"""
